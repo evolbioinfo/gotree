@@ -352,25 +352,29 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 	curchild := curnode
 	var e error
 
-	relen, erlen := regexp.Compile(`^\:(\d+(\.\d+){0,1}(e-\d+){0,1})`)
-	resup, ersup := regexp.Compile(`^\)(\d+(\.\d+){0,1}(e-\d+){0,1})`)
-	recomment, ercomment := regexp.Compile(`^\[([^,\(\)]*)\]`)
+	relen, erlen := regexp.Compile(`^\:([^,;\)]*)`)
+	// Detects if there is something between the close ) and the branch length (or next something :,;))
+	rebeforelen, erbeforelen := regexp.Compile(`^\)([^:,;\)]+?)[:,;\)]`)
+	// If there is something before branche length, it should be in the form
+	// ).*[Comment] with the .* : without [ and ] and comment without ,()
+	rebootcomment, ercomment := regexp.Compile(`^([^\[\]:,]*)(\[([^,\(\)]*)\]){0,1}$`)
 	if erlen != nil {
 		return -1, erlen
 	}
 	if ercomment != nil {
 		return -1, ercomment
 	}
-	if ersup != nil {
-		return -1, ersup
+	if erbeforelen != nil {
+		return -1, erbeforelen
 	}
 
 	for pos < len(newick_str) {
 		var matchBrlen = relen.FindStringSubmatch(string(newick_str[pos:]))
-		var matchComment = recomment.FindStringSubmatch(string(newick_str[pos:]))
-		matchSup := make([]string, 0)
+		matchBeforeLen := make([]string, 0)
 		if pos > 1 {
-			matchSup = resup.FindStringSubmatch(string(newick_str[pos-1:]))
+			if newick_str[pos-1] == ')' {
+				matchBeforeLen = rebeforelen.FindStringSubmatch(string(newick_str[pos-1:]))
+			}
 		}
 
 		if pos == 0 && newick_str[0] != '(' {
@@ -398,18 +402,27 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 					return -1, e
 				}
 			}
-		} else if len(matchSup) > 1 {
-			support, errfl := strconv.ParseFloat(matchSup[1], 64)
-			if errfl != nil {
-				return -1, errfl
+		} else if len(matchBeforeLen) > 1 {
+			matchSupComment := rebootcomment.FindStringSubmatch(matchBeforeLen[1])
+			if len(matchSupComment) > 0 {
+				if matchSupComment[1] != "" {
+					support, errfl := strconv.ParseFloat(matchSupComment[1], 64)
+					if errfl != nil {
+						return -1, errfl
+					}
+					edge, err := curchild.ParentEdge()
+					if err != nil {
+						return -1, err
+					}
+					edge.SetSupport(support)
+				}
+				if matchSupComment[3] != "" {
+					curchild.SetComment(matchSupComment[3])
+				}
+				pos += len([]rune(matchBeforeLen[0])) - 2
+			} else {
+				return -1, errors.New("Bad Newick Format from \"" + string(newick_str[pos-1:pos+30]) + "\"")
 			}
-			edge, err := curchild.ParentEdge()
-			if err != nil {
-				return -1, err
-			}
-			edge.SetSupport(support)
-			pos += len([]rune(matchSup[0])) - 1
-			matchSup = make([]string, 0)
 		} else if newick_str[pos] == ')' {
 			pos++
 			if (level - 1) < 0 {
@@ -418,10 +431,6 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 			return pos, nil
 		} else if newick_str[pos] == ',' {
 			pos++
-		} else if len(matchComment) > 1 {
-			curchild.SetComment(matchComment[1])
-			pos += len([]rune(matchComment[0]))
-			matchComment = make([]string, 0)
 		} else if len(matchBrlen) > 1 {
 			// console.log(matchBrlen[0]);
 			nodeindex, err := curnode.NodeIndex(curchild)
@@ -447,6 +456,9 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 				return -1, e
 			}
 			match := reg.FindStringSubmatch(string(newick_str[pos:]))
+			if len(match) == 0 || match[0] == "" {
+				return -1, errors.New("Bad Newick format at \"" + string(newick_str[pos:pos+30]) + "\"")
+			}
 			// console.log(match[0]+" "+match[1]);
 			newnode := tree.AddNewNode()
 			newedge := tree.ConnectNodes(curnode, newnode)
@@ -477,6 +489,9 @@ func (n *Node) Newick(parent *Node) string {
 				if n.br[i].support != -1 {
 					newick += strconv.FormatFloat(n.br[i].support, 'f', 5, 64)
 				}
+				if child.comment != "" {
+					newick += "[" + child.comment + "]"
+				}
 				if n.br[i].length != -1 {
 					newick += ":" + strconv.FormatFloat(n.br[i].length, 'f', 5, 64)
 				}
@@ -485,9 +500,6 @@ func (n *Node) Newick(parent *Node) string {
 		}
 		if len(n.neigh) > 1 {
 			newick += ")"
-		}
-		if n.comment != "" {
-			newick += "[" + n.comment + "]"
 		}
 	}
 	newick += n.name
