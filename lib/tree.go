@@ -88,6 +88,46 @@ func (n *Node) SetDepth(depth int) {
 	n.depth = depth
 }
 
+// Retrieve the parent node
+// If several parents: Error
+// Parent is defined as the node n2 connected to n
+// by an edge e with e.left == n2 and e.right == n
+func (n *Node) Parent() (*Node, error) {
+	var n2 *Node
+	for _, e := range n.br {
+		if e.right == n {
+			if n2 != nil {
+				return nil, errors.New("The node has more than one parent")
+			}
+			n2 = e.left
+		}
+	}
+	if n2 == nil {
+		return nil, errors.New("The node has no parent : May be the root?")
+	}
+	return n2, nil
+}
+
+// Retrieve the Edge going to Parent node
+// If several parents: Error
+// Parent is defined as the node n2 connected to n
+// by an edge e with e.left == n2 and e.right == n
+func (n *Node) ParentEdge() (*Edge, error) {
+	var e2 *Edge
+	for _, e := range n.br {
+		if e.right == n {
+			if e2 != nil {
+				return nil, errors.New("The node has more than one parent")
+			}
+			e2 = e
+		}
+	}
+	if e2 == nil {
+		return nil, errors.New("The node has no parent : May by the root?")
+	}
+	return e2, nil
+}
+
 /* Edge functions */
 /******************/
 
@@ -307,6 +347,7 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 	var e error
 
 	relen, erlen := regexp.Compile(`^\:(\d+(\.\d+){0,1}(e-\d+){0,1})`)
+	resup, ersup := regexp.Compile(`^\)(\d+(\.\d+){0,1}(e-\d+){0,1})`)
 	recomment, ercomment := regexp.Compile(`^\[([^,\(\)]*)\]`)
 	if erlen != nil {
 		return -1, erlen
@@ -314,10 +355,18 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 	if ercomment != nil {
 		return -1, ercomment
 	}
+	if ersup != nil {
+		return -1, ersup
+	}
 
 	for pos < len(newick_str) {
 		var matchBrlen = relen.FindStringSubmatch(string(newick_str[pos:]))
 		var matchComment = recomment.FindStringSubmatch(string(newick_str[pos:]))
+		matchSup := make([]string, 0)
+		if pos > 1 {
+			matchSup = resup.FindStringSubmatch(string(newick_str[pos-1:]))
+		}
+
 		if pos == 0 && newick_str[0] != '(' {
 			return -1, errors.New("Newick file does not start with a \"(\" (Maybe not a Newick file?)")
 		}
@@ -353,6 +402,18 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 					return -1, e
 				}
 			}
+		} else if len(matchSup) > 1 {
+			support, errfl := strconv.ParseFloat(matchSup[1], 64)
+			if errfl != nil {
+				return -1, errfl
+			}
+			edge, err := curchild.ParentEdge()
+			if err != nil {
+				return -1, err
+			}
+			edge.SetSupport(support)
+			pos += len([]rune(matchSup[0])) - 1
+			matchSup = make([]string, 0)
 		} else if newick_str[pos] == ')' {
 			pos++
 			if (level - 1) < 0 {
@@ -362,8 +423,9 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 		} else if newick_str[pos] == ',' {
 			pos++
 		} else if len(matchComment) > 1 {
-			curnode.SetComment(matchComment[1])
+			curchild.SetComment(matchComment[1])
 			pos += len([]rune(matchComment[0]))
+			matchComment = make([]string, 0)
 		} else if len(matchBrlen) > 1 {
 			// console.log(matchBrlen[0]);
 			nodeindex, err := curnode.NodeIndex(curchild)
@@ -371,7 +433,10 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 				return -1, err
 			}
 			edge := curnode.br[nodeindex]
-			length, _ := strconv.ParseFloat(matchBrlen[1], 64)
+			length, errlen := strconv.ParseFloat(matchBrlen[1], 64)
+			if errlen != nil {
+				return -1, errlen
+			}
 			edge.SetLength(length)
 			pos += len([]rune(matchBrlen[0]))
 		} else if newick_str[pos] == ';' {
@@ -423,9 +488,6 @@ func (n *Node) Newick(parent *Node) string {
 					newick += ","
 				}
 				newick += child.Newick(n)
-				if n.comment != "" {
-					newick += "[" + n.comment + "]"
-				}
 				if n.br[i].support != -1 {
 					newick += strconv.FormatFloat(n.br[i].support, 'f', 5, 64)
 				}
@@ -437,6 +499,9 @@ func (n *Node) Newick(parent *Node) string {
 		}
 		if len(n.neigh) > 1 {
 			newick += ")"
+		}
+		if n.comment != "" {
+			newick += "[" + n.comment + "]"
 		}
 	}
 	newick += n.name
