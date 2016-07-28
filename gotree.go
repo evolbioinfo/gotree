@@ -22,7 +22,20 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, err.Error()+"\n")
 	} else {
-		fmt.Println(t.Newick())
-		// fmt.Println(t.Root())
+		f, err := os.Create("/tmp/tree")
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			f.WriteString(t.Newick() + "\n")
+			f.Close()
+			fmt.Println(t.Newick())
+
+			tree, err := gotree.FromNewickFile("/tmp/tree")
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println(tree.Newick())
+			}
+		}
 	}
 }
