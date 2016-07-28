@@ -184,7 +184,31 @@ func (n *Node) NodeIndex(next *Node) (int, error) {
 	return -1, errors.New("The Node is not in the neighbors of node")
 }
 
-// This function take the first node having 3 neighbors
+func (t *Tree) AddNewNode() *Node {
+	newnode := NewNode()
+	newnode.id = len(t.nodes)
+	t.nodes = append(t.nodes, newnode)
+	return newnode
+}
+
+func (t *Tree) AddNewEdge() *Edge {
+	newedge := NewEdge()
+	newedge.id = len(t.edges)
+	t.edges = append(t.edges, newedge)
+	newedge.SetLength(0.0)
+	return newedge
+}
+
+func (t *Tree) ConnectNodes(parent *Node, child *Node) *Edge {
+	newedge := t.AddNewEdge()
+	newedge.SetLeft(parent)
+	newedge.SetRight(child)
+	parent.AddChild(child, newedge)
+	child.AddChild(parent, newedge)
+	return newedge
+}
+
+// This function takes the first node having 3 neighbors
 // and reroot the tree on this node
 func (t *Tree) RerootFirst() error {
 	for _, n := range t.nodes {
@@ -235,8 +259,8 @@ func (t *Tree) ReorderEdges(n *Node, prev *Node) error {
 // This function graft the Node n at the middle of the Edge e
 // It divides the branch lenght by 2
 func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) error {
-	newnode := NewNode()
-	newedge := NewEdge()
+	newnode := t.AddNewNode()
+	newedge := t.AddNewEdge()
 	lnode := e.left
 	rnode := e.right
 
@@ -251,32 +275,24 @@ func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) error {
 		return err2
 	}
 
-	newedge.id = len(t.edges)
-	t.edges = append(t.edges, newedge)
 	newedge.SetLength(1.0)
-	newnode.id = len(t.nodes)
-	t.nodes = append(t.nodes, newnode)
-
 	newedge.SetLeft(newnode)
 	newedge.SetRight(n)
 	newnode.AddChild(n, newedge)
 	n.AddChild(newnode, newedge)
-
 	e.SetRight(newnode)
 	newnode.AddChild(lnode, e)
 	lnode.neigh[e_l_ind] = newnode
+
 	if lnode.br[e_l_ind] != e {
 		return errors.New("The Edge is not at the same index")
 	}
 
-	newedge2 := NewEdge()
-	newedge2.id = len(t.edges)
-	t.edges = append(t.edges, newedge2)
+	newedge2 := t.AddNewEdge()
 	newedge2.SetLength(e.length / 2)
 	e.SetLength(e.length / 2)
 	newedge2.SetLeft(newnode)
 	newedge2.SetRight(rnode)
-
 	newnode.AddChild(rnode, newedge2)
 	if rnode.br[e_r_ind] != e {
 		return errors.New("The Edge is not at the same index")
@@ -295,25 +311,15 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 		return nil, errors.New("Cannot create a random binary tree with less than 2 tips")
 	}
 	for i := 1; i < nbtips; i++ {
-		n := NewNode()
+		n := t.AddNewNode()
 		n.SetName("Tip" + strconv.Itoa(i))
-		n.id = len(t.nodes)
-		t.nodes = append(t.nodes, n)
 		switch len(t.edges) {
 		case 0:
-			n2 := NewNode()
-			e := NewEdge()
-			e.SetLength(1.0)
+			n2 := t.AddNewNode()
 			n2.SetName("Node" + strconv.Itoa(i-1))
+			e := t.ConnectNodes(n2, n)
+			e.SetLength(1.0)
 			t.SetRoot(n2)
-			n2.AddChild(n, e)
-			n.AddChild(n2, e)
-			e.id = len(t.edges)
-			t.edges = append(t.edges, e)
-			n2.id = len(t.nodes)
-			t.nodes = append(t.nodes, n2)
-			e.left = n2
-			e.right = n
 		default:
 			// Where to insert the new tip
 			i_edge := rand.Intn(len(t.edges))
@@ -375,27 +381,17 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 				if curnode != nil {
 					return -1, errors.New("Malformed Newick: We should not be at recursion level 0 and having non nil node")
 				}
-				curnode = NewNode()
+				curnode = tree.AddNewNode()
 				tree.SetRoot(curnode)
-				curnode.id = len(tree.nodes)
-				tree.nodes = append(tree.nodes, curnode)
 				pos, e = FromNewickString(newick_str, tree, curnode, pos+1, level+1)
 				if e != nil {
 					return -1, e
 				}
 				curchild = curnode
 			} else {
-				newnode := NewNode()
-				newedge := NewEdge()
-				newedge.id = len(tree.edges)
-				tree.edges = append(tree.edges, newedge)
+				newnode := tree.AddNewNode()
+				newedge := tree.ConnectNodes(curnode, newnode)
 				newedge.SetLength(0.0)
-				newnode.id = len(tree.nodes)
-				tree.nodes = append(tree.nodes, newnode)
-				newedge.SetLeft(curnode)
-				newedge.SetRight(newnode)
-				curnode.AddChild(newnode, newedge)
-				newnode.AddChild(curnode, newedge)
 				curchild = newnode
 				pos, e = FromNewickString(newick_str, tree, curchild, pos+1, level+1)
 				if e != nil {
@@ -452,20 +448,10 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 			}
 			match := reg.FindStringSubmatch(string(newick_str[pos:]))
 			// console.log(match[0]+" "+match[1]);
-			newnode := NewNode()
-			newedge := NewEdge()
-			newedge.id = len(tree.edges)
-			tree.edges = append(tree.edges, newedge)
+			newnode := tree.AddNewNode()
+			newedge := tree.ConnectNodes(curnode, newnode)
 			newedge.SetLength(0.0)
-			newnode.id = len(tree.nodes)
-			tree.nodes = append(tree.nodes, newnode)
-
-			newedge.SetLeft(curnode)
-			newedge.SetRight(newnode)
-			curnode.AddChild(newnode, newedge)
-			newnode.AddChild(curnode, newedge)
 			curchild = newnode
-
 			curchild.SetName(match[1])
 			pos += len([]rune(match[0]))
 		}
