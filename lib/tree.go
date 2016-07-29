@@ -7,17 +7,20 @@ package lib
 import (
 	"errors"
 	"fmt"
+	"github.com/willf/bitset"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 )
 
 type Tree struct {
-	nodes []*Node // array of all the tree nodes
-	edges []*Edge // array of all the tree edges
-	root  *Node   // root node
+	nodes    []*Node         // array of all the tree nodes
+	edges    []*Edge         // array of all the tree edges
+	root     *Node           // root node
+	tipIndex map[string]uint // Map between tip name and bitset index
 }
 
 type Node struct {
@@ -34,6 +37,10 @@ type Edge struct {
 	left, right *Node   // Left and right nodes
 	length      float64 // length of branch
 	support     float64 // -1 if no support
+	// a Bit at index i in the bitset corresponds to the position of the tip i
+	//left:0/right:1 .
+	// i is the index of the tip in the sorted tip name array
+	bitset *bitset.BitSet // Bitset of length Number of taxa each
 }
 
 func NewNode() *Node {
@@ -57,9 +64,10 @@ func NewEdge() *Edge {
 
 func NewTree() *Tree {
 	return &Tree{
-		nodes: make([]*Node, 0, 10),
-		edges: make([]*Edge, 0, 10),
-		root:  nil,
+		nodes:    make([]*Node, 0, 10),
+		edges:    make([]*Edge, 0, 10),
+		root:     nil,
+		tipIndex: make(map[string]uint, 0),
 	}
 }
 
@@ -148,6 +156,10 @@ func (e *Edge) SetSupport(support float64) {
 	e.support = support
 }
 
+func (e *Edge) DumpBitSet() string {
+	return e.bitset.DumpAsBits()
+}
+
 /* Tree functions */
 /******************/
 
@@ -158,12 +170,68 @@ func (t *Tree) SetRoot(r *Node) {
 func (t *Tree) Root() *Node {
 	return t.root
 }
+
+func (t *Tree) Edges() []*Edge {
+	return t.edges
+}
+
 func (t *Tree) String() string {
 	return t.Newick()
 }
 
 func (t *Tree) Newick() string {
 	return t.root.Newick(nil) + ";"
+}
+
+func (t *Tree) UpdateTipIndex() {
+	names := t.AllTipNames(nil, nil)
+	sort.Strings(names)
+	for k := range t.tipIndex {
+		delete(t.tipIndex, k)
+	}
+	for i, n := range names {
+		t.tipIndex[n] = uint(i)
+	}
+}
+
+// Returns the bitset index of the tree in the Tree
+// Returns an error if the node is not a tip
+func (t *Tree) tipIndexNode(n *Node) (uint, error) {
+	if len(n.neigh) != 1 {
+		return 0, errors.New("Cannot get bitset index of a non tip node")
+	}
+	return t.TipIndex(n.name)
+}
+
+func (t *Tree) TipIndex(name string) (uint, error) {
+	v, ok := t.tipIndex[name]
+	if !ok {
+		return 0, errors.New("No tip named " + name + " in the index")
+	}
+	return v, nil
+}
+
+// Returns all the tip name in the tree
+// Starts with n==nil (root)
+func (t *Tree) AllTipNames(n *Node, parent *Node) []string {
+	names := make([]string, 0)
+	if n == nil {
+		n = t.Root()
+	}
+	// is a tip
+	if len(n.neigh) == 1 {
+		names = append(names, n.name)
+
+	} else {
+		for _, child := range n.neigh {
+			if child != parent {
+				for _, name := range t.AllTipNames(child, n) {
+					names = append(names, name)
+				}
+			}
+		}
+	}
+	return names
 }
 
 func (n *Node) EdgeIndex(e *Edge) (int, error) {
@@ -220,8 +288,130 @@ func (t *Tree) RerootFirst() error {
 	return errors.New("No nodes with 3 neighors have been found for rerooting")
 }
 
-// This function take a node and reroot the tree on that node
-// The node must be one of the tree nodes, otherwize it returns an error
+// Recursively update bitsets of edges from the Node n
+// If node == nil then it starts from the root
+func (t *Tree) clearBitSetsRecur(n *Node, parent *Node, ntip uint) {
+	if n == nil {
+		n = t.Root()
+	}
+
+	for i, child := range n.neigh {
+		e := n.br[i]
+		e.bitset.ClearAll()
+		e.bitset = bitset.New(ntip)
+		if child != parent {
+			t.clearBitSetsRecur(child, n, ntip)
+		}
+	}
+}
+
+// Updates bitsets of all edges in the tree
+// Assumes that the hashmap tip name : index is
+// initialized with UpdateTipIndex function
+func (t *Tree) UpdateBitSet() error {
+	for _, e := range t.Root().br {
+		err := t.FillRightBitSet(e, make([]*Edge, 0))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// This function compares 2 trees and output
+// the number of edges in common
+// If the trees have different sets of tip names, returns an error
+// It assumes that functions
+// 	tree.UpdateTipIndex()
+//	tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))
+//	tree.UpdateBitSet()
+// Have been called before, otherwise will output an error
+func (t *Tree) CommonEdges(t2 *Tree) (int, error) {
+	common := 0
+
+	err := t.CompareTipIndexes(t2)
+
+	if err != nil {
+		return 0, err
+	}
+
+	for _, e := range t.edges {
+		for _, e2 := range t2.edges {
+			if e.bitset == nil || e2.bitset == nil {
+				return 0, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+			}
+			if !e.bitset.Any() || !e2.bitset.Any() {
+				return 0, errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
+			}
+			if e.bitset.Equal(e2.bitset) ||
+				e.bitset.Complement().Equal(e2.bitset) {
+				common++
+				break
+			}
+		}
+	}
+	return common, nil
+}
+
+// This function compares the tip name indexes of 2 trees
+// If the tipindexes have the same size (!=0) and have the same set of tip names,
+// The returns nil, otherwise returns an error
+func (t *Tree) CompareTipIndexes(t2 *Tree) error {
+	if len(t.tipIndex) == 0 ||
+		len(t2.tipIndex) == 0 ||
+		len(t.tipIndex) != len(t2.tipIndex) {
+		return errors.New("Tip name index is not initialized or trees do not have the same number of tips")
+	}
+
+	for k := range t.tipIndex {
+		_, ok := t2.tipIndex[k]
+		if !ok {
+			return errors.New("Trees do not have the same tip names")
+		}
+	}
+
+	for k := range t2.tipIndex {
+		_, ok := t.tipIndex[k]
+		if !ok {
+			return errors.New("Trees do not have the same tip names")
+		}
+	}
+	return nil
+}
+
+// Recursively clears and sets the bitsets of the descending edges
+//
+func (t *Tree) FillRightBitSet(currentEdge *Edge, rightEdges []*Edge) error {
+	if currentEdge.bitset == nil {
+		return errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+	}
+	currentEdge.bitset = currentEdge.bitset.ClearAll()
+	rightEdges = append(rightEdges, currentEdge)
+	// If we are at a tip edge
+	// We set at 1 the bits of the tip in
+	// the bitsets of all rightEdges
+	if len(currentEdge.right.neigh) == 1 {
+		i, err := t.tipIndexNode(currentEdge.right)
+		if err != nil {
+			return err
+		}
+		for _, e := range rightEdges {
+			e.bitset = e.bitset.Set(i)
+		}
+	} else {
+		// Else
+		for _, e2 := range currentEdge.right.br {
+			if e2.left == currentEdge.right {
+				t.FillRightBitSet(e2, rightEdges)
+			}
+		}
+	}
+	return nil
+}
+
+// This function takes a node and reroot the tree on that node
+// It reorients edges left-edge-right : see ReorderEdges
+// The node must be one of the tree nodes, otherwise it returns an error
 func (t *Tree) Reroot(n *Node) error {
 	intree := false
 	for _, n2 := range t.nodes {
@@ -233,9 +423,7 @@ func (t *Tree) Reroot(n *Node) error {
 		return errors.New("The node is not part of the tree")
 	}
 	t.root = n
-
-	err := t.ReorderEdges(n, nil)
-
+	err := t.reorderEdges(n, nil)
 	return err
 }
 
@@ -244,13 +432,14 @@ func (t *Tree) Reroot(n *Node) error {
 // with left node being parent of right node
 // with respect to the given root node
 // Important even for unrooted trees
-func (t *Tree) ReorderEdges(n *Node, prev *Node) error {
+// Useful mainly after a reroot
+func (t *Tree) reorderEdges(n *Node, prev *Node) error {
 	for _, next := range n.br {
 		if next.right != prev && next.left != prev {
 			if next.right == n {
 				next.right, next.left = next.left, next.right
 			}
-			t.ReorderEdges(next.right, n)
+			t.reorderEdges(next.right, n)
 		}
 	}
 	return nil
@@ -331,6 +520,9 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 		}
 	}
 	err := t.RerootFirst()
+	t.UpdateTipIndex()
+	t.clearBitSetsRecur(nil, nil, uint(len(t.tipIndex)))
+	t.UpdateBitSet()
 	return t, err
 }
 
@@ -339,16 +531,28 @@ func FromNewickFile(file string) (*Tree, error) {
 	if err != nil {
 		return nil, err
 	}
-	treeString := []rune(string(dat))
-	tree := NewTree()
-	_, err2 := FromNewickString(treeString, tree, nil, 0, 0)
+	treeString := string(dat)
+	tree, err2 := FromNewickString(treeString)
 	if err2 != nil {
 		return nil, err2
 	}
 	return tree, nil
 }
 
-func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, level int) (int, error) {
+func FromNewickString(newick_str string) (*Tree, error) {
+	treeString := []rune(newick_str)
+	tree := NewTree()
+	_, err := parseNewickRune(treeString, tree, nil, 0, 0)
+	if err != nil {
+		return nil, err
+	}
+	tree.UpdateTipIndex()
+	tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))
+	tree.UpdateBitSet()
+	return tree, nil
+}
+
+func parseNewickRune(newick_str []rune, tree *Tree, curnode *Node, pos int, level int) (int, error) {
 	curchild := curnode
 	var e error
 
@@ -387,7 +591,7 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 				}
 				curnode = tree.AddNewNode()
 				tree.SetRoot(curnode)
-				pos, e = FromNewickString(newick_str, tree, curnode, pos+1, level+1)
+				pos, e = parseNewickRune(newick_str, tree, curnode, pos+1, level+1)
 				if e != nil {
 					return -1, e
 				}
@@ -397,7 +601,7 @@ func FromNewickString(newick_str []rune, tree *Tree, curnode *Node, pos int, lev
 				newedge := tree.ConnectNodes(curnode, newnode)
 				newedge.SetLength(0.0)
 				curchild = newnode
-				pos, e = FromNewickString(newick_str, tree, curchild, pos+1, level+1)
+				pos, e = parseNewickRune(newick_str, tree, curchild, pos+1, level+1)
 				if e != nil {
 					return -1, e
 				}
