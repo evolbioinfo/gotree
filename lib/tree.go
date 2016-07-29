@@ -157,6 +157,9 @@ func (e *Edge) SetSupport(support float64) {
 }
 
 func (e *Edge) DumpBitSet() string {
+	if e.bitset == nil {
+		return "nil"
+	}
 	return e.bitset.DumpAsBits()
 }
 
