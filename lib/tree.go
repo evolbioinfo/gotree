@@ -204,6 +204,9 @@ func (t *Tree) tipIndexNode(n *Node) (uint, error) {
 }
 
 func (t *Tree) TipIndex(name string) (uint, error) {
+	if len(t.tipIndex) == 0 {
+		return 0, errors.New("No tips in the index, tip name index is not initialized")
+	}
 	v, ok := t.tipIndex[name]
 	if !ok {
 		return 0, errors.New("No tip named " + name + " in the index")
