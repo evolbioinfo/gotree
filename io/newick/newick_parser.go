@@ -61,7 +61,7 @@ func (p *Parser) Parse() (*gotree.Tree, error) {
 		return nil, fmt.Errorf("found %q, expected (", lit)
 	}
 	tree = gotree.NewTree()
-	cureNode == gotree.AddNewNode()
+	curNode == gotree.AddNewNode()
 	tree.SetRoot(curNode)
 
 	// New we can parse recursively the tree
@@ -99,9 +99,25 @@ func (p *Parser) parseRecur(tree *Tree, node *curNode, level *int) (tok Token, e
 			(*level)--
 			return tok, nil
 		case OPENBRACK:
+			tok, lit = p.scanIgnoreWhitespace()
+			if(tok != IDENT){
+				return nil,errors.New("Newick Error: There should be a comment after [")
+			}
+			// Add comment to node
+			tok, lit = p.scanIgnoreWhitespace()
+			if(tok != CLOSEBRACK){
+				return nil,errors.New("Newick Error: There should be a ] after a comment")				
+			}
 		case CLOSEBRACK:
+			// Error here should not have
+			return nil,errors.New("Newick Error: Mismatched ] here...")
 		case STARTLEN:
+			tok, lit = p.scanIgnoreWhitespace()
+			if(tok != NUMERICAL){
+				return nil,errors.New("Newick Error: No numeric value after :")
+			}
 		case NEWSIBLING:
+			// Nothing to do???
 		case EOT:
 			p.unscan()
 			return
