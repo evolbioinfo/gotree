@@ -79,6 +79,14 @@ func (p *Parser) Parse() (*gotree.Tree, error) {
 		return nil, fmt.Errorf("found %q, expected ;", lit)
 	}
 
+	tree.UpdateTipIndex()
+	nbtips, err := tree.NbTips()
+	if err != nil {
+		return nil, err
+	}
+	tree.ClearBitSetsRecur(nil, nil, uint(nbtips))
+	tree.UpdateBitSet()
+
 	// Return the successfully parsed statement.
 	return tree, nil
 }
