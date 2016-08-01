@@ -94,6 +94,10 @@ func (n *Node) SetDepth(depth int) {
 	n.depth = depth
 }
 
+func (n *Node) Name() string {
+	return n.name
+}
+
 // Retrieve the parent node
 // If several parents: Error
 // Parent is defined as the node n2 connected to n
@@ -129,7 +133,7 @@ func (n *Node) ParentEdge() (*Edge, error) {
 		}
 	}
 	if e2 == nil {
-		return nil, errors.New("The node has no parent : May by the root?")
+		return nil, errors.New("The node has no parent : May be the root?")
 	}
 	return e2, nil
 }
@@ -152,6 +156,10 @@ func (e *Edge) SetLength(length float64) {
 
 func (e *Edge) SetSupport(support float64) {
 	e.support = support
+}
+
+func (e *Edge) Length() float64 {
+	return e.length
 }
 
 func (e *Edge) DumpBitSet() string {
@@ -267,7 +275,6 @@ func (t *Tree) AddNewEdge() *Edge {
 	newedge := NewEdge()
 	newedge.id = len(t.edges)
 	t.edges = append(t.edges, newedge)
-	newedge.SetLength(0.0)
 	return newedge
 }
 

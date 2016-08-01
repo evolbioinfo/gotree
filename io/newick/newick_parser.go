@@ -1,6 +1,7 @@
 package newick
 
 import (
+	"errors"
 	"fmt"
 	gotree "github.com/fredericlemoine/gotree/lib"
 	"io"
@@ -60,67 +61,147 @@ func (p *Parser) Parse() (*gotree.Tree, error) {
 	if tok != OPENPAR {
 		return nil, fmt.Errorf("found %q, expected (", lit)
 	}
-	tree = gotree.NewTree()
-	curNode == gotree.AddNewNode()
-	tree.SetRoot(curNode)
+	p.unscan()
+	tree := gotree.NewTree()
 
-	// New we can parse recursively the tree
+	// Now we can parse recursively the tree
 	// Read a field.
 	level := 0
-	err := parseRecur(tree, node, &level)
-	if level != 0 {
-		return nil, fmt.Errorf("Errorparsing newick : Mismatched parenthesis")
+	_, err := p.parseRecur(tree, nil, &level)
+	if err != nil {
+		return nil, err
 	}
-	tok, lit = p.scanIgnoreWhitespace()
-	if tok != CLOSEPAR {
-		break
-	} else {
-		return nil, fmt.Errorf("found %q, expected )", lit)
+	if level != 0 {
+		return nil, fmt.Errorf("Newick Error : Mismatched parenthesis")
 	}
 	tok, lit = p.scanIgnoreWhitespace()
 	if tok != EOT {
-		break
-	} else {
 		return nil, fmt.Errorf("found %q, expected ;", lit)
 	}
 
 	// Return the successfully parsed statement.
-	return gotree.NewTree(), nil
+	return tree, nil
 }
 
-func (p *Parser) parseRecur(tree *Tree, node *curNode, level *int) (tok Token, error) {
+func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (Token, error) {
+
+	var newNode *gotree.Node = node
+	var prevTok Token = -1
+	var err error
 	for {
 		tok, lit := p.scanIgnoreWhitespace()
 		switch tok {
 		case OPENPAR:
+			newNode = tree.AddNewNode()
+			if node == nil {
+				if *level > 0 {
+					return -1, errors.New("Nil node at depth > 0")
+				}
+				tree.SetRoot(newNode)
+				node = newNode
+			} else {
+				tree.ConnectNodes(node, newNode)
+			}
 			(*level)++
-			tok, err = parseRecur(tree, node, level)
+			prevTok, err = p.parseRecur(tree, newNode, level)
+			if err != nil {
+				return -1, err
+			}
+			if prevTok != CLOSEPAR {
+				return -1, errors.New("Newick Error: Mismatched parenthesis after parseRecur")
+			}
 		case CLOSEPAR:
 			(*level)--
 			return tok, nil
 		case OPENBRACK:
+			//if prevTok == OPENPAR || prevTok == NEWSIBLING || prevTok == -1 {
+			if newNode == nil || newNode == node {
+				return -1, errors.New("Newick Error: Comment should not be located here: " + lit)
+			}
 			tok, lit = p.scanIgnoreWhitespace()
-			if(tok != IDENT){
-				return nil,errors.New("Newick Error: There should be a comment after [")
+			if tok != IDENT {
+				return -1, errors.New("Newick Error: There should be a comment after [")
 			}
 			// Add comment to node
+			newNode.SetComment(lit)
 			tok, lit = p.scanIgnoreWhitespace()
-			if(tok != CLOSEBRACK){
-				return nil,errors.New("Newick Error: There should be a ] after a comment")				
+			if tok != CLOSEBRACK {
+				return -1, errors.New("Newick Error: There should be a ] after a comment")
 			}
+			prevTok = CLOSEBRACK
 		case CLOSEBRACK:
 			// Error here should not have
-			return nil,errors.New("Newick Error: Mismatched ] here...")
+			return -1, errors.New("Newick Error: Mismatched ] here...")
 		case STARTLEN:
 			tok, lit = p.scanIgnoreWhitespace()
-			if(tok != NUMERICAL){
-				return nil,errors.New("Newick Error: No numeric value after :")
+			if tok != NUMERIC {
+				return -1, errors.New("Newick Error: No numeric value after :")
 			}
+			if newNode == nil || *level == 0 || newNode == node {
+				return -1, errors.New("Newick Error: Cannot assign length to nil node or to the root :" + lit)
+			}
+
+			e, err := newNode.ParentEdge()
+			if err != nil {
+				return -1, err
+			}
+
+			if e.Length() != -1 {
+				return -1, errors.New("Newick Error: More than one length is given :" + lit)
+			}
+			length, errf := strconv.ParseFloat(lit, 64)
+			if errf != nil {
+				return -1, errors.New("Newick Error: Length is not a float value : " + lit)
+			}
+			e.SetLength(length)
+			prevTok = tok
 		case NEWSIBLING:
-			// Nothing to do???
+			newNode = nil
+			prevTok = NEWSIBLING
+		case IDENT:
+			// Here we have a node name
+			if prevTok == CLOSEPAR {
+				if newNode == nil {
+					return -1, errors.New("Newick Error: Cannot assign node name to nil node: " + lit)
+				}
+				newNode.SetName(lit)
+			} else {
+				// Else we have a new tip
+				if prevTok != -1 && prevTok != NEWSIBLING {
+					return -1, errors.New("Newick Error: There should not be a name in this context: " + lit)
+				}
+				if node == nil {
+					return -1, errors.New("Cannot create a new tip with no parent: " + lit)
+				}
+				newNode = tree.AddNewNode()
+				newNode.SetName(lit)
+				tree.ConnectNodes(node, newNode)
+				prevTok = tok
+			}
+		case NUMERIC:
+			// Here we have a bootstrap value
+			if prevTok == CLOSEPAR {
+				if *level == 0 {
+					return -1, errors.New("Newick Error: We do not accept support value on root")
+				}
+				e, err := newNode.ParentEdge()
+				if err != nil {
+					return -1, err
+				}
+				support, errf := strconv.ParseFloat(lit, 64)
+				if errf != nil {
+					return -1, err
+				}
+				e.SetSupport(support)
+			} else {
+				return -1, errors.New("Newick Error: There should not be a name in this context: " + lit)
+			}
 		case EOT:
 			p.unscan()
-			return
+			if (*level) != 0 {
+				return -1, errors.New("Newick Error: Mismatched parenthesis")
+			}
+			return tok, nil
 		}
 	}
 }
