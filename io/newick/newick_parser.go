@@ -123,7 +123,7 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 				return -1, errors.New("Newick Error: There should be a comment after [")
 			}
 			// Add comment to node
-			newNode.SetComment(lit)
+			newNode.AddComment(lit)
 			tok, lit = p.scanIgnoreWhitespace()
 			if tok != CLOSEBRACK {
 				return -1, errors.New("Newick Error: There should be a ] after a comment")

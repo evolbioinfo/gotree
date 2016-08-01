@@ -22,12 +22,12 @@ type Tree struct {
 }
 
 type Node struct {
-	name    string  // Name of the node
-	comment string  // Comment if any in the newick file
-	id      int     // Id of the node: attributed when parsing
-	neigh   []*Node // neighbors array
-	br      []*Edge // Branches array (same order than neigh)
-	depth   int     // Depth of the node
+	name    string   // Name of the node
+	comment []string // Comment if any in the newick file
+	id      int      // Id of the node: attributed when parsing
+	neigh   []*Node  // neighbors array
+	br      []*Edge  // Branches array (same order than neigh)
+	depth   int      // Depth of the node
 }
 
 type Edge struct {
@@ -45,7 +45,7 @@ func NewNode() *Node {
 	return &Node{
 		name:    "",
 		id:      0,
-		comment: "",
+		comment: make([]string, 0),
 		neigh:   make([]*Node, 0, 3),
 		br:      make([]*Edge, 0, 3),
 		depth:   0,
@@ -82,8 +82,8 @@ func (n *Node) SetName(name string) {
 	n.name = name
 }
 
-func (n *Node) SetComment(comment string) {
-	n.comment = comment
+func (n *Node) AddComment(comment string) {
+	n.comment = append(n.comment, comment)
 }
 
 func (n *Node) SetId(id int) {
@@ -555,8 +555,10 @@ func (n *Node) Newick(parent *Node) string {
 				if n.br[i].support != -1 {
 					newick += strconv.FormatFloat(n.br[i].support, 'f', 5, 64)
 				}
-				if child.comment != "" {
-					newick += "[" + child.comment + "]"
+				if len(child.comment) != 0 {
+					for _, c := range child.comment {
+						newick += "[" + c + "]"
+					}
 				}
 				if n.br[i].length != -1 {
 					newick += ":" + strconv.FormatFloat(n.br[i].length, 'f', 5, 64)
