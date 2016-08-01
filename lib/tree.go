@@ -5,11 +5,10 @@
 package lib
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"github.com/willf/bitset"
 	"math/rand"
-	"os"
 	"sort"
 	"strconv"
 )
@@ -189,11 +188,14 @@ func (t *Tree) String() string {
 }
 
 func (t *Tree) Newick() string {
-	return t.root.Newick(nil) + ";"
+	var buffer bytes.Buffer
+	t.root.Newick(nil, &buffer)
+	buffer.WriteString(";")
+	return buffer.String()
 }
 
 func (t *Tree) UpdateTipIndex() {
-	names := t.AllTipNames(nil, nil)
+	names := t.AllTipNames()
 	sort.Strings(names)
 	for k := range t.tipIndex {
 		delete(t.tipIndex, k)
@@ -236,25 +238,29 @@ func (t *Tree) TipIndex(name string) (uint, error) {
 
 // Returns all the tip name in the tree
 // Starts with n==nil (root)
-func (t *Tree) AllTipNames(n *Node, parent *Node) []string {
-	names := make([]string, 0)
+func (t *Tree) AllTipNames() []string {
+	names := make([]string, 0, 1000)
+	t.allTipNamesRecur(&names, nil, nil)
+	return names
+}
+
+// Returns all the tip name in the tree
+// Starts with n==nil (root)
+// It is an internal recursive function
+func (t *Tree) allTipNamesRecur(names *[]string, n *Node, parent *Node) {
 	if n == nil {
 		n = t.Root()
 	}
 	// is a tip
 	if len(n.neigh) == 1 {
-		names = append(names, n.name)
-
+		*names = append(*names, n.name)
 	} else {
 		for _, child := range n.neigh {
 			if child != parent {
-				for _, name := range t.AllTipNames(child, n) {
-					names = append(names, name)
-				}
+				t.allTipNamesRecur(names, child, n)
 			}
 		}
 	}
-	return names
 }
 
 func (n *Node) EdgeIndex(e *Edge) (int, error) {
@@ -310,19 +316,28 @@ func (t *Tree) RerootFirst() error {
 	return errors.New("No nodes with 3 neighors have been found for rerooting")
 }
 
+func (t *Tree) ClearBitSets() error {
+	length := uint(len(t.tipIndex))
+	if length == 0 {
+		return errors.New("No tips in the index, tip name index is not initialized")
+	}
+	t.clearBitSetsRecur(nil, nil, length)
+	return nil
+}
+
 // Recursively update bitsets of edges from the Node n
 // If node == nil then it starts from the root
-func (t *Tree) ClearBitSetsRecur(n *Node, parent *Node, ntip uint) {
+func (t *Tree) clearBitSetsRecur(n *Node, parent *Node, ntip uint) {
 	if n == nil {
 		n = t.Root()
 	}
 
 	for i, child := range n.neigh {
-		e := n.br[i]
-		e.bitset.ClearAll()
-		e.bitset = bitset.New(ntip)
 		if child != parent {
-			t.ClearBitSetsRecur(child, n, ntip)
+			e := n.br[i]
+			e.bitset = nil
+			e.bitset = bitset.New(ntip)
+			t.clearBitSetsRecur(child, n, ntip)
 		}
 	}
 }
@@ -331,10 +346,47 @@ func (t *Tree) ClearBitSetsRecur(n *Node, parent *Node, ntip uint) {
 // Assumes that the hashmap tip name : index is
 // initialized with UpdateTipIndex function
 func (t *Tree) UpdateBitSet() error {
+	rightedges := make([]*Edge, 0, 2000)
 	for _, e := range t.Root().br {
-		err := t.FillRightBitSet(e, make([]*Edge, 0))
+		rightedges = rightedges[:0]
+		rightedges = append(rightedges, e)
+		err := t.fillRightBitSet(e, &rightedges)
 		if err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// Recursively clears and sets the bitsets of the descending edges
+//
+func (t *Tree) fillRightBitSet(currentEdge *Edge, rightEdges *[]*Edge) error {
+	if currentEdge.bitset == nil {
+		return errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+	}
+	currentEdge.bitset.ClearAll()
+	// If we are at a tip edge
+	// We set at 1 the bits of the tip in
+	// the bitsets of all rightEdges
+	if len(currentEdge.right.neigh) == 1 {
+		i, err := t.tipIndexNode(currentEdge.right)
+		if err != nil {
+			return err
+		}
+		for _, e := range *rightEdges {
+			e.bitset.Set(i)
+		}
+	} else {
+		// Else
+		for _, e2 := range currentEdge.right.br {
+			if e2.left == currentEdge.right {
+				*rightEdges = append(*rightEdges, e2)
+				err := t.fillRightBitSet(e2, rightEdges)
+				if err != nil {
+					return err
+				}
+				*rightEdges = (*rightEdges)[:len(*rightEdges)-1]
+			}
 		}
 	}
 	return nil
@@ -396,36 +448,6 @@ func (t *Tree) CompareTipIndexes(t2 *Tree) error {
 		_, ok := t.tipIndex[k]
 		if !ok {
 			return errors.New("Trees do not have the same tip names")
-		}
-	}
-	return nil
-}
-
-// Recursively clears and sets the bitsets of the descending edges
-//
-func (t *Tree) FillRightBitSet(currentEdge *Edge, rightEdges []*Edge) error {
-	if currentEdge.bitset == nil {
-		return errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
-	}
-	currentEdge.bitset = currentEdge.bitset.ClearAll()
-	rightEdges = append(rightEdges, currentEdge)
-	// If we are at a tip edge
-	// We set at 1 the bits of the tip in
-	// the bitsets of all rightEdges
-	if len(currentEdge.right.neigh) == 1 {
-		i, err := t.tipIndexNode(currentEdge.right)
-		if err != nil {
-			return err
-		}
-		for _, e := range rightEdges {
-			e.bitset = e.bitset.Set(i)
-		}
-	} else {
-		// Else
-		for _, e2 := range currentEdge.right.br {
-			if e2.left == currentEdge.right {
-				t.FillRightBitSet(e2, rightEdges)
-			}
 		}
 	}
 	return nil
@@ -537,51 +559,52 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 			e := t.edges[i_edge]
 			err := t.GraftTipOnEdge(n, e)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, err.Error()+"\n")
+				return nil, err
 			}
 		}
 	}
 	err := t.RerootFirst()
 	t.UpdateTipIndex()
-	t.ClearBitSetsRecur(nil, nil, uint(len(t.tipIndex)))
+	t.ClearBitSets()
 	t.UpdateBitSet()
+
 	return t, err
 }
 
 // Recursive function that outputs newick representation
 // from the current node
-func (n *Node) Newick(parent *Node) string {
-	newick := ""
+func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 	if len(n.neigh) > 0 {
 		if len(n.neigh) > 1 {
-			newick += "("
+			newick.WriteString("(")
 		}
 		nbchild := 0
 		for i, child := range n.neigh {
 			if child != parent {
 				if nbchild > 0 {
-					newick += ","
+					newick.WriteString(",")
 				}
-				newick += child.Newick(n)
+				child.Newick(n, newick)
 				if n.br[i].support != -1 {
-					newick += strconv.FormatFloat(n.br[i].support, 'f', 5, 64)
+					newick.WriteString(strconv.FormatFloat(n.br[i].support, 'f', 5, 64))
 				}
 				if len(child.comment) != 0 {
 					for _, c := range child.comment {
-						newick += "[" + c + "]"
+						newick.WriteString("[")
+						newick.WriteString(c)
+						newick.WriteString("]")
 					}
 				}
 				if n.br[i].length != -1 {
-					newick += ":" + strconv.FormatFloat(n.br[i].length, 'f', 5, 64)
+					newick.WriteString(":")
+					newick.WriteString(strconv.FormatFloat(n.br[i].length, 'f', 5, 64))
 				}
 				nbchild++
 			}
 		}
 		if len(n.neigh) > 1 {
-			newick += ")"
+			newick.WriteString(")")
 		}
 	}
-	newick += n.name
-
-	return newick
+	newick.WriteString(n.name)
 }

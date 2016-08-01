@@ -80,11 +80,10 @@ func (p *Parser) Parse() (*gotree.Tree, error) {
 	}
 
 	tree.UpdateTipIndex()
-	nbtips, err := tree.NbTips()
+	err = tree.ClearBitSets()
 	if err != nil {
 		return nil, err
 	}
-	tree.ClearBitSetsRecur(nil, nil, uint(nbtips))
 	tree.UpdateBitSet()
 
 	// Return the successfully parsed statement.
