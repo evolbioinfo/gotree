@@ -14,8 +14,6 @@ import (
 )
 
 type Tree struct {
-	nodes    []*Node         // array of all the tree nodes
-	edges    []*Edge         // array of all the tree edges
 	root     *Node           // root node
 	tipIndex map[string]uint // Map between tip name and bitset index
 }
@@ -23,14 +21,12 @@ type Tree struct {
 type Node struct {
 	name    string   // Name of the node
 	comment []string // Comment if any in the newick file
-	id      int      // Id of the node: attributed when parsing
 	neigh   []*Node  // neighbors array
 	br      []*Edge  // Branches array (same order than neigh)
 	depth   int      // Depth of the node
 }
 
 type Edge struct {
-	id          int     // id of the branch: attribute when parsing
 	left, right *Node   // Left and right nodes
 	length      float64 // length of branch
 	support     float64 // -1 if no support
@@ -40,10 +36,9 @@ type Edge struct {
 	bitset *bitset.BitSet // Bitset of length Number of taxa each
 }
 
-func NewNode() *Node {
+func (t *Tree) NewNode() *Node {
 	return &Node{
 		name:    "",
-		id:      0,
 		comment: make([]string, 0),
 		neigh:   make([]*Node, 0, 3),
 		br:      make([]*Edge, 0, 3),
@@ -51,9 +46,8 @@ func NewNode() *Node {
 	}
 }
 
-func NewEdge() *Edge {
+func (t *Tree) NewEdge() *Edge {
 	return &Edge{
-		id:      0,
 		length:  -1.0,
 		support: -1.0,
 	}
@@ -61,8 +55,6 @@ func NewEdge() *Edge {
 
 func NewTree() *Tree {
 	return &Tree{
-		nodes:    make([]*Node, 0, 10),
-		edges:    make([]*Edge, 0, 10),
 		root:     nil,
 		tipIndex: make(map[string]uint, 0),
 	}
@@ -83,10 +75,6 @@ func (n *Node) SetName(name string) {
 
 func (n *Node) AddComment(comment string) {
 	n.comment = append(n.comment, comment)
-}
-
-func (n *Node) SetId(id int) {
-	n.id = id
 }
 
 func (n *Node) SetDepth(depth int) {
@@ -140,9 +128,6 @@ func (n *Node) ParentEdge() (*Edge, error) {
 /* Edge functions */
 /******************/
 
-func (e *Edge) SetId(id int) {
-	e.id = id
-}
 func (e *Edge) SetLeft(left *Node) {
 	e.left = left
 }
@@ -179,8 +164,44 @@ func (t *Tree) Root() *Node {
 	return t.root
 }
 
+// Returns all the edges of the tree (do it recursively)
 func (t *Tree) Edges() []*Edge {
-	return t.edges
+	edges := make([]*Edge, 0, 2000)
+	for _, e := range t.Root().br {
+		edges = append(edges, e)
+		t.edgesRecur(e, &edges)
+	}
+	return edges
+}
+
+func (t *Tree) edgesRecur(edge *Edge, edges *[]*Edge) {
+	if len(edge.right.neigh) > 1 {
+		for _, child := range edge.right.br {
+			if child.left == edge.right {
+				*edges = append((*edges), child)
+				t.edgesRecur(child, edges)
+			}
+		}
+	}
+}
+
+// Returns all the nodes of the tree (do it recursively)
+func (t *Tree) Nodes() []*Node {
+	nodes := make([]*Node, 0, 2000)
+	t.nodesRecur(&nodes, nil, nil)
+	return nodes
+}
+
+func (t *Tree) nodesRecur(nodes *[]*Node, cur *Node, prev *Node) {
+	if cur == nil {
+		cur = t.Root()
+	}
+	*nodes = append((*nodes), cur)
+	for _, n := range cur.neigh {
+		if n != prev {
+			t.nodesRecur(nodes, n, cur)
+		}
+	}
 }
 
 func (t *Tree) String() string {
@@ -281,22 +302,8 @@ func (n *Node) NodeIndex(next *Node) (int, error) {
 	return -1, errors.New("The Node is not in the neighbors of node")
 }
 
-func (t *Tree) AddNewNode() *Node {
-	newnode := NewNode()
-	newnode.id = len(t.nodes)
-	t.nodes = append(t.nodes, newnode)
-	return newnode
-}
-
-func (t *Tree) AddNewEdge() *Edge {
-	newedge := NewEdge()
-	newedge.id = len(t.edges)
-	t.edges = append(t.edges, newedge)
-	return newedge
-}
-
 func (t *Tree) ConnectNodes(parent *Node, child *Node) *Edge {
-	newedge := t.AddNewEdge()
+	newedge := t.NewEdge()
 	newedge.SetLeft(parent)
 	newedge.SetRight(child)
 	parent.AddChild(child, newedge)
@@ -307,7 +314,7 @@ func (t *Tree) ConnectNodes(parent *Node, child *Node) *Edge {
 // This function takes the first node having 3 neighbors
 // and reroot the tree on this node
 func (t *Tree) RerootFirst() error {
-	for _, n := range t.nodes {
+	for _, n := range t.Nodes() {
 		if len(n.neigh) == 3 {
 			err := t.Reroot(n)
 			return err
@@ -409,8 +416,11 @@ func (t *Tree) CommonEdges(t2 *Tree) (int, error) {
 		return 0, err
 	}
 
-	for _, e := range t.edges {
-		for _, e2 := range t2.edges {
+	edges1 := t.Edges()
+	edges2 := t2.Edges()
+
+	for _, e := range edges1 {
+		for _, e2 := range edges2 {
 			if e.bitset == nil || e2.bitset == nil {
 				return 0, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
 			}
@@ -458,7 +468,7 @@ func (t *Tree) CompareTipIndexes(t2 *Tree) error {
 // The node must be one of the tree nodes, otherwise it returns an error
 func (t *Tree) Reroot(n *Node) error {
 	intree := false
-	for _, n2 := range t.nodes {
+	for _, n2 := range t.Nodes() {
 		if n2 == n {
 			intree = true
 		}
@@ -491,21 +501,23 @@ func (t *Tree) reorderEdges(n *Node, prev *Node) error {
 
 // This function graft the Node n at the middle of the Edge e
 // It divides the branch lenght by 2
-func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) error {
-	newnode := t.AddNewNode()
-	newedge := t.AddNewEdge()
+// It returns the added edges and the added nodes
+func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) (*Edge, *Edge, *Node, error) {
+	newnode := t.NewNode()
+	newedge := t.NewEdge()
+
 	lnode := e.left
 	rnode := e.right
 
 	// index of edge in neighbors of l
 	e_l_ind, err := lnode.EdgeIndex(e)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	// index of edge in neighbors of r
 	e_r_ind, err2 := rnode.EdgeIndex(e)
 	if err2 != nil {
-		return err2
+		return nil, nil, nil, err2
 	}
 
 	newedge.SetLength(1.0)
@@ -518,22 +530,21 @@ func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) error {
 	lnode.neigh[e_l_ind] = newnode
 
 	if lnode.br[e_l_ind] != e {
-		return errors.New("The Edge is not at the same index")
+		return nil, nil, nil, errors.New("The Edge is not at the same index")
 	}
 
-	newedge2 := t.AddNewEdge()
+	newedge2 := t.NewEdge()
 	newedge2.SetLength(e.length / 2)
 	e.SetLength(e.length / 2)
 	newedge2.SetLeft(newnode)
 	newedge2.SetRight(rnode)
 	newnode.AddChild(rnode, newedge2)
 	if rnode.br[e_r_ind] != e {
-		return errors.New("The Edge is not at the same index")
+		return nil, nil, nil, errors.New("The Edge is not at the same index")
 	}
 	rnode.neigh[e_r_ind] = newnode
 	rnode.br[e_r_ind] = newedge2
-
-	return nil
+	return newedge, newedge2, newnode, nil
 }
 
 //Creates a Random Binary tree
@@ -543,21 +554,27 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 	if nbtips < 2 {
 		return nil, errors.New("Cannot create a random binary tree with less than 2 tips")
 	}
+	edges := make([]*Edge, 0, 2000)
 	for i := 1; i < nbtips; i++ {
-		n := t.AddNewNode()
+		n := t.NewNode()
 		n.SetName("Tip" + strconv.Itoa(i))
-		switch len(t.edges) {
+		switch len(edges) {
 		case 0:
-			n2 := t.AddNewNode()
+			n2 := t.NewNode()
 			n2.SetName("Node" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
+			edges = append(edges, e)
 			e.SetLength(1.0)
 			t.SetRoot(n2)
 		default:
 			// Where to insert the new tip
-			i_edge := rand.Intn(len(t.edges))
-			e := t.edges[i_edge]
-			err := t.GraftTipOnEdge(n, e)
+			i_edge := rand.Intn(len(edges))
+			e := edges[i_edge]
+			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
+
+			edges = append(edges, newedge)
+			edges = append(edges, newedge2)
+
 			if err != nil {
 				return nil, err
 			}

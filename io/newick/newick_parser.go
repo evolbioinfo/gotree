@@ -99,7 +99,7 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 		tok, lit := p.scanIgnoreWhitespace()
 		switch tok {
 		case OPENPAR:
-			newNode = tree.AddNewNode()
+			newNode = tree.NewNode()
 			if node == nil {
 				if *level > 0 {
 					return -1, errors.New("Nil node at depth > 0")
@@ -180,7 +180,7 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 				if node == nil {
 					return -1, errors.New("Cannot create a new tip with no parent: " + lit)
 				}
-				newNode = tree.AddNewNode()
+				newNode = tree.NewNode()
 				newNode.SetName(lit)
 				tree.ConnectNodes(node, newNode)
 				prevTok = tok
