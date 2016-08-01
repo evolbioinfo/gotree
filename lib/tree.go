@@ -203,6 +203,17 @@ func (t *Tree) UpdateTipIndex() {
 	}
 }
 
+// if UpdateTipIndex has been called before ok
+// otherwise returns an error
+func (t *Tree) NbTips() (int, error) {
+	if len(t.tipIndex) == 0 {
+		return 0, errors.New("No tips in the index, tip name index is not initialized")
+	}
+
+	return len(t.tipIndex), nil
+
+}
+
 // Returns the bitset index of the tree in the Tree
 // Returns an error if the node is not a tip
 func (t *Tree) tipIndexNode(n *Node) (uint, error) {
@@ -301,7 +312,7 @@ func (t *Tree) RerootFirst() error {
 
 // Recursively update bitsets of edges from the Node n
 // If node == nil then it starts from the root
-func (t *Tree) clearBitSetsRecur(n *Node, parent *Node, ntip uint) {
+func (t *Tree) ClearBitSetsRecur(n *Node, parent *Node, ntip uint) {
 	if n == nil {
 		n = t.Root()
 	}
@@ -311,7 +322,7 @@ func (t *Tree) clearBitSetsRecur(n *Node, parent *Node, ntip uint) {
 		e.bitset.ClearAll()
 		e.bitset = bitset.New(ntip)
 		if child != parent {
-			t.clearBitSetsRecur(child, n, ntip)
+			t.ClearBitSetsRecur(child, n, ntip)
 		}
 	}
 }
@@ -532,7 +543,7 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 	}
 	err := t.RerootFirst()
 	t.UpdateTipIndex()
-	t.clearBitSetsRecur(nil, nil, uint(len(t.tipIndex)))
+	t.ClearBitSetsRecur(nil, nil, uint(len(t.tipIndex)))
 	t.UpdateBitSet()
 	return t, err
 }
