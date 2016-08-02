@@ -406,35 +406,65 @@ func (t *Tree) fillRightBitSet(currentEdge *Edge, rightEdges *[]*Edge) error {
 // 	tree.UpdateTipIndex()
 //	tree.ClearBitSets()
 //	tree.UpdateBitSet()
+// If tipedges is false: does not take into account tip edges
 // Have been called before, otherwise will output an error
-func (t *Tree) CommonEdges(t2 *Tree) (int, error) {
-	common := 0
+func (t *Tree) CommonEdges(t2 *Tree, tipEdges bool) (tree1 int, common int, tree2 int, err error) {
 
-	err := t.CompareTipIndexes(t2)
+	err = t.CompareTipIndexes(t2)
 
 	if err != nil {
-		return 0, err
+		return 0, 0, 0, err
 	}
 
 	edges1 := t.Edges()
 	edges2 := t2.Edges()
 
-	for _, e := range edges1 {
-		for _, e2 := range edges2 {
-			if e.bitset == nil || e2.bitset == nil {
-				return 0, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+	tree1, common, tree2, err = CommonEdges(edges1, edges2)
+	if !tipEdges {
+		var nbtips int
+		if nbtips, err = t.NbTips(); err != nil {
+			return 0, 0, 0, err
+		}
+		common -= nbtips
+	}
+
+	return tree1, common, tree2, nil
+}
+
+// This function compares 2 trees and output
+// the number of edges in common
+// If the trees have different sets of tip names, returns an error
+// It assumes that functions
+// 	tree.UpdateTipIndex()
+//	tree.ClearBitSets()
+//	tree.UpdateBitSet()
+// If tipedges is false: does not take into account tip edges
+// Have been called before, otherwise will output an error
+func CommonEdges(edges1 []*Edge, edges2 []*Edge) (tree1 int, common int, tree2 int, err error) {
+	var e, e2 *Edge
+	for _, e = range edges1 {
+		if e.bitset == nil {
+			return 0, 0, 0, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+		}
+		// if e.bitset.None() {
+		// 	return 0, 0, 0, errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
+		// }
+		for _, e2 = range edges2 {
+			if e2.bitset == nil {
+				return 0, 0, 0, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
 			}
-			if !e.bitset.Any() || !e2.bitset.Any() {
-				return 0, errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
-			}
-			if e.bitset.Equal(e2.bitset) ||
-				e.bitset.Complement().Equal(e2.bitset) {
+			if e.bitset.EqualOrComplement(e2.bitset) {
 				common++
+				// if e2.bitset.None() {
+				// 	return 0, 0, 0, errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
+				// }
 				break
 			}
 		}
 	}
-	return common, nil
+	tree1 = len(edges1) - common
+	tree2 = len(edges2) - common
+	return tree1, common, tree2, nil
 }
 
 // This function compares this tree with a set of compTrees and outputs:
@@ -449,49 +479,29 @@ func (t *Tree) CommonEdges(t2 *Tree) (int, error) {
 //	tree.UpdateBitSet()
 // Have been called before, otherwise will output an error
 func (t *Tree) CompareEdges(compTrees []*Tree, tipEdges bool) (refTreeEdges []int, commonEdges []int, compTreeEdges []int, err error) {
+	var tree1, common, tree2 int
 	commonEdges = make([]int, len(compTrees))
 	refTreeEdges = make([]int, len(compTrees))
 	compTreeEdges = make([]int, len(compTrees))
 
-	var commonE int
 	edges1 := t.Edges()
 	for i, comp := range compTrees {
 		if err = t.CompareTipIndexes(comp); err != nil {
 			return nil, nil, nil, err
 		}
-
-		commonE = 0
-
 		edges2 := comp.Edges()
-
-		for _, e := range edges1 {
-			for _, e2 := range edges2 {
-				if e.bitset == nil || e2.bitset == nil {
-					err = errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
-					return nil, nil, nil, err
-				}
-				if !e.bitset.Any() || !e2.bitset.Any() {
-					err = errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
-					return nil, nil, nil, err
-				}
-				if e.bitset.Equal(e2.bitset) ||
-					e.bitset.Complement().Equal(e2.bitset) {
-					commonE++
-					break
-				}
+		tree1, common, tree2, err = CommonEdges(edges1, edges2)
+		if !tipEdges {
+			var nbtips int
+			if nbtips, err = t.NbTips(); err != nil {
+				return nil, nil, nil, err
 			}
+			common -= nbtips
 		}
-		refTreeEdges[i] = (len(edges1) - commonE)
-		commonEdges[i] = commonE
-		compTreeEdges[i] = (len(edges2) - commonE)
+		refTreeEdges[i] = tree1
+		commonEdges[i] = common
+		compTreeEdges[i] = tree2
 	}
-	if !tipEdges {
-		nbtips := len(t.AllTipNames())
-		for i, _ := range commonEdges {
-			commonEdges[i] -= nbtips
-		}
-	}
-
 	return refTreeEdges, commonEdges, compTreeEdges, nil
 }
 
