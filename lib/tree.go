@@ -437,17 +437,18 @@ func (t *Tree) CommonEdges(t2 *Tree) (int, error) {
 	return common, nil
 }
 
-// This function compares this tree with a set of compTrees and output
+// This function compares this tree with a set of compTrees and outputs:
 // 1) The number of edges specific to this tree for each comparison
 // 2) The number of edges in common between this tree and each comp tree
 // 3) The number of edges specific to all comp trees
+// If tipedges is false: does not take into account tip edges
 // If the trees have different sets of tip names, returns an error
 // It assumes that functions
 // 	tree.UpdateTipIndex()
 //	tree.ClearBitSets()
 //	tree.UpdateBitSet()
 // Have been called before, otherwise will output an error
-func (t *Tree) CompareEdges(compTrees []*Tree) (refTreeEdges []int, commonEdges []int, compTreeEdges []int, err error) {
+func (t *Tree) CompareEdges(compTrees []*Tree, tipEdges bool) (refTreeEdges []int, commonEdges []int, compTreeEdges []int, err error) {
 	commonEdges = make([]int, len(compTrees))
 	refTreeEdges = make([]int, len(compTrees))
 	compTreeEdges = make([]int, len(compTrees))
@@ -484,6 +485,13 @@ func (t *Tree) CompareEdges(compTrees []*Tree) (refTreeEdges []int, commonEdges 
 		commonEdges[i] = commonE
 		compTreeEdges[i] = (len(edges2) - commonE)
 	}
+	if !tipEdges {
+		nbtips := len(t.AllTipNames())
+		for i, _ := range commonEdges {
+			commonEdges[i] -= nbtips
+		}
+	}
+
 	return refTreeEdges, commonEdges, compTreeEdges, nil
 }
 
