@@ -404,7 +404,7 @@ func (t *Tree) fillRightBitSet(currentEdge *Edge, rightEdges *[]*Edge) error {
 // If the trees have different sets of tip names, returns an error
 // It assumes that functions
 // 	tree.UpdateTipIndex()
-//	tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))
+//	tree.ClearBitSets()
 //	tree.UpdateBitSet()
 // Have been called before, otherwise will output an error
 func (t *Tree) CommonEdges(t2 *Tree) (int, error) {
@@ -435,6 +435,56 @@ func (t *Tree) CommonEdges(t2 *Tree) (int, error) {
 		}
 	}
 	return common, nil
+}
+
+// This function compares this tree with a set of compTrees and output
+// 1) The number of edges specific to this tree for each comparison
+// 2) The number of edges in common between this tree and each comp tree
+// 3) The number of edges specific to all comp trees
+// If the trees have different sets of tip names, returns an error
+// It assumes that functions
+// 	tree.UpdateTipIndex()
+//	tree.ClearBitSets()
+//	tree.UpdateBitSet()
+// Have been called before, otherwise will output an error
+func (t *Tree) CompareEdges(compTrees []*Tree) (refTreeEdges []int, commonEdges []int, compTreeEdges []int, err error) {
+	commonEdges = make([]int, len(compTrees))
+	refTreeEdges = make([]int, len(compTrees))
+	compTreeEdges = make([]int, len(compTrees))
+
+	var commonE int
+	edges1 := t.Edges()
+	for i, comp := range compTrees {
+		if err = t.CompareTipIndexes(comp); err != nil {
+			return nil, nil, nil, err
+		}
+
+		commonE = 0
+
+		edges2 := comp.Edges()
+
+		for _, e := range edges1 {
+			for _, e2 := range edges2 {
+				if e.bitset == nil || e2.bitset == nil {
+					err = errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+					return nil, nil, nil, err
+				}
+				if !e.bitset.Any() || !e2.bitset.Any() {
+					err = errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
+					return nil, nil, nil, err
+				}
+				if e.bitset.Equal(e2.bitset) ||
+					e.bitset.Complement().Equal(e2.bitset) {
+					commonE++
+					break
+				}
+			}
+		}
+		refTreeEdges[i] = (len(edges1) - commonE)
+		commonEdges[i] = commonE
+		compTreeEdges[i] = (len(edges2) - commonE)
+	}
+	return refTreeEdges, commonEdges, compTreeEdges, nil
 }
 
 // This function compares the tip name indexes of 2 trees
