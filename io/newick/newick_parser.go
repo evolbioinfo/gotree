@@ -165,17 +165,34 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 		case NEWSIBLING:
 			newNode = nil
 			prevTok = NEWSIBLING
-		case IDENT:
-			// Here we have a node name
+		case IDENT, NUMERIC:
+			// Here we have a node name or a bootstrap value
 			if prevTok == CLOSEPAR {
-				if newNode == nil {
-					return -1, errors.New("Newick Error: Cannot assign node name to nil node: " + lit)
+				// Bootstrap support value (numeric)
+				if tok == NUMERIC {
+					if *level == 0 {
+						return -1, errors.New("Newick Error: We do not accept support value on root")
+					}
+					e, err := newNode.ParentEdge()
+					if err != nil {
+						return -1, err
+					}
+					support, errf := strconv.ParseFloat(lit, 64)
+					if errf != nil {
+						return -1, err
+					}
+					e.SetSupport(support)
+				} else {
+					// Node name
+					if newNode == nil {
+						return -1, errors.New("Newick Error: Cannot assign node name to nil node: " + lit)
+					}
+					newNode.SetName(lit)
 				}
-				newNode.SetName(lit)
 			} else {
 				// Else we have a new tip
 				if prevTok != -1 && prevTok != NEWSIBLING {
-					return -1, errors.New("Newick Error: There should not be a name in this context: " + lit)
+					return -1, errors.New("Newick Error: There should not be a tip name in this context: " + lit)
 				}
 				if node == nil {
 					return -1, errors.New("Cannot create a new tip with no parent: " + lit)
@@ -184,24 +201,6 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 				newNode.SetName(lit)
 				tree.ConnectNodes(node, newNode)
 				prevTok = tok
-			}
-		case NUMERIC:
-			// Here we have a bootstrap value
-			if prevTok == CLOSEPAR {
-				if *level == 0 {
-					return -1, errors.New("Newick Error: We do not accept support value on root")
-				}
-				e, err := newNode.ParentEdge()
-				if err != nil {
-					return -1, err
-				}
-				support, errf := strconv.ParseFloat(lit, 64)
-				if errf != nil {
-					return -1, err
-				}
-				e.SetSupport(support)
-			} else {
-				return -1, errors.New("Newick Error: There should not be a name in this context: " + lit)
 			}
 		case EOT:
 			p.unscan()
