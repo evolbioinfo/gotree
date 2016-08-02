@@ -7,7 +7,7 @@ package lib
 import (
 	"bytes"
 	"errors"
-	"github.com/willf/bitset"
+	"github.com/fredericlemoine/bitset"
 	"math/rand"
 	"sort"
 	"strconv"
