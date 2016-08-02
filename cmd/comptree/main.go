@@ -7,6 +7,8 @@ import (
 	"github.com/fredericlemoine/gotree/io/newick"
 	gotree "github.com/fredericlemoine/gotree/lib"
 	"os"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -103,10 +105,11 @@ func readCompTrees(inputfile string, compTrees chan<- trees) error {
 }
 
 func main() {
+	maxcpus := runtime.NumCPU()
 	tree1 := flag.String("i", "stdin", "Input File containing the reference tree")
 	tree2 := flag.String("b", "none", "Input File containing trees to compare to reference tree (mandatory)")
 	tips := flag.Bool("tips", false, "If false, does not count tip edges")
-
+	cpus := flag.Int("t", 1, "Number of threads (Max=)"+strconv.Itoa(maxcpus))
 	var refTree *gotree.Tree
 	var err error
 	var nbtips int
@@ -120,10 +123,14 @@ func main() {
 	if *tree2 == "none" {
 		panic("You must provide a file containing compared trees")
 	}
+	if *cpus > maxcpus {
+		*cpus = maxcpus
+	}
 
 	fmt.Fprintf(os.Stderr, "Reference : %s\n", *tree1)
 	fmt.Fprintf(os.Stderr, "Compared  : %s\n", *tree2)
 	fmt.Fprintf(os.Stderr, "With tips : %b\n", *tips)
+	fmt.Fprintf(os.Stderr, "Threads   : %d\n", *cpus)
 
 	if refTree, err = readRefTree(*tree1); err != nil {
 		panic(err)
@@ -140,11 +147,10 @@ func main() {
 	}()
 
 	var wg sync.WaitGroup
-	for cpu := 0; cpu < 10; cpu++ {
+	for cpu := 0; cpu < *cpus; cpu++ {
 		wg.Add(1)
 		go func(cpu int) {
 			for treeV := range compTreesChannel {
-				fmt.Fprintf(os.Stderr, "Thread %d - Received new tree\n", cpu)
 				var tree1, common, tree2 int
 				var err error
 				edges2 := treeV.tree.Edges()
@@ -161,7 +167,6 @@ func main() {
 					common,
 					tree2,
 				}
-				fmt.Fprintf(os.Stderr, "Thread %d - Finished comparison\n", cpu)
 			}
 			wg.Done()
 		}(cpu)
