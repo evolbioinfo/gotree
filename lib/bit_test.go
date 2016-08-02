@@ -26,7 +26,11 @@ func TestBitset(t *testing.T) {
 			}
 		}
 	}
+
 	if !b.Complement().Equal(b2) {
+		t.Error("b and b2 should be complement but are not")
+	}
+	if !b.EqualOrComplement(b2) {
 		t.Error("b and b2 should be complement but are not")
 	}
 	if !b.Equal(b3) {
