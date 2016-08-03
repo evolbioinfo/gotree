@@ -14,7 +14,7 @@ import (
 )
 
 type Tree struct {
-	root     *Node           // root node
+	root     *Node           // root node: If the tree is unrooted the root node should have 3 children
 	tipIndex map[string]uint // Map between tip name and bitset index
 }
 
@@ -63,7 +63,8 @@ func NewTree() *Tree {
 /* Node functions */
 /******************/
 
-func (p *Node) AddChild(n *Node, e *Edge) {
+// Adds a child n to the node p, connected with edge e
+func (p *Node) addChild(n *Node, e *Edge) {
 	p.neigh = append(p.neigh, n)
 	p.br = append(p.br, e)
 
@@ -128,10 +129,10 @@ func (n *Node) ParentEdge() (*Edge, error) {
 /* Edge functions */
 /******************/
 
-func (e *Edge) SetLeft(left *Node) {
+func (e *Edge) setLeft(left *Node) {
 	e.left = left
 }
-func (e *Edge) SetRight(right *Node) {
+func (e *Edge) setRight(right *Node) {
 	e.right = right
 }
 func (e *Edge) SetLength(length float64) {
@@ -304,10 +305,10 @@ func (n *Node) NodeIndex(next *Node) (int, error) {
 
 func (t *Tree) ConnectNodes(parent *Node, child *Node) *Edge {
 	newedge := t.NewEdge()
-	newedge.SetLeft(parent)
-	newedge.SetRight(child)
-	parent.AddChild(child, newedge)
-	child.AddChild(parent, newedge)
+	newedge.setLeft(parent)
+	newedge.setRight(child)
+	parent.addChild(child, newedge)
+	child.addChild(parent, newedge)
 	return newedge
 }
 
@@ -589,12 +590,12 @@ func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) (*Edge, *Edge, *Node, error) {
 	}
 
 	newedge.SetLength(1.0)
-	newedge.SetLeft(newnode)
-	newedge.SetRight(n)
-	newnode.AddChild(n, newedge)
-	n.AddChild(newnode, newedge)
-	e.SetRight(newnode)
-	newnode.AddChild(lnode, e)
+	newedge.setLeft(newnode)
+	newedge.setRight(n)
+	newnode.addChild(n, newedge)
+	n.addChild(newnode, newedge)
+	e.setRight(newnode)
+	newnode.addChild(lnode, e)
 	lnode.neigh[e_l_ind] = newnode
 
 	if lnode.br[e_l_ind] != e {
@@ -604,9 +605,9 @@ func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) (*Edge, *Edge, *Node, error) {
 	newedge2 := t.NewEdge()
 	newedge2.SetLength(e.length / 2)
 	e.SetLength(e.length / 2)
-	newedge2.SetLeft(newnode)
-	newedge2.SetRight(rnode)
-	newnode.AddChild(rnode, newedge2)
+	newedge2.setLeft(newnode)
+	newedge2.setRight(rnode)
+	newnode.addChild(rnode, newedge2)
 	if rnode.br[e_r_ind] != e {
 		return nil, nil, nil, errors.New("The Edge is not at the same index")
 	}
