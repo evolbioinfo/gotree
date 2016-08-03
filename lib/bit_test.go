@@ -1,6 +1,6 @@
 package lib
 
-import "github.com/willf/bitset"
+import "github.com/fredericlemoine/bitset"
 import "testing"
 import "fmt"
 
