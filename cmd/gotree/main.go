@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -22,6 +23,19 @@ func main() {
 	fmt.Fprintf(os.Stderr, "Nb Tips: %d\n", *nbtips)
 
 	rand.Seed(*seed)
+
+	intree := "(t1:1,t2:2,(t3:3,(t4:4,t5:5)0.8:6)0.9:7);"
+	tree, err2 := newick.NewParser(strings.NewReader(intree)).Parse()
+	if err2 != nil {
+		panic(err2)
+	}
+	fmt.Println(tree.Newick())
+	if err3 := tree.RemoveTips("t2", "t3"); err3 != nil {
+		panic(err3)
+	}
+
+	fmt.Println(tree.Newick())
+
 	fmt.Println("Generating Tree")
 	t, err := gotree.RandomBinaryTree(*nbtips)
 	fmt.Println("Done")
@@ -79,13 +93,13 @@ func main() {
 						fmt.Println(name + " [" + strconv.Itoa(int(i)) + "]")
 					}
 				}
-				common, err := t.CommonEdges(tree)
+				_, common, _, err := t.CommonEdges(tree, false)
 				if err != nil {
 					fmt.Println(err)
 				} else {
 					fmt.Println("Common edges: " + strconv.Itoa(common))
 				}
-				common, err = tree.CommonEdges(tree)
+				_, _, common, err = tree.CommonEdges(tree, false)
 				if err != nil {
 					fmt.Println(err)
 				} else {

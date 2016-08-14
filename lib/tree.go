@@ -7,7 +7,10 @@ package lib
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"github.com/fredericlemoine/bitset"
+	"github.com/fredericlemoine/gotree/lib/nodeindex"
+	"math"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -44,6 +47,21 @@ func (t *Tree) NewNode() *Node {
 		br:      make([]*Edge, 0, 3),
 		depth:   0,
 	}
+}
+
+// put at nil the node and all its branches
+func (t *Tree) delNode(n *Node) {
+	for i, _ := range n.neigh {
+		n.neigh[i] = nil
+	}
+	n.neigh = nil
+
+	for i, e := range n.br {
+		e.left = nil
+		e.right = nil
+		n.br[i] = nil
+	}
+	n.br = nil
 }
 
 func (t *Tree) NewEdge() *Edge {
@@ -84,6 +102,16 @@ func (n *Node) SetDepth(depth int) {
 
 func (n *Node) Name() string {
 	return n.name
+}
+
+func (n *Node) delNeighbor(n2 *Node) error {
+	i, err := n.NodeIndex(n2)
+	if err != nil {
+		return err
+	}
+	n.br = append(n.br[0:i], n.br[i+1:]...)
+	n.neigh = append(n.neigh[0:i], n.neigh[i+1:]...)
+	return nil
 }
 
 // Retrieve the parent node
@@ -147,6 +175,10 @@ func (e *Edge) Length() float64 {
 	return e.length
 }
 
+func (e *Edge) Support() float64 {
+	return e.support
+}
+
 func (e *Edge) DumpBitSet() string {
 	if e.bitset == nil {
 		return "nil"
@@ -203,6 +235,124 @@ func (t *Tree) nodesRecur(nodes *[]*Node, cur *Node, prev *Node) {
 			t.nodesRecur(nodes, n, cur)
 		}
 	}
+}
+
+// Removes a set of tips from the tree, from tip names
+func (t *Tree) RemoveTips(names ...string) error {
+	nodes := t.Nodes()
+	nodeindex := nodeindex.New(t)
+
+	for _, name := range names {
+		n, ok := nodeindex.GetNode(name)
+		if !ok {
+			return errors.New("No tip named " + name + " in the Tree")
+		}
+		if len(n.neigh) != 1 {
+			return errors.New("The node named " + name + " is not a tip")
+		}
+		if err := t.removeTip(n); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Remove one tip from the tree
+func (t *Tree) removeTip(tip *Node) error {
+	if len(tip.neigh) != 1 {
+		return errors.New("Cannot remove node, it is not a tip")
+	}
+	tip.neigh = nil
+	internal := tip.br[0].left
+	if err := internal.delNeighbor(tip); err != nil {
+		return err
+	}
+	tip.neigh = nil
+	tip.br[0].left = nil
+	tip.br[0].right = nil
+	tip.br = nil
+
+	// Then 2 solutions :
+	// 1 - Internal node is now terminal : it means it was the root of a rooted tree : we delete it and new root is its child
+	// 2 - Internal node is now a bifurcation : we do not want to keep it thus we will delete it and connect the two neighbors
+	// Case 1
+	if len(internal.neigh) == 1 {
+		if t.Root() != internal {
+			return errors.New("After tip removal, this node should not have degre 1 without being the root")
+		}
+		t.root = internal.neigh[0]
+		if err := t.root.delNeighbor(internal); err != nil {
+			return err
+		}
+		t.delNode(internal)
+		return nil
+	}
+
+	// Case 2: We remove the node
+	if len(internal.neigh) == 2 {
+		n1, n2 := internal.neigh[0], internal.neigh[1]
+		b1, b2 := internal.br[0], internal.br[1]
+		length1, length2 := b1.Length(), b2.Length()
+		sup1, sup2 := b1.Support(), b2.Support()
+		var e *Edge
+		// Direction : true if n1-->internal
+		dir1 := b1.left == n1
+		// Direction : true if internal-->n2
+		dir2 := b2.right == n2
+		if err := n1.delNeighbor(internal); err != nil {
+			return err
+		}
+		if err := n2.delNeighbor(internal); err != nil {
+			return err
+		}
+
+		// Now we have two options to connect n1 and n2: (n1 parent of n2) or (n2 parent of n1)
+		// This direction depends on the directions of the previous edges:
+		// 1) n1--->internal--->n2 : t.ConnectNodes(n1,n2)
+		// 2) n1<---internal<---n2 : t.ConnectNodes(n2,n1)
+		// 3) n1<---internal--->n2 : internal is the root of an unrooted tree so:
+		//        1 - we connect the two nodes from n1 to n2 if n1 is not a tip or n2 to n1 otherwise
+		//        2 - we choose a new root (n1 if n1->n2, n2 otherwise)
+		// 4) n1--->internal<---n2 : Error
+		if dir1 && dir2 { // 1)
+			e = t.ConnectNodes(n1, n2)
+		} else if !dir1 && !dir2 { // 2)
+			e = t.ConnectNodes(n2, n1)
+		} else if !dir1 && dir2 { // 3
+			if t.Root() != internal {
+				return errors.New("The tree root is not the internal node, but it should be")
+			}
+			if len(n1.neigh) > 1 { // Not a tip
+				e = t.ConnectNodes(n1, n2)
+				t.SetRoot(n1)
+			} else if len(n1.neigh) == 1 {
+				return errors.New("The neighbor n1 should not have only one neighbor")
+			} else if len(n2.neigh) > 1 { // Not a tip
+				e = t.ConnectNodes(n2, n1)
+				t.SetRoot(n2)
+			} else if len(n2.neigh) == 1 {
+				return errors.New("The neighbor n2 should not have only one neighbor")
+			} else {
+				return errors.New("The tree after tip removal is only made of two tips")
+			}
+		} else {
+			return errors.New("Branches of internal node are not oriented as they should be")
+		}
+
+		if length1 != -1 || length2 != -1 {
+			e.SetLength(math.Max(0, length1) + math.Max(0, length2))
+		}
+
+		// We attribute a support to the new branch only if it is not a tip branch
+		if (sup1 != -1 || sup2 != -1) && len(n1.neigh) > 1 && len(n2.neigh) > 1 {
+			e.SetSupport(math.Max(sup1, sup2))
+		}
+
+		t.delNode(internal)
+		return nil
+	}
+	return errors.New("Unknown problem: The internal node remaining after removing the tip has a unexpected number of neighbors")
 }
 
 func (t *Tree) String() string {
