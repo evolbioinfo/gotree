@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/fredericlemoine/gotree/io/newick"
-	gotree "github.com/fredericlemoine/gotree/lib"
+	"github.com/fredericlemoine/gotree/tree"
 	"os"
 	"runtime"
 	"strconv"
@@ -23,7 +23,7 @@ type stats struct {
 
 // Type for channel of trees
 type trees struct {
-	tree *gotree.Tree
+	tree *tree.Tree
 	id   int
 }
 
@@ -44,9 +44,9 @@ func readln(r *bufio.Reader) (string, error) {
 	return string(ln), err
 }
 
-func readRefTree(inputfile string) (*gotree.Tree, error) {
+func readRefTree(inputfile string) (*tree.Tree, error) {
 	var refTreeFile *os.File
-	var reftree *gotree.Tree
+	var reftree *tree.Tree
 	var err error
 	var reader *bufio.Reader
 
@@ -74,7 +74,7 @@ func readRefTree(inputfile string) (*gotree.Tree, error) {
 // One tree per line
 func readCompTrees(inputfile string, compTrees chan<- trees) error {
 	var compTreeFile *os.File
-	var compTree *gotree.Tree
+	var compTree *tree.Tree
 	var err error
 	var reader *bufio.Reader
 
@@ -110,10 +110,10 @@ func main() {
 	tree2 := flag.String("b", "none", "Input File containing trees to compare to reference tree (mandatory)")
 	tips := flag.Bool("tips", false, "If false, does not count tip edges")
 	cpus := flag.Int("t", 1, "Number of threads (Max=)"+strconv.Itoa(maxcpus))
-	var refTree *gotree.Tree
+	var refTree *tree.Tree
 	var err error
 	var nbtips int
-	var edges []*gotree.Edge
+	var edges []*tree.Edge
 
 	compTreesChannel := make(chan trees, 100)
 	statsChannel := make(chan stats, 100)
@@ -155,7 +155,7 @@ func main() {
 				var err error
 				edges2 := treeV.tree.Edges()
 
-				if tree1, common, tree2, err = gotree.CommonEdges(edges, edges2); err != nil {
+				if tree1, common, tree2, err = tree.CommonEdges(edges, edges2); err != nil {
 					panic(err)
 				}
 				if !*tips {

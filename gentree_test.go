@@ -1,20 +1,24 @@
-package lib
+package gotree
 
-import "testing"
+import (
+	"github.com/fredericlemoine/gotree/tree"
+	"testing"
+)
 
-var tree *Tree
+var prevtree *tree.Tree
 
 func benchmarkBinaryTreeGeneration(nbtips int, b *testing.B) {
-	var t *Tree
+	var t *tree.Tree
 	for n := 0; n < b.N; n++ {
 		var err error
-		t, err = RandomBinaryTree(nbtips)
+		t, err = tree.RandomBinaryTree(nbtips)
 		if err != nil {
 			b.Error(err)
 		}
 	}
-	tree = t
+	prevtree = t
 }
+
 func BenchmarkBinaryTreeGeneration10(b *testing.B)     { benchmarkBinaryTreeGeneration(10, b) }
 func BenchmarkBinaryTreeGeneration100(b *testing.B)    { benchmarkBinaryTreeGeneration(100, b) }
 func BenchmarkBinaryTreeGeneration1000(b *testing.B)   { benchmarkBinaryTreeGeneration(1000, b) }

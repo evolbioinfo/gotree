@@ -3,7 +3,7 @@ package newick
 import (
 	"errors"
 	"fmt"
-	gotree "github.com/fredericlemoine/gotree/lib"
+	"github.com/fredericlemoine/gotree/tree"
 	"io"
 	"strconv"
 )
@@ -54,7 +54,7 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 }
 
 // Parse parses a SQL SELECT statement.
-func (p *Parser) Parse() (*gotree.Tree, error) {
+func (p *Parser) Parse() (*tree.Tree, error) {
 
 	// First token should be a "OPENPAR" token.
 	tok, lit := p.scanIgnoreWhitespace()
@@ -62,7 +62,7 @@ func (p *Parser) Parse() (*gotree.Tree, error) {
 		return nil, fmt.Errorf("found %q, expected (", lit)
 	}
 	p.unscan()
-	tree := gotree.NewTree()
+	tree := tree.NewTree()
 
 	// Now we can parse recursively the tree
 	// Read a field.
@@ -90,9 +90,9 @@ func (p *Parser) Parse() (*gotree.Tree, error) {
 	return tree, nil
 }
 
-func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (Token, error) {
+func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, error) {
 
-	var newNode *gotree.Node = node
+	var newNode *tree.Node = node
 	var prevTok Token = -1
 	var err error
 
@@ -101,18 +101,18 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 
 		switch tok {
 		case OPENPAR:
-			newNode = tree.NewNode()
+			newNode = t.NewNode()
 			if node == nil {
 				if *level > 0 {
 					return -1, errors.New("Nil node at depth > 0")
 				}
-				tree.SetRoot(newNode)
+				t.SetRoot(newNode)
 				node = newNode
 			} else {
-				tree.ConnectNodes(node, newNode)
+				t.ConnectNodes(node, newNode)
 			}
 			(*level)++
-			prevTok, err = p.parseRecur(tree, newNode, level)
+			prevTok, err = p.parseRecur(t, newNode, level)
 			if err != nil {
 				return -1, err
 			}
@@ -199,9 +199,9 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 				if node == nil {
 					return -1, errors.New("Cannot create a new tip with no parent: " + lit)
 				}
-				newNode = tree.NewNode()
+				newNode = t.NewNode()
 				newNode.SetName(lit)
-				tree.ConnectNodes(node, newNode)
+				t.ConnectNodes(node, newNode)
 				prevTok = tok
 			}
 		case EOT:

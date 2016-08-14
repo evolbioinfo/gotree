@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/fredericlemoine/gotree/io/newick"
-	gotree "github.com/fredericlemoine/gotree/lib"
+	"github.com/fredericlemoine/gotree/tree"
 	"math/rand"
 	"os"
 	"sort"
@@ -25,19 +25,19 @@ func main() {
 	rand.Seed(*seed)
 
 	intree := "(t1:1,t2:2,(t3:3,(t4:4,t5:5)0.8:6)0.9:7);"
-	tree, err2 := newick.NewParser(strings.NewReader(intree)).Parse()
+	t, err2 := newick.NewParser(strings.NewReader(intree)).Parse()
 	if err2 != nil {
 		panic(err2)
 	}
-	fmt.Println(tree.Newick())
-	if err3 := tree.RemoveTips("t2", "t3"); err3 != nil {
+	fmt.Println(t.Newick())
+	if err3 := t.RemoveTips("t2", "t3"); err3 != nil {
 		panic(err3)
 	}
 
-	fmt.Println(tree.Newick())
+	fmt.Println(t.Newick())
 
 	fmt.Println("Generating Tree")
-	t, err := gotree.RandomBinaryTree(*nbtips)
+	t, err := tree.RandomBinaryTree(*nbtips)
 	fmt.Println("Done")
 
 	if err != nil {
