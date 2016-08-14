@@ -95,8 +95,10 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 	var newNode *gotree.Node = node
 	var prevTok Token = -1
 	var err error
+
 	for {
 		tok, lit := p.scanIgnoreWhitespace()
+
 		switch tok {
 		case OPENPAR:
 			newNode = tree.NewNode()
@@ -208,6 +210,9 @@ func (p *Parser) parseRecur(tree *gotree.Tree, node *gotree.Node, level *int) (T
 				return -1, errors.New("Newick Error: Mismatched parenthesis")
 			}
 			return tok, nil
+		case EOF:
+			return tok, nil
 		}
+
 	}
 }
