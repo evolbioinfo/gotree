@@ -8,7 +8,7 @@ type nodeIndex struct {
 	index map[string]*Node
 }
 
-func NewNodeIndex(t *Tree) NodeIndex {
+func NewNodeIndex(t *Tree) *nodeIndex {
 
 	nodeindex := &nodeIndex{
 		index: make(map[string]*Node, 0),
