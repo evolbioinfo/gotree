@@ -1,4 +1,4 @@
-package lib
+package tests
 
 import "github.com/fredericlemoine/bitset"
 import "testing"

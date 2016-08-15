@@ -1,11 +1,11 @@
-package gotree
+package tests
 
 import (
 	"github.com/fredericlemoine/gotree/tree"
 	"testing"
 )
 
-var prevtree *tree.Tree
+var prevtree2 *tree.Tree
 
 func benchmarkBinaryTreeGeneration(nbtips int, b *testing.B) {
 	var t *tree.Tree
@@ -16,7 +16,7 @@ func benchmarkBinaryTreeGeneration(nbtips int, b *testing.B) {
 			b.Error(err)
 		}
 	}
-	prevtree = t
+	prevtree2 = t
 }
 
 func BenchmarkBinaryTreeGeneration10(b *testing.B)     { benchmarkBinaryTreeGeneration(10, b) }

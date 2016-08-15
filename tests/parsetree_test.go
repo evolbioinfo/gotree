@@ -1,4 +1,4 @@
-package gotree
+package tests
 
 import (
 	"bufio"
