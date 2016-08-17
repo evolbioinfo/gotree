@@ -85,7 +85,9 @@ func (p *Parser) Parse() (*tree.Tree, error) {
 		return nil, err
 	}
 	tree.UpdateBitSet()
-
+	// Not necessary at the parsing step...
+	// may be too long to do each time
+	//tree.ComputeDepths()
 	// Return the successfully parsed statement.
 	return tree, nil
 }
@@ -146,23 +148,24 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 			if tok != NUMERIC {
 				return -1, errors.New("Newick Error: No numeric value after :")
 			}
-			if newNode == nil || *level == 0 || newNode == node {
-				return -1, errors.New("Newick Error: Cannot assign length to nil node or to the root :" + lit)
-			}
+			// We skip length if the length is assigned to the root node
+			if newNode != nil && *level != 0 && newNode != node {
+				e, err := newNode.ParentEdge()
+				if err != nil {
+					return -1, err
+				}
 
-			e, err := newNode.ParentEdge()
-			if err != nil {
-				return -1, err
+				if e.Length() != -1 {
+					return -1, errors.New("Newick Error: More than one length is given :" + lit)
+				}
+				length, errf := strconv.ParseFloat(lit, 64)
+				if errf != nil {
+					return -1, errors.New("Newick Error: Length is not a float value : " + lit)
+				}
+				e.SetLength(length)
+			} else {
+				// return -1, errors.New("Newick Error: Cannot assign length to nil node or to the root :" + lit)
 			}
-
-			if e.Length() != -1 {
-				return -1, errors.New("Newick Error: More than one length is given :" + lit)
-			}
-			length, errf := strconv.ParseFloat(lit, 64)
-			if errf != nil {
-				return -1, errors.New("Newick Error: Length is not a float value : " + lit)
-			}
-			e.SetLength(length)
 			prevTok = tok
 		case NEWSIBLING:
 			newNode = nil
@@ -213,6 +216,5 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 		case EOF:
 			return tok, nil
 		}
-
 	}
 }
