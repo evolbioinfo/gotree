@@ -15,16 +15,14 @@
 package cmd
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"github.com/fredericlemoine/gotree/io/newick"
+	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"os"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -36,89 +34,6 @@ type stats struct {
 	tree2  int
 }
 
-// Type for channel of trees
-type trees struct {
-	tree *tree.Tree
-	id   int
-}
-
-// Readln returns a single line (without the ending \n)
-// from the input buffered reader.
-// An error is returned iff there is an error with the
-// buffered reader.
-func readln(r *bufio.Reader) (string, error) {
-	var (
-		isPrefix bool  = true
-		err      error = nil
-		line, ln []byte
-	)
-	for isPrefix && err == nil {
-		line, isPrefix, err = r.ReadLine()
-		ln = append(ln, line...)
-	}
-	return string(ln), err
-}
-
-func readRefTree(inputfile string) (*tree.Tree, error) {
-	var refTreeFile *os.File
-	var reftree *tree.Tree
-	var err error
-	var reader *bufio.Reader
-
-	if inputfile == "" || inputfile == "stdin" {
-		refTreeFile = os.Stdin
-	} else {
-		refTreeFile, err = os.Open(inputfile)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	reader = bufio.NewReader(refTreeFile)
-	if reftree, err = newick.NewParser(reader).Parse(); err != nil {
-		return nil, err
-	}
-	if err = refTreeFile.Close(); err != nil {
-		return nil, err
-	}
-
-	return reftree, nil
-}
-
-// Read a bunch of trees from the input file. One line must define One tree.
-// One tree per line
-func readCompTrees(inputfile string, compTrees chan<- trees) error {
-	var compTreeFile *os.File
-	var compTree *tree.Tree
-	var err error
-	var reader *bufio.Reader
-
-	if compTreeFile, err = os.Open(inputfile); err != nil {
-		return err
-	}
-
-	reader = bufio.NewReader(compTreeFile)
-	id := 0
-	line, e := readln(reader)
-	for e == nil {
-		parser := newick.NewParser(strings.NewReader(line))
-		if compTree, err = parser.Parse(); err != nil {
-			return err
-		}
-		compTrees <- trees{
-			compTree,
-			id,
-		}
-		id++
-		line, e = readln(reader)
-	}
-	close(compTrees)
-	if err = compTreeFile.Close(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func comptrees(tree1 string, tree2 string, tips bool, cpus int) {
 	maxcpus := runtime.NumCPU()
 	var refTree *tree.Tree
@@ -126,7 +41,7 @@ func comptrees(tree1 string, tree2 string, tips bool, cpus int) {
 	var nbtips int
 	var edges []*tree.Edge
 
-	compTreesChannel := make(chan trees, 100)
+	compTreesChannel := make(chan utils.Trees, 100)
 	statsChannel := make(chan stats, 100)
 
 	flag.Parse()
@@ -143,7 +58,7 @@ func comptrees(tree1 string, tree2 string, tips bool, cpus int) {
 	fmt.Fprintf(os.Stderr, "With tips : %b\n", tips)
 	fmt.Fprintf(os.Stderr, "Threads   : %d\n", cpus)
 
-	if refTree, err = readRefTree(tree1); err != nil {
+	if refTree, err = utils.ReadRefTree(tree1); err != nil {
 		panic(err)
 	}
 	edges = refTree.Edges()
@@ -152,7 +67,7 @@ func comptrees(tree1 string, tree2 string, tips bool, cpus int) {
 	}
 
 	go func() {
-		if err = readCompTrees(tree2, compTreesChannel); err != nil {
+		if err = utils.ReadCompTrees(tree2, compTreesChannel); err != nil {
 			panic(err)
 		}
 	}()
@@ -164,7 +79,7 @@ func comptrees(tree1 string, tree2 string, tips bool, cpus int) {
 			for treeV := range compTreesChannel {
 				var tree1, common, tree2 int
 				var err error
-				edges2 := treeV.tree.Edges()
+				edges2 := treeV.Tree.Edges()
 
 				if tree1, common, tree2, err = tree.CommonEdges(edges, edges2); err != nil {
 					panic(err)
@@ -173,7 +88,7 @@ func comptrees(tree1 string, tree2 string, tips bool, cpus int) {
 					common -= nbtips
 				}
 				statsChannel <- stats{
-					treeV.id,
+					treeV.Id,
 					tree1,
 					common,
 					tree2,
