@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"errors"
 	"github.com/fredericlemoine/bitset"
 )
 
@@ -45,6 +46,18 @@ func (e *Edge) Right() *Node {
 
 func (e *Edge) Left() *Node {
 	return e.left
+}
+
+func (e *Edge) TopoDepth() (int, error) {
+	if e.bitset == nil {
+		return -1, errors.New("Cannot compute topodepth, Bitset is nil")
+	}
+	if e.bitset.None() {
+		return -1, errors.New("Cannot compute topodepth, Bitset is 000...0")
+	}
+	count := int(e.bitset.Count())
+	total := int(e.bitset.Len())
+	return min(count, total-count), nil
 }
 
 func (e *Edge) DumpBitSet() string {

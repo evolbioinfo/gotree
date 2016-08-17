@@ -37,8 +37,11 @@ func (n *Node) Name() string {
 	return n.name
 }
 
-func (n *Node) Depth() int {
-	return n.depth
+func (n *Node) Depth() (int, error) {
+	if n.depth == -1 {
+		return n.depth, errors.New("Node depth has not been computed")
+	}
+	return n.depth, nil
 }
 
 // Number of neighbors of this node

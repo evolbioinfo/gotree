@@ -21,6 +21,13 @@ import (
 	"os"
 )
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // edgesCmd represents the edges command
 var edgesCmd = &cobra.Command{
 	Use:   "edges",
@@ -36,6 +43,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			panic(err)
 		}
+		tree.ComputeDepths()
 		var f *os.File
 		if statsoutfile != "stdout" {
 			f, err = os.Create(statsoutfile)
@@ -45,7 +53,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			panic(err)
 		}
-		f.WriteString("id\tlength\tsupport\tterminal\trightname\n")
+		f.WriteString("id\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\n")
 		for i, e := range tree.Edges() {
 			var length = "N/A"
 			if e.Length() != -1 {
@@ -55,8 +63,22 @@ to quickly create a Cobra application.`,
 			if e.Support() != -1 {
 				support = fmt.Sprintf("%f", e.Support())
 			}
+			var depth, leftdepth, rightdepth int
 
-			f.WriteString(fmt.Sprintf("%d\t%s\t%s\t%t\t%s\n", i, length, support, e.Right().Tip(), e.Right().Name()))
+			if leftdepth, err = e.Left().Depth(); err != nil {
+				panic(err)
+			}
+			if rightdepth, err = e.Right().Depth(); err != nil {
+				panic(err)
+			}
+			depth = min(leftdepth, rightdepth)
+			var topodepth int
+			topodepth, err = e.TopoDepth()
+			if err != nil {
+				panic(err)
+			}
+
+			f.WriteString(fmt.Sprintf("%d\t%s\t%s\t%t\t%d\t%d\t%s\n", i, length, support, e.Right().Tip(), depth, topodepth, e.Right().Name()))
 		}
 		f.Close()
 	},
