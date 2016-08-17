@@ -39,6 +39,14 @@ func (e *Edge) Support() float64 {
 	return e.support
 }
 
+func (e *Edge) Right() *Node {
+	return e.right
+}
+
+func (e *Edge) Left() *Node {
+	return e.left
+}
+
 func (e *Edge) DumpBitSet() string {
 	if e.bitset == nil {
 		return "nil"
