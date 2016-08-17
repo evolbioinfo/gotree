@@ -37,6 +37,10 @@ func (n *Node) Name() string {
 	return n.name
 }
 
+func (n *Node) Depth() int {
+	return n.depth
+}
+
 // Number of neighbors of this node
 func (n *Node) Nneigh() int {
 	return len(n.neigh)

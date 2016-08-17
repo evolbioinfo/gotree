@@ -32,7 +32,7 @@ func (t *Tree) NewNode() *Node {
 		comment: make([]string, 0),
 		neigh:   make([]*Node, 0, 3),
 		br:      make([]*Edge, 0, 3),
-		depth:   0,
+		depth:   -1,
 	}
 }
 
@@ -67,6 +67,10 @@ func (t *Tree) SetRoot(r *Node) {
 
 func (t *Tree) Root() *Node {
 	return t.root
+}
+
+func (t *Tree) Rooted() bool {
+	return t.root.Nneigh() == 2
 }
 
 // Returns all the edges of the tree (do it recursively)
@@ -105,6 +109,27 @@ func (t *Tree) nodesRecur(nodes *[]*Node, cur *Node, prev *Node) {
 	for _, n := range cur.neigh {
 		if n != prev {
 			t.nodesRecur(nodes, n, cur)
+		}
+	}
+}
+
+// Returns all the tips of the tree (do it recursively)
+func (t *Tree) Tips() []*Node {
+	tips := make([]*Node, 0, 2000)
+	t.tipsRecur(&tips, nil, nil)
+	return tips
+}
+
+func (t *Tree) tipsRecur(tips *[]*Node, cur *Node, prev *Node) {
+	if cur == nil {
+		cur = t.Root()
+	}
+	if cur.Tip() {
+		*tips = append((*tips), cur)
+	}
+	for _, n := range cur.neigh {
+		if n != prev {
+			t.tipsRecur(tips, n, cur)
 		}
 	}
 }
@@ -651,6 +676,57 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 	t.UpdateTipIndex()
 	t.ClearBitSets()
 	t.UpdateBitSet()
-
+	t.ComputeDepths()
 	return t, err
+}
+func (t *Tree) ComputeDepths() {
+	if t.Rooted() {
+		t.computeDepthRecurRooted(t.Root(), nil)
+	} else {
+		t.computeDepthUnRooted()
+	}
+}
+
+func (t *Tree) computeDepthRecurRooted(n *Node, prev *Node) int {
+	if n.Tip() {
+		n.depth = 0
+		return n.depth
+	} else {
+		mindepth := -1
+		for _, next := range n.neigh {
+			if next != prev {
+				depth := t.computeDepthRecurRooted(next, n)
+				if mindepth == -1 || depth < mindepth {
+					mindepth = depth
+				}
+			}
+		}
+		n.depth = mindepth + 1
+		return n.depth
+	}
+}
+
+func (t *Tree) computeDepthUnRooted() {
+	nodes := t.Tips()
+	currentlevel := 0
+	nbchanged := 1
+	for nbchanged != 0 {
+		nbchanged = 0
+		nextnodes := make([]*Node, 0, 2000)
+		for _, n := range nodes {
+			if n.depth == -1 {
+				n.depth = currentlevel
+				nbchanged++
+			}
+		}
+		for _, n := range nodes {
+			for _, next := range n.neigh {
+				if next.depth == -1 {
+					nextnodes = append(nextnodes, next)
+				}
+			}
+		}
+		nodes = nextnodes
+		currentlevel++
+	}
 }

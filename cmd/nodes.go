@@ -33,6 +33,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		tree, err := utils.ReadRefTree(statsintree)
+		tree.ComputeDepths()
 		if err != nil {
 			panic(err)
 		}
@@ -45,9 +46,9 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			panic(err)
 		}
-		f.WriteString("id\tnneigh\tname\n")
+		f.WriteString("id\tnneigh\tname\tdepth\n")
 		for i, n := range tree.Nodes() {
-			f.WriteString(fmt.Sprintf("%d\t%d\t%s\n", i, n.Nneigh(), n.Name()))
+			f.WriteString(fmt.Sprintf("%d\t%d\t%s\t%d\n", i, n.Nneigh(), n.Name(), n.Depth()))
 		}
 		f.Close()
 	},
@@ -55,5 +56,4 @@ to quickly create a Cobra application.`,
 
 func init() {
 	statsCmd.AddCommand(nodesCmd)
-
 }
