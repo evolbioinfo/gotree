@@ -94,6 +94,11 @@ If a tip name does not appear in the map file, it will not be renamed.
 If a name that does not exist appears in the map file, it will throw an error.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		if renamemapfile == "none" {
+			panic("map file is not given")
+		}
+
 		// Read map file
 		namemap, err := readMapFile(renamemapfile)
 		if err != nil {
