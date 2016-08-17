@@ -465,68 +465,19 @@ func (t *Tree) CommonEdges(t2 *Tree, tipEdges bool) (tree1 int, common int, err 
 // Have been called before, otherwise will output an error
 func CommonEdges(edges1 []*Edge, edges2 []*Edge, tipEdges bool) (tree1 int, common int, err error) {
 	var e, e2 *Edge
-	nbedges1 := 0
 	for _, e = range edges1 {
-		if !tipEdges || !e.right.Tip() {
-			nbedges1++
-		}
-
-		if e.bitset == nil {
-			return 0, 0, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
-		}
-		if e.bitset.None() {
-			return 0, 0, errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
-		}
-		for _, e2 = range edges2 {
-			if e2.bitset == nil {
-				return 0, 0, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+		if tipEdges || !e.right.Tip() {
+			tree1++
+			if e2, err = e.FindEdge(edges2); err != nil {
+				return -1, -1, err
 			}
-			// If we take all the edges, or if both edges are not tips
-			if !tipEdges || (!e.right.Tip() && !e2.right.Tip()) {
-				if e.bitset.EqualOrComplement(e2.bitset) {
-					common++
-					if e2.bitset.None() {
-						return 0, 0, errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
-					}
-					break
-				}
+			if e2 != nil {
+				common++
 			}
 		}
 	}
-	tree1 = nbedges1 - common
+	tree1 = tree1 - common
 	return tree1, common, nil
-}
-
-// This function compares this tree with a set of compTrees and outputs:
-// 1) The number of edges specific to this tree for each comparison
-// 2) The number of edges in common between this tree and each comp tree
-// 3) The number of edges specific to all comp trees
-// If tipedges is false: does not take into account tip edges
-// If the trees have different sets of tip names, returns an error
-// It assumes that functions
-// 	tree.UpdateTipIndex()
-//	tree.ClearBitSets()
-//	tree.UpdateBitSet()
-// Have been called before, otherwise will output an error
-func (t *Tree) CompareEdges(compTrees []*Tree, tipEdges bool) (refTreeEdges []int, commonEdges []int, err error) {
-	var tree1, common int
-	commonEdges = make([]int, len(compTrees))
-	refTreeEdges = make([]int, len(compTrees))
-
-	edges1 := t.Edges()
-	for i, comp := range compTrees {
-		if err = t.CompareTipIndexes(comp); err != nil {
-			return nil, nil, err
-		}
-		edges2 := comp.Edges()
-		tree1, common, err = CommonEdges(edges1, edges2, tipEdges)
-		if err != nil {
-			return nil, nil, err
-		}
-		refTreeEdges[i] = tree1
-		commonEdges[i] = common
-	}
-	return refTreeEdges, commonEdges, nil
 }
 
 // This function compares the tip name indexes of 2 trees

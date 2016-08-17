@@ -43,23 +43,23 @@ func ReadRefTree(inputfile string) (*tree.Tree, error) {
 
 // Read a bunch of trees from the input file. One line must define One tree.
 // One tree per line
-func ReadCompTrees(inputfile string, compTrees chan<- Trees) error {
+func ReadCompTrees(inputfile string, compTrees chan<- Trees) (int, error) {
 	var compTreeFile *os.File
 	var compTree *tree.Tree
 	var err error
 	var reader *bufio.Reader
+	id := 0
 
 	if compTreeFile, err = os.Open(inputfile); err != nil {
-		return err
+		return id, err
 	}
 
 	reader = bufio.NewReader(compTreeFile)
-	id := 0
 	line, e := Readln(reader)
 	for e == nil {
 		parser := newick.NewParser(strings.NewReader(line))
 		if compTree, err = parser.Parse(); err != nil {
-			return err
+			return id, err
 		}
 		compTrees <- Trees{
 			compTree,
@@ -70,7 +70,7 @@ func ReadCompTrees(inputfile string, compTrees chan<- Trees) error {
 	}
 	close(compTrees)
 	if err = compTreeFile.Close(); err != nil {
-		return err
+		return id, err
 	}
-	return nil
+	return id, nil
 }

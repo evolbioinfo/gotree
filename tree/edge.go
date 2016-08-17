@@ -66,3 +66,35 @@ func (e *Edge) DumpBitSet() string {
 	}
 	return e.bitset.DumpAsBits()
 }
+
+func (e *Edge) SameBipartition(e2 *Edge) bool {
+	return e.bitset.EqualOrComplement(e2.bitset)
+}
+
+// Return the given edge in the array of edges comparing bitsets fields
+// Return nil if not found
+func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {
+	if e.bitset == nil {
+		return nil, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+	}
+	if e.bitset.None() {
+		return nil, errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
+	}
+	for _, e2 := range edges {
+		if e2.bitset == nil {
+			return nil, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
+		}
+
+		if e.Right().Tip() != e2.Right().Tip() {
+			continue
+		}
+		// If we take all the edges, or if both edges are not tips
+		if e.bitset.EqualOrComplement(e2.bitset) {
+			if e2.bitset.None() {
+				return nil, errors.New("One edge has a bitset of 0...000 : May be BitSets have not been updated with tree.UpdateBitSet()?")
+			}
+			return e, nil
+		}
+	}
+	return nil, nil
+}

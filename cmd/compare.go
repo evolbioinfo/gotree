@@ -57,8 +57,9 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 		panic(err)
 	}
 
+	var nbtrees int
 	go func() {
-		if err = utils.ReadCompTrees(tree2, compareChannel); err != nil {
+		if nbtrees, err = utils.ReadCompTrees(tree2, compareChannel); err != nil {
 			panic(err)
 		}
 	}()
