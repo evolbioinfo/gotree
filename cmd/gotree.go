@@ -119,13 +119,13 @@ to quickly create a Cobra application.`,
 							fmt.Println(name + " [" + strconv.Itoa(int(i)) + "]")
 						}
 					}
-					_, common, _, err := t.CommonEdges(tree, false)
+					_, common, err := t.CommonEdges(tree, false)
 					if err != nil {
 						fmt.Println(err)
 					} else {
 						fmt.Println("Common edges: " + strconv.Itoa(common))
 					}
-					_, _, common, err = tree.CommonEdges(tree, false)
+					_, common, err = tree.CommonEdges(tree, false)
 					if err != nil {
 						fmt.Println(err)
 					} else {

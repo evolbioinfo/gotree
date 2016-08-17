@@ -42,6 +42,11 @@ func (n *Node) Nneigh() int {
 	return len(n.neigh)
 }
 
+// Is a tip or not?
+func (n *Node) Tip() bool {
+	return len(n.neigh) == 1
+}
+
 func (n *Node) delNeighbor(n2 *Node) error {
 	i, err := n.NodeIndex(n2)
 	if err != nil {
