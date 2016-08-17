@@ -37,6 +37,11 @@ func (n *Node) Name() string {
 	return n.name
 }
 
+// Number of neighbors of this node
+func (n *Node) Nneigh() int {
+	return len(n.neigh)
+}
+
 func (n *Node) delNeighbor(n2 *Node) error {
 	i, err := n.NodeIndex(n2)
 	if err != nil {
