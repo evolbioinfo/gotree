@@ -141,7 +141,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 					newick.WriteString(",")
 				}
 				child.Newick(n, newick)
-				if n.br[i].support != -1 && n.name == "" {
+				if n.br[i].support != -1 && child.name == "" {
 					newick.WriteString(strconv.FormatFloat(n.br[i].support, 'f', 5, 64))
 				}
 				if len(child.comment) != 0 {
