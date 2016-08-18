@@ -20,9 +20,11 @@ import (
 	"os"
 )
 
-// classicalCmd represents the classical command
-var classicalCmd = &cobra.Command{
-	Use:   "classical",
+var parsimonyEmpirical bool
+
+// parsimonyCmd represents the parsimony command
+var parsimonyCmd = &cobra.Command{
+	Use:   "parsimony",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -41,13 +43,13 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			panic(err)
 		}
-		t := support.Classical(supportIntree, supportBoottrees, supportCpus)
+		t := support.Parsimony(supportIntree, supportBoottrees, parsimonyEmpirical, supportCpus)
 		f.WriteString(t.Newick() + "\n")
 		f.Close()
 	},
 }
 
 func init() {
-	supportCmd.AddCommand(classicalCmd)
-
+	supportCmd.AddCommand(parsimonyCmd)
+	parsimonyCmd.PersistentFlags().BoolVarP(&parsimonyEmpirical, "empirical", "e", false, "If the support is computed with comparison to empirical support classical steps (shuffles of the original tree)")
 }

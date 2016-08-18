@@ -71,6 +71,13 @@ func (e *Edge) SameBipartition(e2 *Edge) bool {
 	return e.bitset.EqualOrComplement(e2.bitset)
 }
 
+// Tests wether the tip with index id in the bitset
+// is Set or not
+// The index corresponds to tree.Tipindex(tipname)
+func (e *Edge) TipPresent(id uint) bool {
+	return e.bitset.Test(id)
+}
+
 // Return the given edge in the array of edges comparing bitsets fields
 // Return nil if not found
 func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {

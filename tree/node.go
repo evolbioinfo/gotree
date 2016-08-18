@@ -49,6 +49,11 @@ func (n *Node) Nneigh() int {
 	return len(n.neigh)
 }
 
+// Neighbors of this node
+func (n *Node) Neigh() []*Node {
+	return n.neigh
+}
+
 // Is a tip or not?
 func (n *Node) Tip() bool {
 	return len(n.neigh) == 1
@@ -136,7 +141,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 					newick.WriteString(",")
 				}
 				child.Newick(n, newick)
-				if n.br[i].support != -1 {
+				if n.br[i].support != -1 && n.name == "" {
 					newick.WriteString(strconv.FormatFloat(n.br[i].support, 'f', 5, 64))
 				}
 				if len(child.comment) != 0 {

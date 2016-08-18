@@ -45,8 +45,8 @@ func init() {
 	computeCmd.AddCommand(supportCmd)
 	maxcpus := runtime.NumCPU()
 
-	computeCmd.PersistentFlags().StringVarP(&supportIntree, "reftree", "i", "stdin", "Reference tree input file")
-	computeCmd.PersistentFlags().StringVarP(&supportBoottrees, "bootstrap", "b", "none", "Bootstrap trees input file")
-	computeCmd.PersistentFlags().StringVarP(&supportOutFile, "out", "o", "stdout", "Output tree file, with supports")
-	computeCmd.PersistentFlags().IntVarP(&supportCpus, "threads", "t", 1, "Number of threads (Max "+strconv.Itoa(maxcpus)+")")
+	supportCmd.PersistentFlags().StringVarP(&supportIntree, "reftree", "i", "stdin", "Reference tree input file")
+	supportCmd.PersistentFlags().StringVarP(&supportBoottrees, "bootstrap", "b", "none", "Bootstrap trees input file")
+	supportCmd.PersistentFlags().StringVarP(&supportOutFile, "out", "o", "stdout", "Output tree file, with supports")
+	supportCmd.PersistentFlags().IntVarP(&supportCpus, "threads", "t", 1, "Number of threads (Max "+strconv.Itoa(maxcpus)+")")
 }

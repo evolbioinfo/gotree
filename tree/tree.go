@@ -681,3 +681,19 @@ func (t *Tree) computeDepthUnRooted() {
 		currentlevel++
 	}
 }
+
+// This function shuffles the tips of the tree
+// and recompute tipindex and bitsets
+func (t *Tree) ShuffleTips() {
+	tips := t.Tips()
+	names := t.AllTipNames()
+	permutation := rand.Perm(len(names))
+
+	for i, p := range permutation {
+		tips[i].SetName(names[p])
+	}
+
+	t.UpdateTipIndex()
+	t.ClearBitSets()
+	t.UpdateBitSet()
+}
