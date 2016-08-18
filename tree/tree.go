@@ -753,3 +753,39 @@ func (t *Tree) SumBranchLengths() float64 {
 	}
 	return sumlen
 }
+
+func (t *Tree) UnRoot() {
+	if !t.Rooted() {
+		return
+	}
+
+	root := t.Root()
+	n1 := root.Neigh()[0]
+	n2 := root.Neigh()[1]
+
+	n1tip := n1.Tip()
+
+	e1 := root.br[0]
+	e2 := root.br[1]
+
+	n1.delNeighbor(t.Root())
+	n2.delNeighbor(t.Root())
+
+	var e3 *Edge
+
+	if n1tip {
+		e3 = t.ConnectNodes(n2, n1)
+		t.SetRoot(n2)
+	} else {
+		e3 = t.ConnectNodes(n1, n2)
+		t.SetRoot(n1)
+	}
+
+	if e1.Length() != -1 || e2.Length() != -1 {
+		e3.SetLength(math.Max(0, e1.Length()) + math.Max(0, e2.Length()))
+	}
+	if !n1.Tip() && !n2.Tip() && (e1.Support() != -1 || e2.Support() != -1) {
+		e3.SetSupport(math.Max(0, e1.Support()) + math.Max(0, e2.Support()))
+	}
+	t.delNode(root)
+}
