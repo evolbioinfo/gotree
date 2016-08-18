@@ -697,3 +697,59 @@ func (t *Tree) ShuffleTips() {
 	t.ClearBitSets()
 	t.UpdateBitSet()
 }
+
+func (t *Tree) CollapseShortBranches(length float64) {
+	edges := t.Edges()
+	shortbranches := make([]*Edge, 0, 1000)
+	for _, e := range edges {
+		if e.Length() <= length {
+			shortbranches = append(shortbranches, e)
+		}
+	}
+	t.RemoveEdges(shortbranches...)
+}
+
+// Removes branches from the tree if they are not tip edges
+// And if they do not connects the root of a rooted tree
+// Merges the 2 nodes and creates multifurcations
+// At the end, bitsets should not need to be updated
+func (t *Tree) RemoveEdges(edges ...*Edge) {
+	for _, e := range edges {
+		// Tip node
+		if e.Right().Tip() {
+			continue
+		}
+		// Root node
+		if e.Right().Nneigh() == 2 || e.Left().Nneigh() == 2 {
+			continue
+		}
+		// Remove the edge from left and right node
+		e.Left().delNeighbor(e.Right())
+		e.Right().delNeighbor(e.Left())
+
+		// Move the edges on right node to left node
+		for _, child := range e.Right().Neigh() {
+			if child != e.Left() {
+				idx, err := child.NodeIndex(e.Right())
+				if err != nil {
+					panic(err)
+				}
+				child.neigh[idx] = e.Left()
+				if child.br[idx].left == e.Right() {
+					child.br[idx].left = e.Left()
+				} else {
+					panic("Problem in edge orientation")
+				}
+				e.Left().addChild(child, child.br[idx])
+			}
+		}
+	}
+}
+
+func (t *Tree) SumBranchLengths() float64 {
+	sumlen := 0.0
+	for _, e := range t.Edges() {
+		sumlen += e.Length()
+	}
+	return sumlen
+}
