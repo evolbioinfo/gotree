@@ -37,13 +37,13 @@ to quickly create a Cobra application.`,
 		// Read Tree
 		var t *tree.Tree
 		var err error
-		t, err = utils.ReadRefTree(collapseInputTree)
+		t, err = utils.ReadRefTree(transformInputTree)
 		if err != nil {
 			panic(err)
 		}
 		var f *os.File
 		if renameouttree != "stdout" {
-			f, err = os.Create(collapseOutputTree)
+			f, err = os.Create(transformOutputTree)
 		} else {
 			f = os.Stdout
 		}

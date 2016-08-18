@@ -15,19 +15,15 @@
 package cmd
 
 import (
-	"github.com/fredericlemoine/gotree/support"
 	"github.com/spf13/cobra"
-	"math/rand"
-	"os"
-	"time"
 )
 
-var parsimonyEmpirical bool
-var parsimonySeed int64
+var transformInputTree string
+var transformOutputTree string
 
-// parsimonyCmd represents the parsimony command
-var parsimonyCmd = &cobra.Command{
-	Use:   "parsimony",
+// transformCmd represents the transform command
+var transformCmd = &cobra.Command{
+	Use:   "transform",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -35,28 +31,22 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		var f *os.File
-		var err error
-		rand.Seed(parsimonySeed)
-
-		if supportOutFile != "stdout" {
-			f, err = os.Create(supportOutFile)
-		} else {
-			f = os.Stdout
-		}
-		if err != nil {
-			panic(err)
-		}
-		t := support.Parsimony(supportIntree, supportBoottrees, parsimonyEmpirical, supportCpus)
-		f.WriteString(t.Newick() + "\n")
-		f.Close()
-	},
 }
 
 func init() {
-	supportCmd.AddCommand(parsimonyCmd)
-	parsimonyCmd.PersistentFlags().BoolVarP(&parsimonyEmpirical, "empirical", "e", false, "If the support is computed with comparison to empirical support classical steps (shuffles of the original tree)")
-	parsimonyCmd.PersistentFlags().Int64VarP(&parsimonySeed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed if empirical is ON")
+	RootCmd.AddCommand(transformCmd)
+
+	transformCmd.PersistentFlags().StringVarP(&transformInputTree, "input", "i", "stdin", "Input tree")
+	transformCmd.PersistentFlags().StringVarP(&transformOutputTree, "output", "o", "stdout", "Collapsed tree output file")
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// transformCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// transformCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 }

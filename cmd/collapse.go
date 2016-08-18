@@ -18,9 +18,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var collapseInputTree string
-var collapseOutputTree string
-
 // collapseCmd represents the collapse command
 var collapseCmd = &cobra.Command{
 	Use:   "collapse",
@@ -34,7 +31,5 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	RootCmd.AddCommand(collapseCmd)
-	collapseCmd.PersistentFlags().StringVarP(&collapseInputTree, "input", "i", "stdin", "Input tree")
-	collapseCmd.PersistentFlags().StringVarP(&collapseOutputTree, "output", "o", "stdout", "Collapsed tree output file")
+	transformCmd.AddCommand(collapseCmd)
 }

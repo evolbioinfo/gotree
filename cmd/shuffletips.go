@@ -15,19 +15,19 @@
 package cmd
 
 import (
-	"github.com/fredericlemoine/gotree/support"
+	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"math/rand"
 	"os"
 	"time"
 )
 
-var parsimonyEmpirical bool
-var parsimonySeed int64
+var shuffletipsSeed int64
 
-// parsimonyCmd represents the parsimony command
-var parsimonyCmd = &cobra.Command{
-	Use:   "parsimony",
+// shuffletipsCmd represents the shuffletips command
+var shuffletipsCmd = &cobra.Command{
+	Use:   "shuffletips",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -36,27 +36,38 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var f *os.File
-		var err error
-		rand.Seed(parsimonySeed)
+		// Read Tree
 
-		if supportOutFile != "stdout" {
-			f, err = os.Create(supportOutFile)
+		rand.Seed(shuffletipsSeed)
+
+		var t *tree.Tree
+		var err error
+		t, err = utils.ReadRefTree(transformInputTree)
+		if err != nil {
+			panic(err)
+		}
+		var f *os.File
+		if renameouttree != "stdout" {
+			f, err = os.Create(transformOutputTree)
 		} else {
 			f = os.Stdout
 		}
 		if err != nil {
 			panic(err)
 		}
-		t := support.Parsimony(supportIntree, supportBoottrees, parsimonyEmpirical, supportCpus)
+
+		t.ShuffleTips()
+
+		if err != nil {
+			panic(err)
+		}
+
 		f.WriteString(t.Newick() + "\n")
 		f.Close()
 	},
 }
 
 func init() {
-	supportCmd.AddCommand(parsimonyCmd)
-	parsimonyCmd.PersistentFlags().BoolVarP(&parsimonyEmpirical, "empirical", "e", false, "If the support is computed with comparison to empirical support classical steps (shuffles of the original tree)")
-	parsimonyCmd.PersistentFlags().Int64VarP(&parsimonySeed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed if empirical is ON")
-
+	transformCmd.AddCommand(shuffletipsCmd)
+	shuffletipsCmd.Flags().Int64VarP(&shuffletipsSeed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 }
