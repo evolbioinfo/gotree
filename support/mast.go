@@ -1,23 +1,37 @@
 package support
 
 import (
+	"fmt"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"sync"
 )
 
 type mastSupporter struct {
-	expected_rand_steps []float64
+	expected_rand_val     []float64
+	distribution_rand_val [][]float64
 }
 
-func (supporter *mastSupporter) ExpectedRandValues(maxdepth int, nbtips int) []float64 {
-	if supporter.expected_rand_steps == nil {
-		supporter.expected_rand_steps = make([]float64, maxdepth+1)
+func (supporter *mastSupporter) ExpectedRandValues(depth int) float64 {
+	return supporter.expected_rand_val[depth]
+}
+
+func (supporter *mastSupporter) ProbaDepthValue(d int, v int) float64 {
+	return supporter.distribution_rand_val[d][v]
+}
+
+func (supporter *mastSupporter) Init(maxdepth int, nbtips int) {
+	if supporter.expected_rand_val == nil {
+		supporter.expected_rand_val = make([]float64, maxdepth+1)
+		supporter.distribution_rand_val = make([][]float64, maxdepth+1)
 		for i := 0; i <= maxdepth; i++ {
-			supporter.expected_rand_steps[i] = float64(i) - 1
+			supporter.distribution_rand_val[i] = make([]float64, nbtips+1)
+			if i > 0 {
+				supporter.expected_rand_val[i] = float64(i) - 1
+				supporter.distribution_rand_val[i][i-1] = 1.0
+			}
 		}
 	}
-	return supporter.expected_rand_steps
 }
 
 func update_all_i_c_post_order_ref_tree(refTree *tree.Tree, edges map[*tree.Edge]uint, bootTree *tree.Tree, bootEdges map[*tree.Edge]uint, i_matrix [][]uint, c_matrix [][]uint) {
@@ -124,8 +138,7 @@ func update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges m
 	}
 }
 
-func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges map[*tree.Edge]uint, bootTree *tree.Tree, bootEdges map[*tree.Edge]uint, current *tree.Node, prev *tree.Node, i_matrix [][]uint, c_matrix [][]uint,
-	hamming [][]uint, min_dist []uint) {
+func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges map[*tree.Edge]uint, bootTree *tree.Tree, bootEdges map[*tree.Edge]uint, current *tree.Node, prev *tree.Node, i_matrix [][]uint, c_matrix [][]uint, hamming [][]uint, min_dist []uint) {
 	// here we implement the second part of the Brehelin/Gascuel/Martin algorithm:
 	//    post-order traversal of the bootstrap tree, and numerical recurrence.
 	// in this function, orig and target are nodes of boot_tree (aka T_boot).
@@ -136,16 +149,16 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges map[*
 		panic(err)
 	}
 	e := prev.Edges()[idx]
-	edge_id, ok := bootEdges[e] /* all this is in ref_tree */
+	edge_id, ok := bootEdges[e] // all this is in ref_tree
 	if !ok {
 		panic("Edge has no id")
 	}
 
 	if !current.Tip() {
-		/* because nothing to do in the case where target is a leaf: intersection and union already ok. */
-		/* otherwise, keep on posttraversing in all other directions */
+		// because nothing to do in the case where target is a leaf: intersection and union already ok.
+		// otherwise, keep on posttraversing in all other directions
 
-		/* first initialise (zero) the cells we are going to update */
+		// first initialise (zero) the cells we are going to update
 		for _, i := range edges {
 			i_matrix[i][edge_id] = 0
 			c_matrix[i][edge_id] = 0
@@ -214,6 +227,7 @@ func (supporter *mastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 		}
 
 		for treeV := range bootTreeChannel {
+			fmt.Println(fmt.Sprintf("CPU : %d - Bootstrap tree %d", cpu, treeV.Id))
 			bootEdges := treeV.Tree.Edges()
 			var bootEdgesmap map[*tree.Edge]uint = make(map[*tree.Edge]uint)
 			for i, _ := range edges {

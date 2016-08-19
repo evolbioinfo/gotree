@@ -60,7 +60,7 @@ func expected_pars_rand_steps(max_depth, nb_tax int, distribution_rand_steps [][
 		for i := 0; i <= depth; i++ {
 			sum_proba += probas[i]
 		}
-		expected_rand_steps[depth] = sum_proba - 1
+		expected_rand_steps[depth] = sum_proba
 	}
 	return expected_rand_steps
 }
@@ -206,12 +206,19 @@ func (supporter *parsimonySupporter) ComputeValue(refTree *tree.Tree, empiricalT
 	}(cpu)
 }
 
-func (supporter *parsimonySupporter) ExpectedRandValues(maxdepth int, nbtips int) []float64 {
+func (supporter *parsimonySupporter) Init(maxdepth int, nbtips int) {
 	if supporter.expected_rand_steps == nil {
 		supporter.distribution_rand_step_val = precompute_pars_steps_probability(maxdepth, nbtips)
 		supporter.expected_rand_steps = expected_pars_rand_steps(maxdepth, nbtips, supporter.distribution_rand_step_val)
 	}
-	return supporter.expected_rand_steps
+}
+
+func (supporter *parsimonySupporter) ExpectedRandValues(depth int) float64 {
+	return supporter.expected_rand_steps[depth] - 1
+}
+
+func (supporter *parsimonySupporter) ProbaDepthValue(d, v int) float64 {
+	return supporter.distribution_rand_step_val[d][v+1]
 }
 
 func Parsimony(reftreefile, boottreefile string, empirical bool, cpus int) *tree.Tree {

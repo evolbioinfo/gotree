@@ -15,7 +15,9 @@ type bootval struct {
 }
 
 type Supporter interface {
-	ExpectedRandValues(maxdepth int, nbtips int) []float64
+	Init(maxdepth int, nbtips int)
+	ExpectedRandValues(depth int) float64
+	ProbaDepthValue(d int, v int) float64
 	ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
 		wg *sync.WaitGroup, bootTreeChannel <-chan utils.Trees, valChan chan<- bootval, randvalChan chan<- bootval)
 }
@@ -32,7 +34,7 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 	var edges []*tree.Edge             // Edges of the reference tree
 	var valuesBoot []int               // Sum of number of bootValues per edge over boot trees
 	var valuesRand []int               // Sum of number of bootValues per random edges over boot trees
-	var gtRandom []int                 // Number of times edges have steps that are >= rand steps
+	var gtRandom []float64             // Number of times edges have steps that are >= rand steps
 	var randTrees []*tree.Tree         // Empirical rand trees
 
 	var wg sync.WaitGroup                // For waiting end of step computation
@@ -57,11 +59,11 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 	edges = reftree.Edges()
 	max_depth = maxDepth(edges)
 	valuesBoot = make([]int, len(edges))
-	gtRandom = make([]int, len(edges))
+	gtRandom = make([]float64, len(edges))
 	valuesRand = make([]int, len(edges))
 
 	// Precomputation of expected number of parsimony steps per depth
-	expected_rand_val := supporter.ExpectedRandValues(max_depth, len(tips))
+	supporter.Init(max_depth, len(tips))
 
 	// We generate nbEmpirical shuffled trees and store their edges
 	randEdges = make([][]*tree.Edge, nbEmpiricalTrees)
@@ -112,9 +114,8 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 			}
 			// If theoretical we must count number >= here
 			if !empirical {
-				randval := expected_rand_val[d]
-				if float64(val.value) >= randval {
-					gtRandom[val.edgeid]++
+				for v := 0; v <= val.value; v++ {
+					gtRandom[val.edgeid] += supporter.ProbaDepthValue(d, v)
 				}
 			}
 		}
@@ -149,10 +150,10 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 			var pval, avg_rand_val float64
 			if empirical {
 				avg_rand_val = float64(valuesRand[i]) / (float64(nbEmpiricalTrees) * float64(nbtrees))
-				pval = float64(gtRandom[i]) * 1.0 / (float64(nbEmpiricalTrees) * float64(nbtrees))
+				pval = gtRandom[i] * 1.0 / (float64(nbEmpiricalTrees) * float64(nbtrees))
 			} else {
-				avg_rand_val = expected_rand_val[d]
-				pval = float64(gtRandom[i]) * 1.0 / float64(nbtrees)
+				avg_rand_val = supporter.ExpectedRandValues(d)
+				pval = gtRandom[i] * 1.0 / float64(nbtrees)
 			}
 			support := float64(1) - avg_val/avg_rand_val
 
