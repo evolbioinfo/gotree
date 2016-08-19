@@ -36,7 +36,7 @@ func max(a int, b int) int {
 	return a
 }
 
-func min_uint(a uint, b uint) uint {
+func min_uint(a uint16, b uint16) uint16 {
 	if a < b {
 		return a
 	}
