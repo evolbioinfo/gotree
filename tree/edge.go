@@ -13,6 +13,7 @@ type Edge struct {
 	//left:0/right:1 .
 	// i is the index of the tip in the sorted tip name array
 	bitset *bitset.BitSet // Bitset of length Number of taxa each
+	id     int            // this field is used at discretion of the user to store information
 }
 
 /* Edge functions */
@@ -46,6 +47,17 @@ func (e *Edge) Right() *Node {
 
 func (e *Edge) Left() *Node {
 	return e.left
+}
+
+func (e *Edge) Id() int {
+	if e.id == -1 {
+		panic("Id has not been set")
+	}
+	return e.id
+}
+
+func (e *Edge) SetId(id int) {
+	e.id = id
 }
 
 func (e *Edge) TopoDepth() (int, error) {

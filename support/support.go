@@ -22,6 +22,26 @@ type Supporter interface {
 		wg *sync.WaitGroup, bootTreeChannel <-chan utils.Trees, valChan chan<- bootval, randvalChan chan<- bootval)
 }
 
+func min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a int, b int) int {
+	if a < b {
+		return b
+	}
+	return a
+}
+
+func min_uint(a uint, b uint) uint {
+	if a < b {
+		return a
+	}
+	return b
+}
 func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, supporter Supporter) *tree.Tree {
 	var reftree *tree.Tree             // reference tree
 	var err error                      // error output
@@ -77,7 +97,13 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 			randT.ShuffleTips()
 			randEdges[i] = randT.Edges()
 			randTrees[i] = randT
+			for j, e := range randEdges[i] {
+				e.SetId(j)
+			}
 		}
+	}
+	for i, e := range edges {
+		e.SetId(i)
 	}
 
 	// We read bootstrap trees and put them in the channel

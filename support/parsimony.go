@@ -16,20 +16,6 @@ const (
 	STATE01   = 2  // State 0/1
 )
 
-func min(a int, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a int, b int) int {
-	if a < b {
-		return b
-	}
-	return a
-}
-
 type parsimonySupporter struct {
 	distribution_rand_step_val [][]float64
 	expected_rand_steps        []float64
