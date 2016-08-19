@@ -15,9 +15,11 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/fredericlemoine/gotree/support"
 	"github.com/spf13/cobra"
+	"math/rand"
+	"os"
+	"time"
 )
 
 var mastEmpirical bool
@@ -49,7 +51,6 @@ to quickly create a Cobra application.`,
 		t := support.MastLike(supportIntree, supportBoottrees, mastEmpirical, supportCpus)
 		f.WriteString(t.Newick() + "\n")
 		f.Close()
-
 	},
 }
 

@@ -1,12 +1,10 @@
 package support
 
 import (
-	"fmt"
 	"github.com/fredericlemoine/gostats"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"math"
-	"runtime"
 	"sort"
 	"sync"
 )
@@ -32,10 +30,9 @@ func max(a int, b int) int {
 	return a
 }
 
-type parsteps struct {
-	nbsteps int
-	edgeid  int
-	randsup bool
+type parsimonySupporter struct {
+	distribution_rand_step_val [][]float64
+	expected_rand_steps        []float64
 }
 
 // This function precomputes the esperence of the expected number of parsimony steps
@@ -50,7 +47,7 @@ type parsteps struct {
 // In output : An array with :
 // - the depth in index
 // - the expected Number of random parsimony steps
-func expected_rand_steps(max_depth, nb_tax int, distribution_rand_steps [][]float64) []float64 {
+func expected_pars_rand_steps(max_depth, nb_tax int, distribution_rand_steps [][]float64) []float64 {
 	expected_rand_steps := make([]float64, max_depth+1)
 
 	for depth := 0; depth <= max_depth; depth++ {
@@ -63,7 +60,7 @@ func expected_rand_steps(max_depth, nb_tax int, distribution_rand_steps [][]floa
 		for i := 0; i <= depth; i++ {
 			sum_proba += probas[i]
 		}
-		expected_rand_steps[depth] = sum_proba
+		expected_rand_steps[depth] = sum_proba - 1
 	}
 	return expected_rand_steps
 }
@@ -74,7 +71,7 @@ func expected_rand_steps(max_depth, nb_tax int, distribution_rand_steps [][]floa
 //      * First dimension : depth
 //      * Second dimension : steps
 //      * value : probability of the step at a given depth
-func precompute_steps_probability(max_depth, nb_tax int) [][]float64 {
+func precompute_pars_steps_probability(max_depth, nb_tax int) [][]float64 {
 	distribution_rand_steps := make([][]float64, max_depth+1)
 
 	for depth := 0; depth <= max_depth; depth++ {
@@ -177,8 +174,8 @@ func nbParsimonyStepsRecur(cur *tree.Node, prev *tree.Node, bootTree *tree.Tree,
 // Thread that takes bootstrap trees from the channel,
 // computes the number of pars steps for each edges of the ref tree
 // and send it to the result channel
-func parsStepComputation(nbEmpiricalTrees int, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-	wg *sync.WaitGroup, bootTreeChannel <-chan utils.Trees, stepsChan chan<- parsteps, randStepsChan chan<- parsteps) {
+func (supporter *parsimonySupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
+	wg *sync.WaitGroup, bootTreeChannel <-chan utils.Trees, stepsChan chan<- bootval, randStepsChan chan<- bootval) {
 	func(cpu int) {
 		for treeV := range bootTreeChannel {
 			for i, e := range edges {
@@ -186,167 +183,38 @@ func parsStepComputation(nbEmpiricalTrees int, cpu int, empirical bool, edges []
 					continue
 				}
 				nbsteps := nbParsimonySteps(e, treeV.Tree)
-				stepsChan <- parsteps{
+				stepsChan <- bootval{
 					nbsteps,
 					i,
 					false,
 				}
 				// We compute the empirical steps
 				if empirical {
-					for j := 0; j < nbEmpiricalTrees; j++ {
+					for j, _ := range empiricalTrees {
 						e2 := randEdges[j][i]
 						nbstepsrand := nbParsimonySteps(e2, treeV.Tree)
-						randStepsChan <- parsteps{
+						randStepsChan <- bootval{
 							nbstepsrand,
 							i,
 							nbsteps >= nbstepsrand,
 						}
 					}
 				}
-
 			}
 		}
 		wg.Done()
 	}(cpu)
 }
 
+func (supporter *parsimonySupporter) ExpectedRandValues(maxdepth int, nbtips int) []float64 {
+	if supporter.expected_rand_steps == nil {
+		supporter.distribution_rand_step_val = precompute_pars_steps_probability(maxdepth, nbtips)
+		supporter.expected_rand_steps = expected_pars_rand_steps(maxdepth, nbtips, supporter.distribution_rand_step_val)
+	}
+	return supporter.expected_rand_steps
+}
+
 func Parsimony(reftreefile, boottreefile string, empirical bool, cpus int) *tree.Tree {
-	var reftree *tree.Tree             // reference tree
-	var err error                      // error output
-	var nbEmpiricalTrees int = 10      // number of empirical trees to simulate
-	var maxcpus int = runtime.NumCPU() // max number of cpus
-	var randEdges [][]*tree.Edge       // Edges of shuffled trees
-	var nbtrees int                    // Number of bootstrap trees
-	var max_depth int                  // Maximum topo depth of all edges of ref tree
-	var tips []*tree.Node              // Tip nodes of the ref tree
-	var edges []*tree.Edge             // Edges of the reference tree
-	var stepsBoot []int                // Sum of number of steps per edge over boot trees
-	var stepRand []int                 // Sum of number of steps per random edges over boot trees
-	var gtRandom []int                 // Number of times edges have steps that are >= rand steps
-
-	var wg sync.WaitGroup                // For waiting end of step computation
-	var wg2 sync.WaitGroup               // For waiting end of final counting
-	var stepsChan chan parsteps          // Channel of number of steps computed for a given edge
-	var randStepsChan chan parsteps      // Channel of number of steps computed for a given shuffled edge
-	var bootTreeChannel chan utils.Trees // Channel of bootstrap trees
-
-	stepsChan = make(chan parsteps, 1000)
-	randStepsChan = make(chan parsteps, 1000)
-	bootTreeChannel = make(chan utils.Trees, 100)
-
-	if cpus > maxcpus {
-		cpus = maxcpus
-	}
-
-	if reftree, err = utils.ReadRefTree(reftreefile); err != nil {
-		panic(err)
-	}
-	tips = reftree.Tips()
-	edges = reftree.Edges()
-	max_depth = maxDepth(edges)
-	stepsBoot = make([]int, len(edges))
-	gtRandom = make([]int, len(edges))
-	stepRand = make([]int, len(edges))
-
-	// Precomputation of expected number of parsimony steps per depth
-	distribution_rand_step_val := precompute_steps_probability(max_depth, len(tips))
-	expected_rand_step_val := expected_rand_steps(max_depth, len(tips), distribution_rand_step_val)
-
-	// We generate nbEmpirical shuffled trees and store their edges
-	randEdges = make([][]*tree.Edge, nbEmpiricalTrees)
-	if empirical {
-		for i := 0; i < nbEmpiricalTrees; i++ {
-			var randT *tree.Tree
-			if randT, err = utils.ReadRefTree(reftreefile); err != nil {
-				panic(err)
-			}
-			randT.ShuffleTips()
-			randEdges[i] = randT.Edges()
-		}
-	}
-
-	// We read bootstrap trees and put them in the channel
-	if boottreefile == "none" {
-		panic("You must provide a file containing bootstrap trees")
-	}
-	go func() {
-		if nbtrees, err = utils.ReadCompTrees(boottreefile, bootTreeChannel); err != nil {
-			panic(err)
-		}
-	}()
-
-	// We compute parsimony steps for all bootstrap trees
-	for cpu := 0; cpu < cpus; cpu++ {
-		wg.Add(1)
-		go parsStepComputation(nbEmpiricalTrees, cpu, empirical, edges, randEdges, &wg, bootTreeChannel, stepsChan, randStepsChan)
-	}
-
-	// Wait for step computation to close output channels
-	go func() {
-		wg.Wait()
-		close(stepsChan)
-		close(randStepsChan)
-	}()
-
-	// Now count steps from the output channels
-	wg2.Add(2)
-	go func() {
-		for step := range stepsChan {
-			stepsBoot[step.edgeid] += step.nbsteps
-			d, err := edges[step.edgeid].TopoDepth()
-			if err != nil {
-				panic(err)
-			}
-			// If theoretical we must count number >= here
-			if !empirical {
-				randstep := expected_rand_step_val[d] - 1
-				if float64(step.nbsteps) >= randstep {
-					gtRandom[step.edgeid]++
-				}
-			}
-		}
-		wg2.Done()
-	}()
-
-	// If "empirical" we read the randStepsChan
-	if empirical {
-		go func() {
-			for step := range randStepsChan {
-				if step.randsup {
-					gtRandom[step.edgeid]++
-				}
-				stepRand[step.edgeid] += step.nbsteps
-			}
-			wg2.Done()
-		}()
-	} else {
-		wg2.Done()
-	}
-
-	wg2.Wait()
-
-	// Finally we compute pvalues and support and write it in the tree
-	for i, e := range edges {
-		if !edges[i].Right().Tip() {
-			d, err := e.TopoDepth()
-			if err != nil {
-				panic(err)
-			}
-			avg_val := float64(stepsBoot[i]) / float64(nbtrees)
-			var pval, avg_rand_val float64
-			if empirical {
-				avg_rand_val = float64(stepRand[i]) / (float64(nbEmpiricalTrees) * float64(nbtrees))
-				pval = float64(gtRandom[i]) * 1.0 / (float64(nbEmpiricalTrees) * float64(nbtrees))
-			} else {
-				avg_rand_val = expected_rand_step_val[d] - 1
-				pval = float64(gtRandom[i]) * 1.0 / float64(nbtrees)
-			}
-			support := float64(1) - avg_val/avg_rand_val
-
-			edges[i].SetSupport(support)
-			edges[i].Right().SetName(fmt.Sprintf("%.2f/%.4f", support, pval))
-		}
-	}
-
-	return reftree
+	var supporter *parsimonySupporter = &parsimonySupporter{}
+	return ComputeSupport(reftreefile, boottreefile, empirical, cpus, supporter)
 }

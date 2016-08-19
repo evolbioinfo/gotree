@@ -59,6 +59,10 @@ func (n *Node) Tip() bool {
 	return len(n.neigh) == 1
 }
 
+func (n *Node) Edges() []*Edge {
+	return n.br
+}
+
 func (n *Node) delNeighbor(n2 *Node) error {
 	i, err := n.NodeIndex(n2)
 	if err != nil {

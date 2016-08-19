@@ -78,6 +78,10 @@ func (e *Edge) TipPresent(id uint) bool {
 	return e.bitset.Test(id)
 }
 
+func (e *Edge) NumTips() uint {
+	return e.bitset.Count()
+}
+
 // Return the given edge in the array of edges comparing bitsets fields
 // Return nil if not found
 func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {
