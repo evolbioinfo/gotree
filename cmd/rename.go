@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"github.com/fredericlemoine/gotree/io/utils"
@@ -20,11 +21,21 @@ func readMapFile(file string, revert bool) (map[string]string, error) {
 	outmap := make(map[string]string, 0)
 	var mapfile *os.File
 	var err error
+	var reader *bufio.Reader
+
 	if mapfile, err = os.Open(file); err != nil {
 		return outmap, err
 	}
 
-	reader := bufio.NewReader(mapfile)
+	if strings.HasSuffix(file, ".gz") {
+		if gr, err2 := gzip.NewReader(mapfile); err2 != nil {
+			return outmap, err2
+		} else {
+			reader = bufio.NewReader(gr)
+		}
+	} else {
+		reader = bufio.NewReader(mapfile)
+	}
 	line, e := utils.Readln(reader)
 	nl := 1
 	for e == nil {
