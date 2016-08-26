@@ -45,7 +45,7 @@ func readMapFile(file string) (map[string]string, error) {
 		if len(cols) != 2 {
 			return outmap, errors.New("Map file does not have 2 fields at line: " + fmt.Sprintf("%d", nl))
 		}
-		outmap[cols[0]] = cols[1]
+		outmap[cols[1]] = cols[0]
 		line, e = utils.Readln(reader)
 		nl++
 	}
@@ -57,29 +57,6 @@ func readMapFile(file string) (map[string]string, error) {
 	return outmap, nil
 }
 
-// This function renames nodes of the tree based on the map in argument
-// If a name in the map does not exist in the tree, then returns an error
-// If a node/tip in the tree does not have a name in the map: OK
-// After rename, tip index is updated, as well as bitsets of the edges
-func renameTree(t *tree.Tree, namemap map[string]string) error {
-	nodeindex := tree.NewNodeIndex(t)
-	for name, newname := range namemap {
-		node, ok := nodeindex.GetNode(name)
-		if !ok {
-			return errors.New(fmt.Sprintf("The node %s does not exist in the tree", name))
-		}
-		node.SetName(newname)
-	}
-	// After we update bitsets if any, and node indexes
-	t.UpdateTipIndex()
-	err := t.ClearBitSets()
-	if err != nil {
-		return err
-	}
-	t.UpdateBitSet()
-	return nil
-}
-
 // renameCmd represents the rename command
 var renameCmd = &cobra.Command{
 	Use:   "rename",
@@ -87,11 +64,11 @@ var renameCmd = &cobra.Command{
 	Long: `Renames tips of the input tree, given a map file.
 
 Map file must be tab separated with columns:
-1) Current name of the tip
-2) Desired new name of the tip
+1) Desired new name of the tip
+2) Current name of the tip
 
 If a tip name does not appear in the map file, it will not be renamed. 
-If a name that does not exist appears in the map file, it will throw an error.
+If a name that does not exist appears in the map file, it will not throw an error.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -121,7 +98,7 @@ If a name that does not exist appears in the map file, it will throw an error.
 			panic(err)
 		}
 
-		err = renameTree(tree, namemap)
+		err = tree.Rename(namemap)
 		if err != nil {
 			panic(err)
 		}
