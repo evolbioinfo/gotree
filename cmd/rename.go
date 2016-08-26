@@ -29,7 +29,7 @@ var renameintree string
 var renameouttree string
 var renamemapfile string
 
-func readMapFile(file string) (map[string]string, error) {
+func readMapFile(file string, revert bool) (map[string]string, error) {
 	outmap := make(map[string]string, 0)
 	var mapfile *os.File
 	var err error
@@ -45,7 +45,11 @@ func readMapFile(file string) (map[string]string, error) {
 		if len(cols) != 2 {
 			return outmap, errors.New("Map file does not have 2 fields at line: " + fmt.Sprintf("%d", nl))
 		}
-		outmap[cols[1]] = cols[0]
+		if revert {
+			outmap[cols[1]] = cols[0]
+		} else {
+			outmap[cols[0]] = cols[1]
+		}
 		line, e = utils.Readln(reader)
 		nl++
 	}
@@ -64,8 +68,9 @@ var renameCmd = &cobra.Command{
 	Long: `Renames tips of the input tree, given a map file.
 
 Map file must be tab separated with columns:
-1) Desired new name of the tip
-2) Current name of the tip
+1) Current name of the tip
+2) Desired new name of the tip
+(if --revert then it is the other way)
 
 If a tip name does not appear in the map file, it will not be renamed. 
 If a name that does not exist appears in the map file, it will not throw an error.
@@ -113,4 +118,6 @@ func init() {
 	renameCmd.Flags().StringVarP(&renameouttree, "output", "o", "stdout", "Renamed tree output file")
 	renameCmd.Flags().StringVarP(&renameintree, "input", "i", "stdin", "Input tree")
 	renameCmd.Flags().StringVarP(&renamemapfile, "map", "m", "none", "Tip name map file")
+	renameCmd.Flags().BoolVarP(&renamerevert, "revert", "r", false, "Revert orientation of map file")
+
 }
