@@ -1,7 +1,9 @@
 package support
 
 import (
+	"errors"
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"sync"
@@ -126,10 +128,10 @@ func update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *
 	/* and then some checks to make sure everything went ok */
 	for _, e := range *edges {
 		if (*min_dist)[e.Id()] < 0 {
-			panic("Min dist should be >= 0")
+			io.ExitWithMessage(errors.New("Min dist should be >= 0"))
 		}
 		if e.Right().Tip() && (*min_dist)[e.Id()] != 0 {
-			panic("any terminal edge should have an exact match in any bootstrap tree")
+			io.ExitWithMessage(errors.New("any terminal edge should have an exact match in any bootstrap tree"))
 		}
 	}
 }

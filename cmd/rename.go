@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
@@ -76,20 +77,20 @@ If a name that does not exist appears in the map file, it will not throw an erro
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if renamemapfile == "none" {
-			panic("map file is not given")
+			io.ExitWithMessage(errors.New("map file is not given"))
 		}
 
 		// Read map file
 		namemap, err := readMapFile(renamemapfile, renamerevert)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 
 		// Read Tree
 		var tree *tree.Tree
 		tree, err = utils.ReadRefTree(renameintree)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		var f *os.File
 		if renameouttree != "stdout" {
@@ -98,12 +99,12 @@ If a name that does not exist appears in the map file, it will not throw an erro
 			f = os.Stdout
 		}
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 
 		err = tree.Rename(namemap)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 
 		f.WriteString(tree.Newick() + "\n")

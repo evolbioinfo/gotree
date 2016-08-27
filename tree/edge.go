@@ -3,6 +3,7 @@ package tree
 import (
 	"errors"
 	"github.com/fredericlemoine/bitset"
+	"github.com/fredericlemoine/gotree/io"
 )
 
 type Edge struct {
@@ -51,7 +52,7 @@ func (e *Edge) Left() *Node {
 
 func (e *Edge) Id() int {
 	if e.id == -1 {
-		panic("Id has not been set")
+		io.ExitWithMessage(errors.New("Id has not been set"))
 	}
 	return e.id
 }

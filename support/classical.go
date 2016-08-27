@@ -1,6 +1,8 @@
 package support
 
 import (
+	"errors"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"runtime"
@@ -17,11 +19,11 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 	}
 
 	if reftree, err = utils.ReadRefTree(reftreefile); err != nil {
-		panic(err)
+		io.ExitWithMessage(err)
 	}
 
 	if boottreefile == "none" {
-		panic("You must provide a file containing bootstrap trees")
+		io.ExitWithMessage(errors.New("You must provide a file containing bootstrap trees"))
 	}
 
 	if cpus > maxcpus {
@@ -32,7 +34,7 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 	compareChannel := make(chan utils.Trees, 100)
 	go func() {
 		if nbtrees, err = utils.ReadCompTrees(boottreefile, compareChannel); err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 	}()
 

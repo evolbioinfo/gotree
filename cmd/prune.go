@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
@@ -61,18 +62,18 @@ In output, we have a tree containing only tips that are common to both trees.
 		var specificTipNames []string
 		reftree, err = utils.ReadRefTree(prunereftree)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		// Read comp Tree
 		comptree, err = utils.ReadRefTree(prunecomptree)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 
 		specificTipNames = specificTips(reftree, comptree)
 		err = reftree.RemoveTips(specificTipNames...)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		var f *os.File
 		if pruneouttree != "stdout" {
@@ -81,7 +82,7 @@ In output, we have a tree containing only tips that are common to both trees.
 			f = os.Stdout
 		}
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 
 		f.WriteString(reftree.Newick() + "\n")

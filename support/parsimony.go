@@ -2,6 +2,7 @@ package support
 
 import (
 	"github.com/fredericlemoine/gostats"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"math"
@@ -99,7 +100,7 @@ func maxDepth(edges []*tree.Edge) int {
 		var d int
 		var err error
 		if d, err = e.TopoDepth(); err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		max_depth = max(d, max_depth)
 	}
@@ -123,7 +124,7 @@ func nbParsimonyStepsRecur(cur *tree.Node, prev *tree.Node, bootTree *tree.Tree,
 			if child.Tip() {
 				bitsetindex, err := bootTree.TipIndex(child.Name())
 				if err != nil {
-					panic(err)
+					io.ExitWithMessage(err)
 				}
 				if e.TipPresent(bitsetindex) {
 					nextState = STATE1

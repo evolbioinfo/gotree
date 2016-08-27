@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -34,7 +35,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		tree, err := utils.ReadRefTree(statsintree)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		tree.ComputeDepths()
 		var f *os.File
@@ -44,13 +45,13 @@ to quickly create a Cobra application.`,
 			f = os.Stdout
 		}
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		f.WriteString("id\tnneigh\tname\tdepth\n")
 		var depth int
 		for i, n := range tree.Nodes() {
 			if depth, err = n.Depth(); err != nil {
-				panic(err)
+				io.ExitWithMessage(err)
 			}
 			f.WriteString(fmt.Sprintf("%d\t%d\t%s\t%d\n", i, n.Nneigh(), n.Name(), depth))
 		}

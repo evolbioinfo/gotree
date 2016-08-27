@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/spf13/cobra"
 	"os"
@@ -39,7 +40,7 @@ to quickly create a Cobra application.`,
 			f = os.Stdout
 		}
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		t := support.Classical(supportIntree, supportBoottrees, supportCpus)
 		f.WriteString(t.Newick() + "\n")

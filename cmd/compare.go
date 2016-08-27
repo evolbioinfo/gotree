@@ -15,7 +15,9 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
@@ -42,7 +44,7 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	statsChannel := make(chan stats, 100)
 
 	if tree2 == "none" {
-		panic("You must provide a file containing compared trees")
+		io.ExitWithMessage(errors.New("You must provide a file containing compared trees"))
 	}
 	if cpus > maxcpus {
 		cpus = maxcpus
@@ -54,13 +56,13 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	fmt.Fprintf(os.Stderr, "Threads   : %d\n", cpus)
 
 	if refTree, err = utils.ReadRefTree(tree1); err != nil {
-		panic(err)
+		io.ExitWithMessage(err)
 	}
 
 	var nbtrees int
 	go func() {
 		if nbtrees, err = utils.ReadCompTrees(tree2, compareChannel); err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 	}()
 
@@ -77,12 +79,12 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 
 				// Check wether the 2 trees have the same set of tip names
 				if err = refTree.CompareTipIndexes(treeV.Tree); err != nil {
-					panic(err)
+					io.ExitWithMessage(err)
 				}
 
 				// Then compare edges
 				if tree1, common, err = tree.CommonEdges(edges, edges2, tips); err != nil {
-					panic(err)
+					io.ExitWithMessage(err)
 				}
 
 				statsChannel <- stats{

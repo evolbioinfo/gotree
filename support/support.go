@@ -1,7 +1,9 @@
 package support
 
 import (
+	"errors"
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"runtime"
@@ -72,7 +74,7 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 	}
 
 	if reftree, err = utils.ReadRefTree(reftreefile); err != nil {
-		panic(err)
+		io.ExitWithMessage(err)
 	}
 
 	tips = reftree.Tips()
@@ -92,7 +94,7 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 		for i := 0; i < nbEmpiricalTrees; i++ {
 			var randT *tree.Tree
 			if randT, err = utils.ReadRefTree(reftreefile); err != nil {
-				panic(err)
+				io.ExitWithMessage(err)
 			}
 			randT.ShuffleTips()
 			randEdges[i] = randT.Edges()
@@ -108,11 +110,11 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 
 	// We read bootstrap trees and put them in the channel
 	if boottreefile == "none" {
-		panic("You must provide a file containing bootstrap trees")
+		io.ExitWithMessage(errors.New("You must provide a file containing bootstrap trees"))
 	}
 	go func() {
 		if nbtrees, err = utils.ReadCompTrees(boottreefile, bootTreeChannel); err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 	}()
 
@@ -136,7 +138,7 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 			valuesBoot[val.edgeid] += val.value
 			d, err := edges[val.edgeid].TopoDepth()
 			if err != nil {
-				panic(err)
+				io.ExitWithMessage(err)
 			}
 			// If theoretical we must count number >= here
 			if !empirical {
@@ -170,7 +172,7 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 		if !edges[i].Right().Tip() {
 			d, err := e.TopoDepth()
 			if err != nil {
-				panic(err)
+				io.ExitWithMessage(err)
 			}
 			avg_val := float64(valuesBoot[i]) / float64(nbtrees)
 			var pval, avg_rand_val float64

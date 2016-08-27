@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -41,7 +42,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		tree, err := utils.ReadRefTree(statsintree)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		tree.ComputeDepths()
 		var f *os.File
@@ -51,7 +52,7 @@ to quickly create a Cobra application.`,
 			f = os.Stdout
 		}
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		f.WriteString("id\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\n")
 		for i, e := range tree.Edges() {
@@ -66,16 +67,16 @@ to quickly create a Cobra application.`,
 			var depth, leftdepth, rightdepth int
 
 			if leftdepth, err = e.Left().Depth(); err != nil {
-				panic(err)
+				io.ExitWithMessage(err)
 			}
 			if rightdepth, err = e.Right().Depth(); err != nil {
-				panic(err)
+				io.ExitWithMessage(err)
 			}
 			depth = min(leftdepth, rightdepth)
 			var topodepth int
 			topodepth, err = e.TopoDepth()
 			if err != nil {
-				panic(err)
+				io.ExitWithMessage(err)
 			}
 
 			f.WriteString(fmt.Sprintf("%d\t%s\t%s\t%t\t%d\t%d\t%s\n", i, length, support, e.Right().Tip(), depth, topodepth, e.Right().Name()))

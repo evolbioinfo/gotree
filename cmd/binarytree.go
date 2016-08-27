@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"math/rand"
@@ -66,7 +67,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := binarytree(binarytreeNbTrees, binarytreeNbTips, binarytreeOutputfile, binarytreeSeed); err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 	},
 }

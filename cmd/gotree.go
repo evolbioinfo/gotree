@@ -17,6 +17,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
@@ -53,11 +54,11 @@ to quickly create a Cobra application.`,
 		intree := "(t1:1,t2:2,(t3:3,(t4:4,t5:5)0.8:6)0.9:7);"
 		t, err2 := newick.NewParser(strings.NewReader(intree)).Parse()
 		if err2 != nil {
-			panic(err2)
+			io.ExitWithMessage(err2)
 		}
 		fmt.Println(t.Newick())
 		if err3 := t.RemoveTips("t2", "t3"); err3 != nil {
-			panic(err3)
+			io.ExitWithMessage(err3)
 		}
 
 		fmt.Println(t.Newick())
@@ -83,11 +84,11 @@ to quickly create a Cobra application.`,
 				fmt.Println("Done")
 				fi, err := os.Open("t2.nh")
 				if err != nil {
-					panic(err)
+					io.ExitWithMessage(err)
 				}
 				defer func() {
 					if err := fi.Close(); err != nil {
-						panic(err)
+						io.ExitWithMessage(err)
 					}
 				}()
 				r := bufio.NewReader(fi)

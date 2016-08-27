@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/fredericlemoine/bitset"
+	"github.com/fredericlemoine/gotree/io"
 	"math"
 	"math/rand"
 	"sort"
@@ -733,13 +734,13 @@ func (t *Tree) RemoveEdges(edges ...*Edge) {
 			if child != e.Left() {
 				idx, err := child.NodeIndex(e.Right())
 				if err != nil {
-					panic(err)
+					io.ExitWithMessage(err)
 				}
 				child.neigh[idx] = e.Left()
 				if child.br[idx].left == e.Right() {
 					child.br[idx].left = e.Left()
 				} else {
-					panic("Problem in edge orientation")
+					io.ExitWithMessage(errors.New("Problem in edge orientation"))
 				}
 				e.Left().addChild(child, child.br[idx])
 			}

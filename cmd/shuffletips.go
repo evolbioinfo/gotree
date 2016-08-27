@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
@@ -44,7 +45,7 @@ to quickly create a Cobra application.`,
 		var err error
 		t, err = utils.ReadRefTree(transformInputTree)
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 		var f *os.File
 		if renameouttree != "stdout" {
@@ -53,13 +54,13 @@ to quickly create a Cobra application.`,
 			f = os.Stdout
 		}
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 
 		t.ShuffleTips()
 
 		if err != nil {
-			panic(err)
+			io.ExitWithMessage(err)
 		}
 
 		f.WriteString(t.Newick() + "\n")
