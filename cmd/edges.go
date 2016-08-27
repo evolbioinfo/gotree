@@ -1,17 +1,3 @@
-// Copyright © 2016 NAME HERE <EMAIL ADDRESS>
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package cmd
 
 import (
@@ -30,13 +16,23 @@ func min(a, b int) int {
 // edgesCmd represents the edges command
 var edgesCmd = &cobra.Command{
 	Use:   "edges",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Displays statistics on edges of input tree",
+	Long: `Displays statistics on edges of input tree
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Statistics are displayed in text format (tab separated):
+1 - Id of edge
+2 - Length
+3 - Support
+4 - Terminal (true/false)
+5 - Depth (Shortest path to a tip)
+6 - Topo depth (Number of tips on the lightest side)
+7 - Name of the Right node
+
+Example of usage:
+
+gotree stats edges -i t.nw
+
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		statsout.WriteString("id\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\n")

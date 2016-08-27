@@ -73,6 +73,22 @@ Map file must be tab separated with columns:
 
 If a tip name does not appear in the map file, it will not be renamed. 
 If a name that does not exist appears in the map file, it will not throw an error.
+
+Example :
+
+MapFile :
+A   A2
+B   B2
+C   C2
+
+gotree rename -m MapFile -i t.nw
+
+             ------C                   ------C2
+       x     |z	     	        x      |z	    
+   A---------*ROOT    =>    A2---------*ROOT  
+             |t	     	               |t	    
+             ------B 	               ------B2
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 

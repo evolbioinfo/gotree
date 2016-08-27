@@ -16,6 +16,10 @@ Statistics are displayed in text format (tab separated):
 2 - Nb neighbors
 3 - Tip Name
 
+Example of usage:
+
+gotree stats tips -i t.mw
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		statsout.WriteString("id\tnneigh\tname\n")
