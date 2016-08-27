@@ -2,6 +2,8 @@ package utils
 
 import (
 	"bufio"
+	"compress/gzip"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/tree"
 	"os"
@@ -30,7 +32,16 @@ func ReadRefTree(inputfile string) (*tree.Tree, error) {
 		}
 	}
 
-	reader = bufio.NewReader(refTreeFile)
+	if strings.HasSuffix(inputfile, ".gz") {
+		if gr, err := gzip.NewReader(refTreeFile); err != nil {
+			io.ExitWithMessage(err)
+		} else {
+			reader = bufio.NewReader(gr)
+		}
+	} else {
+		reader = bufio.NewReader(refTreeFile)
+	}
+
 	if reftree, err = newick.NewParser(reader).Parse(); err != nil {
 		return nil, err
 	}
