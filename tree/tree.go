@@ -813,3 +813,12 @@ func (t *Tree) Rename(namemap map[string]string) error {
 	t.UpdateBitSet()
 	return nil
 }
+
+func (t *Tree) MeanBrLength() float64 {
+	mean := 0.0
+	edges := t.Edges()
+	for _, e := range edges {
+		mean += e.Length()
+	}
+	return mean / float64(len(edges))
+}

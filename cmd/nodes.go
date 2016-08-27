@@ -17,9 +17,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // nodesCmd represents the nodes command
@@ -33,29 +31,15 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		tree, err := utils.ReadRefTree(statsintree)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		tree.ComputeDepths()
-		var f *os.File
-		if statsoutfile != "stdout" {
-			f, err = os.Create(statsoutfile)
-		} else {
-			f = os.Stdout
-		}
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		f.WriteString("id\tnneigh\tname\tdepth\n")
+		statsout.WriteString("id\tnneigh\tname\tdepth\n")
 		var depth int
-		for i, n := range tree.Nodes() {
+		var err error
+		for i, n := range statsintree.Nodes() {
 			if depth, err = n.Depth(); err != nil {
 				io.ExitWithMessage(err)
 			}
-			f.WriteString(fmt.Sprintf("%d\t%d\t%s\t%d\n", i, n.Nneigh(), n.Name(), depth))
+			statsout.WriteString(fmt.Sprintf("%d\t%d\t%s\t%d\n", i, n.Nneigh(), n.Name(), depth))
 		}
-		f.Close()
 	},
 }
 

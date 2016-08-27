@@ -17,9 +17,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func min(a, b int) int {
@@ -40,22 +38,9 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		tree, err := utils.ReadRefTree(statsintree)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		tree.ComputeDepths()
-		var f *os.File
-		if statsoutfile != "stdout" {
-			f, err = os.Create(statsoutfile)
-		} else {
-			f = os.Stdout
-		}
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		f.WriteString("id\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\n")
-		for i, e := range tree.Edges() {
+		var err error
+		statsout.WriteString("id\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\n")
+		for i, e := range statsintree.Edges() {
 			var length = "N/A"
 			if e.Length() != -1 {
 				length = fmt.Sprintf("%f", e.Length())
@@ -79,9 +64,8 @@ to quickly create a Cobra application.`,
 				io.ExitWithMessage(err)
 			}
 
-			f.WriteString(fmt.Sprintf("%d\t%s\t%s\t%t\t%d\t%d\t%s\n", i, length, support, e.Right().Tip(), depth, topodepth, e.Right().Name()))
+			statsout.WriteString(fmt.Sprintf("%d\t%s\t%s\t%t\t%d\t%d\t%s\n", i, length, support, e.Right().Tip(), depth, topodepth, e.Right().Name()))
 		}
-		f.Close()
 	},
 }
 
