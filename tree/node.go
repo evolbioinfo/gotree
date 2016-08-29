@@ -3,7 +3,7 @@ package tree
 import (
 	"bytes"
 	"errors"
-	"strconv"
+	"fmt"
 )
 
 type Node struct {
@@ -146,7 +146,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 				}
 				child.Newick(n, newick)
 				if n.br[i].support != -1 && child.name == "" {
-					newick.WriteString(strconv.FormatFloat(n.br[i].support, 'f', 5, 64))
+					newick.WriteString(fmt.Sprintf("%f", n.br[i].support))
 				}
 				if len(child.comment) != 0 {
 					for _, c := range child.comment {
@@ -157,7 +157,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 				}
 				if n.br[i].length != -1 {
 					newick.WriteString(":")
-					newick.WriteString(strconv.FormatFloat(n.br[i].length, 'f', 5, 64))
+					newick.WriteString(fmt.Sprintf("%f", n.br[i].length))
 				}
 				nbchild++
 			}
