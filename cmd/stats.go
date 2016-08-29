@@ -47,6 +47,7 @@ For exemple:
 		statsout.WriteString("tips\t" + fmt.Sprintf("%d", len(statsintree.Tips())) + "\n")
 		statsout.WriteString("edges\t" + fmt.Sprintf("%d", len(statsintree.Edges())) + "\n")
 		statsout.WriteString("meanbrlen\t" + fmt.Sprintf("%.4f", statsintree.MeanBrLength()) + "\n")
+		statsout.WriteString("meansupport\t" + fmt.Sprintf("%.4f", statsintree.MeanSupport()) + "\n")
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		statsout.Close()

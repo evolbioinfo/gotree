@@ -822,3 +822,12 @@ func (t *Tree) MeanBrLength() float64 {
 	}
 	return mean / float64(len(edges))
 }
+
+func (t *Tree) MeanSupport() float64 {
+	mean := 0.0
+	edges := t.Edges()
+	for _, e := range edges {
+		mean += e.Support()
+	}
+	return mean / float64(len(edges))
+}
