@@ -11,6 +11,8 @@ import (
 )
 
 var shuffletipsSeed int64
+var shuffleTipsInputTree string
+var shuffleTipsOutputTree string
 
 // shuffletipsCmd represents the shuffletips command
 var shuffletipsCmd = &cobra.Command{
@@ -27,7 +29,7 @@ var shuffletipsCmd = &cobra.Command{
 
 Example of usage:
 
-gotree transform shuffletips -i t.nw
+gotree shuffletips -i t.nw
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -37,13 +39,13 @@ gotree transform shuffletips -i t.nw
 
 		var t *tree.Tree
 		var err error
-		t, err = utils.ReadRefTree(transformInputTree)
+		t, err = utils.ReadRefTree(shuffleTipsInputTree)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
 		var f *os.File
-		if renameouttree != "stdout" {
-			f, err = os.Create(transformOutputTree)
+		if shuffleTipsOutputTree != "stdout" {
+			f, err = os.Create(shuffleTipsOutputTree)
 		} else {
 			f = os.Stdout
 		}
@@ -63,6 +65,9 @@ gotree transform shuffletips -i t.nw
 }
 
 func init() {
-	transformCmd.AddCommand(shuffletipsCmd)
+	RootCmd.AddCommand(shuffletipsCmd)
 	shuffletipsCmd.Flags().Int64VarP(&shuffletipsSeed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
+	shuffletipsCmd.PersistentFlags().StringVarP(&shuffleTipsInputTree, "input", "i", "stdin", "Input tree")
+	shuffletipsCmd.PersistentFlags().StringVarP(&shuffleTipsOutputTree, "output", "o", "stdout", "Shuffled tree output file")
+
 }

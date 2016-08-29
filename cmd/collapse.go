@@ -9,6 +9,8 @@ import (
 )
 
 var shortbranchesThreshold float64
+var collapseInputTree string
+var collapseOutputTree string
 
 // collapseCmd represents the collapse command
 var collapsebrlenCmd = &cobra.Command{
@@ -21,13 +23,13 @@ var collapsebrlenCmd = &cobra.Command{
 		// Read Tree
 		var t *tree.Tree
 		var err error
-		t, err = utils.ReadRefTree(transformInputTree)
+		t, err = utils.ReadRefTree(collapseInputTree)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
 		var f *os.File
-		if renameouttree != "stdout" {
-			f, err = os.Create(transformOutputTree)
+		if collapseOutputTree != "stdout" {
+			f, err = os.Create(collapseOutputTree)
 		} else {
 			f = os.Stdout
 		}
@@ -47,7 +49,9 @@ var collapsebrlenCmd = &cobra.Command{
 }
 
 func init() {
-	transformCmd.AddCommand(collapsebrlenCmd)
+	RootCmd.AddCommand(collapsebrlenCmd)
 	collapsebrlenCmd.Flags().Float64VarP(&shortbranchesThreshold, "length", "l", 0.0, "Length cutoff to collapse the branch")
+	collapsebrlenCmd.PersistentFlags().StringVarP(&collapseInputTree, "input", "i", "stdin", "Input tree")
+	collapsebrlenCmd.PersistentFlags().StringVarP(&collapseOutputTree, "output", "o", "stdout", "Collapsed tree output file")
 
 }

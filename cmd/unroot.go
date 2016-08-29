@@ -8,6 +8,9 @@ import (
 	"os"
 )
 
+var unrootInputTree string
+var unrootOutputTree string
+
 // unrootCmd represents the unroot command
 var unrootCmd = &cobra.Command{
 	Use:   "unroot",
@@ -30,20 +33,20 @@ ROOT*        ------B   =>    A---------*ROOT
 
 Example of usage:
 
-gotree tranform unroot -i tree.nw -o tree_u.nw
+gotree unroot -i tree.nw -o tree_u.nw
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Read Tree
 		var t *tree.Tree
 		var err error
-		t, err = utils.ReadRefTree(transformInputTree)
+		t, err = utils.ReadRefTree(unrootInputTree)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
 		var f *os.File
-		if renameouttree != "stdout" {
-			f, err = os.Create(transformOutputTree)
+		if unrootOutputTree != "stdout" {
+			f, err = os.Create(unrootOutputTree)
 		} else {
 			f = os.Stdout
 		}
@@ -59,5 +62,9 @@ gotree tranform unroot -i tree.nw -o tree_u.nw
 }
 
 func init() {
-	transformCmd.AddCommand(unrootCmd)
+	RootCmd.AddCommand(unrootCmd)
+
+	unrootCmd.PersistentFlags().StringVarP(&unrootInputTree, "input", "i", "stdin", "Input tree")
+	unrootCmd.PersistentFlags().StringVarP(&unrootOutputTree, "output", "o", "stdout", "Collapsed tree output file")
+
 }

@@ -9,6 +9,8 @@ import (
 )
 
 var minbrlenCutoff float64
+var minbrlenInputTree string
+var minbrlenOutputTree string
 
 // minbrlenCmd represents the minbrlen command
 var minbrlenCmd = &cobra.Command{
@@ -16,18 +18,22 @@ var minbrlenCmd = &cobra.Command{
 	Short: "This will set a min branch length to all branches with length < cutoff",
 	Long: `This will set a min branch length to all branches with length < cutoff
 
+Example of usage:
+
+gotree minbrlen -i tree.nw -o out.nw -l 0.001
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Read Tree
 		var t *tree.Tree
 		var err error
-		t, err = utils.ReadRefTree(transformInputTree)
+		t, err = utils.ReadRefTree(minbrlenInputTree)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
 		var f *os.File
-		if transformOutputTree != "stdout" {
-			f, err = os.Create(transformOutputTree)
+		if minbrlenOutputTree != "stdout" {
+			f, err = os.Create(minbrlenOutputTree)
 		} else {
 			f = os.Stdout
 		}
@@ -51,7 +57,8 @@ var minbrlenCmd = &cobra.Command{
 }
 
 func init() {
-	transformCmd.AddCommand(minbrlenCmd)
+	RootCmd.AddCommand(minbrlenCmd)
 	minbrlenCmd.Flags().Float64VarP(&minbrlenCutoff, "length", "l", 0.0, "Min Length cutoff")
-
+	minbrlenCmd.PersistentFlags().StringVarP(&minbrlenInputTree, "input", "i", "stdin", "Input tree")
+	minbrlenCmd.PersistentFlags().StringVarP(&minbrlenOutputTree, "output", "o", "stdout", "Length corrected tree output file")
 }
