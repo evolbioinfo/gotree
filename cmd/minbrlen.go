@@ -26,7 +26,7 @@ var minbrlenCmd = &cobra.Command{
 			io.ExitWithMessage(err)
 		}
 		var f *os.File
-		if renameouttree != "stdout" {
+		if transformOutputTree != "stdout" {
 			f, err = os.Create(transformOutputTree)
 		} else {
 			f = os.Stdout
