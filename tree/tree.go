@@ -264,6 +264,11 @@ func (t *Tree) Newick() string {
 	return buffer.String()
 }
 
+// Updates the tipindex which maps tip names
+// To index in the bitsets
+// Bitset indexes correspond to the position
+// of the tip in the alphabetically ordered tip
+// name list
 func (t *Tree) UpdateTipIndex() {
 	names := t.AllTipNames()
 	sort.Strings(names)
@@ -295,6 +300,9 @@ func (t *Tree) tipIndexNode(n *Node) (uint, error) {
 	return t.TipIndex(n.name)
 }
 
+// Return the tip index if the tip with given name exists in the tree
+// May return an error if tip index has not been initialized
+// With UpdateTipIndex or if the tip does not exist
 func (t *Tree) TipIndex(name string) (uint, error) {
 	if len(t.tipIndex) == 0 {
 		return 0, errors.New("No tips in the index, tip name index is not initialized")
@@ -304,6 +312,17 @@ func (t *Tree) TipIndex(name string) (uint, error) {
 		return 0, errors.New("No tip named " + name + " in the index")
 	}
 	return v, nil
+}
+
+// Return true if the tip with given name exists in the tree
+// May return an error if tip index has not been initialized
+// With UpdateTipIndex
+func (t *Tree) ExistsTip(name string) (bool, error) {
+	if len(t.tipIndex) == 0 {
+		return false, errors.New("No tips in the index, tip name index is not initialized")
+	}
+	_, ok := t.tipIndex[name]
+	return ok, nil
 }
 
 // Returns all the tip name in the tree
