@@ -43,7 +43,7 @@ For exemple:
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		statsout.WriteString(fmt.Sprintf("nodes\t%d", len(statsintree.Nodes())))
+		statsout.WriteString(fmt.Sprintf("nodes\t%d\n", len(statsintree.Nodes())))
 		statsout.WriteString(fmt.Sprintf("tips\t%d\n", len(statsintree.Tips())))
 		statsout.WriteString(fmt.Sprintf("edges\t%d\n", len(statsintree.Edges())))
 		statsout.WriteString(fmt.Sprintf("meanbrlen\t%.4f\n", statsintree.MeanBrLength()))
