@@ -43,11 +43,16 @@ For exemple:
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		statsout.WriteString("nodes\t" + fmt.Sprintf("%d", len(statsintree.Nodes())) + "\n")
-		statsout.WriteString("tips\t" + fmt.Sprintf("%d", len(statsintree.Tips())) + "\n")
-		statsout.WriteString("edges\t" + fmt.Sprintf("%d", len(statsintree.Edges())) + "\n")
-		statsout.WriteString("meanbrlen\t" + fmt.Sprintf("%.4f", statsintree.MeanBrLength()) + "\n")
-		statsout.WriteString("meansupport\t" + fmt.Sprintf("%.4f", statsintree.MeanSupport()) + "\n")
+		statsout.WriteString(fmt.Sprintf("nodes\t%d", len(statsintree.Nodes())))
+		statsout.WriteString(fmt.Sprintf("tips\t%d\n", len(statsintree.Tips())))
+		statsout.WriteString(fmt.Sprintf("edges\t%d\n", len(statsintree.Edges())))
+		statsout.WriteString(fmt.Sprintf("meanbrlen\t%.4f\n", statsintree.MeanBrLength()))
+		statsout.WriteString(fmt.Sprintf("meansupport\t%.4f\n", statsintree.MeanSupport()))
+		if statsintree.Rooted() {
+			statsout.WriteString(fmt.Sprintf("root\trooted\n"))
+		} else {
+			statsout.WriteString(fmt.Sprintf("root\tunrooted\n"))
+		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		statsout.Close()
