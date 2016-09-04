@@ -39,7 +39,7 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 	}()
 
 	edges := reftree.Edges()
-	foundEdges := make(chan int, 1000)
+	foundEdges := make(chan int, 100)
 	foundBoot := make([]int, len(edges))
 	var wg sync.WaitGroup
 	for cpu := 0; cpu < cpus; cpu++ {

@@ -65,8 +65,8 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 	var randValuesChan chan bootval      // Channel of values computed for a given shuffled edge
 	var bootTreeChannel chan utils.Trees // Channel of bootstrap trees
 
-	valuesChan = make(chan bootval, 1000)
-	randValuesChan = make(chan bootval, 1000)
+	valuesChan = make(chan bootval, 100)
+	randValuesChan = make(chan bootval, 100)
 	bootTreeChannel = make(chan utils.Trees, 15)
 
 	if cpus > maxcpus {
