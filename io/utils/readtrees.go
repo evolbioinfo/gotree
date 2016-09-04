@@ -65,7 +65,16 @@ func ReadCompTrees(inputfile string, compTrees chan<- Trees) (int, error) {
 		return id, err
 	}
 
-	reader = bufio.NewReader(compTreeFile)
+	if strings.HasSuffix(inputfile, ".gz") {
+		if gr, err := gzip.NewReader(compTreeFile); err != nil {
+			io.ExitWithMessage(err)
+		} else {
+			reader = bufio.NewReader(gr)
+		}
+	} else {
+		reader = bufio.NewReader(compTreeFile)
+	}
+
 	line, e := Readln(reader)
 	for e == nil {
 		parser := newick.NewParser(strings.NewReader(line))
