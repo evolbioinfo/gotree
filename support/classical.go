@@ -31,7 +31,7 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 	}
 
 	var nbtrees int
-	compareChannel := make(chan utils.Trees, 100)
+	compareChannel := make(chan utils.Trees, 15)
 	go func() {
 		if nbtrees, err = utils.ReadCompTrees(boottreefile, compareChannel); err != nil {
 			io.ExitWithMessage(err)

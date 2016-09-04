@@ -67,7 +67,7 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 
 	valuesChan = make(chan bootval, 1000)
 	randValuesChan = make(chan bootval, 1000)
-	bootTreeChannel = make(chan utils.Trees, 100)
+	bootTreeChannel = make(chan utils.Trees, 15)
 
 	if cpus > maxcpus {
 		cpus = maxcpus
