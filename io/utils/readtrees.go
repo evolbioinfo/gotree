@@ -77,6 +77,10 @@ func ReadCompTrees(inputfile string, compTrees chan<- Trees) (int, error) {
 
 	line, e := Readln(reader)
 	for e == nil {
+		if line == "\n" || line == "" {
+			line, e = Readln(reader)
+			continue
+		}
 		parser := newick.NewParser(strings.NewReader(line))
 		if compTree, err = parser.Parse(); err != nil {
 			return id, err
