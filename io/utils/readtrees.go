@@ -23,7 +23,7 @@ func ReadRefTree(inputfile string) (*tree.Tree, error) {
 	var err error
 	var reader *bufio.Reader
 
-	if inputfile == "" || inputfile == "stdin" {
+	if inputfile == "" || inputfile == "stdin" || inputfile == "-" {
 		refTreeFile = os.Stdin
 	} else {
 		refTreeFile, err = os.Open(inputfile)
@@ -61,8 +61,12 @@ func ReadCompTrees(inputfile string, compTrees chan<- Trees) (int, error) {
 	var reader *bufio.Reader
 	id := 0
 
-	if compTreeFile, err = os.Open(inputfile); err != nil {
-		return id, err
+	if inputfile == "" || inputfile == "stdin" || inputfile == "-" {
+		compTreeFile = os.Stdin
+	} else {
+		if compTreeFile, err = os.Open(inputfile); err != nil {
+			return id, err
+		}
 	}
 
 	if strings.HasSuffix(inputfile, ".gz") {
