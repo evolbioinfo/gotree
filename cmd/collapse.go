@@ -3,9 +3,7 @@ package cmd
 import (
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var shortbranchesThreshold float64
@@ -20,30 +18,23 @@ var collapsebrlenCmd = &cobra.Command{
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Read Tree
-		var t *tree.Tree
 		var err error
-		t, err = utils.ReadRefTree(collapseInputTree)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		var f *os.File
-		if collapseOutputTree != "stdout" {
-			f, err = os.Create(collapseOutputTree)
-		} else {
-			f = os.Stdout
-		}
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
+		var nbtrees int = 0
+		intrees := make(chan utils.Trees, 15)
 
-		t.CollapseShortBranches(shortbranchesThreshold)
+		/* Read ref tree(s) */
+		go func() {
+			if nbtrees, err = utils.ReadCompTrees(collapseInputTree, intrees); err != nil {
+				io.ExitWithMessage(err)
+			}
+		}()
 
-		if err != nil {
-			io.ExitWithMessage(err)
+		/* Collapsing branches */
+		f := openWriteFile(collapseOutputTree)
+		for t := range intrees {
+			t.Tree.CollapseShortBranches(shortbranchesThreshold)
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
-
-		f.WriteString(t.Newick() + "\n")
 		f.Close()
 	},
 }

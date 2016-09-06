@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -40,4 +41,16 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+}
+
+func openWriteFile(file string) *os.File {
+	if file == "stdout" || file == "-" {
+		return os.Stdout
+	} else {
+		f, err := os.Create(file)
+		if err != nil {
+			io.ExitWithMessage(err)
+		}
+		return f
+	}
 }
