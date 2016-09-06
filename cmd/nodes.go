@@ -24,14 +24,17 @@ gotree stats nodes -i t.nw
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		statsout.WriteString("id\tnneigh\tname\tdepth\n")
+		statsout.WriteString("tree\tnid\tnneigh\tname\tdepth\n")
 		var depth int
 		var err error
-		for i, n := range statsintree.Nodes() {
-			if depth, err = n.Depth(); err != nil {
-				io.ExitWithMessage(err)
+		for statsintree := range statintrees {
+			statsintree.Tree.ComputeDepths()
+			for i, n := range statsintree.Tree.Nodes() {
+				if depth, err = n.Depth(); err != nil {
+					io.ExitWithMessage(err)
+				}
+				statsout.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\t%d\n", statsintree.Id, i, n.Nneigh(), n.Name(), depth))
 			}
-			statsout.WriteString(fmt.Sprintf("%d\t%d\t%s\t%d\n", i, n.Nneigh(), n.Name(), depth))
 		}
 	},
 }

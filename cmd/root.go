@@ -5,9 +5,12 @@ import (
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 	"os"
+	"runtime"
+	"strconv"
 )
 
 var cfgFile string
+var rootCpus int
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -33,6 +36,8 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	maxcpus := runtime.NumCPU()
+	RootCmd.Flags().IntVarP(&rootCpus, "threads", "t", 1, "Number of threads (Max="+strconv.Itoa(maxcpus)+")")
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports Persistent Flags, which, if defined here,

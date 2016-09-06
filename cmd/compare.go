@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"runtime"
-	"strconv"
 	"sync"
 )
 
@@ -94,7 +93,6 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	}
 }
 
-var compareCpus int
 var compareTree1 string
 var compareTree2 string
 var compareTips bool
@@ -109,17 +107,13 @@ for each trees in the compared tree file, it prints the number of common edges
 between it and the reference tree, as well as the number of specific edges.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		compare(compareTree1, compareTree2, compareTips, compareCpus)
+		compare(compareTree1, compareTree2, compareTips, rootCpus)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(compareCmd)
-	maxcpus := runtime.NumCPU()
-
 	compareCmd.Flags().StringVarP(&compareTree1, "reftree", "i", "stdin", "Reference tree input file")
 	compareCmd.Flags().StringVarP(&compareTree2, "compared", "c", "none", "Compared trees input file")
 	compareCmd.Flags().BoolVarP(&compareTips, "tips", "l", false, "Compared trees input file")
-	compareCmd.Flags().IntVarP(&compareCpus, "threads", "t", 1, "Number of threads (Max=)"+strconv.Itoa(maxcpus))
-
 }

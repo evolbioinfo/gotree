@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -16,10 +17,14 @@ gotree stats rooted -i t.nw
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if statsintree.Rooted() {
-			statsout.WriteString("rooted\n")
-		} else {
-			statsout.WriteString("unrooted\n")
+		statsout.WriteString("tree\trooted\n")
+		for statsintree := range statintrees {
+			statsout.WriteString(fmt.Sprintf("%d\t", statsintree.Id))
+			if statsintree.Tree.Rooted() {
+				statsout.WriteString("rooted\n")
+			} else {
+				statsout.WriteString("unrooted\n")
+			}
 		}
 	},
 }

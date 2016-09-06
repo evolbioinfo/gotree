@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"os"
 )
 
 var statsintreestr string
 var statsoutfile string
-var statsintree *tree.Tree
+var statintrees chan utils.Trees
 var statsout *os.File
 
 // statsCmd represents the stats command
@@ -28,30 +27,32 @@ For exemple:
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
-		statsintree, err = utils.ReadRefTree(statsintreestr)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		statsintree.ComputeDepths()
-		if statsoutfile != "stdout" {
-			statsout, err = os.Create(statsoutfile)
-		} else {
-			statsout = os.Stdout
-		}
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
+		var nbtrees int = 0
+		statintrees = make(chan utils.Trees, 15)
+		/* Read ref tree(s) */
+		go func() {
+			if nbtrees, err = utils.ReadCompTrees(statsintreestr, statintrees); err != nil {
+				io.ExitWithMessage(err)
+			}
+		}()
+		statsout = openWriteFile(statsoutfile)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		statsout.WriteString(fmt.Sprintf("nodes\t%d\n", len(statsintree.Nodes())))
-		statsout.WriteString(fmt.Sprintf("tips\t%d\n", len(statsintree.Tips())))
-		statsout.WriteString(fmt.Sprintf("edges\t%d\n", len(statsintree.Edges())))
-		statsout.WriteString(fmt.Sprintf("meanbrlen\t%.4f\n", statsintree.MeanBrLength()))
-		statsout.WriteString(fmt.Sprintf("meansupport\t%.4f\n", statsintree.MeanSupport()))
-		if statsintree.Rooted() {
-			statsout.WriteString(fmt.Sprintf("root\trooted\n"))
-		} else {
-			statsout.WriteString(fmt.Sprintf("root\tunrooted\n"))
+		/* Dividing trees */
+		statsout.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tmeansupport\trooted\n")
+		for statsintree := range statintrees {
+			statsintree.Tree.ComputeDepths()
+			statsout.WriteString(fmt.Sprintf("%d", statsintree.Id))
+			statsout.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Nodes())))
+			statsout.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Tips())))
+			statsout.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Edges())))
+			statsout.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.MeanBrLength()))
+			statsout.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.MeanSupport()))
+			if statsintree.Tree.Rooted() {
+				statsout.WriteString(fmt.Sprintf("\trooted\n"))
+			} else {
+				statsout.WriteString(fmt.Sprintf("\tunrooted\n"))
+			}
 		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
