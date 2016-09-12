@@ -6,6 +6,7 @@ import (
 	"github.com/fredericlemoine/gotree/tree"
 	"io"
 	"strconv"
+	"strings"
 )
 
 // Parser represents a parser.
@@ -193,6 +194,17 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 						return -1, errors.New("Newick Error: Cannot assign node name to nil node: " + lit)
 					}
 					newNode.SetName(lit)
+					// If of the form numeric/numeric => then Support value/pvalue
+					vals := strings.Split(lit, "/")
+					if len(vals) == 2 {
+						if supp, errf := strconv.ParseFloat(vals[0], 64); errf == nil {
+							e, err := newNode.ParentEdge()
+							if err != nil {
+								return -1, err
+							}
+							e.SetSupport(supp)
+						}
+					}
 				}
 			} else {
 				// Else we have a new tip
