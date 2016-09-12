@@ -845,12 +845,14 @@ func (t *Tree) MeanBrLength() float64 {
 func (t *Tree) MeanSupport() float64 {
 	mean := 0.0
 	edges := t.Edges()
+	i := 0
 	for _, e := range edges {
 		if !e.Right().Tip() {
 			mean += e.Support()
+			i++
 		}
 	}
-	return mean / float64(len(edges))
+	return mean / float64(i)
 }
 
 func (t *Tree) MedianSupport() float64 {
