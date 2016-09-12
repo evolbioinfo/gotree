@@ -35,9 +35,9 @@ gotree stats edges -i t.nw
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+		statsout.WriteString("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\n")
 		for statsintree := range statintrees {
 			statsintree.Tree.ComputeDepths()
-			statsout.WriteString("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\n")
 			for i, e := range statsintree.Tree.Edges() {
 				var length = "N/A"
 				if e.Length() != -1 {
