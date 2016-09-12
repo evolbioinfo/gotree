@@ -852,3 +852,25 @@ func (t *Tree) MeanSupport() float64 {
 	}
 	return mean / float64(len(edges))
 }
+
+func (t *Tree) MedianSupport() float64 {
+	edges := t.Edges()
+	tips := t.Tips()
+	supports := make([]float64, len(edges)-len(tips))
+
+	i := 0
+	for _, e := range edges {
+		if !e.Right().Tip() {
+			supports[i] = e.Support()
+			i++
+		}
+	}
+	sort.Float64s(supports)
+
+	middle := len(supports) / 2
+	result := supports[middle]
+	if len(supports)%2 == 0 {
+		result = (result + supports[middle-1]) / 2
+	}
+	return result
+}
