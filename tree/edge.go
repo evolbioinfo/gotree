@@ -50,6 +50,10 @@ func (e *Edge) Left() *Node {
 	return e.left
 }
 
+func (e *Edge) Bitset() *bitset.BitSet {
+	return e.bitset
+}
+
 func (e *Edge) Id() int {
 	if e.id == -1 {
 		io.ExitWithMessage(errors.New("Id has not been set"))
