@@ -5,9 +5,7 @@ import (
 	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
-	"os"
 	"strings"
-	"sync"
 	"testing"
 )
 
@@ -39,7 +37,7 @@ func TestEdgeIndex2(t *testing.T) {
 	intrees := make(chan utils.Trees, 15)
 	/* Read ref tree(s) */
 	go func() {
-		if _, err := utils.ReadCompTrees("data/twotrees.nw", intrees); err != nil {
+		if _, err := utils.ReadCompTrees("data/twotrees.nw.gz", intrees); err != nil {
 			t.Error(err.Error)
 		}
 	}()
@@ -63,46 +61,5 @@ func TestEdgeIndex2(t *testing.T) {
 			}
 		}
 		nbtrees++
-	}
-}
-
-// Benchmark for reading 1000 bootstrap trees for example
-// With gunzip
-func BenchmarkEdgeIndex(b *testing.B) {
-
-	for n := 0; n < b.N; n++ {
-
-		reftree, err := utils.ReadRefTree("data/ref_16_14588.nw.gz")
-		if err != nil {
-			b.Error(err.Error)
-		}
-
-		intrees := make(chan utils.Trees, 15)
-		/* Read ref tree(s) */
-		go func() {
-			if _, err := utils.ReadCompTrees("data/boot_16_14588.nw.gz", intrees); err != nil {
-				b.Error(err.Error)
-			}
-		}()
-		var wg sync.WaitGroup
-		edgeindex := tree.NewEdgeIndex(24000, .75)
-		for cpu := 0; cpu < 4; cpu++ {
-			wg.Add(1)
-			go func() {
-				for tr := range intrees {
-					edges := tr.Tree.Edges()
-					for _, e := range edges {
-						edgeindex.AddEdgeCount(e)
-					}
-				}
-				wg.Done()
-			}()
-		}
-		wg.Wait()
-
-		for i, e := range reftree.Edges() {
-			val, _ := edgeindex.Value(e)
-			fmt.Fprintf(os.Stderr, "Edge %d, Support: %d\n", i, val)
-		}
 	}
 }
