@@ -46,4 +46,3 @@ func BenchmarkTreeParse100(b *testing.B)    { benchmarkTreeParse(100, b) }
 func BenchmarkTreeParse1000(b *testing.B)   { benchmarkTreeParse(1000, b) }
 func BenchmarkTreeParse10000(b *testing.B)  { benchmarkTreeParse(10000, b) }
 func BenchmarkTreeParse100000(b *testing.B) { benchmarkTreeParse(100000, b) }
-func BenchmarkTreeParse200000(b *testing.B) { benchmarkTreeParse(200000, b) }
