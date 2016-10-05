@@ -96,6 +96,31 @@ func (t *Tree) edgesRecur(edge *Edge, edges *[]*Edge) {
 	}
 }
 
+// Returns all the tip edges of the tree (do it recursively)
+func (t *Tree) TipEdges() []*Edge {
+	edges := make([]*Edge, 0, 2000)
+	for _, e := range t.Root().br {
+		if e.Right().Tip() {
+			edges = append(edges, e)
+		}
+		t.tipEdgesRecur(e, &edges)
+	}
+	return edges
+}
+
+func (t *Tree) tipEdgesRecur(edge *Edge, edges *[]*Edge) {
+	if len(edge.right.neigh) > 1 {
+		for _, child := range edge.right.br {
+			if child.left == edge.right {
+				if child.Right().Tip() {
+					*edges = append((*edges), child)
+				}
+				t.tipEdgesRecur(child, edges)
+			}
+		}
+	}
+}
+
 // Returns all the nodes of the tree (do it recursively)
 func (t *Tree) Nodes() []*Node {
 	nodes := make([]*Node, 0, 2000)
