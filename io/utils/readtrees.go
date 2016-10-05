@@ -3,6 +3,7 @@ package utils
 import (
 	"bufio"
 	"compress/gzip"
+	"fmt"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/tree"
@@ -79,22 +80,19 @@ func ReadCompTrees(inputfile string, compTrees chan<- Trees) (int, error) {
 		reader = bufio.NewReader(compTreeFile)
 	}
 
-	line, e := Readln(reader)
+	line, e := ReadUntilSemiColon(reader)
 	for e == nil {
-		if line == "\n" || line == "" {
-			line, e = Readln(reader)
-			continue
-		}
 		parser := newick.NewParser(strings.NewReader(line))
 		if compTree, err = parser.Parse(); err != nil {
 			return id, err
 		}
+		fmt.Println(compTree.Newick())
 		compTrees <- Trees{
 			compTree,
 			id,
 		}
 		id++
-		line, e = Readln(reader)
+		line, e = ReadUntilSemiColon(reader)
 	}
 	close(compTrees)
 	if err = compTreeFile.Close(); err != nil {

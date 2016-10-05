@@ -127,11 +127,11 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 			return tok, nil
 		case OPENBRACK:
 			//if prevTok == OPENPAR || prevTok == NEWSIBLING || prevTok == -1 {
-			if newNode == nil || newNode == node {
+			if newNode == nil {
 				return -1, errors.New("Newick Error: Comment should not be located here: " + lit)
 			}
 			tok, lit = p.scanIgnoreWhitespace()
-			if tok != IDENT {
+			if tok != IDENT && tok != NUMERIC {
 				return -1, errors.New("Newick Error: There should be a comment after [")
 			}
 			// Add comment to node
@@ -165,7 +165,9 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 				}
 				e.SetLength(length)
 			} else {
-				// return -1, errors.New("Newick Error: Cannot assign length to nil node or to the root :" + lit)
+				if newNode.Name() == "" && prevTok != ')' {
+					return -1, errors.New("Newick Error: Cannot assign length to nil node :" + lit)
+				}
 			}
 			prevTok = tok
 		case NEWSIBLING:

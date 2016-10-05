@@ -285,6 +285,13 @@ func (t *Tree) String() string {
 func (t *Tree) Newick() string {
 	var buffer bytes.Buffer
 	t.root.Newick(nil, &buffer)
+	if len(t.root.comment) != 0 {
+		for _, c := range t.root.comment {
+			buffer.WriteString("[")
+			buffer.WriteString(c)
+			buffer.WriteString("]")
+		}
+	}
 	buffer.WriteString(";")
 	return buffer.String()
 }
