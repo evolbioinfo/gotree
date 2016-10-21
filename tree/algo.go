@@ -270,5 +270,11 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 		// TODO: Average branch length : Need to change the data structure
 		startree.AddBipartition(node, edges, -1, float64(bs.Value)/float64(nbtrees))
 	}
+
+	startree.UpdateTipIndex()
+	startree.ClearBitSets()
+	startree.UpdateBitSet()
+	startree.ComputeDepths()
+
 	return startree
 }
