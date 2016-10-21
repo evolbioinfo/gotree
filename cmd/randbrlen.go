@@ -18,9 +18,9 @@ var setlengthseed int64
 var setlengthmean float64
 var setlengthoutfile *os.File
 
-// randlengthCmd represents the randlength command
-var randlengthCmd = &cobra.Command{
-	Use:   "randlength",
+// randbrlenCmd represents the randbrlen command
+var randbrlenCmd = &cobra.Command{
+	Use:   "randbrlen",
 	Short: "Assign a  random length to edges of input trees",
 	Long: `Assign a  random length to edges of input trees.
 
@@ -53,10 +53,10 @@ Length follows an exponential distribution of parameter lambda=1/0.1
 }
 
 func init() {
-	RootCmd.AddCommand(randlengthCmd)
+	RootCmd.AddCommand(randbrlenCmd)
 
-	randlengthCmd.PersistentFlags().StringVarP(&setlengthinput, "input", "i", "stdin", "Input tree")
-	randlengthCmd.PersistentFlags().StringVarP(&setlengthout, "output", "o", "stdout", "Output file")
-	randlengthCmd.Flags().Int64VarP(&setlengthseed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
-	randlengthCmd.Flags().Float64VarP(&setlengthmean, "mean", "m", 0.1, "Mean of the exponential distribution of branch lengths")
+	randbrlenCmd.PersistentFlags().StringVarP(&setlengthinput, "input", "i", "stdin", "Input tree")
+	randbrlenCmd.PersistentFlags().StringVarP(&setlengthout, "output", "o", "stdout", "Output file")
+	randbrlenCmd.Flags().Int64VarP(&setlengthseed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
+	randbrlenCmd.Flags().Float64VarP(&setlengthmean, "mean", "m", 0.1, "Mean of the exponential distribution of branch lengths")
 }
