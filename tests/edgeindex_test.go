@@ -34,7 +34,7 @@ func TestEdgeIndex(t *testing.T) {
 
 func TestEdgeIndex2(t *testing.T) {
 
-	intrees := make(chan utils.Trees, 15)
+	intrees := make(chan tree.Trees, 15)
 	/* Read ref tree(s) */
 	go func() {
 		if _, err := utils.ReadCompTrees("data/twotrees.nw.gz", intrees); err != nil {
