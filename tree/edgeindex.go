@@ -36,13 +36,13 @@ func (em *EdgeIndex) PutEdgeValue(e *Edge, value int) {
 }
 
 // Returns all the Bipartitions of the index (bitset) with their counts
-// That have a count included in ]min,max]
+// That have a count included in ]min,max]. If min==Max==1 : [1]
 // Keys of the index
 func (em *EdgeIndex) BitSets(minCount, maxCount int) []*bitset.KeyValue {
 	keyvalues := em.idx.KeyValues()
 	bitsets := make([]*bitset.KeyValue, 0, len(keyvalues))
 	for _, kv := range keyvalues {
-		if kv.Value > minCount && kv.Value <= maxCount {
+		if (kv.Value > minCount && kv.Value <= maxCount) || kv.Value == maxCount {
 			bitsets = append(bitsets, kv)
 		}
 	}
