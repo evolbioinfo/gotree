@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"sync"
 )
@@ -197,7 +196,7 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 // computes the mastlike dist for each edges of the ref tree
 // and send it to the result channel
 func (supporter *mastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-	wg *sync.WaitGroup, bootTreeChannel <-chan utils.Trees, valChan chan<- bootval, randvalChan chan<- bootval) {
+	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval) {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
 	var i_matrix [][]uint16 = make([][]uint16, len(edges))

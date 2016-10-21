@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +28,7 @@ gotree divide -i trees.nw -o prefix_
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		var nbtrees int = 0
-		intrees := make(chan utils.Trees, 15)
+		intrees := make(chan tree.Trees, 15)
 
 		/* Read ref tree(s) */
 		go func() {

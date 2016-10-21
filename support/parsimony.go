@@ -3,7 +3,6 @@ package support
 import (
 	"github.com/fredericlemoine/gostats"
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"math"
 	"sort"
@@ -162,7 +161,7 @@ func nbParsimonyStepsRecur(cur *tree.Node, prev *tree.Node, bootTree *tree.Tree,
 // computes the number of pars steps for each edges of the ref tree
 // and send it to the result channel
 func (supporter *parsimonySupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-	wg *sync.WaitGroup, bootTreeChannel <-chan utils.Trees, stepsChan chan<- bootval, randStepsChan chan<- bootval) {
+	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, stepsChan chan<- bootval, randStepsChan chan<- bootval) {
 	func(cpu int) {
 		for treeV := range bootTreeChannel {
 			for i, e := range edges {

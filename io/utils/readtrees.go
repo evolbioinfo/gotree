@@ -10,12 +10,6 @@ import (
 	"strings"
 )
 
-// Type for channel of trees
-type Trees struct {
-	Tree *tree.Tree
-	Id   int
-}
-
 // Reads one tree from the input file
 func ReadRefTree(inputfile string) (*tree.Tree, error) {
 	var refTreeFile *os.File
@@ -54,7 +48,7 @@ func ReadRefTree(inputfile string) (*tree.Tree, error) {
 
 // Read a bunch of trees from the input file. One line must define One tree.
 // One tree per line
-func ReadCompTrees(inputfile string, compTrees chan<- Trees) (int, error) {
+func ReadCompTrees(inputfile string, compTrees chan<- tree.Trees) (int, error) {
 	var compTreeFile *os.File
 	var compTree *tree.Tree
 	var err error
@@ -85,7 +79,7 @@ func ReadCompTrees(inputfile string, compTrees chan<- Trees) (int, error) {
 		if compTree, err = parser.Parse(); err != nil {
 			return id, err
 		}
-		compTrees <- Trees{
+		compTrees <- tree.Trees{
 			compTree,
 			id,
 		}

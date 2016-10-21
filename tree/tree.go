@@ -20,6 +20,12 @@ type Tree struct {
 	tipIndex map[string]uint // Map between tip name and bitset index
 }
 
+// Type for channel of trees
+type Trees struct {
+	Tree *Tree
+	Id   int
+}
+
 func NewTree() *Tree {
 	return &Tree{
 		root:     nil,
@@ -683,6 +689,48 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 	t.ComputeDepths()
 	return t, err
 }
+
+//Creates a Random Binary tree
+//nbtips : Number of tips of the random binary tree to create
+func StarTree(nbtips int) (*Tree, error) {
+	t := NewTree()
+	if nbtips < 2 {
+		return nil, errors.New("Cannot create a star tree with less than 2 tips")
+	}
+
+	// Central node of the star (root)
+	n := t.NewNode()
+	t.SetRoot(n)
+	//n.SetName("N" + strconv.Itoa(i))
+	for i := 0; i < nbtips; i++ {
+		n2 := t.NewNode()
+		n2.SetName("Tip" + strconv.Itoa(i))
+		e := t.ConnectNodes(n, n2)
+		e.SetLength(1.0)
+	}
+	//err := t.RerootFirst()
+	t.UpdateTipIndex()
+	t.ClearBitSets()
+	t.UpdateBitSet()
+	t.ComputeDepths()
+	return t, nil
+}
+
+func StarTreeFromName(names ...string) (*Tree, error) {
+	if t, err := StarTree(len(names)); err != nil {
+		return nil, err
+	} else {
+		for i, t := range t.Tips() {
+			t.SetName(names[i])
+		}
+		t.UpdateTipIndex()
+		t.ClearBitSets()
+		t.UpdateBitSet()
+		t.ComputeDepths()
+		return t, nil
+	}
+}
+
 func (t *Tree) ComputeDepths() {
 	if t.Rooted() {
 		t.computeDepthRecurRooted(t.Root(), nil)

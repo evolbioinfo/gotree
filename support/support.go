@@ -21,7 +21,7 @@ type Supporter interface {
 	ExpectedRandValues(depth int) float64
 	ProbaDepthValue(d int, v int) float64
 	ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-		wg *sync.WaitGroup, bootTreeChannel <-chan utils.Trees, valChan chan<- bootval, randvalChan chan<- bootval)
+		wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval)
 }
 
 func min(a int, b int) int {
@@ -59,15 +59,15 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 	var gtRandom []float64             // Number of times edges have steps that are >= rand steps
 	var randTrees []*tree.Tree         // Empirical rand trees
 
-	var wg sync.WaitGroup                // For waiting end of step computation
-	var wg2 sync.WaitGroup               // For waiting end of final counting
-	var valuesChan chan bootval          // Channel of values computed for a given edge
-	var randValuesChan chan bootval      // Channel of values computed for a given shuffled edge
-	var bootTreeChannel chan utils.Trees // Channel of bootstrap trees
+	var wg sync.WaitGroup               // For waiting end of step computation
+	var wg2 sync.WaitGroup              // For waiting end of final counting
+	var valuesChan chan bootval         // Channel of values computed for a given edge
+	var randValuesChan chan bootval     // Channel of values computed for a given shuffled edge
+	var bootTreeChannel chan tree.Trees // Channel of bootstrap trees
 
 	valuesChan = make(chan bootval, 100)
 	randValuesChan = make(chan bootval, 100)
-	bootTreeChannel = make(chan utils.Trees, 15)
+	bootTreeChannel = make(chan tree.Trees, 15)
 
 	if cpus > maxcpus {
 		cpus = maxcpus

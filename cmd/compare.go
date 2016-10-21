@@ -25,7 +25,7 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	var err error
 	var edges []*tree.Edge
 
-	compareChannel := make(chan utils.Trees, 15)
+	compareChannel := make(chan tree.Trees, 15)
 	statsChannel := make(chan stats, 15)
 
 	if tree2 == "none" {

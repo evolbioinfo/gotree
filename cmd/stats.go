@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"os"
 )
 
 var statsintreestr string
 var statsoutfile string
-var statintrees chan utils.Trees
+var statintrees chan tree.Trees
 var statsout *os.File
 
 // statsCmd represents the stats command
@@ -28,7 +29,7 @@ For exemple:
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
 		var nbtrees int = 0
-		statintrees = make(chan utils.Trees, 15)
+		statintrees = make(chan tree.Trees, 15)
 		/* Read ref tree(s) */
 		go func() {
 			if nbtrees, err = utils.ReadCompTrees(statsintreestr, statintrees); err != nil {
