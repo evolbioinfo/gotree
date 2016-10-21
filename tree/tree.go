@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/fredericlemoine/bitset"
+	"github.com/fredericlemoine/gostats"
 	"github.com/fredericlemoine/gotree/io"
 	"math"
 	"math/rand"
@@ -651,6 +652,7 @@ func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) (*Edge, *Edge, *Node, error) {
 
 //Creates a Random Binary tree
 //nbtips : Number of tips of the random binary tree to create
+// branch length: follow an exponential distribution with param lambda=1/0.1
 func RandomBinaryTree(nbtips int) (*Tree, error) {
 	t := NewTree()
 	if nbtips < 2 {
@@ -666,13 +668,16 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 			n2.SetName("Node" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
 			edges = append(edges, e)
-			e.SetLength(1.0)
+			e.SetLength(gostats.Exp(1 / 0.1))
 			t.SetRoot(n2)
 		default:
 			// Where to insert the new tip
 			i_edge := rand.Intn(len(edges))
 			e := edges[i_edge]
+			e.SetLength(gostats.Exp(1 / 0.1))
 			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
+			newedge.SetLength(gostats.Exp(1 / 0.1))
+			newedge2.SetLength(gostats.Exp(1 / 0.1))
 
 			edges = append(edges, newedge)
 			edges = append(edges, newedge2)
