@@ -35,7 +35,7 @@ Two parameters:
 				io.ExitWithMessage(err)
 			}
 		}()
-		consensOut = openWriteFile(statsoutfile)
+		consensOut = openWriteFile(consensoutfile)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		consensus := tree.Consensus(consensIntrees, consensCutoff)
