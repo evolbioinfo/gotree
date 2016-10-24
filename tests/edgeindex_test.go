@@ -25,7 +25,7 @@ func TestEdgeIndex(t *testing.T) {
 		for _, e := range edges {
 			edgeindex.AddEdgeCount(e)
 			val, ok := edgeindex.Value(e)
-			if val != i || !ok {
+			if val.Count != i || !ok {
 				t.Error(fmt.Sprintf("Edge Count must be == %d", i))
 			}
 		}
@@ -53,9 +53,9 @@ func TestEdgeIndex2(t *testing.T) {
 				val, ok := edgeindex.Value(e)
 				if !ok {
 					t.Error(fmt.Sprintf("Edge not found in the index"))
-				} else if !e.Right().Tip() && val != i {
+				} else if !e.Right().Tip() && val.Count != i {
 					t.Error(fmt.Sprintf("Non tip edge count must be == %d (actually %d)", i, val))
-				} else if e.Right().Tip() && val != (nbtrees-1)*numLoops+i {
+				} else if e.Right().Tip() && val.Count != (nbtrees-1)*numLoops+i {
 					t.Error(fmt.Sprintf("Tip edge count must be == %d (actually %d)", (nbtrees-1)*numLoops+i, val))
 				}
 			}

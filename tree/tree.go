@@ -736,6 +736,28 @@ func StarTreeFromName(names ...string) (*Tree, error) {
 	}
 }
 
+/*
+Creates a Star tree with the same tips as the tree in argument
+Lengths of branches in the star trees are the same as lengths of
+tip edges in the input tree
+*/
+func StarTreeFromTree(t *Tree) (*Tree, error) {
+	edges := t.TipEdges()
+	if star, err := StarTree(len(edges)); err != nil {
+		return nil, err
+	} else {
+		for i, te := range star.TipEdges() {
+			te.Right().SetName(edges[i].Right().Name())
+			te.SetLength(edges[i].Length())
+		}
+		star.UpdateTipIndex()
+		star.ClearBitSets()
+		star.UpdateBitSet()
+		star.ComputeDepths()
+		return star, nil
+	}
+}
+
 func (t *Tree) ComputeDepths() {
 	if t.Rooted() {
 		t.computeDepthRecurRooted(t.Root(), nil)

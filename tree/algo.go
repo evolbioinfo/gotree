@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
+	//"os"
 )
 
 /* Given a set of tip names
@@ -22,9 +23,10 @@ and the edges that connects this node to the subtree
 LeastCommonAncestorUnrooted(1,2) returns a,e1,e2,true
 returned boolean value is true if the group is monophyletic
 */
-func (t *Tree) LeastCommonAncestorUnrooted(tips ...string) (*Node, []*Edge, bool) {
-	// We first build the list of tips
-	nodeindex := NewNodeIndex(t)
+func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string) (*Node, []*Edge, bool) {
+	if nodeindex == nil {
+		nodeindex = NewNodeIndex(t)
+	}
 	tipindex := make(map[string]*Node, 0)
 	for _, name := range tips {
 		node, found := nodeindex.GetNode(name)
@@ -137,7 +139,7 @@ if we call AddBipartition(n,{e3,e4,e5}) we end with:
    / | \
  e5 e4  e3
 */
-func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) {
+func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) *Edge {
 	n2 := t.NewNode()
 	// Number of edges in direction n->e->other
 	nbout := 0
@@ -184,12 +186,16 @@ func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) {
 	}
 	e.SetLength(length)
 	e.SetSupport(support)
+	return e
 }
 
 /*
 Builds the consensus of trees given in the input channel.
 If the cutoff is 0.5 : The majority rule consensus is computed
 If tht cutoff is 1   : The strict consensus is computed
+In the output consensus tree:
+1) Branch supports are computed as the proportion of trees in which the bipartition is present
+2) Branch lengths are computed as the average length of the same branch over all the trees where it is present
 There can be errors if:
 * The cutoff <0.5 or >1
 * The tip names are different in the different trees
@@ -201,6 +207,7 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 	}
 	nbtrees := 0
 	edgeindex := NewEdgeIndex(128, .75)
+	var nodeindex *nodeIndex
 	var startree *Tree = nil
 	nbtips := 0
 	var alltips []string
@@ -210,10 +217,12 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 		// If the star tree is not initialized, we create it with the tips of the first tree
 		if startree == nil {
 			alltips = curtree.Tree.AllTipNames()
-			if startree, err = StarTreeFromName(alltips...); err != nil {
+			if startree, err = StarTreeFromTree(curtree.Tree); err != nil {
 				io.ExitWithMessage(err)
 			} else {
 				nbtips = len(alltips)
+				// We first build the node index
+				nodeindex = NewNodeIndex(startree)
 			}
 		} else {
 			// Compare tip names between star tree and current tree
@@ -241,34 +250,44 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 	// than or equal the number of trees
 	// And we add it to the startree
 	for _, bs := range edgeindex.BitSets(int(cutoff*float64(nbtrees)), nbtrees) {
-		// Names of the tips in one side of the bipartition
-		if bs.Key.Count() < 2 {
-			continue
-		}
-		names := make([]string, 0, bs.Key.Count())
+		names := make([]string, 0, bs.key.Count())
 		for _, n := range alltips {
 			if idx, err := startree.TipIndex(n); err != nil {
 				io.ExitWithMessage(err)
 			} else {
-				if bs.Key.Test(idx) {
+				if bs.key.Test(idx) {
 					names = append(names, n)
 				}
 			}
 		}
-		node, edges, monophyletic := startree.LeastCommonAncestorUnrooted(names...)
-		if node == nil {
-			io.ExitWithMessage(errors.New("Consensus error: No common ancestor found for biparition"))
+
+		// Names of the tips in one side of the bipartition
+		if len(names) < 2 {
+			if len(names) == 1 {
+				if t, ok := nodeindex.GetNode(names[0]); !ok || !t.Tip() {
+					io.ExitWithMessage(errors.New(fmt.Sprintf("This taxon name does not exist in the consensus: %s", names[0])))
+				} else {
+					t.br[0].SetLength(float64(bs.val.Len) / float64(bs.val.Count))
+				}
+			} else {
+				io.ExitWithMessage(errors.New("This bipartition has a side with no taxa"))
+			}
+		} else {
+			node, edges, monophyletic := startree.LeastCommonAncestorUnrooted(nodeindex, names...)
+			if node == nil {
+				io.ExitWithMessage(errors.New("Consensus error: No common ancestor found for biparition"))
+			}
+			if edges == nil || len(edges) == 0 {
+				io.ExitWithMessage(errors.New("Consensus error: No common ancestor Edges found"))
+			}
+			if !monophyletic {
+				io.ExitWithMessage(errors.New("The group should be monophyletic"))
+			}
+			// We add the bipartition with a support value corresponding to the percentage of
+			// trees in which it appears
+			// TODO: Average branch length : Need to change the data structure
+			startree.AddBipartition(node, edges, float64(bs.val.Len)/float64(bs.val.Count), float64(bs.val.Count)/float64(nbtrees))
 		}
-		if edges == nil || len(edges) == 0 {
-			io.ExitWithMessage(errors.New("Consensus error: No common ancestor Edges found"))
-		}
-		if !monophyletic {
-			io.ExitWithMessage(errors.New("The group should be monophyletic"))
-		}
-		// We add the bipartition with a support value corresponding to the percentage of
-		// trees in which it appears
-		// TODO: Average branch length : Need to change the data structure
-		startree.AddBipartition(node, edges, -1, float64(bs.Value)/float64(nbtrees))
 	}
 
 	startree.UpdateTipIndex()

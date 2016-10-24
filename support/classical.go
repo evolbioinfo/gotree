@@ -43,7 +43,7 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 	foundBoot := make([]int, len(edges))
 	edgeIndex := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
 	for i, e := range edges {
-		edgeIndex.PutEdgeValue(e, i)
+		edgeIndex.PutEdgeValue(e, i, e.Length())
 	}
 	var wg sync.WaitGroup
 	for cpu := 0; cpu < cpus; cpu++ {
@@ -55,7 +55,7 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 					if !e2.Right().Tip() {
 						val, ok := edgeIndex.Value(e2)
 						if ok {
-							foundEdges <- val
+							foundEdges <- val.Count
 						}
 					}
 				}

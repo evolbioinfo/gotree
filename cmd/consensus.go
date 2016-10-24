@@ -24,6 +24,13 @@ Two parameters:
 -i : Input file containing several trees
 -f : Percentage threshold to keep a bipartition in the consensus 
      It must be >=0.5 && <=1
+
+In the output consensus tree:
+1) Branch supports are computed as the proportion of trees in which
+   the bipartition is present
+2) Branch lengths are computed as the average length of the same branch
+   over all the trees where it is present
+
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
