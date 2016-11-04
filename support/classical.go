@@ -43,6 +43,13 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 	foundBoot := make([]int, len(edges))
 	edgeIndex := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
 	for i, e := range edges {
+		if !e.Right().Tip() {
+			e.Right().SetName("")
+		}
+		if !e.Left().Tip() {
+			e.Left().SetName("")
+		}
+
 		edgeIndex.PutEdgeValue(e, i, e.Length())
 	}
 	var wg sync.WaitGroup
