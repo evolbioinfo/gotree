@@ -118,7 +118,7 @@ func (e *Edge) ToStatsString() string {
 	if err != nil {
 		io.ExitWithMessage(err)
 	}
-	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s\n",
+	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s",
 		length, support, e.Right().Tip(),
 		depth, topodepth, e.Right().Name())
 

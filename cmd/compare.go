@@ -122,7 +122,7 @@ between it and the reference tree, as well as the number of specific edges.
 
 func init() {
 	RootCmd.AddCommand(compareCmd)
-	compareCmd.Flags().StringVarP(&compareTree1, "reftree", "i", "stdin", "Reference tree input file")
-	compareCmd.Flags().StringVarP(&compareTree2, "compared", "c", "none", "Compared trees input file")
+	compareCmd.PersistentFlags().StringVarP(&compareTree1, "reftree", "i", "stdin", "Reference tree input file")
+	compareCmd.PersistentFlags().StringVarP(&compareTree2, "compared", "c", "none", "Compared trees input file")
 	compareCmd.Flags().BoolVarP(&compareTips, "tips", "l", false, "Compared trees input file")
 }
