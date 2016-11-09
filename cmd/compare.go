@@ -52,29 +52,38 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	}()
 
 	edges = refTree.Edges()
+	index := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
+	total := 0
+	for i, e := range edges {
+		index.PutEdgeValue(e, i, e.Length())
+		if tips || !e.Right().Tip() {
+			total++
+		}
+	}
 	var wg sync.WaitGroup
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
 		go func(cpu int) {
 			for treeV := range compareChannel {
-				var tree1, common int
+				common := 0
 				var err error
 
 				edges2 := treeV.Tree.Edges()
-
 				// Check wether the 2 trees have the same set of tip names
 				if err = refTree.CompareTipIndexes(treeV.Tree); err != nil {
 					io.ExitWithMessage(err)
 				}
 
-				// Then compare edges
-				if tree1, common, err = tree.CommonEdges(edges, edges2, tips); err != nil {
-					io.ExitWithMessage(err)
+				for _, e2 := range edges2 {
+					_, ok := index.Value(e2)
+					if ok && (tips || !e2.Right().Tip()) {
+						common++
+					}
 				}
 
 				statsChannel <- stats{
 					treeV.Id,
-					tree1,
+					total - common,
 					common,
 				}
 			}
