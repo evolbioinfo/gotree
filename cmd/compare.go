@@ -37,7 +37,7 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 
 	fmt.Fprintf(os.Stderr, "Reference : %s\n", tree1)
 	fmt.Fprintf(os.Stderr, "Compared  : %s\n", tree2)
-	fmt.Fprintf(os.Stderr, "With tips : %b\n", tips)
+	fmt.Fprintf(os.Stderr, "With tips : %t\n", tips)
 	fmt.Fprintf(os.Stderr, "Threads   : %d\n", cpus)
 
 	if refTree, err = utils.ReadRefTree(tree1); err != nil {
