@@ -2,6 +2,7 @@ package tree
 
 import (
 	"errors"
+	"fmt"
 	"github.com/fredericlemoine/bitset"
 	"github.com/fredericlemoine/gotree/io"
 )
@@ -82,6 +83,45 @@ func (e *Edge) DumpBitSet() string {
 		return "nil"
 	}
 	return e.bitset.DumpAsBits()
+}
+
+/* Returns a string containing informations about the edge:
+Tab delimited:
+1 - length
+2 - support
+3 - istip?
+4 - depth
+5 - topo depth
+6 - name of node if any
+*/
+func (e *Edge) ToStatsString() string {
+	var err error
+	var length = "N/A"
+	if e.Length() != -1 {
+		length = fmt.Sprintf("%f", e.Length())
+	}
+	var support = "N/A"
+	if e.Support() != -1 {
+		support = fmt.Sprintf("%f", e.Support())
+	}
+	var depth, leftdepth, rightdepth int
+
+	if leftdepth, err = e.Left().Depth(); err != nil {
+		io.ExitWithMessage(err)
+	}
+	if rightdepth, err = e.Right().Depth(); err != nil {
+		io.ExitWithMessage(err)
+	}
+	depth = min(leftdepth, rightdepth)
+	var topodepth int
+	topodepth, err = e.TopoDepth()
+	if err != nil {
+		io.ExitWithMessage(err)
+	}
+	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s\n",
+		length, support, e.Right().Tip(),
+		depth, topodepth, e.Right().Name())
+
 }
 
 func (e *Edge) SameBipartition(e2 *Edge) bool {
