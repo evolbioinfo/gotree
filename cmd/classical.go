@@ -42,7 +42,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
-		t := support.Classical(supportIntree, supportBoottrees, supportCpus)
+		t := support.Classical(supportIntree, supportBoottrees, rootCpus)
 		f.WriteString(t.Newick() + "\n")
 		f.Close()
 	},

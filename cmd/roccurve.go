@@ -6,7 +6,6 @@ import (
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"runtime"
 	"sync"
 )
 
@@ -16,7 +15,6 @@ var roccurveMinThr float64
 var roccurveMaxThr float64
 var roccurveStepThr float64
 var roccurveOutFile string
-var roccurveCpus int
 var roccurveMinBrLen float64
 var roccurveMaxBrLen float64
 
@@ -85,7 +83,7 @@ As output, a tab delimited file with columns:
 
 		/* Now we compute numbers (multithreaded) */
 		var wg sync.WaitGroup
-		for cpu := 0; cpu < roccurveCpus; cpu++ {
+		for cpu := 0; cpu < rootCpus; cpu++ {
 			wg.Add(1)
 			go func() {
 				for e := range inputTreeEdges {
@@ -157,7 +155,6 @@ As output, a tab delimited file with columns:
 
 func init() {
 	computeCmd.AddCommand(roccurveCmd)
-	maxcpus := runtime.NumCPU()
 
 	roccurveCmd.PersistentFlags().StringVarP(&roccurveIntree, "intree", "i", "stdin", "Input tree file")
 	roccurveCmd.PersistentFlags().StringVarP(&roccurveTruetree, "truetree", "r", "none", "True tree file")
@@ -167,5 +164,4 @@ func init() {
 	roccurveCmd.PersistentFlags().StringVarP(&roccurveOutFile, "out", "o", "stdout", "Output tree file, with supports")
 	roccurveCmd.PersistentFlags().Float64Var(&roccurveMaxBrLen, "length-leq", -1.0, "Keep only branches that are <= value (-1=No filter) ")
 	roccurveCmd.PersistentFlags().Float64Var(&roccurveMinBrLen, "length-geq", -1.0, "Keep only branches that are >= value (-1=No filter) ")
-	roccurveCmd.PersistentFlags().IntVarP(&roccurveCpus, "threads", "t", 1, "Number of threads (Max "+fmt.Sprintf("%d", maxcpus)+")")
 }

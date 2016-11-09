@@ -32,7 +32,7 @@ var mastlikeCmd = &cobra.Command{
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
-		t := support.MastLike(supportIntree, supportBoottrees, mastEmpirical, supportCpus)
+		t := support.MastLike(supportIntree, supportBoottrees, mastEmpirical, rootCpus)
 		f.WriteString(t.Newick() + "\n")
 		f.Close()
 	},

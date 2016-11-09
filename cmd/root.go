@@ -37,7 +37,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	maxcpus := runtime.NumCPU()
-	RootCmd.Flags().IntVarP(&rootCpus, "threads", "t", 1, "Number of threads (Max="+strconv.Itoa(maxcpus)+")")
+	RootCmd.PersistentFlags().IntVarP(&rootCpus, "threads", "t", 1, "Number of threads (Max="+strconv.Itoa(maxcpus)+")")
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports Persistent Flags, which, if defined here,

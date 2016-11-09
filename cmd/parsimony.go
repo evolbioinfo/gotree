@@ -35,7 +35,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
-		t := support.Parsimony(supportIntree, supportBoottrees, parsimonyEmpirical, supportCpus)
+		t := support.Parsimony(supportIntree, supportBoottrees, parsimonyEmpirical, rootCpus)
 		f.WriteString(t.Newick() + "\n")
 		f.Close()
 	},

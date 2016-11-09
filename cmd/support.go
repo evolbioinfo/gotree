@@ -2,13 +2,10 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"runtime"
-	"strconv"
 )
 
 var supportIntree string
 var supportBoottrees string
-var supportCpus int
 var supportOutFile string
 
 // supportCmd represents the support command
@@ -27,10 +24,8 @@ The supports implemented are :
 
 func init() {
 	computeCmd.AddCommand(supportCmd)
-	maxcpus := runtime.NumCPU()
 
 	supportCmd.PersistentFlags().StringVarP(&supportIntree, "reftree", "i", "stdin", "Reference tree input file")
 	supportCmd.PersistentFlags().StringVarP(&supportBoottrees, "bootstrap", "b", "none", "Bootstrap trees input file")
 	supportCmd.PersistentFlags().StringVarP(&supportOutFile, "out", "o", "stdout", "Output tree file, with supports")
-	supportCmd.PersistentFlags().IntVarP(&supportCpus, "threads", "t", 1, "Number of threads (Max "+strconv.Itoa(maxcpus)+")")
 }
