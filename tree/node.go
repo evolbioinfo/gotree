@@ -12,6 +12,7 @@ type Node struct {
 	neigh   []*Node  // neighbors array
 	br      []*Edge  // Branches array (same order than neigh)
 	depth   int      // Depth of the node
+	id      int      // this field is used at discretion of the user to store information
 }
 
 // Adds a child n to the node p, connected with edge e
@@ -35,6 +36,17 @@ func (n *Node) SetDepth(depth int) {
 
 func (n *Node) Name() string {
 	return n.name
+}
+
+func (n *Node) Id() int {
+	if n.id == -1 {
+		io.ExitWithMessage(errors.New("Id has not been set"))
+	}
+	return n.id
+}
+
+func (n *Edge) SetId(id int) {
+	n.id = id
 }
 
 func (n *Node) Depth() (int, error) {

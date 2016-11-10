@@ -41,6 +41,7 @@ func (t *Tree) NewNode() *Node {
 		neigh:   make([]*Node, 0, 3),
 		br:      make([]*Edge, 0, 3),
 		depth:   -1,
+		id:      -1,
 	}
 }
 
