@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/fredericlemoine/gotree/io"
 )
 
 type Node struct {
@@ -45,7 +46,7 @@ func (n *Node) Id() int {
 	return n.id
 }
 
-func (n *Edge) SetId(id int) {
+func (n *Node) SetId(id int) {
 	n.id = id
 }
 
