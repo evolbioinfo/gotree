@@ -2,10 +2,8 @@ package tree
 
 import (
 	"errors"
-	"fmt"
 	"github.com/fredericlemoine/gotree/hashmap"
 	"github.com/fredericlemoine/gotree/io"
-	"time"
 )
 
 const (
@@ -330,20 +328,6 @@ func (q *Quartet) Compare(q2 *Quartet) int {
 func (t *Tree) IndexQuartets(specific bool) *hashmap.HashMap {
 	index := hashmap.NewHashMap(12800000, .75)
 	n := 0
-
-	ticker := time.NewTicker(5 * time.Second)
-	quit := make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				fmt.Println(n)
-			case <-quit:
-				ticker.Stop()
-				return
-			}
-		}
-	}()
 
 	t.Quartets(specific, func(q *Quartet) {
 		n++
