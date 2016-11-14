@@ -6,7 +6,7 @@ import (
 	"github.com/fredericlemoine/gotree/io/utils"
 )
 
-func main() {
+func main_bk() {
 	//fmt.Fprintf(os.Stderr, "Started Quartets\n")
 	// quartet, err := utils.ReadRefTree("tests/data/quartets.nw.gz")
 	// quartet, err := utils.ReadRefTree("ref_1_31144.nw.gz")
