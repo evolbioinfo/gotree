@@ -2,7 +2,7 @@ package tree
 
 import (
 	"errors"
-	"fmt"
+	//"fmt"
 	"github.com/fredericlemoine/goalign/io"
 )
 
