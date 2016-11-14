@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"errors"
 	"fmt"
 	"github.com/fredericlemoine/goalign/io"
 )
@@ -28,11 +29,22 @@ type QuartetSet struct {
 }
 
 /**
-Iterate over all the quartets defined by the bipartition
+Iterate over all the quartets of the tree, edge by edge
 (t1,t2)(t3,t4)
+specific: If true gives the specific quartets
+	       b0       b2
+	        \       /
+	         \     /
+	      left-----right
+	         /     \
+	        /       \
+	       b1       b3
+Else gives all the quartets
+            b0-|\       /|-b2
+	       | >-----< |
+            b1-|/       \|-b3
 */
-
-func (t *Tree) Quartets(it func(t1, t2, t3, t4 uint)) {
+func (t *Tree) Quartets(specific bool, it func(t1, t2, t3, t4 uint)) {
 	// We initialize the nodes Id of the tree
 	nodes := t.Nodes()
 	nnodes := len(nodes)
@@ -60,59 +72,91 @@ func (t *Tree) Quartets(it func(t1, t2, t3, t4 uint)) {
 			continue
 		}
 		qs := NewQuartetSet()
-		for i, n := range e.Left().Neigh() {
-			if n != e.Right() {
-				br := e.Left().Edges()[i]
-				// if outgoing edge from e.Left()
-				if br.Left() == e.Left() {
-					qs.left = append(qs.left, right[n.Id()])
-				} else {
-					// Ingoing edge from e.Left()
-					qs.left = append(qs.left, left[br.Right().Id()])
+		if specific {
+			for i, n := range e.Left().Neigh() {
+				if n != e.Right() {
+					br := e.Left().Edges()[i]
+					// if outgoing edge from e.Left()
+					if br.Left() == e.Left() {
+						qs.left = append(qs.left, right[n.Id()])
+					} else {
+						// Ingoing edge from e.Left()
+						qs.left = append(qs.left, left[br.Right().Id()])
+					}
 				}
 			}
+
+			for _, n := range e.Right().Neigh() {
+				if n != e.Left() {
+					qs.right = append(qs.right, right[n.Id()])
+				}
+			}
+		} else {
+			qs.left = append(qs.left, left[e.Right().Id()])
+			qs.right = append(qs.right, right[e.Right().Id()])
 		}
 
-		for _, n := range e.Right().Neigh() {
-			if n != e.Left() {
-				qs.right = append(qs.right, right[n.Id()])
-			}
-		}
-		// for b1 := 0; b1 < len(qs.left); b1++ {
-		// 	for b2 := b1 + 1; b2 < len(qs.left); b2++ {
-		// 		for b3 := 0; b3 < len(qs.right); b3++ {
-		// 			for b4 := b3 + 1; b4 < len(qs.right); b4++ {
-		// 				fmt.Println(len(qs.left[b1]) * len(qs.left[b2]) * len(qs.right[b3]) * len(qs.right[b4]))
+		// if specific {
+		// 	for b1 := 0; b1 < len(qs.left); b1++ {
+		// 		for b2 := b1 + 1; b2 < len(qs.left); b2++ {
+		// 			for b3 := 0; b3 < len(qs.right); b3++ {
+		// 				for b4 := b3 + 1; b4 < len(qs.right); b4++ {
+		// 					fmt.Printf("%d\n", len(qs.left[b1])*len(qs.left[b2])*len(qs.right[b3])*len(qs.right[b4]))
+		// 				}
 		// 			}
 		// 		}
 		// 	}
+		// } else {
+		// 	if len(qs.left) != 1 || len(qs.right) != 1 {
+		// 		io.ExitWithMessage(errors.New("A non specific quartetset should have only one set at left and one set at right"))
+		// 	}
+		// 	fmt.Printf("%f\n", float64(len(qs.left[0])*(len(qs.left[0])-1)*len(qs.right[0])*(len(qs.right[0])-1))/4.0)
 		// }
-		qs.iterate(it)
+		qs.iterate(specific, it)
 	}
 }
 
 // Function that enumerates all quartets defined by a quartetset
 // (t1,t2)(t3,t4)
-func (qs *QuartetSet) iterate(it func(t1, t2, t3, t4 uint)) {
-	// Foreach pairs of branches [b1,b2] on the left
-	for b1 := 0; b1 < len(qs.left); b1++ {
-		for b2 := b1 + 1; b2 < len(qs.left); b2++ {
-			// Foreach pairs of branches [b3,b4] on the right
-			for b3 := 0; b3 < len(qs.right); b3++ {
-				for b4 := b3 + 1; b4 < len(qs.right); b4++ {
-					// All the quartets
-					// Taxa of branch 1
-					for tb1 := 0; tb1 < len(qs.left[b1]); tb1++ {
-						// Taxa of branch 2
-						for tb2 := 0; tb2 < len(qs.left[b2]); tb2++ {
-							// Taxa of branch 3
-							for tb3 := 0; tb3 < len(qs.right[b3]); tb3++ {
-								// Taxa of branch 4
-								for tb4 := 0; tb4 < len(qs.right[b4]); tb4++ {
-									it(qs.left[b1][tb1], qs.left[b2][tb2], qs.right[b3][tb3], qs.right[b4][tb4])
+func (qs *QuartetSet) iterate(specific bool, it func(t1, t2, t3, t4 uint)) {
+	if specific {
+		// Foreach pairs of branches [b1,b2] on the left
+		for b1 := 0; b1 < len(qs.left); b1++ {
+			for b2 := b1 + 1; b2 < len(qs.left); b2++ {
+				// Foreach pairs of branches [b3,b4] on the right
+				for b3 := 0; b3 < len(qs.right); b3++ {
+					for b4 := b3 + 1; b4 < len(qs.right); b4++ {
+						// All the quartets
+						// Taxa of branch 1
+						for tb1 := 0; tb1 < len(qs.left[b1]); tb1++ {
+							// Taxa of branch 2
+							for tb2 := 0; tb2 < len(qs.left[b2]); tb2++ {
+								// Taxa of branch 3
+								for tb3 := 0; tb3 < len(qs.right[b3]); tb3++ {
+									// Taxa of branch 4
+									for tb4 := 0; tb4 < len(qs.right[b4]); tb4++ {
+										it(qs.left[b1][tb1], qs.left[b2][tb2], qs.right[b3][tb3], qs.right[b4][tb4])
+									}
 								}
 							}
 						}
+					}
+				}
+			}
+		}
+	} else {
+		if len(qs.left) != 1 || len(qs.right) != 1 {
+			io.ExitWithMessage(errors.New("A non specific quartetset should have only one set at left and one set at right"))
+		}
+		// First Taxon of set 1
+		for tb1 := 0; tb1 < len(qs.left[0]); tb1++ {
+			// Second Taxon of set 1
+			for tb2 := tb1 + 1; tb2 < len(qs.left[0]); tb2++ {
+				// First Taxon of set 2
+				for tb3 := 0; tb3 < len(qs.right[0]); tb3++ {
+					// Second Taxon of set 2
+					for tb4 := tb3 + 1; tb4 < len(qs.right[0]); tb4++ {
+						it(qs.left[0][tb1], qs.left[0][tb2], qs.right[0][tb3], qs.right[0][tb4])
 					}
 				}
 			}

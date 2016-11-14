@@ -11,7 +11,9 @@ import (
 
 func main() {
 	//fmt.Fprintf(os.Stderr, "Started Quartets\n")
-	quartet, err := utils.ReadRefTree("tests/data/quartets.nw.gz")
+	// quartet, err := utils.ReadRefTree("tests/data/quartets.nw.gz")
+	quartet, err := utils.ReadRefTree("ref_1_31144.nw.gz")
+	// quartet, err := utils.ReadRefTree("ncbi.nw")
 	nbquartets := 0
 	t := time.Now()
 	c := make(chan os.Signal, 1)
@@ -26,11 +28,14 @@ func main() {
 	if err != nil {
 		io.ExitWithMessage(err)
 	}
-	quartet.Quartets(func(tb1, tb2, tb3, tb4 uint) {
+	quartet.Quartets(true, func(tb1, tb2, tb3, tb4 uint) {
 		nbquartets++
-		//fmt.Fprintf(os.Stderr, "(%d,%d)(%d,%d)\n", tb1, tb2, tb3, tb4)
+		fmt.Fprintf(os.Stderr, "(%d,%d)(%d,%d)\n", tb1, tb2, tb3, tb4)
 	})
 	//fmt.Fprintf(os.Stderr, "End Quartets\n")
-	// Total quartets     : 40 693 092 081 640
-	// Total quartets ref :     40 842 660 378
+	// Total spec quartets ref: 40 842 660 378
+	// Total ref              :484 912 516 050
+
+	// Total Spec quartets:     19 291 873 954
+	// Total quartets     :  1 473 178 662 276
 }
