@@ -56,7 +56,7 @@ var binarytreeCmd = &cobra.Command{
 
 func init() {
 	generateCmd.AddCommand(binarytreeCmd)
-	binarytreeCmd.Flags().IntVarP(&binarytreeNbTips, "nbtips", "t", 10, "Number of tips of the tree to generate")
+	binarytreeCmd.Flags().IntVarP(&binarytreeNbTips, "nbtips", "l", 10, "Number of tips/leaves of the tree to generate")
 	binarytreeCmd.Flags().IntVarP(&binarytreeNbTrees, "nbtrees", "n", 1, "Number of trees to generate")
 	binarytreeCmd.Flags().Int64VarP(&binarytreeSeed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 	binarytreeCmd.Flags().StringVarP(&binarytreeOutputfile, "output", "o", "stdout", "Number of tips of the tree to generate")
