@@ -41,6 +41,7 @@ The resulting trees are star trees to which we added one biparition. All branch 
 			for i, e := range t.Edges() {
 				edges <- EdgeStruct{e, i}
 			}
+			close(edges)
 		}()
 
 		var wg sync.WaitGroup
