@@ -759,6 +759,46 @@ func StarTreeFromTree(t *Tree) (*Tree, error) {
 	}
 }
 
+/**
+Builds a tree whose only internal edge is the given edge e
+The two internal nodes are multifurcated
+\     /
+-*---*-
+/     \
+alltips is the slice containing all tip names of the tree
+if nil, it will be recomputed
+*/
+func EdgeTree(t *Tree, e *Edge, alltips []string) *Tree {
+	edgeTree := NewTree()
+	n := edgeTree.NewNode()
+	n2 := edgeTree.NewNode()
+	et := edgeTree.ConnectNodes(n2, n)
+	et.SetLength(1.0)
+	edgeTree.SetRoot(n2)
+	if alltips == nil {
+		alltips = t.AllTipNames()
+	}
+	// We add tips on the left or on the right of the first edge
+	for _, name := range alltips {
+		if idx, err := t.TipIndex(name); err != nil {
+			io.ExitWithMessage(err)
+		} else {
+			ntmp := edgeTree.NewNode()
+			ntmp.SetName(name)
+			// Right
+			if e.Bitset().Test(idx) {
+				etmp := edgeTree.ConnectNodes(n, ntmp)
+				etmp.SetLength(1.0)
+			} else {
+				// Left
+				etmp := edgeTree.ConnectNodes(n2, ntmp)
+				etmp.SetLength(1.0)
+			}
+		}
+	}
+	return edgeTree
+}
+
 func (t *Tree) ComputeDepths() {
 	if t.Rooted() {
 		t.computeDepthRecurRooted(t.Root(), nil)
