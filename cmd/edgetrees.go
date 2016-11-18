@@ -55,7 +55,7 @@ The resulting trees are star trees to which we added one biparition. All branch 
 						if edgeOutFile == "stdout" {
 							edgeOut = openWriteFile(edgeOutFile)
 						} else {
-							edgeOut = openWriteFile(fmt.Sprintf("%s_%04d.nw", edgeOutFile, edgeS.idx))
+							edgeOut = openWriteFile(fmt.Sprintf("%s_%06d.nw", edgeOutFile, edgeS.idx))
 						}
 						edgeTree := tree.EdgeTree(t, edgeS.e, alltips)
 
