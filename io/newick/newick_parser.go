@@ -165,7 +165,7 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 				}
 				e.SetLength(length)
 			} else {
-				if newNode.Name() == "" && prevTok != ')' {
+				if newNode.Name() == "" && prevTok != ')' && *level != 0 {
 					return -1, errors.New("Newick Error: Cannot assign length to nil node :" + lit)
 				}
 			}
