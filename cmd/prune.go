@@ -40,27 +40,16 @@ var pruneCmd = &cobra.Command{
 are not present in the compared tree.
 
 In output, we have a tree containing only tips that are common to both trees.
+
+If several trees are present in the file given by -i, they are all analyzed and 
+written in the output.
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Read ref Tree
-		var reftree, comptree *tree.Tree
+		var comptree *tree.Tree
 		var err error
 		var specificTipNames []string
-		reftree, err = utils.ReadRefTree(prunereftree)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		// Read comp Tree
-		comptree, err = utils.ReadRefTree(prunecomptree)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
 
-		specificTipNames = specificTips(reftree, comptree)
-		err = reftree.RemoveTips(specificTipNames...)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
 		var f *os.File
 		if pruneouttree != "stdout" {
 			f, err = os.Create(pruneouttree)
@@ -71,7 +60,29 @@ In output, we have a tree containing only tips that are common to both trees.
 			io.ExitWithMessage(err)
 		}
 
-		f.WriteString(reftree.Newick() + "\n")
+		// Read comp Tree : Only one tree in input
+		comptree, err = utils.ReadRefTree(prunecomptree)
+		if err != nil {
+			io.ExitWithMessage(err)
+		}
+
+		intreesChan := make(chan tree.Trees, 15)
+		/* Read ref tree(s) */
+		go func() {
+			if _, err = utils.ReadCompTrees(prunereftree, intreesChan); err != nil {
+				io.ExitWithMessage(err)
+			}
+		}()
+
+		// Read ref Trees
+		for reftree := range intreesChan {
+			specificTipNames = specificTips(reftree.Tree, comptree)
+			err = reftree.Tree.RemoveTips(specificTipNames...)
+			if err != nil {
+				io.ExitWithMessage(err)
+			}
+			f.WriteString(reftree.Tree.Newick() + "\n")
+		}
 		f.Close()
 	},
 }
