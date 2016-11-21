@@ -8,20 +8,20 @@ import (
 	"sync"
 )
 
-type mastSupporter struct {
+type MastSupporter struct {
 	expected_rand_val     []float64
 	distribution_rand_val [][]float64
 }
 
-func (supporter *mastSupporter) ExpectedRandValues(depth int) float64 {
+func (supporter *MastSupporter) ExpectedRandValues(depth int) float64 {
 	return supporter.expected_rand_val[depth]
 }
 
-func (supporter *mastSupporter) ProbaDepthValue(d int, v int) float64 {
+func (supporter *MastSupporter) ProbaDepthValue(d int, v int) float64 {
 	return supporter.distribution_rand_val[d][v]
 }
 
-func (supporter *mastSupporter) Init(maxdepth int, nbtips int) {
+func (supporter *MastSupporter) Init(maxdepth int, nbtips int) {
 	if supporter.expected_rand_val == nil {
 		supporter.expected_rand_val = make([]float64, maxdepth+1)
 		supporter.distribution_rand_val = make([][]float64, maxdepth+1)
@@ -35,7 +35,7 @@ func (supporter *mastSupporter) Init(maxdepth int, nbtips int) {
 	}
 }
 
-func update_all_i_c_post_order_ref_tree(refTree *tree.Tree, edges *[]*tree.Edge, bootTree *tree.Tree, bootEdges *[]*tree.Edge, i_matrix *[][]uint16, c_matrix *[][]uint16) {
+func Update_all_i_c_post_order_ref_tree(refTree *tree.Tree, edges *[]*tree.Edge, bootTree *tree.Tree, bootEdges *[]*tree.Edge, i_matrix *[][]uint16, c_matrix *[][]uint16) {
 	for i, child := range refTree.Root().Neigh() {
 		update_i_c_post_order_ref_tree(refTree, edges, child, i, refTree.Root(), bootTree, bootEdges, i_matrix, c_matrix)
 	}
@@ -117,7 +117,7 @@ func update_i_c_post_order_ref_tree(refTree *tree.Tree, edges *[]*tree.Edge,
 	}
 }
 
-func update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*tree.Edge,
+func Update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*tree.Edge,
 	bootTree *tree.Tree, bootEdges *[]*tree.Edge,
 	i_matrix *[][]uint16, c_matrix *[][]uint16, hamming *[][]uint16, min_dist *[]uint16) {
 	for i, child := range bootTree.Root().Neigh() {
@@ -130,7 +130,7 @@ func update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *
 			io.ExitWithMessage(errors.New("Min dist should be >= 0"))
 		}
 		if e.Right().Tip() && (*min_dist)[e.Id()] != 0 {
-			io.ExitWithMessage(errors.New("any terminal edge should have an exact match in any bootstrap tree"))
+			io.ExitWithMessage(errors.New(fmt.Sprintf("any terminal edge should have an exact match in any bootstrap tree (%d)", (*min_dist)[e.Id()])))
 		}
 	}
 }
@@ -195,7 +195,7 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 // Thread that takes bootstrap trees from the channel,
 // computes the mastlike dist for each edges of the ref tree
 // and send it to the result channel
-func (supporter *mastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
+func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
 	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval) {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
@@ -211,9 +211,9 @@ func (supporter *mastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 		for i, _ := range edges {
 			min_dist[i] = uint16(len(tips))
 			if len(bootEdges) > len(i_matrix[i]) {
-				i_matrix[i] = make([]uint16, len(edges))
-				c_matrix[i] = make([]uint16, len(edges))
-				hamming[i] = make([]uint16, len(edges))
+				i_matrix[i] = make([]uint16, len(bootEdges))
+				c_matrix[i] = make([]uint16, len(bootEdges))
+				hamming[i] = make([]uint16, len(bootEdges))
 			}
 		}
 
@@ -221,8 +221,8 @@ func (supporter *mastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 			e.SetId(i)
 		}
 
-		update_all_i_c_post_order_ref_tree(refTree, &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
-		update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist)
+		Update_all_i_c_post_order_ref_tree(refTree, &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
+		Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist)
 
 		for i, e := range edges {
 			if e.Right().Tip() {
@@ -241,8 +241,8 @@ func (supporter *mastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 				for i, _ := range edges {
 					min_dist[i] = uint16(len(tips))
 				}
-				update_all_i_c_post_order_ref_tree(et, &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
-				update_all_i_c_post_order_boot_tree(et, uint(len(tips)), &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist)
+				Update_all_i_c_post_order_ref_tree(et, &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
+				Update_all_i_c_post_order_boot_tree(et, uint(len(tips)), &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist)
 
 				for i, _ := range randEdges[j] {
 					val := int(min_dist[i])
@@ -259,6 +259,6 @@ func (supporter *mastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 }
 
 func MastLike(reftreefile, boottreefile string, empirical bool, cpus int) *tree.Tree {
-	var supporter *mastSupporter = &mastSupporter{}
+	var supporter *MastSupporter = &MastSupporter{}
 	return ComputeSupport(reftreefile, boottreefile, empirical, cpus, supporter)
 }
