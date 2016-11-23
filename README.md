@@ -145,5 +145,5 @@ You can try by doing:
 ```[bash]
 $ gotree generate binarytree -l 100 -n 1 -o tree.tre
 $ gotree stats tips -i tree.tre | awk '{if(NR>1){print $4 "\tNEWNAME" $4}}' > mapfile.txt
-$ gotree rename -i tree.tr -m mapfile.txt | gotree stats tips
+$ gotree rename -i tree.tre -m mapfile.txt | gotree stats tips
 ```
