@@ -87,7 +87,7 @@ $ gotree stats edges -i tree.tre
 Example of result:
 
 tree  |  brid  |  length    |  support  |  terminal  |  depth  |  topodepth  |  rightname
--------------------------------------------------------------------------------------------
+------|--------|------------|-----------|------------|---------|-------------|-------------
 0     |  0     |  0.107614  |  N/A      |  false     |  1      |  6          |  
 0     |  1     |  0.149560  |  N/A      |  true      |  0      |  1          |  Tip51
 0     |  2     |  0.051126  |  N/A      |  false     |  1      |  5          |  
@@ -130,7 +130,7 @@ $ gotree compare -i <(gotree generate binarytree -l 100 -n 1) \
 ```
 
 Tree  |  specref  |  common
-----------------------------
+------|-----------|---------
 0     |  97       |  0
 
 
