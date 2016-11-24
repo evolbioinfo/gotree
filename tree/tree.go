@@ -867,6 +867,8 @@ func (t *Tree) ShuffleTips() {
 	t.UpdateBitSet()
 }
 
+// Collapses (removes) the branches having
+// length <= length threshold
 func (t *Tree) CollapseShortBranches(length float64) {
 	edges := t.Edges()
 	shortbranches := make([]*Edge, 0, 1000)
