@@ -65,6 +65,7 @@ func (t *Tree) NewEdge() *Edge {
 		length:  -1.0,
 		support: -1.0,
 		id:      -1,
+		pvalue:  -1,
 	}
 }
 

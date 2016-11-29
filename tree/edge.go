@@ -11,6 +11,7 @@ type Edge struct {
 	left, right *Node   // Left and right nodes
 	length      float64 // length of branch
 	support     float64 // -1 if no support
+	pvalue      float64 // -1 if no pvalue
 	// a Bit at index i in the bitset corresponds to the position of the tip i
 	//left:0/right:1 .
 	// i is the index of the tip in the sorted tip name array
@@ -27,6 +28,11 @@ func (e *Edge) setLeft(left *Node) {
 func (e *Edge) setRight(right *Node) {
 	e.right = right
 }
+
+func (e *Edge) SetPValue(pval float64) {
+	e.pvalue = pval
+}
+
 func (e *Edge) SetLength(length float64) {
 	e.length = length
 }
@@ -41,6 +47,10 @@ func (e *Edge) Length() float64 {
 
 func (e *Edge) Support() float64 {
 	return e.support
+}
+
+func (e *Edge) PValue() float64 {
+	return e.pvalue
 }
 
 func (e *Edge) Right() *Node {
@@ -104,6 +114,7 @@ func (e *Edge) ToStatsString() string {
 	if e.Support() != -1 {
 		support = fmt.Sprintf("%f", e.Support())
 	}
+
 	var depth, leftdepth, rightdepth int
 
 	if leftdepth, err = e.Left().Depth(); err != nil {
@@ -118,9 +129,17 @@ func (e *Edge) ToStatsString() string {
 	if err != nil {
 		io.ExitWithMessage(err)
 	}
+
+	name := ""
+	if e.PValue() != -1 {
+		name = fmt.Sprintf("%f/%f", e.Support(), e.PValue())
+	} else {
+		name = e.Right().Name()
+	}
+
 	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s",
 		length, support, e.Right().Tip(),
-		depth, topodepth, e.Right().Name())
+		depth, topodepth, name)
 
 }
 

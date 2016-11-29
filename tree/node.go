@@ -158,8 +158,11 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 					newick.WriteString(",")
 				}
 				child.Newick(n, newick)
-				if n.br[i].support != -1 && child.name == "" {
+				if n.br[i].support != -1 {
 					newick.WriteString(fmt.Sprintf("%f", n.br[i].support))
+					if n.br[i].pvalue != -1 {
+						newick.WriteString(fmt.Sprintf("/%f", n.br[i].support))
+					}
 				}
 				if len(child.comment) != 0 {
 					for _, c := range child.comment {

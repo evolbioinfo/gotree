@@ -195,17 +195,24 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 					if newNode == nil {
 						return -1, errors.New("Newick Error: Cannot assign node name to nil node: " + lit)
 					}
-					newNode.SetName(lit)
 					// If of the form numeric/numeric => then Support value/pvalue
 					vals := strings.Split(lit, "/")
+					hasname := true
 					if len(vals) == 2 {
 						if supp, errf := strconv.ParseFloat(vals[0], 64); errf == nil {
 							e, err := newNode.ParentEdge()
 							if err != nil {
 								return -1, err
 							}
-							e.SetSupport(supp)
+							if pval, errf := strconv.ParseFloat(vals[1], 64); errf == nil {
+								e.SetSupport(supp)
+								e.SetPValue(pval)
+								hasname = false
+							}
 						}
+					}
+					if hasname {
+						newNode.SetName(lit)
 					}
 				}
 			} else {
