@@ -15,6 +15,7 @@ var roccurveMinThr float64
 var roccurveMaxThr float64
 var roccurveStepThr float64
 var roccurveOutFile string
+var roccurvePvalue float64
 var roccurveMinBrLen float64
 var roccurveMaxBrLen float64
 
@@ -22,6 +23,7 @@ type roccurveOutStats struct {
 	found   bool
 	length  float64
 	support float64
+	pvalue  float64
 }
 
 // roccurveCmd represents the roccurve command
@@ -90,6 +92,7 @@ As output, a tab delimited file with columns:
 					found := false
 					length := e.Length()
 					support := e.Support()
+					pvalue := e.PValue()
 					if !e.Right().Tip() {
 						for _, e2 := range truetree.Edges() {
 							if !e2.Right().Tip() && e.SameBipartition(e2) {
@@ -101,6 +104,7 @@ As output, a tab delimited file with columns:
 							found,
 							length,
 							support,
+							pvalue,
 						}
 					}
 
@@ -121,7 +125,7 @@ As output, a tab delimited file with columns:
 		for result := range statResults {
 			i := 0
 			for thr := float64(roccurveMinThr); thr <= float64(roccurveMaxThr); thr += roccurveStepThr {
-				if result.support >= thr {
+				if result.support >= thr && result.pvalue <= roccurvePvalue {
 					if result.found {
 						tp[i]++
 					} else {
@@ -162,6 +166,7 @@ func init() {
 	roccurveCmd.PersistentFlags().Float64VarP(&roccurveMaxThr, "max", "M", 1, "Max threshold")
 	roccurveCmd.PersistentFlags().Float64VarP(&roccurveStepThr, "step", "s", 0.1, "Step between each threshold")
 	roccurveCmd.PersistentFlags().StringVarP(&roccurveOutFile, "out", "o", "stdout", "Output tree file, with supports")
+	roccurveCmd.PersistentFlags().Float64VarP(&roccurvePvalue, "pvalue", "p", 1.0, "Keep only branches that have a pvalue <=  value")
 	roccurveCmd.PersistentFlags().Float64Var(&roccurveMaxBrLen, "length-leq", -1.0, "Keep only branches that are <= value (-1=No filter) ")
 	roccurveCmd.PersistentFlags().Float64Var(&roccurveMinBrLen, "length-geq", -1.0, "Keep only branches that are >= value (-1=No filter) ")
 }
