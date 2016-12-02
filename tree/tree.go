@@ -208,6 +208,7 @@ func (t *Tree) removeTip(tip *Node) error {
 	// Then 2 solutions :
 	// 1 - Internal node is now terminal : it means it was the root of a rooted tree : we delete it and new root is its child
 	// 2 - Internal node is now a bifurcation : we do not want to keep it thus we will delete it and connect the two neighbors
+	// 3 - Internal node still has a degree > 2 : We do not do anything => the node should remain
 	// Case 1
 	if len(internal.neigh) == 1 {
 		if t.Root() != internal {
@@ -284,7 +285,9 @@ func (t *Tree) removeTip(tip *Node) error {
 		t.delNode(internal)
 		return nil
 	}
-	return errors.New("Unknown problem: The internal node remaining after removing the tip has a unexpected number of neighbors")
+	//Case 3 : Nothing
+	return nil
+	//return errors.New("Unknown problem: The internal node remaining after removing the tip has a unexpected number of neighbors")
 }
 
 func (t *Tree) String() string {
