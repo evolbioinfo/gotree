@@ -897,6 +897,23 @@ func (t *Tree) CollapseLowSupport(support float64) {
 	t.RemoveEdges(lowsupportbranches...)
 }
 
+// Clears support (set to -1) of all branches of the tree
+func (t *Tree) ClearSupports() {
+	edges := t.Edges()
+	for _, e := range edges {
+		e.SetSupport(-1)
+		e.SetPValue(-1)
+	}
+}
+
+// Clears length (set to -1) of all branches of the tree
+func (t *Tree) ClearLengths() {
+	edges := t.Edges()
+	for _, e := range edges {
+		e.SetLength(-1)
+	}
+}
+
 // Removes branches from the tree if they are not tip edges
 // And if they do not connects the root of a rooted tree
 // Merges the 2 nodes and creates multifurcations
