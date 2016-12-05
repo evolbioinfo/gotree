@@ -1013,7 +1013,9 @@ func (t *Tree) MedianSupport() float64 {
 	edges := t.Edges()
 	tips := t.Tips()
 	supports := make([]float64, len(edges)-len(tips))
-
+	if len(supports) == 0 {
+		return math.NaN()
+	}
 	i := 0
 	for _, e := range edges {
 		if !e.Right().Tip() {
