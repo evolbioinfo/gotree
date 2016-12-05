@@ -884,6 +884,19 @@ func (t *Tree) CollapseShortBranches(length float64) {
 	t.RemoveEdges(shortbranches...)
 }
 
+// Collapses (removes) the branches having
+// support <= support threshold && support != -1 (exists)
+func (t *Tree) CollapseLowSupport(support float64) {
+	edges := t.Edges()
+	lowsupportbranches := make([]*Edge, 0, 1000)
+	for _, e := range edges {
+		if e.Support() != -1 && e.Support() <= support {
+			lowsupportbranches = append(lowsupportbranches, e)
+		}
+	}
+	t.RemoveEdges(lowsupportbranches...)
+}
+
 // Removes branches from the tree if they are not tip edges
 // And if they do not connects the root of a rooted tree
 // Merges the 2 nodes and creates multifurcations

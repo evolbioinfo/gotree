@@ -5,47 +5,40 @@ import (
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
+	"os"
 )
 
-var shortbranchesThreshold float64
 var collapseInputTree string
 var collapseOutputTree string
+var collapseIntrees chan tree.Trees
+var collapseOutTrees *os.File
 
 // collapseCmd represents the collapse command
-var collapsebrlenCmd = &cobra.Command{
-	Use:   "collapsebrlen",
-	Short: "Collapse short branches of the input tree",
-	Long: `Collapse short branches of the input tree.
-
-Short branches are defined by a threshold (-l). All branches 
-with length <= threshold are removed.
-
-`,
-	Run: func(cmd *cobra.Command, args []string) {
+var collapseCmd = &cobra.Command{
+	Use:   "collapse",
+	Short: "Commands to collapse branches of input trees",
+	Long:  `Commands to collapse branches of input trees.`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
 		var nbtrees int = 0
-		intrees := make(chan tree.Trees, 15)
+		collapseIntrees = make(chan tree.Trees, 15)
 
 		/* Read ref tree(s) */
 		go func() {
-			if nbtrees, err = utils.ReadCompTrees(collapseInputTree, intrees); err != nil {
+			if nbtrees, err = utils.ReadCompTrees(collapseInputTree, collapseIntrees); err != nil {
 				io.ExitWithMessage(err)
 			}
 		}()
 
-		/* Collapsing branches */
-		f := openWriteFile(collapseOutputTree)
-		for t := range intrees {
-			t.Tree.CollapseShortBranches(shortbranchesThreshold)
-			f.WriteString(t.Tree.Newick() + "\n")
-		}
-		f.Close()
+		collapseOutTrees = openWriteFile(collapseOutputTree)
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		collapseOutTrees.Close()
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(collapsebrlenCmd)
-	collapsebrlenCmd.Flags().Float64VarP(&shortbranchesThreshold, "length", "l", 0.0, "Length cutoff to collapse the branch")
-	collapsebrlenCmd.PersistentFlags().StringVarP(&collapseInputTree, "input", "i", "stdin", "Input tree")
-	collapsebrlenCmd.PersistentFlags().StringVarP(&collapseOutputTree, "output", "o", "stdout", "Collapsed tree output file")
+	RootCmd.AddCommand(collapseCmd)
+	collapseCmd.PersistentFlags().StringVarP(&collapseInputTree, "input", "i", "stdin", "Input tree")
+	collapseCmd.PersistentFlags().StringVarP(&collapseOutputTree, "output", "o", "stdout", "Collapsed tree output file")
 }
