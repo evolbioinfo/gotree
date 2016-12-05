@@ -1009,6 +1009,15 @@ func (t *Tree) MeanBrLength() float64 {
 	return mean / float64(len(edges))
 }
 
+func (t *Tree) SumBrLength() float64 {
+	sum := 0.0
+	edges := t.Edges()
+	for _, e := range edges {
+		sum += e.Length()
+	}
+	return sum
+}
+
 func (t *Tree) MeanSupport() float64 {
 	mean := 0.0
 	edges := t.Edges()

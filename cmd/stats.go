@@ -40,7 +40,7 @@ For exemple:
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		/* Dividing trees */
-		statsout.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tmeansupport\tmediansupport\trooted\n")
+		statsout.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tsumbrlen\tmeansupport\tmediansupport\trooted\n")
 		for statsintree := range statintrees {
 			statsintree.Tree.ComputeDepths()
 			statsout.WriteString(fmt.Sprintf("%d", statsintree.Id))
@@ -48,6 +48,7 @@ For exemple:
 			statsout.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Tips())))
 			statsout.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Edges())))
 			statsout.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.MeanBrLength()))
+			statsout.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.SumBranchLengths()))
 			statsout.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.MeanSupport()))
 			statsout.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.MedianSupport()))
 			if statsintree.Tree.Rooted() {
