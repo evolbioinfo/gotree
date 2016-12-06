@@ -60,30 +60,43 @@ $ gotree generate binarytree -l 100 -n 10 | gotree stats
 $ gotree unroot -i tree.tre -o unrooted.tre
 ```
 
-### Unrooting a tree
-
-```[bash]
-$ gotree unroot -i tree.tre -o unrooted.tre
-```
-
 ### Collapsing short branches
 
 ```[bash]
-$ gotree collapsebrlen -i tree.tre -l 0.001 -o collapsed.tre
+$ gotree collapse length -i tree.tre -l 0.001 -o collapsed.tre
+```
+### Collapsing lowly supported branches
+
+```[bash]
+$ gotree collapse support -i tree.tre -s 0.8 -o collapsed.tre
 ```
 
-### Printing statistics of the tree
+### Clearing length information
+
+```[bash]
+$ gotree clear lengths -i tree.nw -o nolength.nw
+```
+### Clearing support information
+
+```[bash]
+$ gotree clear supports -i tree.nw -o nosupport.nw
+```
+Note that you can pipe the two previous commands:
+
+```[bash]
+$ gotree clear supports -i tree.nw | gotree clear lengths -o nosupport.nw
+```
+
+### Printing tree statistics
 
 ```[bash]
 $ gotree stats -i tree.tre
 ```
-
-### Printing statistics of the edges
+### Printing edge statistics
 
 ```[bash]
 $ gotree stats edges -i tree.tre
 ```
-
 Example of result:
 
 tree  |  brid  |  length    |  support  |  terminal  |  depth  |  topodepth  |  rightname
@@ -100,6 +113,41 @@ tree  |  brid  |  length    |  support  |  terminal  |  depth  |  topodepth  |  
 0     |  9     |  0.104188  |  N/A      |  true      |  0      |  1          |  Tip34
 0     |  10    |  0.003361  |  N/A      |  true      |  0      |  1          |  Tip16
 0     |  11    |  0.021988  |  N/A      |  true      |  0      |  1          |  Node0
+
+### Printing tips
+```[bash]
+$ gotree stats tips -i tree.tre
+```
+Example of result:
+
+|tree  |  id  |  nneigh  |  name   |
+|------|------|----------|---------|
+|0     |  1   |  1       |  Tip8   |
+|0     |  2   |  1       |  Node0  |
+|0     |  5   |  1       |  Tip4   |
+|0     |  8   |  1       |  Tip9   |
+|0     |  9   |  1       |  Tip7   |
+|0     |  11  |  1       |  Tip6   |
+|0     |  13  |  1       |  Tip5   |
+|0     |  14  |  1       |  Tip3   |
+|0     |  16  |  1       |  Tip2   |
+|0     |  17  |  1       |  Tip1   |
+
+### Comparing tips of two trees
+
+```[bash]
+$ gotree difftips -i tree.tre -c tree2.tre
+```
+This will compare the two sets of tips.
+
+Example:
+```
+$ gotree difftips -i <(gotree generate binarytree -l 10 -n 1) \
+               -c <(gotree generate binarytree -l 11 -n 1)
+> Tip10
+= 10
+```
+10 tips are equal, and "Tip10" is present only in the second tree.
 
 ### Removing tips that are absent from another tree
 
