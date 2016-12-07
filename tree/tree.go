@@ -657,14 +657,23 @@ func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) (*Edge, *Edge, *Node, error) {
 
 //Creates a Random Binary tree
 //nbtips : Number of tips of the random binary tree to create
-// branch length: follow an exponential distribution with param lambda=1/0.1
-func RandomBinaryTree(nbtips int) (*Tree, error) {
+//rooted: if true, generates a rooted tree
+//branch length: follow an exponential distribution with param lambda=1/0.1
+func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	t := NewTree()
 	if nbtips < 2 {
-		return nil, errors.New("Cannot create a random binary tree with less than 2 tips")
+		return nil, errors.New("Cannot create an unrooted random binary tree with less than 2 tips")
 	}
+	if nbtips < 3 && rooted {
+		return nil, errors.New("Cannot create a rooted random binary tree with less than 3 tips")
+	}
+
 	edges := make([]*Edge, 0, 2000)
-	for i := 1; i < nbtips; i++ {
+	firstnode := 1
+	if rooted {
+		firstnode = 2
+	}
+	for i := firstnode; i < nbtips; i++ {
 		n := t.NewNode()
 		n.SetName("Tip" + strconv.Itoa(i))
 		switch len(edges) {
@@ -674,6 +683,13 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 			e := t.ConnectNodes(n2, n)
 			edges = append(edges, e)
 			e.SetLength(gostats.Exp(1 / 0.1))
+			if rooted {
+				n3 := t.NewNode()
+				n3.SetName("Node" + strconv.Itoa(i-2))
+				e2 := t.ConnectNodes(n2, n3)
+				edges = append(edges, e2)
+				e2.SetLength(gostats.Exp(1 / 0.1))
+			}
 			t.SetRoot(n2)
 		default:
 			// Where to insert the new tip
@@ -692,7 +708,79 @@ func RandomBinaryTree(nbtips int) (*Tree, error) {
 			}
 		}
 	}
-	err := t.RerootFirst()
+	var err error = nil
+	if !rooted {
+		err = t.RerootFirst()
+	}
+	t.UpdateTipIndex()
+	t.ClearBitSets()
+	t.UpdateBitSet()
+	t.ComputeDepths()
+	return t, err
+}
+
+// Creates a Random Yule tree
+//nbtips : Number of tips of the random binary tree to create
+//rooted: if true, generates a rooted tree
+//branch length: follow an exponential distribution with param lambda=1/0.1
+func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
+	t := NewTree()
+	if nbtips < 2 {
+		return nil, errors.New("Cannot create an unrooted random binary tree with less than 2 tips")
+	}
+	if nbtips < 3 && rooted {
+		return nil, errors.New("Cannot create a rooted random binary tree with less than 3 tips")
+	}
+
+	edges := make([]*Edge, 0, 2000)
+	tips := make([]*Node, 0, 2000)
+	firstnode := 1
+	if rooted {
+		firstnode = 2
+	}
+	for i := firstnode; i < nbtips; i++ {
+		n := t.NewNode()
+		n.SetName("Tip" + strconv.Itoa(i))
+		switch len(edges) {
+		case 0:
+			n2 := t.NewNode()
+			n2.SetName("Node" + strconv.Itoa(i-1))
+			e := t.ConnectNodes(n2, n)
+			edges = append(edges, e)
+			e.SetLength(gostats.Exp(1 / 0.1))
+			if !rooted {
+				tips = append(tips, n2)
+			} else {
+				n3 := t.NewNode()
+				n3.SetName("Node" + strconv.Itoa(i-2))
+				e2 := t.ConnectNodes(n2, n3)
+				edges = append(edges, e2)
+				e2.SetLength(gostats.Exp(1 / 0.1))
+				tips = append(tips, n3)
+			}
+			t.SetRoot(n2)
+		default:
+			// Where to insert the new tip
+			i_tip := rand.Intn(len(tips))
+			ntemp := tips[i_tip]
+			e := ntemp.br[0]
+			e.SetLength(gostats.Exp(1 / 0.1))
+			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
+			newedge.SetLength(gostats.Exp(1 / 0.1))
+			newedge2.SetLength(gostats.Exp(1 / 0.1))
+			edges = append(edges, newedge)
+			edges = append(edges, newedge2)
+			if err != nil {
+				return nil, err
+			}
+		}
+		tips = append(tips, n)
+	}
+	var err error = nil
+
+	if !rooted {
+		err = t.RerootFirst()
+	}
 	t.UpdateTipIndex()
 	t.ClearBitSets()
 	t.UpdateBitSet()
