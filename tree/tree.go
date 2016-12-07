@@ -788,6 +788,68 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	return t, err
 }
 
+// Creates a Random Caterpilar tree
+//nbtips : Number of tips of the random binary tree to create
+//rooted: if true, generates a rooted tree
+//branch length: follow an exponential distribution with param lambda=1/0.1
+func RandomCaterpilarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
+	t := NewTree()
+	if nbtips < 2 {
+		return nil, errors.New("Cannot create an unrooted random binary tree with less than 2 tips")
+	}
+	if nbtips < 3 && rooted {
+		return nil, errors.New("Cannot create a rooted random binary tree with less than 3 tips")
+	}
+
+	var lasttip *Node = nil
+	firstnode := 1
+	if rooted {
+		firstnode = 2
+	}
+
+	for i := firstnode; i < nbtips; i++ {
+		n := t.NewNode()
+		n.SetName("Tip" + strconv.Itoa(i))
+		switch i {
+		case firstnode:
+			n2 := t.NewNode()
+			n2.SetName("Node" + strconv.Itoa(i-1))
+			e := t.ConnectNodes(n2, n)
+			e.SetLength(gostats.Exp(1 / 0.1))
+			if !rooted {
+				lasttip = n2
+			} else {
+				n3 := t.NewNode()
+				n3.SetName("Node" + strconv.Itoa(i-2))
+				e2 := t.ConnectNodes(n2, n3)
+				e2.SetLength(gostats.Exp(1 / 0.1))
+				lasttip = n3
+			}
+			t.SetRoot(n2)
+		default:
+			e := lasttip.br[0]
+			e.SetLength(gostats.Exp(1 / 0.1))
+			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
+			newedge.SetLength(gostats.Exp(1 / 0.1))
+			newedge2.SetLength(gostats.Exp(1 / 0.1))
+			if err != nil {
+				return nil, err
+			}
+		}
+		lasttip = n
+	}
+	var err error = nil
+
+	if !rooted {
+		err = t.RerootFirst()
+	}
+	t.UpdateTipIndex()
+	t.ClearBitSets()
+	t.UpdateBitSet()
+	t.ComputeDepths()
+	return t, err
+}
+
 //Creates a Random Binary tree
 //nbtips : Number of tips of the random binary tree to create
 func StarTree(nbtips int) (*Tree, error) {
