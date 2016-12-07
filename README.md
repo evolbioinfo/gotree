@@ -5,9 +5,9 @@ The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wi
 
 **Example:**
 ```[bash]
-$ gotree generate binarytree -l 100 -n 10 | gotree stats
+$ gotree generate uniformtree -l 100 -n 10 | gotree stats
 ```
-This will generate 10 random unrooted binary trees, each having 100 tips, and print statistics about them, for example:
+This will generate 10 random unrooted uniform binary trees, each having 100 tips, and print statistics about them, for example:
 
 tree | nodes | tips | edges | meanbrlen | meansupport | mediansupport | rooted
 -----|-------|------|-------|-----------|-------------|---------------|----------
@@ -49,9 +49,9 @@ The `gotree` executable should be located in the `$GOPATH/bin` folder.
 ## Usage
 gotree implements several tree manipulation commands. Here are some short examples:
 
-### Generate random unrooted binary trees
+### Generate random unrooted uniform binary trees
 ```[bash]
-$ gotree generate binarytree -l 100 -n 10 | gotree stats
+$ gotree generate uniformtree -l 100 -n 10 | gotree stats
 ```
 
 ### Unrooting a tree
@@ -142,8 +142,8 @@ This will compare the two sets of tips.
 
 Example:
 ```
-$ gotree difftips -i <(gotree generate binarytree -l 10 -n 1) \
-               -c <(gotree generate binarytree -l 11 -n 1)
+$ gotree difftips -i <(gotree generate uniformtree -l 10 -n 1) \
+               -c <(gotree generate uniformtree -l 11 -n 1)
 > Tip10
 = 10
 ```
@@ -157,8 +157,8 @@ $ gotree prune -i tree.tre -c other.tre -o pruned.tre
 
 You can test with
 ```[bash]
-$ gotree prune -i <(gotree generate binarytree -l 1000 -n 1) \
-               -c <(gotree generate binarytree -l 100 -n 1) \
+$ gotree prune -i <(gotree generate uniformtree -l 1000 -n 1) \
+               -c <(gotree generate uniformtree -l 100 -n 1) \
                | gotree stats
 ```
 It should print 100 tips.
@@ -173,8 +173,8 @@ $ gotree compare -i tree.tre -c other.tre
 You can test with random trees (there should be very few common bipartitions)
 
 ```[bash]
-$ gotree compare -i <(gotree generate binarytree -l 100 -n 1) \
-                -c <(gotree generate binarytree -l 100 -n 1)
+$ gotree compare -i <(gotree generate uniformtree -l 100 -n 1) \
+                -c <(gotree generate uniformtree -l 100 -n 1)
 ```
 
 Tree  |  specref  |  common
@@ -191,7 +191,7 @@ $ gotree rename -i tree.tre -m mapfile.txt -o newtree.tre
 
 You can try by doing:
 ```[bash]
-$ gotree generate binarytree -l 100 -n 1 -o tree.tre
+$ gotree generate uniformtree -l 100 -n 1 -o tree.tre
 $ gotree stats tips -i tree.tre | awk '{if(NR>1){print $4 "\tNEWNAME" $4}}' > mapfile.txt
 $ gotree rename -i tree.tre -m mapfile.txt | gotree stats tips
 ```
