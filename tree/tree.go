@@ -669,23 +669,20 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	}
 
 	edges := make([]*Edge, 0, 2000)
-	firstnode := 1
-	if rooted {
-		firstnode = 2
-	}
-	for i := firstnode; i < nbtips; i++ {
+	for i := 1; i < nbtips; i++ {
 		n := t.NewNode()
 		n.SetName("Tip" + strconv.Itoa(i))
 		switch len(edges) {
 		case 0:
 			n2 := t.NewNode()
-			n2.SetName("Node" + strconv.Itoa(i-1))
+			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
 			edges = append(edges, e)
 			e.SetLength(gostats.Exp(1 / 0.1))
 			if rooted {
+				n2.SetName("")
 				n3 := t.NewNode()
-				n3.SetName("Node" + strconv.Itoa(i-2))
+				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
 				edges = append(edges, e2)
 				e2.SetLength(gostats.Exp(1 / 0.1))
@@ -734,25 +731,22 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 
 	edges := make([]*Edge, 0, 2000)
 	tips := make([]*Node, 0, 2000)
-	firstnode := 1
-	if rooted {
-		firstnode = 2
-	}
-	for i := firstnode; i < nbtips; i++ {
+	for i := 1; i < nbtips; i++ {
 		n := t.NewNode()
 		n.SetName("Tip" + strconv.Itoa(i))
 		switch len(edges) {
 		case 0:
 			n2 := t.NewNode()
-			n2.SetName("Node" + strconv.Itoa(i-1))
+			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
 			edges = append(edges, e)
 			e.SetLength(gostats.Exp(1 / 0.1))
 			if !rooted {
 				tips = append(tips, n2)
 			} else {
+				n2.SetName("")
 				n3 := t.NewNode()
-				n3.SetName("Node" + strconv.Itoa(i-2))
+				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
 				edges = append(edges, e2)
 				e2.SetLength(gostats.Exp(1 / 0.1))
@@ -802,25 +796,22 @@ func RandomCaterpilarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	}
 
 	var lasttip *Node = nil
-	firstnode := 1
-	if rooted {
-		firstnode = 2
-	}
 
-	for i := firstnode; i < nbtips; i++ {
+	for i := 1; i < nbtips; i++ {
 		n := t.NewNode()
 		n.SetName("Tip" + strconv.Itoa(i))
 		switch i {
-		case firstnode:
+		case 1:
 			n2 := t.NewNode()
-			n2.SetName("Node" + strconv.Itoa(i-1))
+			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
 			e.SetLength(gostats.Exp(1 / 0.1))
 			if !rooted {
 				lasttip = n2
 			} else {
+				n2.SetName("")
 				n3 := t.NewNode()
-				n3.SetName("Node" + strconv.Itoa(i-2))
+				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
 				e2.SetLength(gostats.Exp(1 / 0.1))
 				lasttip = n3
