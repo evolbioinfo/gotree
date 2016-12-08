@@ -37,12 +37,17 @@ gotree shuffletips -i t.nw
 
 		rand.Seed(shuffletipsSeed)
 
-		var t *tree.Tree
 		var err error
-		t, err = utils.ReadRefTree(shuffleTipsInputTree)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
+		var nbtrees int
+
+		compareChannel := make(chan tree.Trees, 15)
+
+		go func() {
+			if nbtrees, err = utils.ReadCompTrees(shuffleTipsInputTree, compareChannel); err != nil {
+				io.ExitWithMessage(err)
+			}
+		}()
+
 		var f *os.File
 		if shuffleTipsOutputTree != "stdout" {
 			f, err = os.Create(shuffleTipsOutputTree)
@@ -53,13 +58,11 @@ gotree shuffletips -i t.nw
 			io.ExitWithMessage(err)
 		}
 
-		t.ShuffleTips()
+		for t2 := range compareChannel {
 
-		if err != nil {
-			io.ExitWithMessage(err)
+			t2.Tree.ShuffleTips()
+			f.WriteString(t2.Tree.Newick() + "\n")
 		}
-
-		f.WriteString(t.Newick() + "\n")
 		f.Close()
 	},
 }
