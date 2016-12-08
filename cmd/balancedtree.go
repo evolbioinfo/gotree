@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func caterpilarTree(nbtrees int, nbtips int, output string, seed int64, rooted bool) error {
+func balancedTree(nbtrees int, depth int, output string, seed int64, rooted bool) error {
 	var f *os.File
 	var err error
 	var t *tree.Tree
@@ -25,7 +25,7 @@ func caterpilarTree(nbtrees int, nbtips int, output string, seed int64, rooted b
 	}
 
 	for i := 0; i < nbtrees; i++ {
-		t, err = tree.RandomCaterpilarBinaryTree(nbtips, rooted)
+		t, err = tree.RandomBalancedBinaryTree(depth, rooted)
 		if err != nil {
 			return err
 		}
@@ -36,18 +36,20 @@ func caterpilarTree(nbtrees int, nbtips int, output string, seed int64, rooted b
 }
 
 // binarytreeCmd represents the binarytree command
-var caterpilartreeCmd = &cobra.Command{
-	Use:   "caterpilartree",
-	Short: "Generates a random caterpilar binary tree",
-	Long:  `Generates a random caterpilar binary tree.`,
+var balancedtreeCmd = &cobra.Command{
+	Use:   "balancedtree",
+	Short: "Generates a random balanced binary tree",
+	Long: `Generates a random balanced binary tree
+`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := caterpilarTree(generateNbTrees, generateNbTips, generateOutputfile, generateSeed, generateRooted); err != nil {
+		if err := balancedTree(generateNbTrees, generateDepth, generateOutputfile, generateSeed, generateRooted); err != nil {
 			io.ExitWithMessage(err)
 		}
 	},
 }
 
 func init() {
-	generateCmd.AddCommand(caterpilartreeCmd)
-	caterpilartreeCmd.PersistentFlags().IntVarP(&generateNbTips, "nbtips", "l", 10, "Number of tips/leaves of the tree to generate")
+	generateCmd.AddCommand(balancedtreeCmd)
+	balancedtreeCmd.PersistentFlags().IntVarP(&generateDepth, "depth", "d", 3, "Depth of the balanced binary tree")
+
 }

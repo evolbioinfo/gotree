@@ -716,6 +716,51 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	return t, err
 }
 
+//Creates a Random Balanced Binary tree
+//depth : Depth of the balanced tree binary
+//rooted: if true, generates a rooted tree
+//branch length: follow an exponential distribution with param lambda=1/0.1
+func RandomBalancedBinaryTree(depth int, rooted bool) (*Tree, error) {
+	t := NewTree()
+	if depth < 2 {
+		return nil, errors.New("Cannot create an random binary tree of depth < 2")
+	}
+
+	curdepth := 1
+	root := t.NewNode()
+	t.SetRoot(root)
+	id := 1
+	randomBalancedBinaryTreeRecur(t, root, curdepth+1, depth, &id)
+	if !rooted {
+		t.UnRoot()
+	}
+	t.UpdateTipIndex()
+	t.ClearBitSets()
+	t.UpdateBitSet()
+	t.ComputeDepths()
+	return t, nil
+}
+
+func randomBalancedBinaryTreeRecur(t *Tree, node *Node, curdepth int, targetdepth int, id *int) {
+	child1 := t.NewNode()
+	child2 := t.NewNode()
+
+	e1 := t.ConnectNodes(node, child1)
+	e2 := t.ConnectNodes(node, child2)
+	e1.SetLength(gostats.Exp(1 / 0.1))
+	e2.SetLength(gostats.Exp(1 / 0.1))
+
+	if curdepth < targetdepth {
+		randomBalancedBinaryTreeRecur(t, child1, curdepth+1, targetdepth, id)
+		randomBalancedBinaryTreeRecur(t, child2, curdepth+1, targetdepth, id)
+	} else {
+		child1.SetName("Tip" + strconv.Itoa(*id))
+		(*id)++
+		child2.SetName("Tip" + strconv.Itoa(*id))
+		(*id)++
+	}
+}
+
 // Creates a Random Yule tree
 //nbtips : Number of tips of the random binary tree to create
 //rooted: if true, generates a rooted tree

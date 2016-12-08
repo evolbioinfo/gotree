@@ -49,4 +49,5 @@ var yuletreeCmd = &cobra.Command{
 
 func init() {
 	generateCmd.AddCommand(yuletreeCmd)
+	yuletreeCmd.PersistentFlags().IntVarP(&generateNbTips, "nbtips", "l", 10, "Number of tips/leaves of the tree to generate")
 }
