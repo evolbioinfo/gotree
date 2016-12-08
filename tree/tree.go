@@ -1212,3 +1212,50 @@ func (t *Tree) MedianSupport() float64 {
 	}
 	return result
 }
+
+// Copy attributes of the node into a new node
+func (t *Tree) CopyNode(n *Node) *Node {
+	out := t.NewNode()
+	out.name = n.name
+	out.depth = n.depth
+	out.id = n.id
+	out.comment = make([]string, len(n.comment))
+	for i, c := range n.comment {
+		out.comment[i] = c
+	}
+	return out
+}
+
+// Copy attributes of the given edge to the other given edge
+func (t *Tree) CopyEdge(e *Edge, copy *Edge) {
+	copy.length = e.length
+	copy.support = e.support
+	copy.pvalue = e.pvalue
+	copy.id = e.id
+	copy.bitset = e.bitset.Clone()
+}
+
+// Clone the input tree
+func (t *Tree) Clone() *Tree {
+	copy := NewTree()
+	root := t.CopyNode(t.Root())
+	copy.SetRoot(root)
+	for _, e := range t.Root().br {
+		t.copyTreeRecur(copy, root, t.Root(), e)
+	}
+	copy.UpdateTipIndex()
+	return (copy)
+}
+
+// Recursive function to clone the tree
+func (t *Tree) copyTreeRecur(copytree *Tree, copynode, node *Node, edge *Edge) {
+	child := edge.Right()
+	copychild := t.CopyNode(child)
+	copyedge := copytree.ConnectNodes(copynode, copychild)
+	t.CopyEdge(edge, copyedge)
+	for _, e := range child.br {
+		if e != edge {
+			t.copyTreeRecur(copytree, copychild, child, e)
+		}
+	}
+}

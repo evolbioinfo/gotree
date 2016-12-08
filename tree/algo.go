@@ -297,3 +297,62 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 
 	return startree
 }
+
+/*
+This function first unroot the input tree and reroot it using the outgroup in argument
+if the outgroup is not monophyletic, it will take all the descendant of the LCA.
+An error is triggered if the LCA is multifurcated, and several branches are possible
+for the placement of the root.
+*/
+func (t *Tree) RerootOutGroup(tips ...string) error {
+	t.UnRoot()
+
+	n, edges, _ := t.LeastCommonAncestorUnrooted(nil, tips...)
+	var rootedge *Edge
+
+	if len(n.br) == 1 {
+		rootedge = n.br[0]
+	} else {
+		if len(n.br)-len(edges) != 1 {
+			return errors.New("Reroot error: Several possible branches for root placement (multifurcated node)")
+		}
+		/**
+		We search the unique branch connecting "n" and that is not part of the outgroup
+		If there were several branches, there should have been an error above
+		*/
+		for _, e := range n.br {
+			found := false
+			for _, e2 := range edges {
+				if e == e2 {
+					found = true
+					break
+				}
+			}
+			if !found {
+				rootedge = e
+				break
+			}
+		}
+	}
+
+	root := t.NewNode()
+	length := rootedge.Length()
+	lnode := rootedge.Left()
+	rnode := rootedge.Right()
+	lnode.delNeighbor(rnode)
+	rnode.delNeighbor(lnode)
+
+	ne := t.ConnectNodes(root, lnode)
+	ne2 := t.ConnectNodes(root, rnode)
+
+	if length > 0 {
+		ne.SetLength(length / 2.0)
+		ne2.SetLength(length / 2.0)
+	}
+
+	t.Reroot(root)
+	t.ClearBitSets()
+	t.UpdateBitSet()
+	t.ComputeDepths()
+	return nil
+}

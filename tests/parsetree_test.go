@@ -14,7 +14,7 @@ func benchmarkTreeParse(nbtips int, b *testing.B) {
 	var t *tree.Tree
 	for n := 0; n < b.N; n++ {
 		var err error
-		t, err = tree.RandomBinaryTree(nbtips)
+		t, err = tree.RandomUniformBinaryTree(nbtips, false)
 		if err != nil {
 			b.Error(err)
 		}

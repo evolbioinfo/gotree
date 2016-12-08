@@ -74,13 +74,13 @@ func TestConsensus2(t *testing.T) {
 	var randtree1, randtree2, randtree3 *tree.Tree
 	var err error
 
-	if randtree1, err = tree.RandomBinaryTree(1000); err != nil {
+	if randtree1, err = tree.RandomUniformBinaryTree(1000, false); err != nil {
 		t.Error(err)
 	}
-	if randtree2, err = tree.RandomBinaryTree(1000); err != nil {
+	if randtree2, err = tree.RandomUniformBinaryTree(1000, false); err != nil {
 		t.Error(err)
 	}
-	if randtree3, err = tree.RandomBinaryTree(1000); err != nil {
+	if randtree3, err = tree.RandomUniformBinaryTree(1000, false); err != nil {
 		t.Error(err)
 	}
 
