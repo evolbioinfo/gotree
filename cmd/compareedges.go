@@ -40,51 +40,52 @@ If the compared tree file contains several trees, it will take the first one onl
 			}
 		}()
 
-		t2 := <-compareChannel
-
 		edges1 := refTree.Edges()
-		edges2 := t2.Tree.Edges()
-
-		var min_dist []uint16
-		if edgesMastDist {
-			min_dist = make([]uint16, len(edges1))
-			tips := refTree.Tips()
-			var i_matrix [][]uint16 = make([][]uint16, len(edges1))
-			var c_matrix [][]uint16 = make([][]uint16, len(edges1))
-			var hamming [][]uint16 = make([][]uint16, len(edges1))
-
-			for i, e := range edges1 {
-				e.SetId(i)
-				min_dist[i] = uint16(len(tips))
-				i_matrix[i] = make([]uint16, len(edges2))
-				c_matrix[i] = make([]uint16, len(edges2))
-				hamming[i] = make([]uint16, len(edges2))
-			}
-			for i, e := range edges2 {
-				e.SetId(i)
-			}
-			support.Update_all_i_c_post_order_ref_tree(refTree, &edges1, t2.Tree, &edges2, &i_matrix, &c_matrix)
-			support.Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges1, t2.Tree, &edges2, &i_matrix, &c_matrix, &hamming, &min_dist)
-		}
-
-		fmt.Printf("brid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
+		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
 		if edgesMastDist {
 			fmt.Printf("\tmast")
 		}
 		fmt.Printf("\n")
-		for i, e1 := range edges1 {
-			found := false
-			for _, e2 := range edges2 {
-				if e1.SameBipartition(e2) {
-					found = true
-					break
-				}
-			}
-			fmt.Printf("%d\t%s\t%t", i, e1.ToStatsString(), found)
+		for t2 := range compareChannel {
+
+			edges2 := t2.Tree.Edges()
+
+			var min_dist []uint16
 			if edgesMastDist {
-				fmt.Printf("\t%d", min_dist[e1.Id()])
+				min_dist = make([]uint16, len(edges1))
+				tips := refTree.Tips()
+				var i_matrix [][]uint16 = make([][]uint16, len(edges1))
+				var c_matrix [][]uint16 = make([][]uint16, len(edges1))
+				var hamming [][]uint16 = make([][]uint16, len(edges1))
+
+				for i, e := range edges1 {
+					e.SetId(i)
+					min_dist[i] = uint16(len(tips))
+					i_matrix[i] = make([]uint16, len(edges2))
+					c_matrix[i] = make([]uint16, len(edges2))
+					hamming[i] = make([]uint16, len(edges2))
+				}
+				for i, e := range edges2 {
+					e.SetId(i)
+				}
+				support.Update_all_i_c_post_order_ref_tree(refTree, &edges1, t2.Tree, &edges2, &i_matrix, &c_matrix)
+				support.Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges1, t2.Tree, &edges2, &i_matrix, &c_matrix, &hamming, &min_dist)
 			}
-			fmt.Printf("\n")
+
+			for i, e1 := range edges1 {
+				found := false
+				for _, e2 := range edges2 {
+					if e1.SameBipartition(e2) {
+						found = true
+						break
+					}
+				}
+				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(), found)
+				if edgesMastDist {
+					fmt.Printf("\t%d", min_dist[e1.Id()])
+				}
+				fmt.Printf("\n")
+			}
 		}
 	},
 }
