@@ -4,3 +4,7 @@ go:
   - 1.6.4
   - 1.7.4
 
+install:
+  - go get github.com/fredericlemoine/bitset
+  - go get github.com/fredericlemoine/gostats
+  - go get github.com/spf13/cobra
