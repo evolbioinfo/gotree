@@ -37,7 +37,7 @@ func caterpilarTree(nbtrees int, nbtips int, output string, seed int64, rooted b
 
 // binarytreeCmd represents the binarytree command
 var caterpilartreeCmd = &cobra.Command{
-	Use:   "caterpilartree",
+	Use:   "caterpillartree",
 	Short: "Generates a random caterpilar binary tree",
 	Long:  `Generates a random caterpilar binary tree.`,
 	Run: func(cmd *cobra.Command, args []string) {
