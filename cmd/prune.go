@@ -35,7 +35,7 @@ func specificTips(ref *tree.Tree, comp *tree.Tree) []string {
 // pruneCmd represents the prune command
 var pruneCmd = &cobra.Command{
 	Use:   "prune",
-	Short: "Removes tips of the input tree that are not in the compared tree",
+	Short: "Remove tips of the input tree that are not in the compared tree",
 	Long: `This tool removes tips of the input reference tree that 
 are not present in the compared tree.
 

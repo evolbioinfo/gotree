@@ -17,8 +17,8 @@ var shuffleTipsOutputTree string
 // shuffletipsCmd represents the shuffletips command
 var shuffletipsCmd = &cobra.Command{
 	Use:   "shuffletips",
-	Short: "Shuffles the tip names of an input tree",
-	Long: `Shuffles the tip names of an input tree.
+	Short: "Shuffle tip names of an input tree",
+	Long: `Shuffle tip names of an input tree.
 
 
              ------C                    ------A

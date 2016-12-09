@@ -109,10 +109,10 @@ var compareTips bool
 // compareCmd represents the compare command
 var compareCmd = &cobra.Command{
 	Use:   "compare",
-	Short: "Compares a reference tree with a set of trees",
-	Long: `Compares a reference tree to a set of trees.
+	Short: "Compare a reference tree with a set of trees",
+	Long: `Compare a reference tree with a set of trees.
 
-for each trees in the compared tree file, it prints the number of common edges
+for each trees in the compared tree file, prints the number of common edges
 between it and the reference tree, as well as the number of specific edges.
 `,
 	Run: func(cmd *cobra.Command, args []string) {

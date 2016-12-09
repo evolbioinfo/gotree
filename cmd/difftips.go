@@ -15,8 +15,8 @@ var difftipsTree2 string
 // difftipsCmd represents the difftips command
 var difftipsCmd = &cobra.Command{
 	Use:   "difftips",
-	Short: "difftips prints the diff between tip names of two trees",
-	Long: `difftips prints the diff between tip names of two trees.
+	Short: "Print diff between tip names of two trees",
+	Long: `Print diff between tip names of two trees.
 
 For example:
 t1.nh : (t1,t2,(t3,t4));

@@ -14,8 +14,8 @@ var unrootOutputTree string
 // unrootCmd represents the unroot command
 var unrootCmd = &cobra.Command{
 	Use:   "unroot",
-	Short: "Unroots the input tree",
-	Long: `Unroots the input tree.
+	Short: "Unroot input tree",
+	Long: `Unroot input tree.
 
 If the tree is already unrooted does nothing
 Otherwise places the root on a trifurcated node and removes

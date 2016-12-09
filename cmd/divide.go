@@ -14,8 +14,8 @@ var divideOutputTree string
 // divideCmd represents the divide command
 var divideCmd = &cobra.Command{
 	Use:   "divide",
-	Short: "Divides an input tree file into several tree files",
-	Long: `Divides an input tree file into several tree files
+	Short: "Divide an input tree file into several tree files",
+	Long: `Divide an input tree file into several tree files
 
 If the input file contains several trees, lets say 10, then 10 output files 
 will be created, each containing 1 tree.

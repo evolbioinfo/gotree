@@ -15,8 +15,8 @@ var minbrlenOutputTree string
 // minbrlenCmd represents the minbrlen command
 var minbrlenCmd = &cobra.Command{
 	Use:   "minbrlen",
-	Short: "This will set a min branch length to all branches with length < cutoff",
-	Long: `This will set a min branch length to all branches with length < cutoff
+	Short: "Set a min branch length to all branches with length < cutoff",
+	Long: `Set a min branch length to all branches with length < cutoff
 
 Example of usage:
 

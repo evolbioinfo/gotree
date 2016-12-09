@@ -17,10 +17,10 @@ var statsout *os.File
 // statsCmd represents the stats command
 var statsCmd = &cobra.Command{
 	Use:   "stats",
-	Short: "Displays different statistics about the tree",
-	Long: `Displays different statistics about the tree
+	Short: "Print statistics about the tree",
+	Long: `Print statistics about the tree
 
-For exemple:
+For example:
 - Edge informations
 - Node informations
 - Tips informations

@@ -21,8 +21,8 @@ var setlengthoutfile *os.File
 // randbrlenCmd represents the randbrlen command
 var randbrlenCmd = &cobra.Command{
 	Use:   "randbrlen",
-	Short: "Assign a  random length to edges of input trees",
-	Long: `Assign a  random length to edges of input trees.
+	Short: "Assign a random length to edges of input trees",
+	Long: `Assign a random length to edges of input trees.
 
 Length follows an exponential distribution of parameter lambda=1/0.1 
 (Mean=0.1)

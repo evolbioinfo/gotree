@@ -16,8 +16,8 @@ var collapseOutTrees *os.File
 // collapseCmd represents the collapse command
 var collapseCmd = &cobra.Command{
 	Use:   "collapse",
-	Short: "Commands to collapse branches of input trees",
-	Long:  `Commands to collapse branches of input trees.`,
+	Short: "Collapse branches of input trees",
+	Long:  `Collapse branches of input trees.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
 		var nbtrees int = 0

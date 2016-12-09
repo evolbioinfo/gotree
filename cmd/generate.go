@@ -15,8 +15,8 @@ var generateRooted bool
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
 	Use:   "generate",
-	Short: "Command to genereate random trees",
-	Long: `Command to generate random trees
+	Short: "Generate random trees",
+	Long: `Generate random trees
 `,
 }
 

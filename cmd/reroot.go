@@ -18,11 +18,16 @@ var rerootoutputfile string
 // rerootCmd represents the reroot command
 var rerootCmd = &cobra.Command{
 	Use:   "reroot",
-	Short: "Reroot the tree using an outgroup",
+	Short: "Reroot trees using an outgroup",
 	Long: `Reroot the tree using an outgroup given in argument or in stdin.
 
 Example:
 
+Reroot on 1 tip named "Tip10":
+echo "Tip10" | gotree reroot -i tree.nw -l - > reroot.nw
+
+Reroot using an outgroup defined by 3 tips:
+echo "Tip1,Tip2,Tip10" | gotree reroot -i tree.nw -l - > reroot.nw
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {

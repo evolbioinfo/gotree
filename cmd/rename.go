@@ -63,8 +63,8 @@ func readMapFile(file string, revert bool) (map[string]string, error) {
 // renameCmd represents the rename command
 var renameCmd = &cobra.Command{
 	Use:   "rename",
-	Short: "Renames tips of the input tree, given a map file",
-	Long: `Renames tips of the input tree, given a map file.
+	Short: "Rename tips of the input tree, given a map file",
+	Long: `Rename tips of the input tree, given a map file.
 
 Map file must be tab separated with columns:
 1) Current name of the tip

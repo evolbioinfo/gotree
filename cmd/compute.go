@@ -7,9 +7,8 @@ import (
 // computeCmd represents the compute command
 var computeCmd = &cobra.Command{
 	Use:   "compute",
-	Short: "Command to do different computations",
-	Long: `Command to do different computations such
-as support.
+	Short: "Computations such as consensus and supports",
+	Long: `Computations such as consensus and supports.
 `,
 }
 

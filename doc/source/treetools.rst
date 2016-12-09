@@ -4,7 +4,7 @@
 Tool list
 ===================================
 
-The **bstools** package comes with several executables to handle phylogenetic trees. The list is given below, withe description of their usage.
+**GoTree** package comes with several executables to handle phylogenetic trees. The list is given below, withe description of their usage.
 
 .. toctree::
    :maxdepth: 1
