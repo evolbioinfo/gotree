@@ -729,7 +729,7 @@ func RandomBalancedBinaryTree(depth int, rooted bool) (*Tree, error) {
 	curdepth := 1
 	root := t.NewNode()
 	t.SetRoot(root)
-	id := 1
+	id := 0
 	randomBalancedBinaryTreeRecur(t, root, curdepth+1, depth, &id)
 	if !rooted {
 		t.UnRoot()
