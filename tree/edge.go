@@ -76,6 +76,8 @@ func (e *Edge) SetId(id int) {
 	e.id = id
 }
 
+// Returns the size (number of tips) of the smallest subtree
+// between the two subtrees connected to this edge
 func (e *Edge) TopoDepth() (int, error) {
 	if e.bitset == nil {
 		return -1, errors.New("Cannot compute topodepth, Bitset is nil")
@@ -88,6 +90,8 @@ func (e *Edge) TopoDepth() (int, error) {
 	return min(count, total-count), nil
 }
 
+// Returns a string representing the bitset (bipartition)
+// defined by this edge
 func (e *Edge) DumpBitSet() string {
 	if e.bitset == nil {
 		return "nil"
@@ -143,6 +147,8 @@ func (e *Edge) ToStatsString() string {
 
 }
 
+// Returns true if this edge defines the same biparition of the tips
+// than the edge in argument
 func (e *Edge) SameBipartition(e2 *Edge) bool {
 	return e.bitset.EqualOrComplement(e2.bitset)
 }
@@ -154,6 +160,8 @@ func (e *Edge) TipPresent(id uint) bool {
 	return e.bitset.Test(id)
 }
 
+// Number of tips on one side of the bipartition
+// Used by "TopoDepth" function for example
 func (e *Edge) NumTips() uint {
 	return e.bitset.Count()
 }

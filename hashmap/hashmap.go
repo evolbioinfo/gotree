@@ -1,3 +1,11 @@
+/*
+This package defines a generic hashmap
+This hashmap can store any Hasher object as key
+and any object as value.
+Similarly to Java HashMap, Hasher objects must define two functions:
+- HashCode and
+- HashEquals
+*/
 package hashmap
 
 import (
@@ -78,6 +86,7 @@ func indexFor(hashcode int64, capacity int64) int64 {
 	return hashcode & (capacity - 1)
 }
 
+// Reconstructs the HashMap if the capacity is almost attained (loadfactor)
 func (em *HashMap) rehash() {
 	// We rehash everything with a new capacity
 	if float64(em.total) >= float64(em.capacity)*em.loadfactor {
