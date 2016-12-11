@@ -356,3 +356,96 @@ func (t *Tree) RerootOutGroup(tips ...string) error {
 	t.ComputeDepths()
 	return nil
 }
+
+func (t *Tree) RerootMidPoint() {
+	// We first unroot the tree
+	t.UnRoot()
+
+	// All tips of the tree
+	tips := t.Tips()
+	// Maximum length path
+	var potentialedges []*Edge
+	// Length of the path
+	curlength := 0.0
+
+	// We take the max length path of all the tips
+	for _, t := range tips {
+		edges, length := MaxLengthPath(t, nil)
+		if length > curlength {
+			curlength = length
+			potentialedges = edges
+		}
+	}
+
+	// Path potentialedges starts from tip 1:
+	// potentialedges[0].Right()
+	// And ends at tip 2:
+	// potentialedges[len(potentialedges)-1].Right()
+
+	// Find the right edge in the path to place the root
+	i := 0
+	len := 0.0
+	// We need to orient the edge we find.
+	// To know from which node the cut will be done.
+	// Necessary because orientation changes during the path
+	// when we cross the root node.
+	var node1, node2 *Node
+	for float64(len) < curlength/2.0 {
+		// First tip
+		if i == 0 {
+			node1 = potentialedges[i].Right()
+			node2 = potentialedges[i].Left()
+		} else {
+			if potentialedges[i].Right() == node2 {
+				// We did not cross the root node, and we go up
+				node1 = potentialedges[i].Right()
+				node2 = potentialedges[i].Left()
+			} else if potentialedges[i].Left() == node2 {
+				// We already crossed the root node and we now go done
+				node1 = potentialedges[i].Left()
+				node2 = potentialedges[i].Right()
+			}
+		}
+		len += potentialedges[i].Length()
+		i++
+	}
+
+	// Where I cut the current edge
+	// The cut is done at "cut" distance from node1 on the edge.
+	cut := len - curlength/2.0
+
+	newroot := t.NewNode()
+	l := potentialedges[i-1].Length()
+	node1.delNeighbor(node2)
+	node2.delNeighbor(node1)
+	e := t.ConnectNodes(newroot, node1)
+	e2 := t.ConnectNodes(newroot, node2)
+
+	e.SetLength(l - cut)
+	e2.SetLength(cut)
+
+	t.Reroot(newroot)
+	t.ClearBitSets()
+	t.UpdateBitSet()
+	t.ComputeDepths()
+}
+
+// Take as argument the node from which we want to get the farthest
+// tip (longest possible path)
+// It returns the path (slice of edges), and the sum of branch lengths
+// of this path
+func MaxLengthPath(cur *Node, prev *Node) ([]*Edge, float64) {
+	var potentialedges []*Edge
+	curlength := 0.0
+	for i, child := range cur.neigh {
+		if child != prev {
+			e := cur.br[i]
+			edges, l := MaxLengthPath(child, cur)
+			if l+e.Length() > curlength {
+				curlength = l + e.Length()
+				potentialedges = append(edges, e)
+			}
+		}
+	}
+	return potentialedges, curlength
+}
