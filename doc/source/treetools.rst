@@ -10,3 +10,4 @@ Tool list
    :maxdepth: 1
 
    tools/clear
+   tools/reroot
