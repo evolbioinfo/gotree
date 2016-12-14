@@ -13,7 +13,7 @@ This command reroots an input tree. Two methods are implemented:
 **Usage**
 ---------
 
-.. code:: bash
+.. code::
 
    Usage:
      gotree reroot [command]
@@ -37,7 +37,7 @@ gotree reroot outgroup
   
 - **Usage**:
 
-.. code:: bash
+.. code:: 
 
     Usage:
       gotree reroot outgroup [flags]
@@ -64,11 +64,11 @@ Should give:
 gotree reroot midpoint
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- **Description** : Reroots an input tree using at the midpoint position (middle of the longest path between tips).It first removes the current root if it exists, take the longest path between two tips, and place the root at the middle.
+- **Description** : Reroots an input tree at the midpoint position (middle of the longest path between any two tips). It first removes the current root if it exists, takes the longest path between any two tips, and places the root at the middle.
   
 - **Usage**:
 
-.. code:: bash
+.. code::
 
     Usage:
       gotree reroot midpoint [flags]
@@ -94,4 +94,4 @@ or
 Can give:
 
 .. image:: ../images/reroot_midpoint.png
-    
+

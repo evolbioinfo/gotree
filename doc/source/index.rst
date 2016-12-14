@@ -2,7 +2,7 @@
    sphinx-quickstart on Mon May 23 17:20:22 2016.
 
 Welcome to GoTree
-===================================
+=================
 
 Contents:
 

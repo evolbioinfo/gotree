@@ -10,4 +10,5 @@ Tool list
    :maxdepth: 1
 
    tools/clear
+   tools/collapse
    tools/reroot

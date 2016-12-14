@@ -58,7 +58,7 @@ gotree implements several tree manipulation commands. Here are some short exampl
 .. code:: bash
 	  
    $ gotree generate uniformtree -l 100 -n 10 | gotree stats
-   make
+
 
 * Unrooting a tree
 
