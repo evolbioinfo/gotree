@@ -29,7 +29,7 @@ Length follows an exponential distribution of parameter lambda=1/0.1
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
-		rand.Seed(shuffletipsSeed)
+		rand.Seed(setlengthseed)
 		setlengthintrees = make(chan tree.Trees, 15)
 		/* Read ref tree(s) */
 		go func() {
