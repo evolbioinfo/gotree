@@ -81,9 +81,16 @@ gotree reroot midpoint
 
 .. code-block:: bash
 
-    gotree generate yuletreee -l 10 > tree.nw
+    gotree generate yuletree -l 10 > tree.nw
     gotree reroot midpoint -i tree.nw > reroot.nw
 
+or
+
+.. code-block:: bash
+
+    gotree generate yuletree -l 10 | gotree reroot midpoint > reroot.nw
+
+    
 Can give:
 
 .. image:: ../images/reroot_midpoint.png
