@@ -39,7 +39,7 @@ command                           Description
 **prune**                            Remove tips of the input tree that are not in the compared tree
 **randbrlen**                        Assign a random length to edges of input trees
 **rename**                           Rename tips of the input tree, given a map file
-**reroot**                           Reroot trees using an outgroup
+**reroot**                           Reroot trees using an outgroup or at midpoint
 **shuffletips**                      Shuffle tip names of an input tree
 **stats**                            Print statistics about the tree
 **unroot**                           Unroot input trees

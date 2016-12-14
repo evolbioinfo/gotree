@@ -1,7 +1,7 @@
 .. GoTree documentation master file, created by
    sphinx-quickstart on Mon May 23 17:20:22 2016.
 
-Welcome to bstools
+Welcome to GoTree
 ===================================
 
 Contents:

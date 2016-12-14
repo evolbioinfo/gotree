@@ -11,8 +11,8 @@ var rerootoutputfile string
 // rerootCmd represents the reroot command
 var rerootCmd = &cobra.Command{
 	Use:   "reroot",
-	Short: "Reroot commands",
-	Long: `Reroot commands.
+	Short: "Reroot trees using an outgroup or at midpoint",
+	Long: `Reroot trees using an outgroup or at midpoint.
 `,
 }
 
