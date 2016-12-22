@@ -449,3 +449,36 @@ func MaxLengthPath(cur *Node, prev *Node) ([]*Edge, float64) {
 	}
 	return potentialedges, curlength
 }
+
+/*
+Computes and returns the distance (sum of branch lengths)
+between all pairs of tips in the tree
+*/
+func (t *Tree) ToDistanceMatrix() [][]float64 {
+	// All tips of the tree
+	tips := t.Tips()
+	// Init distance Matrix
+	var matrix [][]float64 = make([][]float64, len(tips))
+	for i, _ := range tips {
+		matrix[i] = make([]float64, len(tips))
+		tips[i].SetId(i)
+	}
+
+	for i, t := range tips {
+		pathLengths(t, nil, matrix[i], 0)
+	}
+	return matrix
+}
+
+func pathLengths(cur *Node, prev *Node, lengths []float64, curlength float64) {
+	if cur.Tip() && prev != nil {
+		lengths[cur.Id()] = curlength
+	} else {
+		for i, child := range cur.neigh {
+			if child != prev {
+				e := cur.br[i]
+				pathLengths(child, cur, lengths, curlength+e.Length())
+			}
+		}
+	}
+}
