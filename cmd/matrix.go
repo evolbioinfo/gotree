@@ -36,15 +36,12 @@ var matrixCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		for t := range matrixIntrees {
 			tips := t.Tree.Tips()
+			matrixOut.WriteString(fmt.Sprintf("%d\n", len(tips)))
 			mat := t.Tree.ToDistanceMatrix()
-			for _, t := range tips {
-				matrixOut.WriteString("\t" + t.Name())
-			}
-			matrixOut.WriteString("\n")
 			for i, t := range tips {
 				matrixOut.WriteString(t.Name())
 				for j, _ := range tips {
-					matrixOut.WriteString("\t" + fmt.Sprintf("%.4f", mat[i][j]))
+					matrixOut.WriteString("\t" + fmt.Sprintf("%.12f", mat[i][j]))
 				}
 				matrixOut.WriteString("\n")
 			}
