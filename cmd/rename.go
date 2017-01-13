@@ -103,11 +103,14 @@ gotree rename -m MapFile -i t.nw
 		}
 
 		// Read Tree
-		var tree *tree.Tree
-		tree, err = utils.ReadRefTree(renameintree)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
+		intreesChan := make(chan tree.Trees, 15)
+		/* Read ref tree(s) */
+		go func() {
+			if _, err = utils.ReadCompTrees(renameintree, intreesChan); err != nil {
+				io.ExitWithMessage(err)
+			}
+		}()
+
 		var f *os.File
 		if renameouttree != "stdout" {
 			f, err = os.Create(renameouttree)
@@ -118,12 +121,15 @@ gotree rename -m MapFile -i t.nw
 			io.ExitWithMessage(err)
 		}
 
-		err = tree.Rename(namemap)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
+		// Read ref Trees and rename them
+		for reftree := range intreesChan {
+			err = reftree.Tree.Rename(namemap)
+			if err != nil {
+				io.ExitWithMessage(err)
+			}
 
-		f.WriteString(tree.Newick() + "\n")
+			f.WriteString(reftree.Tree.Newick() + "\n")
+		}
 		f.Close()
 	},
 }
