@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fredericlemoine/bitset"
 	"github.com/fredericlemoine/gotree/io"
+	"math"
 )
 
 type Edge struct {
@@ -18,6 +19,13 @@ type Edge struct {
 	bitset *bitset.BitSet // Bitset of length Number of taxa each
 	id     int            // this field is used at discretion of the user to store information
 }
+
+const (
+	NIL_SUPPORT = -1.0
+	NIL_LENGTH  = -1.0
+	NIL_PVALUE  = -1.0
+	NIL_ID      = -1.0
+)
 
 /* Edge functions */
 /******************/
@@ -66,7 +74,7 @@ func (e *Edge) Bitset() *bitset.BitSet {
 }
 
 func (e *Edge) Id() int {
-	if e.id == -1 {
+	if e.id == NIL_ID {
 		io.ExitWithMessage(errors.New("Id has not been set"))
 	}
 	return e.id
@@ -111,11 +119,11 @@ Tab delimited:
 func (e *Edge) ToStatsString() string {
 	var err error
 	var length = "N/A"
-	if e.Length() != -1 {
+	if e.Length() != NIL_LENGTH {
 		length = fmt.Sprintf("%f", e.Length())
 	}
 	var support = "N/A"
-	if e.Support() != -1 {
+	if e.Support() != NIL_SUPPORT {
 		support = fmt.Sprintf("%f", e.Support())
 	}
 
@@ -135,7 +143,7 @@ func (e *Edge) ToStatsString() string {
 	}
 
 	name := ""
-	if e.PValue() != -1 {
+	if e.PValue() != NIL_PVALUE {
 		name = fmt.Sprintf("%f/%f", e.Support(), e.PValue())
 	} else {
 		name = e.Right().Name()
@@ -192,4 +200,48 @@ func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {
 		}
 	}
 	return nil, nil
+}
+
+// Returns the average difference and the max difference in support between the current edge and its neighbors
+// The neighbors are defined by the branches with length of the path separating the branches < d
+// Returns (avg diff, max diff)
+func (e *Edge) Locality(maxdist int) (float64, float64) {
+	neighbors := e.NeigborEdges(maxdist)
+	avgdiff := 0.0
+	maxdiff := 0.0
+	nbe := 0
+	for _, n := range neighbors {
+		if n.Support() != NIL_SUPPORT {
+			diff := math.Abs(e.Support() - n.Support())
+			avgdiff += diff
+			maxdiff = math.Max(maxdiff, diff)
+			nbe++
+		}
+	}
+	return avgdiff / float64(nbe), maxdiff
+}
+
+// Returns the neighbors of the given edge.
+// Neighbors are defined as branches separated of given branch by a path whose length < maxdist
+func (e *Edge) NeigborEdges(maxdist int) []*Edge {
+	edges := make([]*Edge, 0, 0)
+
+	neigborEdgesRecur(e.Left(), e, e.Right(), &edges, maxdist, 0)
+	neigborEdgesRecur(e.Right(), e, e.Left(), &edges, maxdist, 0)
+
+	return edges
+}
+
+func neigborEdgesRecur(cur *Node, curEdge *Edge, prev *Node, e *[]*Edge, maxdist, curdist int) {
+	if curdist <= maxdist {
+		// We do not take the first edge as its own neighbor
+		if curdist > 0 {
+			*e = append((*e), curEdge)
+		}
+		for i, n := range cur.neigh {
+			if n != prev {
+				neigborEdgesRecur(n, cur.br[i], cur, e, maxdist, curdist+1)
+			}
+		}
+	}
 }

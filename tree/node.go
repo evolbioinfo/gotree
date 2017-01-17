@@ -16,6 +16,10 @@ type Node struct {
 	id      int      // this field is used at discretion of the user to store information
 }
 
+const (
+	NIL_DEPTH = -1
+)
+
 // Adds a child n to the node p, connected with edge e
 func (p *Node) addChild(n *Node, e *Edge) {
 	p.neigh = append(p.neigh, n)
@@ -40,7 +44,7 @@ func (n *Node) Name() string {
 }
 
 func (n *Node) Id() int {
-	if n.id == -1 {
+	if n.id == NIL_ID {
 		io.ExitWithMessage(errors.New("Id has not been set"))
 	}
 	return n.id
@@ -51,7 +55,7 @@ func (n *Node) SetId(id int) {
 }
 
 func (n *Node) Depth() (int, error) {
-	if n.depth == -1 {
+	if n.depth == NIL_DEPTH {
 		return n.depth, errors.New("Node depth has not been computed")
 	}
 	return n.depth, nil
@@ -158,9 +162,9 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 					newick.WriteString(",")
 				}
 				child.Newick(n, newick)
-				if n.br[i].support != -1 {
+				if n.br[i].support != NIL_SUPPORT {
 					newick.WriteString(fmt.Sprintf("%f", n.br[i].support))
-					if n.br[i].pvalue != -1 {
+					if n.br[i].pvalue != NIL_PVALUE {
 						newick.WriteString(fmt.Sprintf("/%f", n.br[i].support))
 					}
 				}
@@ -171,7 +175,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 						newick.WriteString("]")
 					}
 				}
-				if n.br[i].length != -1 {
+				if n.br[i].length != NIL_LENGTH {
 					newick.WriteString(":")
 					newick.WriteString(fmt.Sprintf("%f", n.br[i].length))
 				}

@@ -38,8 +38,8 @@ func (t *Tree) NewNode() *Node {
 		comment: make([]string, 0),
 		neigh:   make([]*Node, 0, 3),
 		br:      make([]*Edge, 0, 3),
-		depth:   -1,
-		id:      -1,
+		depth:   NIL_DEPTH,
+		id:      NIL_ID,
 	}
 }
 
@@ -60,10 +60,10 @@ func (t *Tree) delNode(n *Node) {
 
 func (t *Tree) NewEdge() *Edge {
 	return &Edge{
-		length:  -1.0,
-		support: -1.0,
-		id:      -1,
-		pvalue:  -1,
+		length:  NIL_LENGTH,
+		support: NIL_SUPPORT,
+		id:      NIL_ID,
+		pvalue:  NIL_PVALUE,
 	}
 }
 
@@ -271,12 +271,12 @@ func (t *Tree) removeTip(tip *Node) error {
 			return errors.New("Branches of internal node are not oriented as they should be")
 		}
 
-		if length1 != -1 || length2 != -1 {
+		if length1 != NIL_LENGTH || length2 != NIL_LENGTH {
 			e.SetLength(math.Max(0, length1) + math.Max(0, length2))
 		}
 
 		// We attribute a support to the new branch only if it is not a tip branch
-		if (sup1 != -1 || sup2 != -1) && len(n1.neigh) > 1 && len(n2.neigh) > 1 {
+		if (sup1 != NIL_SUPPORT || sup2 != NIL_SUPPORT) && len(n1.neigh) > 1 && len(n2.neigh) > 1 {
 			e.SetSupport(math.Max(sup1, sup2))
 		}
 
@@ -666,11 +666,11 @@ func (t *Tree) computeDepthRecurRooted(n *Node, prev *Node) int {
 		n.depth = 0
 		return n.depth
 	} else {
-		mindepth := -1
+		mindepth := NIL_DEPTH
 		for _, next := range n.neigh {
 			if next != prev {
 				depth := t.computeDepthRecurRooted(next, n)
-				if mindepth == -1 || depth < mindepth {
+				if mindepth == NIL_DEPTH || depth < mindepth {
 					mindepth = depth
 				}
 			}
@@ -688,14 +688,14 @@ func (t *Tree) computeDepthUnRooted() {
 		nbchanged = 0
 		nextnodes := make([]*Node, 0, 2000)
 		for _, n := range nodes {
-			if n.depth == -1 {
+			if n.depth == NIL_DEPTH {
 				n.depth = currentlevel
 				nbchanged++
 			}
 		}
 		for _, n := range nodes {
 			for _, next := range n.neigh {
-				if next.depth == -1 {
+				if next.depth == NIL_DEPTH {
 					nextnodes = append(nextnodes, next)
 				}
 			}
@@ -735,32 +735,32 @@ func (t *Tree) CollapseShortBranches(length float64) {
 }
 
 // Collapses (removes) the branches having
-// support <= support threshold && support != -1 (exists)
+// support <= support threshold && support != NIL_SUPPORT (exists)
 func (t *Tree) CollapseLowSupport(support float64) {
 	edges := t.Edges()
 	lowsupportbranches := make([]*Edge, 0, 1000)
 	for _, e := range edges {
-		if e.Support() != -1 && e.Support() <= support {
+		if e.Support() != NIL_SUPPORT && e.Support() <= support {
 			lowsupportbranches = append(lowsupportbranches, e)
 		}
 	}
 	t.RemoveEdges(lowsupportbranches...)
 }
 
-// Clears support (set to -1) of all branches of the tree
+// Clears support (set to NIL_SUPPORT) of all branches of the tree
 func (t *Tree) ClearSupports() {
 	edges := t.Edges()
 	for _, e := range edges {
-		e.SetSupport(-1)
-		e.SetPValue(-1)
+		e.SetSupport(NIL_SUPPORT)
+		e.SetPValue(NIL_PVALUE)
 	}
 }
 
-// Clears length (set to -1) of all branches of the tree
+// Clears length (set to NIL_LENGTH) of all branches of the tree
 func (t *Tree) ClearLengths() {
 	edges := t.Edges()
 	for _, e := range edges {
-		e.SetLength(-1)
+		e.SetLength(NIL_LENGTH)
 	}
 }
 
@@ -836,10 +836,10 @@ func (t *Tree) UnRoot() {
 		t.SetRoot(n1)
 	}
 
-	if e1.Length() != -1 || e2.Length() != -1 {
+	if e1.Length() != NIL_LENGTH || e2.Length() != NIL_LENGTH {
 		e3.SetLength(math.Max(0, e1.Length()) + math.Max(0, e2.Length()))
 	}
-	if !n1.Tip() && !n2.Tip() && (e1.Support() != -1 || e2.Support() != -1) {
+	if !n1.Tip() && !n2.Tip() && (e1.Support() != NIL_SUPPORT || e2.Support() != NIL_SUPPORT) {
 		e3.SetSupport(math.Max(0, e1.Support()) + math.Max(0, e2.Support()))
 	}
 	t.delNode(root)
