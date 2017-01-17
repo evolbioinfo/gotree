@@ -756,6 +756,14 @@ func (t *Tree) ClearSupports() {
 	}
 }
 
+// Clears pvalues associated with supports (set to NIL_PVALUE) of all branches of the tree
+func (t *Tree) ClearPvalues() {
+	edges := t.Edges()
+	for _, e := range edges {
+		e.SetPValue(NIL_PVALUE)
+	}
+}
+
 // Clears length (set to NIL_LENGTH) of all branches of the tree
 func (t *Tree) ClearLengths() {
 	edges := t.Edges()
