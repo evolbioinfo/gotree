@@ -735,12 +735,12 @@ func (t *Tree) CollapseShortBranches(length float64) {
 }
 
 // Collapses (removes) the branches having
-// support <= support threshold && support != NIL_SUPPORT (exists)
+// support < support threshold && support != NIL_SUPPORT (exists)
 func (t *Tree) CollapseLowSupport(support float64) {
 	edges := t.Edges()
 	lowsupportbranches := make([]*Edge, 0, 1000)
 	for _, e := range edges {
-		if e.Support() != NIL_SUPPORT && e.Support() <= support {
+		if e.Support() != NIL_SUPPORT && e.Support() < support {
 			lowsupportbranches = append(lowsupportbranches, e)
 		}
 	}

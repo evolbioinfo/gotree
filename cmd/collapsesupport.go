@@ -13,7 +13,7 @@ var collapsesupportCmd = &cobra.Command{
 	Long: `Collapse lowly supported branches of the input tree.
 
 Lowly supported branches are defined by a threshold (-s). All branches 
-with support <= threshold are removed.
+with support < threshold are removed.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		for t := range collapseIntrees {
