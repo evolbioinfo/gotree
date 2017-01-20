@@ -65,6 +65,7 @@ func TestEdgeNeighbor2(t *testing.T) {
 // Tests locality
 // Of distance 1
 func TestLocality(t *testing.T) {
+	cutoff := 0.8
 	for i := 0; i < 10; i++ {
 		tr, err := tree.RandomYuleBinaryTree(100, true)
 		if err != nil {
@@ -76,13 +77,22 @@ func TestLocality(t *testing.T) {
 		}
 		for _, e := range edges {
 			for dist := 1; dist < 5; dist++ {
-				avgloc, maxloc := e.Locality(dist)
+				avgloc, minloc, maxloc, hx, hy := e.Locality(dist, cutoff)
 
 				if avgloc != 0 {
 					t.Error(fmt.Sprintf("Avg locality should be 0 is and is %f", avgloc))
 				}
+				if minloc != 0 {
+					t.Error(fmt.Sprintf("Min locality should be 0 is and is %f", minloc))
+				}
 				if maxloc != 0 {
 					t.Error(fmt.Sprintf("Max locality should be 0 is and is %f", maxloc))
+				}
+				if !hy {
+					t.Error(fmt.Sprintf("Branch entropy for cutoff > 0.8 should be true and is %t", hx))
+				}
+				if !hx {
+					t.Error(fmt.Sprintf("Neighbor entropy for cutoff > 0.8 should be true and is %t", hx))
 				}
 			}
 		}
@@ -94,7 +104,7 @@ func TestLocality(t *testing.T) {
 // and alternating 0 and 1 supports from tips to root
 func TestLocality2(t *testing.T) {
 	expected := 3.0 / 4.0
-
+	cutoff := 0.8
 	tr, err := tree.RandomBalancedBinaryTree(10, true)
 	if err != nil {
 		t.Error(err)
@@ -111,14 +121,24 @@ func TestLocality2(t *testing.T) {
 			e.SetSupport(0.0)
 		}
 	}
+	// fmt.Println(tr.Newick())
 	for _, e := range edges {
 		if tr.Root() != e.Left() && !e.Right().Tip() {
-			avgloc, maxloc := e.Locality(1)
+			avgloc, minloc, maxloc, hx, hy := e.Locality(1, cutoff)
 			if avgloc != expected {
 				t.Error(fmt.Sprintf("Avg locality should be %f is and is %f", expected, avgloc))
 			}
+			if minloc != 0.0 {
+				t.Error(fmt.Sprintf("Min locality should be %f is and is %f", 0.0, minloc))
+			}
 			if maxloc != 1.0 {
 				t.Error(fmt.Sprintf("Max locality should be %f is and is %f", 1.0, maxloc))
+			}
+			if e.Support() > cutoff && !hy {
+				t.Error(fmt.Sprintf("Branch entropy for cutoff > 0.8 should be true and is %t", hx))
+			}
+			if !hx {
+				t.Error(fmt.Sprintf("Neighbor entropy for cutoff > 0.8 should be true and is %t", hx))
 			}
 		}
 	}

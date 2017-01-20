@@ -204,21 +204,39 @@ func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {
 
 // Returns the average difference and the max difference in support between the current edge and its neighbors
 // The neighbors are defined by the branches with length of the path separating the branches < d
-// Returns (avg diff, max diff)
-func (e *Edge) Locality(maxdist int) (float64, float64) {
+// cutoff: Cutoff to consider hx=true or hy=true
+// hx=true if exists a neighbor branch with suppt > cutoff
+// hy=true if the current branch has suppt > cutoff */
+// Returns (avg diff, min diff, max diff, hx, hy)
+func (e *Edge) Locality(maxdist int, cutoff float64) (float64, float64, float64, bool, bool) {
 	neighbors := e.NeigborEdges(maxdist)
-	avgdiff := 0.0
-	maxdiff := 0.0
-	nbe := 0
+
+	avgdiff := 0.0 /* Avg diff of br sup and neighb sup */
+	maxdiff := 0.0 /* max diff of br sup and neighb sup */
+	mindiff := 0.0 /* min diff of br sup and neighb sup */
+	hx := false    /* hx: true if exists a neighbor branch with suppt > cutoff */
+	hy := false    /* hy: true if the current branch has suppt > cutoff */
+	nbe := 0       /* nb neigh branches with support */
+
+	hy = (e.Support() != NIL_SUPPORT && e.Support() > cutoff)
 	for _, n := range neighbors {
 		if n.Support() != NIL_SUPPORT {
+			if n.Support() != NIL_SUPPORT && n.Support() > cutoff {
+				hx = true
+			}
+
 			diff := math.Abs(e.Support() - n.Support())
 			avgdiff += diff
 			maxdiff = math.Max(maxdiff, diff)
+			if nbe == 0 {
+				mindiff = diff
+			} else {
+				mindiff = math.Min(mindiff, diff)
+			}
 			nbe++
 		}
 	}
-	return avgdiff / float64(nbe), maxdiff
+	return avgdiff / float64(nbe), mindiff, maxdiff, hx, hy
 }
 
 // Returns the neighbors of the given edge.

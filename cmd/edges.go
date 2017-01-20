@@ -13,7 +13,7 @@ func min(a, b int) int {
 }
 
 var locality bool
-var localitymaxdist int
+var localitycutoff float64
 
 // edgesCmd represents the edges command
 var edgesCmd = &cobra.Command{
@@ -38,9 +38,11 @@ gotree stats edges -i t.nw
 	Run: func(cmd *cobra.Command, args []string) {
 		statsout.WriteString("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname")
 		if locality {
-			for d := 1; d <= localitymaxdist; d++ {
-				statsout.WriteString(fmt.Sprintf("\tlocality%d", d))
-			}
+			statsout.WriteString("\tlocalitymin")
+			statsout.WriteString("\tlocalitymax")
+			statsout.WriteString("\tlocalityavg")
+			statsout.WriteString("\tlocalityhx")
+			statsout.WriteString("\tlocalityhy")
 		}
 		statsout.WriteString("\n")
 		for statsintree := range statintrees {
@@ -50,13 +52,19 @@ gotree stats edges -i t.nw
 					fmt.Sprintf("%d\t%d\t%s",
 						statsintree.Id, i, e.ToStatsString()))
 				if locality {
-					for d := 1; d <= localitymaxdist; d++ {
-						if e.Right().Tip() {
-							statsout.WriteString("\tN/A")
-						} else {
-							_, max := e.Locality(d)
-							statsout.WriteString(fmt.Sprintf("\t%f", max))
-						}
+					if e.Right().Tip() {
+						statsout.WriteString("\tN/A\tN/A\tN/A\tN/A\tN/A")
+					} else {
+						/**
+						hx: 1 if exists a neighbor branch with suppt > 0.8
+						hy: 1 if the current branch has suppt > 0.8
+						*/
+						avg, min, max, hx, hy := e.Locality(1, localitycutoff)
+						statsout.WriteString(fmt.Sprintf("\t%f", min))
+						statsout.WriteString(fmt.Sprintf("\t%f", max))
+						statsout.WriteString(fmt.Sprintf("\t%f", avg))
+						statsout.WriteString(fmt.Sprintf("\t%t", hx))
+						statsout.WriteString(fmt.Sprintf("\t%t", hy))
 					}
 				}
 				statsout.WriteString("\n")
@@ -68,5 +76,6 @@ gotree stats edges -i t.nw
 func init() {
 	statsCmd.AddCommand(edgesCmd)
 	edgesCmd.PersistentFlags().BoolVarP(&locality, "locality", "l", false, "If locality measure must be computed (average difference between supports of edges and their neighbors)")
-	edgesCmd.PersistentFlags().IntVarP(&localitymaxdist, "locality-max-dist", "d", 1, "If locality measure is true, sets a cutoff to the neighborhood of a branch (number of edges)")
+	//edgesCmd.PersistentFlags().IntVarP(&localitymaxdist, "locality-max-dist", "d", 1, "If locality measure is true, sets a cutoff to the neighborhood of a branch (number of edges)")
+	edgesCmd.PersistentFlags().Float64VarP(&localitycutoff, "support-cutoff", "s", 0.8, "Cutoff to consider a branch (or its neighbor) as above the cutoff")
 }
