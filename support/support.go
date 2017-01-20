@@ -2,12 +2,12 @@ package support
 
 import (
 	"errors"
-	"fmt"
+	"runtime"
+	"sync"
+
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
-	"runtime"
-	"sync"
 )
 
 type bootval struct {
@@ -186,7 +186,7 @@ func ComputeSupport(reftreefile, boottreefile string, empirical bool, cpus int, 
 			support := float64(1) - avg_val/avg_rand_val
 
 			edges[i].SetSupport(support)
-			edges[i].Right().SetName(fmt.Sprintf("%.2f/%.4f", support, pval))
+			edges[i].SetPValue(pval)
 		}
 	}
 

@@ -165,7 +165,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 				if n.br[i].support != NIL_SUPPORT {
 					newick.WriteString(fmt.Sprintf("%f", n.br[i].support))
 					if n.br[i].pvalue != NIL_PVALUE {
-						newick.WriteString(fmt.Sprintf("/%f", n.br[i].support))
+						newick.WriteString(fmt.Sprintf("/%f", n.br[i].pvalue))
 					}
 				}
 				if len(child.comment) != 0 {
