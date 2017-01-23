@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
+	"os"
 	"sync"
 )
 
@@ -119,9 +120,9 @@ func update_i_c_post_order_ref_tree(refTree *tree.Tree, edges *[]*tree.Edge,
 
 func Update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*tree.Edge,
 	bootTree *tree.Tree, bootEdges *[]*tree.Edge,
-	i_matrix *[][]uint16, c_matrix *[][]uint16, hamming *[][]uint16, min_dist *[]uint16) {
+	i_matrix *[][]uint16, c_matrix *[][]uint16, hamming *[][]uint16, min_dist *[]uint16, min_dist_edge *[]int) {
 	for i, child := range bootTree.Root().Neigh() {
-		update_i_c_post_order_boot_tree(refTree, ntips, edges, bootTree, bootEdges, child, i, bootTree.Root(), i_matrix, c_matrix, hamming, min_dist)
+		update_i_c_post_order_boot_tree(refTree, ntips, edges, bootTree, bootEdges, child, i, bootTree.Root(), i_matrix, c_matrix, hamming, min_dist, min_dist_edge)
 	}
 
 	/* and then some checks to make sure everything went ok */
@@ -143,7 +144,8 @@ func Update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *
 func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*tree.Edge,
 	bootTree *tree.Tree, bootEdges *[]*tree.Edge,
 	current *tree.Node, curindex int, prev *tree.Node,
-	i_matrix *[][]uint16, c_matrix *[][]uint16, hamming *[][]uint16, min_dist *[]uint16) {
+	i_matrix *[][]uint16, c_matrix *[][]uint16,
+	hamming *[][]uint16, min_dist *[]uint16, min_dist_edge *[]int) {
 	var e, e2, e3 *tree.Edge
 	var edge_id, edge_id2, edge_id3, j int
 	var child *tree.Node
@@ -166,7 +168,7 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 				e2 = current.Edges()[j]
 				edge_id2 = e2.Id()
 				update_i_c_post_order_boot_tree(refTree, ntips, edges, bootTree, bootEdges, child, j, current,
-					i_matrix, c_matrix, hamming, min_dist)
+					i_matrix, c_matrix, hamming, min_dist, min_dist_edge)
 				for edge_id3 = 0; edge_id3 < len(*edges); edge_id3++ { /* for all the edges of ref_tree */
 					(*i_matrix)[edge_id3][edge_id] += (*i_matrix)[edge_id3][edge_id2]
 					(*c_matrix)[edge_id3][edge_id] += (*c_matrix)[edge_id3][edge_id2]
@@ -188,7 +190,10 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 		}
 
 		/*   and update the min of all Hamming (MAST-like) distances hamming[i][j] over all j */
-		(*min_dist)[edge_id3] = min_uint((*hamming)[edge_id3][edge_id], (*min_dist)[edge_id3])
+		if (*hamming)[edge_id3][edge_id] < (*min_dist)[edge_id3] {
+			(*min_dist)[edge_id3] = (*hamming)[edge_id3][edge_id]
+			(*min_dist_edge)[edge_id3] = edge_id
+		}
 	}
 }
 
@@ -196,13 +201,14 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 // computes the mastlike dist for each edges of the ref tree
 // and send it to the result channel
 func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval) {
+	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval, speciesChannel chan<- speciesmoved) {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
+	var min_dist_edge []int = make([]int, len(edges))
 	var i_matrix [][]uint16 = make([][]uint16, len(edges))
 	var c_matrix [][]uint16 = make([][]uint16, len(edges))
 	var hamming [][]uint16 = make([][]uint16, len(edges))
-
+	var movedSpecies []int = make([]int, len(tips))
 	vals := make([]int, len(edges))
 
 	for treeV := range bootTreeChannel {
@@ -210,6 +216,7 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 		bootEdges := treeV.Tree.Edges()
 		for i, _ := range edges {
 			min_dist[i] = uint16(len(tips))
+			min_dist_edge[i] = -1
 			if len(bootEdges) > len(i_matrix[i]) {
 				i_matrix[i] = make([]uint16, len(bootEdges))
 				c_matrix[i] = make([]uint16, len(bootEdges))
@@ -222,13 +229,17 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 		}
 
 		Update_all_i_c_post_order_ref_tree(refTree, &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
-		Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist)
+		Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edge)
 
 		for i, e := range edges {
 			if e.Right().Tip() {
 				continue
 			}
+			be := bootEdges[min_dist_edge[i]]
 			vals[i] = int(min_dist[i])
+			for _, sp := range speciesToMove(e, be, vals[i]) {
+				movedSpecies[sp]++
+			}
 			valChan <- bootval{
 				vals[i],
 				i,
@@ -242,7 +253,7 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 					min_dist[i] = uint16(len(tips))
 				}
 				Update_all_i_c_post_order_ref_tree(et, &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
-				Update_all_i_c_post_order_boot_tree(et, uint(len(tips)), &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist)
+				Update_all_i_c_post_order_boot_tree(et, uint(len(tips)), &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edge)
 
 				for i, _ := range randEdges[j] {
 					val := int(min_dist[i])
@@ -254,11 +265,45 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 				}
 			}
 		}
+		for sp, nb := range movedSpecies {
+			speciesChannel <- speciesmoved{
+				uint(sp),
+				nb,
+			}
+			movedSpecies[sp] = 0
+		}
 	}
 	wg.Done()
 }
 
-func MastLike(reftreefile, boottreefile string, empirical bool, cpus int) *tree.Tree {
+func MastLike(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) *tree.Tree {
 	var supporter *MastSupporter = &MastSupporter{}
-	return ComputeSupport(reftreefile, boottreefile, empirical, cpus, supporter)
+	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
+}
+
+// Returns the list of species to move to go from one branch to the other
+// Its length should correspond to given dist
+// If not, exit with an error
+func speciesToMove(e, be *tree.Edge, dist int) []uint {
+	var i uint
+	diff := make([]uint, 0, 100)
+	equ := make([]uint, 0, 100)
+
+	for i = 0; i < e.Bitset().Len(); i++ {
+		if e.Bitset().Test(i) != be.Bitset().Test(i) {
+			diff = append(diff, i)
+		} else {
+			equ = append(equ, i)
+		}
+	}
+	if len(diff) < len(equ) {
+		if len(diff) != dist {
+			io.ExitWithMessage(errors.New("Length of moved species array is not equal to the minimum distance found"))
+		}
+		return diff
+	}
+	if len(equ) != dist {
+		io.ExitWithMessage(errors.New("Length of moved species array is not equal to the minimum distance found"))
+	}
+	return equ
 }

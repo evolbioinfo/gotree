@@ -5,6 +5,7 @@ import (
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
 	"math"
+	"os"
 	"sort"
 	"sync"
 )
@@ -161,7 +162,7 @@ func nbParsimonyStepsRecur(cur *tree.Node, prev *tree.Node, bootTree *tree.Tree,
 // computes the number of pars steps for each edges of the ref tree
 // and send it to the result channel
 func (supporter *parsimonySupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, stepsChan chan<- bootval, randStepsChan chan<- bootval) {
+	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, stepsChan chan<- bootval, randStepsChan chan<- bootval, speciesChannel chan<- speciesmoved) {
 	func(cpu int) {
 		for treeV := range bootTreeChannel {
 			for i, e := range edges {
@@ -207,7 +208,7 @@ func (supporter *parsimonySupporter) ProbaDepthValue(d, v int) float64 {
 	return supporter.distribution_rand_step_val[d][v+1]
 }
 
-func Parsimony(reftreefile, boottreefile string, empirical bool, cpus int) *tree.Tree {
+func Parsimony(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) *tree.Tree {
 	var supporter *parsimonySupporter = &parsimonySupporter{}
-	return ComputeSupport(reftreefile, boottreefile, empirical, cpus, supporter)
+	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }

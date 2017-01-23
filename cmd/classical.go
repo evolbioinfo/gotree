@@ -15,10 +15,11 @@
 package cmd
 
 import (
-	"github.com/fredericlemoine/gotree/io"
+	"fmt"
+	"time"
+
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // classicalCmd represents the classical command
@@ -32,23 +33,21 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var f *os.File
-		var err error
-		if supportOutFile != "stdout" {
-			f, err = os.Create(supportOutFile)
-		} else {
-			f = os.Stdout
-		}
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
 		t := support.Classical(supportIntree, supportBoottrees, rootCpus)
-		f.WriteString(t.Newick() + "\n")
-		f.Close()
+		supportOut.WriteString(t.Newick() + "\n")
+		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 	},
 }
 
 func init() {
 	supportCmd.AddCommand(classicalCmd)
+}
 
+func writeLogClassical() {
+	supportLog.WriteString("Classical Support\n")
+	supportLog.WriteString(fmt.Sprintf("Start       : %s\n", time.Now().Format(time.RFC822)))
+	supportLog.WriteString(fmt.Sprintf("Input tree  : %s\n", supportIntree))
+	supportLog.WriteString(fmt.Sprintf("Boot trees  : %s\n", supportBoottrees))
+	supportLog.WriteString(fmt.Sprintf("Output tree : %s\n", supportOutFile))
+	supportLog.WriteString(fmt.Sprintf("CPUs        : %d\n", rootCpus))
 }

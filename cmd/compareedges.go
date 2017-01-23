@@ -51,9 +51,11 @@ If the compared tree file contains several trees, it will take the first one onl
 			edges2 := t2.Tree.Edges()
 
 			var min_dist []uint16
+			var min_dist_edges []int
 			if edgesMastDist {
-				min_dist = make([]uint16, len(edges1))
 				tips := refTree.Tips()
+				min_dist = make([]uint16, len(edges1))
+				min_dist_edges = make([]int, len(tips))
 				var i_matrix [][]uint16 = make([][]uint16, len(edges1))
 				var c_matrix [][]uint16 = make([][]uint16, len(edges1))
 				var hamming [][]uint16 = make([][]uint16, len(edges1))
@@ -69,7 +71,7 @@ If the compared tree file contains several trees, it will take the first one onl
 					e.SetId(i)
 				}
 				support.Update_all_i_c_post_order_ref_tree(refTree, &edges1, t2.Tree, &edges2, &i_matrix, &c_matrix)
-				support.Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges1, t2.Tree, &edges2, &i_matrix, &c_matrix, &hamming, &min_dist)
+				support.Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges1, t2.Tree, &edges2, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edges)
 			}
 
 			for i, e1 := range edges1 {

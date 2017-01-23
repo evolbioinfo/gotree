@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"github.com/fredericlemoine/gotree/io"
+	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/spf13/cobra"
-	"math/rand"
-	"os"
-	"time"
 )
 
 var mastEmpirical bool
@@ -20,21 +20,11 @@ var mastlikeCmd = &cobra.Command{
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		var f *os.File
-		var err error
+		writeLogMast()
 		rand.Seed(mastSeed)
-
-		if supportOutFile != "stdout" {
-			f, err = os.Create(supportOutFile)
-		} else {
-			f = os.Stdout
-		}
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		t := support.MastLike(supportIntree, supportBoottrees, mastEmpirical, rootCpus)
-		f.WriteString(t.Newick() + "\n")
-		f.Close()
+		t := support.MastLike(supportIntree, supportBoottrees, supportLog, mastEmpirical, rootCpus)
+		supportOut.WriteString(t.Newick() + "\n")
+		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 	},
 }
 
@@ -44,4 +34,15 @@ func init() {
 	mastlikeCmd.PersistentFlags().BoolVarP(&mastEmpirical, "empirical", "e", false, "If the support is computed with comparison to empirical support classical steps (shuffles of the original tree)")
 	mastlikeCmd.PersistentFlags().Int64VarP(&mastSeed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed if empirical is ON")
 
+}
+
+func writeLogMast() {
+	supportLog.WriteString("Mast Support\n")
+	supportLog.WriteString(fmt.Sprintf("Date        : %s\n", time.Now().Format(time.RFC822)))
+	supportLog.WriteString(fmt.Sprintf("Input tree  : %s\n", supportIntree))
+	supportLog.WriteString(fmt.Sprintf("Boot trees  : %s\n", supportBoottrees))
+	supportLog.WriteString(fmt.Sprintf("Output tree : %s\n", supportOutFile))
+	supportLog.WriteString(fmt.Sprintf("Theor norm  : %t\n", !mastEmpirical))
+	supportLog.WriteString(fmt.Sprintf("Seed        : %d\n", mastSeed))
+	supportLog.WriteString(fmt.Sprintf("CPUs        : %d\n", rootCpus))
 }
