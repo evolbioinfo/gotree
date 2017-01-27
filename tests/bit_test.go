@@ -5,8 +5,12 @@ import "testing"
 import "fmt"
 
 func TestBitset(t *testing.T) {
-	var l uint = 65
+	var l uint = 67
 	b, b2, b3 := bitset.New(l), bitset.New(l), bitset.New(l)
+
+	if b.Len() != l {
+		t.Error(fmt.Sprintf("Bitset Length should be %d and is %d", l, b.Len()))
+	}
 
 	var i uint
 	for i = 0; i < l; i++ {
