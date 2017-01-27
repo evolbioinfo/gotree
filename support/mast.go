@@ -210,10 +210,13 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 	var hamming [][]uint16 = make([][]uint16, len(edges))
 	var movedSpecies []int = make([]int, len(tips))
 	vals := make([]int, len(edges))
-
+	// Number of branches that have a normalized similarity (1- (min_dist/(n-1)) to
+	// bootstrap trees > 0.8
+	nb_branches_close := 0
 	for treeV := range bootTreeChannel {
 		fmt.Println(fmt.Sprintf("CPU : %d - Bootstrap tree %d", cpu, treeV.Id))
 		bootEdges := treeV.Tree.Edges()
+
 		for i, _ := range edges {
 			min_dist[i] = uint16(len(tips))
 			min_dist_edge[i] = -1
@@ -237,8 +240,16 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 			}
 			be := bootEdges[min_dist_edge[i]]
 			vals[i] = int(min_dist[i])
-			for _, sp := range speciesToMove(e, be, vals[i]) {
-				movedSpecies[sp]++
+			td, err := e.TopoDepth()
+			if err != nil {
+				io.ExitWithMessage(err)
+			}
+			norm := 1.0 - float64(vals[i])/(float64(td)-1.0)
+			if norm > 0.8 && td >= 6 {
+				for _, sp := range speciesToMove(e, be, vals[i]) {
+					movedSpecies[sp]++
+				}
+				nb_branches_close++
 			}
 			valChan <- bootval{
 				vals[i],
@@ -265,14 +276,14 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 				}
 			}
 		}
-		for sp, nb := range movedSpecies {
-			speciesChannel <- speciesmoved{
-				uint(sp),
-				nb,
-			}
-			movedSpecies[sp] = 0
+	}
+	for sp, nb := range movedSpecies {
+		speciesChannel <- speciesmoved{
+			uint(sp),
+			float64(nb) / float64(nb_branches_close),
 		}
 	}
+
 	wg.Done()
 }
 
@@ -298,12 +309,12 @@ func speciesToMove(e, be *tree.Edge, dist int) []uint {
 	}
 	if len(diff) < len(equ) {
 		if len(diff) != dist {
-			io.ExitWithMessage(errors.New("Length of moved species array is not equal to the minimum distance found"))
+			io.ExitWithMessage(errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", len(diff), dist)))
 		}
 		return diff
 	}
 	if len(equ) != dist {
-		io.ExitWithMessage(errors.New("Length of moved species array is not equal to the minimum distance found"))
+		io.ExitWithMessage(errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", len(equ), dist)))
 	}
 	return equ
 }

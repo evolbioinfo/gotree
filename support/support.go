@@ -21,7 +21,7 @@ type bootval struct {
 
 type speciesmoved struct {
 	taxid   uint
-	nbtimes int
+	nbtimes float64
 }
 
 type Supporter interface {
@@ -66,7 +66,7 @@ func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirica
 	var valuesRand []int               // Sum of number of bootValues per random edges over boot trees
 	var gtRandom []float64             // Number of times edges have steps that are >= rand steps
 	var randTrees []*tree.Tree         // Empirical rand trees
-	var speciesMovedCount []int        // Number of times each species has been moved (for mast mainly)
+	var speciesMovedCount []float64    // Number of times each species has been moved (for mast mainly)
 
 	var wg sync.WaitGroup  // For waiting end of step computation
 	var wg2 sync.WaitGroup // For waiting end of final counting
@@ -94,7 +94,7 @@ func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirica
 	valuesBoot = make([]int, len(edges))
 	gtRandom = make([]float64, len(edges))
 	valuesRand = make([]int, len(edges))
-	speciesMovedCount = make([]int, len(tips))
+	speciesMovedCount = make([]float64, len(tips))
 
 	// Precomputation of expected number of parsimony steps per depth
 	supporter.Init(max_depth, len(tips))
@@ -192,7 +192,7 @@ func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirica
 
 	logfile.WriteString("Moving taxa\n")
 	for i, n := range speciesMovedCount {
-		logfile.WriteString(fmt.Sprintf("%s : %d\n", names[i], n))
+		logfile.WriteString(fmt.Sprintf("%s : %f\n", names[i], n))
 	}
 
 	// Finally we compute pvalues and support and write it in the tree
