@@ -55,7 +55,7 @@ If the compared tree file contains several trees, it will take the first one onl
 			if edgesMastDist {
 				tips := refTree.Tips()
 				min_dist = make([]uint16, len(edges1))
-				min_dist_edges = make([]int, len(tips))
+				min_dist_edges = make([]int, len(edges1))
 				var i_matrix [][]uint16 = make([][]uint16, len(edges1))
 				var c_matrix [][]uint16 = make([][]uint16, len(edges1))
 				var hamming [][]uint16 = make([][]uint16, len(edges1))
