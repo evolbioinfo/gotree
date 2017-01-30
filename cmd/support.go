@@ -36,10 +36,10 @@ The supports implemented are :
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
-		if supportLogFile != "stdout" {
+		if supportLogFile != "stderr" {
 			supportLog, err = os.Create(supportLogFile)
 		} else {
-			supportLog = os.Stdout
+			supportLog = os.Stderr
 		}
 		if err != nil {
 			io.ExitWithMessage(err)
@@ -57,5 +57,5 @@ func init() {
 	supportCmd.PersistentFlags().StringVarP(&supportIntree, "reftree", "i", "stdin", "Reference tree input file")
 	supportCmd.PersistentFlags().StringVarP(&supportBoottrees, "bootstrap", "b", "none", "Bootstrap trees input file")
 	supportCmd.PersistentFlags().StringVarP(&supportOutFile, "out", "o", "stdout", "Output tree file, with supports")
-	supportCmd.PersistentFlags().StringVarP(&supportLogFile, "log-file", "l", "stdout", "Output log file")
+	supportCmd.PersistentFlags().StringVarP(&supportLogFile, "log-file", "l", "stderr", "Output log file")
 }

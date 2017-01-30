@@ -214,7 +214,7 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 	// bootstrap trees > 0.8
 	nb_branches_close := 0
 	for treeV := range bootTreeChannel {
-		fmt.Println(fmt.Sprintf("CPU : %d - Bootstrap tree %d", cpu, treeV.Id))
+		fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\n", cpu, treeV.Id)
 		bootEdges := treeV.Tree.Edges()
 
 		for i, _ := range edges {
