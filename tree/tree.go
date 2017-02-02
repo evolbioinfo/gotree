@@ -747,6 +747,24 @@ func (t *Tree) CollapseLowSupport(support float64) {
 	t.RemoveEdges(lowsupportbranches...)
 }
 
+// Collapses (removes) the branches having their depth d
+// (# taxa on the lightest side of the bipartition)
+// mindepththreshold<=d<=maxdepththreshold
+func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int) {
+	edges := t.Edges()
+	depthbranches := make([]*Edge, 0, 1000)
+	for _, e := range edges {
+		if d, err := e.TopoDepth(); err != nil {
+			io.ExitWithMessage(err)
+		} else {
+			if d >= mindepthThreshold && d <= maxdepthThreshold {
+				depthbranches = append(depthbranches, e)
+			}
+		}
+	}
+	t.RemoveEdges(depthbranches...)
+}
+
 // Clears support (set to NIL_SUPPORT) of all branches of the tree
 func (t *Tree) ClearSupports() {
 	edges := t.Edges()
