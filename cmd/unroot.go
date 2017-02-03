@@ -10,6 +10,8 @@ import (
 
 var unrootInputTree string
 var unrootOutputTree string
+var unrootIntrees chan tree.Trees
+var unrootOutTrees *os.File
 
 // unrootCmd represents the unroot command
 var unrootCmd = &cobra.Command{
@@ -36,28 +38,26 @@ Example of usage:
 gotree unroot -i tree.nw -o tree_u.nw
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		// Read Tree
-		var t *tree.Tree
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
-		t, err = utils.ReadRefTree(unrootInputTree)
-		if err != nil {
-			io.ExitWithMessage(err)
+		var nbtrees int = 0
+		unrootIntrees = make(chan tree.Trees, 15)
+		/* Read ref tree(s) */
+		go func() {
+			if nbtrees, err = utils.ReadCompTrees(unrootInputTree, unrootIntrees); err != nil {
+				io.ExitWithMessage(err)
+			}
+		}()
+		unrootOutTrees = openWriteFile(unrootOutputTree)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		for t := range unrootIntrees {
+			t.Tree.UnRoot()
+			unrootOutTrees.WriteString(t.Tree.Newick() + "\n")
 		}
-		var f *os.File
-		if unrootOutputTree != "stdout" {
-			f, err = os.Create(unrootOutputTree)
-		} else {
-			f = os.Stdout
-		}
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-
-		t.UnRoot()
-
-		f.WriteString(t.Newick() + "\n")
-		f.Close()
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		unrootOutTrees.Close()
 	},
 }
 
