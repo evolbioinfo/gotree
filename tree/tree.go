@@ -7,11 +7,12 @@ package tree
 import (
 	"bytes"
 	"errors"
-	"github.com/fredericlemoine/bitset"
-	"github.com/fredericlemoine/gotree/io"
 	"math"
 	"math/rand"
 	"sort"
+
+	"github.com/fredericlemoine/bitset"
+	"github.com/fredericlemoine/gotree/io"
 )
 
 type Tree struct {
@@ -763,6 +764,84 @@ func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int) {
 		}
 	}
 	t.RemoveEdges(depthbranches...)
+}
+
+// Resolves multifurcating nodes (>3 neighbors)
+// If any node has more than 3 neighbors :
+// Resolve neighbors randomly by adding 0 length
+// branches until it has 3 neighbors
+func (t *Tree) Resolve() {
+	root := t.Root()
+
+	t.resolveRecur(root, nil)
+}
+
+// Recursive function to resolve
+// multifurcating nodes (see Resolve)
+// Post order: We first resolve neighbors,
+// and then resolve the current node
+// This function does not update bitsets on edges:
+// The calling function must do it with:
+// err := t.ClearBitSets()
+// if err != nil {
+// 	return err
+// }
+// t.UpdateBitSet()
+
+func (t *Tree) resolveRecur(current, previous *Node) {
+	// Resolve neighbors
+	for _, n := range current.Neigh() {
+		if n != previous {
+			t.resolveRecur(n, current)
+		}
+	}
+	// Resolve the current node if needed
+	if len(current.Neigh()) > 3 {
+		// Neighbors to group : All neighbors except the "parent"
+		// And random order in the array
+		l := len(current.Neigh())
+		if previous != nil {
+			l--
+		}
+		togroup := make([]*Edge, l)
+		perm := rand.Perm(l)
+		nb := 0
+		for i, n := range current.Neigh() {
+			if n != previous {
+				togroup[perm[nb]] = current.Edges()[i]
+				nb++
+			}
+		}
+		// Now we take neighbors 2 by 2 in reverse order of togroup
+		for len(current.Neigh()) > 3 {
+			// And add a new node that will connect the 2 neighbors
+			n2 := t.NewNode()
+			// Take the two last edges of perm
+			for i := 0; i < 2; i++ {
+				// And an edge between current and the new node
+				e := togroup[len(togroup)-1]
+				// Remove last element of togroup
+				togroup = togroup[:len(togroup)-1]
+				boot := e.Support()
+				len := e.Length()
+				pv := e.PValue()
+				other := e.Right()
+				other.delNeighbor(current)
+				current.delNeighbor(other)
+				etmp := t.ConnectNodes(n2, other)
+				etmp.SetLength(len)
+				etmp.SetSupport(boot)
+				etmp.SetPValue(pv)
+			}
+			// Connect new node to current node
+			e := t.ConnectNodes(current, n2)
+			e.SetLength(0.0)
+			e.SetSupport(NIL_SUPPORT)
+			e.SetPValue(NIL_PVALUE)
+			// Update togroup removing two last nodes and adding the new node at the end
+			togroup = append(togroup, e)
+		}
+	}
 }
 
 // Clears support (set to NIL_SUPPORT) of all branches of the tree
