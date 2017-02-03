@@ -3,12 +3,14 @@ package cmd
 import (
 	"bufio"
 	"compress/gzip"
+	"errors"
+	"os"
+	"strings"
+
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 // outgroupCmd represents the outgroup command
@@ -19,15 +21,26 @@ var outgroupCmd = &cobra.Command{
 
 Example:
 
-Reroot on 1 tip named "Tip10":
+Reroot on 1 tip named "Tip10" using stdin:
 echo "Tip10" | gotree reroot outgroup -i tree.nw -l - > reroot.nw
 
-Reroot using an outgroup defined by 3 tips:
+Reroot using an outgroup defined by 3 tips using stdin:
 echo "Tip1,Tip2,Tip10" | gotree reroot outgroup -i tree.nw -l - > reroot.nw
+
+Reroot using an outgroup defined by 3 tips using command args:
+
+gotree reroot outgroup -i tree.nw Tip1 Tip2 Tip3 > reroot.nw
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		tips := parseTipsFile(reroottipfile)
+		var tips []string
+		if reroottipfile != "none" {
+			tips = parseTipsFile(reroottipfile)
+		} else if len(args) > 0 {
+			tips = args
+		} else {
+			io.ExitWithMessage(errors.New("Not group given"))
+		}
 
 		var err error
 		var nbtrees int
@@ -65,7 +78,7 @@ echo "Tip1,Tip2,Tip10" | gotree reroot outgroup -i tree.nw -l - > reroot.nw
 
 func init() {
 	rerootCmd.AddCommand(outgroupCmd)
-	outgroupCmd.PersistentFlags().StringVarP(&reroottipfile, "tip-file", "l", "stdin", "File containing names of tips of the outgroup")
+	outgroupCmd.PersistentFlags().StringVarP(&reroottipfile, "tip-file", "l", "none", "File containing names of tips of the outgroup")
 }
 
 func parseTipsFile(file string) []string {

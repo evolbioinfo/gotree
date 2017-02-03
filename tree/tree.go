@@ -950,6 +950,23 @@ func (t *Tree) UnRoot() {
 	t.delNode(root)
 }
 
+/*
+Annotates internal branches of a tree with given data
+Takes a map with
+- key: name of internal branch
+-  value: names of taxa
+=> It will take the lca of taxa and annotate it
+=> Output tree won't have bootstrap support at the branches anymore
+*/
+func (t *Tree) Annotate(names map[string][]string) {
+	nodeindex := NewNodeIndex(t)
+
+	for k, v := range names {
+		n, _, _ := t.LeastCommonAncestorUnrooted(nodeindex, v...)
+		n.SetName(k)
+	}
+}
+
 // This function renames nodes of the tree based on the map in argument
 // If a name in the map does not exist in the tree, then returns an error
 // If a node/tip in the tree does not have a name in the map: OK

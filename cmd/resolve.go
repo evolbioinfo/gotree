@@ -38,7 +38,7 @@ var resolveCmd = &cobra.Command{
 			}
 		}()
 		resolveOutTrees = openWriteFile(resolveOutputTree)
-		rand.Seed(mastSeed)
+		rand.Seed(resolveSeed)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		for t := range resolveIntrees {
