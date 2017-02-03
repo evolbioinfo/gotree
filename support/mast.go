@@ -212,8 +212,9 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 	vals := make([]int, len(edges))
 	// Number of branches that have a normalized similarity (1- (min_dist/(n-1)) to
 	// bootstrap trees > 0.8
-	nb_branches_close := 0
+	var nb_branches_close int
 	for treeV := range bootTreeChannel {
+		nb_branches_close = 0
 		fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\n", cpu, treeV.Id)
 		bootEdges := treeV.Tree.Edges()
 
@@ -245,7 +246,7 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 				io.ExitWithMessage(err)
 			}
 			norm := 1.0 - float64(vals[i])/(float64(td)-1.0)
-			if norm > 0.8 && td >= 6 {
+			if norm > 0.95 && td >= 21 {
 				for _, sp := range speciesToMove(e, be, vals[i]) {
 					movedSpecies[sp]++
 				}
@@ -276,11 +277,12 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 				}
 			}
 		}
-	}
-	for sp, nb := range movedSpecies {
-		speciesChannel <- speciesmoved{
-			uint(sp),
-			float64(nb) / float64(nb_branches_close),
+		for sp, nb := range movedSpecies {
+			speciesChannel <- speciesmoved{
+				uint(sp),
+				float64(nb) / float64(nb_branches_close),
+			}
+			movedSpecies[sp] = 0
 		}
 	}
 
