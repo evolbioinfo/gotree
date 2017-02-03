@@ -160,6 +160,7 @@ func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) *
 		var other *Node
 		boot := e.Support()
 		len := e.Length()
+		pv := e.PValue()
 		var etmp *Edge
 		if dir {
 			nbout++
@@ -176,6 +177,7 @@ func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) *
 		}
 		etmp.SetLength(len)
 		etmp.SetSupport(boot)
+		etmp.SetPValue(pv)
 	}
 
 	var e *Edge
