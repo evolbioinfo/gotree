@@ -1,13 +1,17 @@
 package cmd
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"os"
+	"sort"
+
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 /* If transfer dist should be also given in output */
@@ -30,6 +34,8 @@ If the compared tree file contains several trees, it will take the first one onl
 			io.ExitWithMessage(err)
 		}
 		refTree.ComputeDepths()
+		names := refTree.AllTipNames()
+		sort.Strings(names)
 
 		nbtrees := 0
 		compareChannel := make(chan tree.Trees, 15)
@@ -83,8 +89,26 @@ If the compared tree file contains several trees, it will take the first one onl
 					}
 				}
 				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(), found)
+
 				if edgesMastDist {
-					fmt.Printf("\t%d", min_dist[e1.Id()])
+					var movedtaxa bytes.Buffer
+					be := edges2[min_dist_edges[i]]
+					plus, minus := speciesToMove(e1, be, int(min_dist[i]))
+					for k, sp := range plus {
+						if k > 0 {
+							movedtaxa.WriteRune(',')
+						}
+						movedtaxa.WriteRune('+')
+						movedtaxa.WriteString(names[sp])
+					}
+					for k, sp := range minus {
+						if k > 0 || (k == 0 && len(plus) > 0) {
+							movedtaxa.WriteRune(',')
+						}
+						movedtaxa.WriteRune('-')
+						movedtaxa.WriteString(names[sp])
+					}
+					fmt.Printf("\t%d\t%s", min_dist[e1.Id()], movedtaxa.String())
 				}
 				fmt.Printf("\n")
 			}
@@ -95,4 +119,47 @@ If the compared tree file contains several trees, it will take the first one onl
 func init() {
 	compareCmd.AddCommand(compareedgesCmd)
 	compareedgesCmd.PersistentFlags().BoolVarP(&edgesMastDist, "mast-dist", "m", false, "If mast dist must be computed for each edge")
+}
+
+// Returns the list of species to move to go from one branch to the other
+// Its length should correspond to given dist
+// If not, exit with an error
+func speciesToMove(e, be *tree.Edge, dist int) ([]uint, []uint) {
+	var i uint
+	ndiff := 0
+	neq := 0
+	diffplus := make([]uint, 0, 100)
+	diffminus := make([]uint, 0, 100)
+	equplus := make([]uint, 0, 100)
+	equminus := make([]uint, 0, 100)
+
+	for i = 0; i < e.Bitset().Len(); i++ {
+		t1 := e.Bitset().Test(i)
+		t2 := be.Bitset().Test(i)
+		if t1 != t2 {
+			ndiff++
+			if t1 {
+				diffminus = append(diffminus, i)
+			} else {
+				diffplus = append(diffplus, i)
+			}
+		} else {
+			neq++
+			if t1 {
+				equminus = append(equminus, i)
+			} else {
+				equplus = append(equplus, i)
+			}
+		}
+	}
+	if ndiff < neq {
+		if ndiff != dist {
+			io.ExitWithMessage(errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", ndiff, dist)))
+		}
+		return diffplus, diffminus
+	}
+	if neq != dist {
+		io.ExitWithMessage(errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", neq, dist)))
+	}
+	return equplus, equminus
 }
