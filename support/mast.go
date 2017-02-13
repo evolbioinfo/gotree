@@ -293,6 +293,10 @@ func MastLike(reftreefile, boottreefile string, logfile *os.File, empirical bool
 	var supporter *MastSupporter = &MastSupporter{}
 	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
+func MastLikeFile(reftreefile, boottreefile *io.Reader, logfile *os.File, empirical bool, cpus int) *tree.Tree {
+	var supporter *MastSupporter = &MastSupporter{}
+	return ComputeSupportFile(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
+}
 
 // Returns the list of species to move to go from one branch to the other
 // Its length should correspond to given dist

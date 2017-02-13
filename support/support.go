@@ -52,7 +52,26 @@ func min_uint(a uint16, b uint16) uint16 {
 	}
 	return b
 }
+
 func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int, supporter Supporter) *tree.Tree {
+	// We read bootstrap trees and put them in the channel
+	if boottreefile == "none" {
+		io.ExitWithMessage(errors.New("You must provide a file containing bootstrap trees"))
+	}
+	if ref, err := utils.OpenFile(reftreefile); err != nil {
+		io.ExitWithMessage(err)
+		return nil
+	} else {
+		if comp, err2 := utils.OpenFile(boottreefile); err2 != nil {
+			io.ExitWithMessage(err2)
+			return nil
+		} else {
+			return ComputeSupportFile(ref, comp, logfile, empirical, cpus, supporter)
+		}
+	}
+}
+
+func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, empirical bool, cpus int, supporter Supporter) *tree.Tree {
 	var reftree *tree.Tree             // reference tree
 	var err error                      // error output
 	var nbEmpiricalTrees int = 10      // number of empirical trees to simulate
@@ -84,7 +103,7 @@ func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirica
 		cpus = maxcpus
 	}
 
-	if reftree, err = utils.ReadRefTree(reftreefile); err != nil {
+	if reftree, err = utils.ReadRefTreeFile(reftreefile); err != nil {
 		io.ExitWithMessage(err)
 	}
 
@@ -105,7 +124,7 @@ func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirica
 	if empirical {
 		for i := 0; i < nbEmpiricalTrees; i++ {
 			var randT *tree.Tree
-			if randT, err = utils.ReadRefTree(reftreefile); err != nil {
+			if randT, err = utils.ReadRefTreeFile(reftreefile); err != nil {
 				io.ExitWithMessage(err)
 			}
 			randT.ShuffleTips()
@@ -120,12 +139,8 @@ func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirica
 		e.SetId(i)
 	}
 
-	// We read bootstrap trees and put them in the channel
-	if boottreefile == "none" {
-		io.ExitWithMessage(errors.New("You must provide a file containing bootstrap trees"))
-	}
 	go func() {
-		if nbtrees, err = utils.ReadCompTrees(boottreefile, bootTreeChannel); err != nil {
+		if nbtrees, err = utils.ReadCompTreesFile(boottreefile, bootTreeChannel); err != nil {
 			io.ExitWithMessage(err)
 		}
 	}()

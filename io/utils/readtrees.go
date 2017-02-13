@@ -10,68 +10,54 @@ import (
 	"strings"
 )
 
-// Reads one tree from the input file
 func ReadRefTree(inputfile string) (*tree.Tree, error) {
-	var refTreeFile *os.File
+	if r, err := GetReader(inputfile); err != nil {
+		return nil, err
+	} else {
+		if t, err2 := ReadRefTreeFile(r); err2 != nil {
+			return nil, err2
+		} else {
+			if err = r.Close(); err != nil {
+				return nil, err
+			}
+			return t, nil
+		}
+	}
+
+}
+
+// Reads one tree from the input file
+func ReadRefTreeFile(reader *io.Reader) (*tree.Tree, error) {
 	var reftree *tree.Tree
 	var err error
-	var reader *bufio.Reader
-
-	if inputfile == "" || inputfile == "stdin" || inputfile == "-" {
-		refTreeFile = os.Stdin
-	} else {
-		refTreeFile, err = os.Open(inputfile)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if strings.HasSuffix(inputfile, ".gz") {
-		if gr, err := gzip.NewReader(refTreeFile); err != nil {
-			io.ExitWithMessage(err)
-		} else {
-			reader = bufio.NewReader(gr)
-		}
-	} else {
-		reader = bufio.NewReader(refTreeFile)
-	}
 
 	if reftree, err = newick.NewParser(reader).Parse(); err != nil {
-		return nil, err
-	}
-	if err = refTreeFile.Close(); err != nil {
 		return nil, err
 	}
 
 	return reftree, nil
 }
 
+func ReadCompTrees(inputfile string, compTrees chan<- tree.Trees) (int, error) {
+	if r, err := GetReader(inputfile); err != nil {
+		return 0, err
+	} else {
+		if i, err2 := ReadCompTreesFile(r, compTrees); err2 != nil {
+		} else {
+			if err = compTreeFile.Close(); err != nil {
+				return id, err
+			}
+			return i, nil
+		}
+	}
+}
+
 // Read a bunch of trees from the input file. One line must define One tree.
 // One tree per line
-func ReadCompTrees(inputfile string, compTrees chan<- tree.Trees) (int, error) {
-	var compTreeFile *os.File
+func ReadCompTreesFile(reader *io.Reader, compTrees chan<- tree.Trees) (int, error) {
 	var compTree *tree.Tree
 	var err error
-	var reader *bufio.Reader
 	id := 0
-
-	if inputfile == "" || inputfile == "stdin" || inputfile == "-" {
-		compTreeFile = os.Stdin
-	} else {
-		if compTreeFile, err = os.Open(inputfile); err != nil {
-			return id, err
-		}
-	}
-
-	if strings.HasSuffix(inputfile, ".gz") {
-		if gr, err := gzip.NewReader(compTreeFile); err != nil {
-			io.ExitWithMessage(err)
-		} else {
-			reader = bufio.NewReader(gr)
-		}
-	} else {
-		reader = bufio.NewReader(compTreeFile)
-	}
 
 	line, e := ReadUntilSemiColon(reader)
 	for e == nil {
@@ -87,8 +73,5 @@ func ReadCompTrees(inputfile string, compTrees chan<- tree.Trees) (int, error) {
 		line, e = ReadUntilSemiColon(reader)
 	}
 	close(compTrees)
-	if err = compTreeFile.Close(); err != nil {
-		return id, err
-	}
 	return id, nil
 }
