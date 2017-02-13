@@ -44,6 +44,9 @@ In output, we have a tree containing only tips that are common to both trees.
 If several trees are present in the file given by -i, they are all analyzed and 
 written in the output.
 
+If -c is not given, this command will take taxa names on command line :
+gotree prune -i reftree.nw -o outtree.nw t1 t2 t3 
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var comptree *tree.Tree
@@ -60,10 +63,12 @@ written in the output.
 			io.ExitWithMessage(err)
 		}
 
-		// Read comp Tree : Only one tree in input
-		comptree, err = utils.ReadRefTree(prunecomptree)
-		if err != nil {
-			io.ExitWithMessage(err)
+		if prunecomptree != "none" {
+			// Read comp Tree : Only one tree in input
+			comptree, err = utils.ReadRefTree(prunecomptree)
+			if err != nil {
+				io.ExitWithMessage(err)
+			}
 		}
 
 		intreesChan := make(chan tree.Trees, 15)
@@ -76,8 +81,12 @@ written in the output.
 
 		// Read ref Trees
 		for reftree := range intreesChan {
-			specificTipNames = specificTips(reftree.Tree, comptree)
-			err = reftree.Tree.RemoveTips(specificTipNames...)
+			if prunecomptree != "none" {
+				specificTipNames = specificTips(reftree.Tree, comptree)
+				err = reftree.Tree.RemoveTips(specificTipNames...)
+			} else {
+				err = reftree.Tree.RemoveTips(args...)
+			}
 			if err != nil {
 				io.ExitWithMessage(err)
 			}
