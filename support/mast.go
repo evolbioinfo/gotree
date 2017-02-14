@@ -1,12 +1,12 @@
 package support
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
 	"os"
-	"sync"
 )
 
 type MastSupporter struct {
@@ -120,7 +120,7 @@ func update_i_c_post_order_ref_tree(refTree *tree.Tree, edges *[]*tree.Edge,
 
 func Update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*tree.Edge,
 	bootTree *tree.Tree, bootEdges *[]*tree.Edge,
-	i_matrix *[][]uint16, c_matrix *[][]uint16, hamming *[][]uint16, min_dist *[]uint16, min_dist_edge *[]int) {
+	i_matrix *[][]uint16, c_matrix *[][]uint16, hamming *[][]uint16, min_dist *[]uint16, min_dist_edge *[]int) error {
 	for i, child := range bootTree.Root().Neigh() {
 		update_i_c_post_order_boot_tree(refTree, ntips, edges, bootTree, bootEdges, child, i, bootTree.Root(), i_matrix, c_matrix, hamming, min_dist, min_dist_edge)
 	}
@@ -128,12 +128,17 @@ func Update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *
 	/* and then some checks to make sure everything went ok */
 	for _, e := range *edges {
 		if (*min_dist)[e.Id()] < 0 {
-			io.ExitWithMessage(errors.New("Min dist should be >= 0"))
+			er := errors.New("Min dist should be >= 0")
+			io.LogError(er)
+			return er
 		}
 		if e.Right().Tip() && (*min_dist)[e.Id()] != 0 {
-			io.ExitWithMessage(errors.New(fmt.Sprintf("any terminal edge should have an exact match in any bootstrap tree (%d)", (*min_dist)[e.Id()])))
+			er := errors.New(fmt.Sprintf("any terminal edge should have an exact match in any bootstrap tree (%d)", (*min_dist)[e.Id()]))
+			io.LogError(er)
+			return er
 		}
 	}
+	return nil
 }
 
 // here we implement the second part of the Brehelin/Gascuel/Martin algorithm:
@@ -146,6 +151,7 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 	current *tree.Node, curindex int, prev *tree.Node,
 	i_matrix *[][]uint16, c_matrix *[][]uint16,
 	hamming *[][]uint16, min_dist *[]uint16, min_dist_edge *[]int) {
+
 	var e, e2, e3 *tree.Edge
 	var edge_id, edge_id2, edge_id3, j int
 	var child *tree.Node
@@ -201,7 +207,7 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 // computes the mastlike dist for each edges of the ref tree
 // and send it to the result channel
 func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval, speciesChannel chan<- speciesmoved) {
+	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
 	var min_dist_edge []int = make([]int, len(edges))
@@ -243,14 +249,20 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 			vals[i] = int(min_dist[i])
 			td, err := e.TopoDepth()
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return err
 			}
 			norm := 1.0 - float64(vals[i])/(float64(td)-1.0)
 			if norm > 0.95 && td >= 21 {
-				for _, sp := range speciesToMove(e, be, vals[i]) {
-					movedSpecies[sp]++
+				if sm, er := speciesToMove(e, be, vals[i]); er != nil {
+					io.LogError(er)
+					return err
+				} else {
+					for _, sp := range sm {
+						movedSpecies[sp]++
+					}
+					nb_branches_close++
 				}
-				nb_branches_close++
 			}
 			valChan <- bootval{
 				vals[i],
@@ -286,14 +298,14 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 		}
 	}
 
-	wg.Done()
+	return nil
 }
 
-func MastLike(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) *tree.Tree {
+func MastLike(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
 	var supporter *MastSupporter = &MastSupporter{}
 	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
-func MastLikeFile(reftreefile, boottreefile *io.Reader, logfile *os.File, empirical bool, cpus int) *tree.Tree {
+func MastLikeFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
 	var supporter *MastSupporter = &MastSupporter{}
 	return ComputeSupportFile(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
@@ -301,7 +313,7 @@ func MastLikeFile(reftreefile, boottreefile *io.Reader, logfile *os.File, empiri
 // Returns the list of species to move to go from one branch to the other
 // Its length should correspond to given dist
 // If not, exit with an error
-func speciesToMove(e, be *tree.Edge, dist int) []uint {
+func speciesToMove(e, be *tree.Edge, dist int) ([]uint, error) {
 	var i uint
 	diff := make([]uint, 0, 100)
 	equ := make([]uint, 0, 100)
@@ -315,12 +327,16 @@ func speciesToMove(e, be *tree.Edge, dist int) []uint {
 	}
 	if len(diff) < len(equ) {
 		if len(diff) != dist {
-			io.ExitWithMessage(errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", len(diff), dist)))
+			er := errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", len(diff), dist))
+			io.LogError(er)
+			return nil, er
 		}
-		return diff
+		return diff, nil
 	}
 	if len(equ) != dist {
-		io.ExitWithMessage(errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", len(equ), dist)))
+		er := errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", len(equ), dist))
+		io.LogError(er)
+		return nil, er
 	}
-	return equ
+	return equ, nil
 }

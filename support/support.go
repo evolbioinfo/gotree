@@ -1,6 +1,7 @@
 package support
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -29,7 +30,7 @@ type Supporter interface {
 	ExpectedRandValues(depth int) float64
 	ProbaDepthValue(d int, v int) float64
 	ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-		wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval, speciesChannel chan<- speciesmoved)
+		bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval, speciesChannel chan<- speciesmoved) error
 }
 
 func min(a int, b int) int {
@@ -53,27 +54,46 @@ func min_uint(a uint16, b uint16) uint16 {
 	return b
 }
 
-func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int, supporter Supporter) *tree.Tree {
+func ComputeSupport(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int, supporter Supporter) (*tree.Tree, error) {
 	// We read bootstrap trees and put them in the channel
 	if boottreefile == "none" {
-		io.ExitWithMessage(errors.New("You must provide a file containing bootstrap trees"))
+		e := errors.New("You must provide a file containing bootstrap trees")
+		io.LogError(e)
+		return nil, e
 	}
-	if ref, err := utils.OpenFile(reftreefile); err != nil {
-		io.ExitWithMessage(err)
-		return nil
+	if f, ref, err := utils.GetReader(reftreefile); err != nil {
+		io.LogError(err)
+		return nil, err
 	} else {
-		if comp, err2 := utils.OpenFile(boottreefile); err2 != nil {
-			io.ExitWithMessage(err2)
-			return nil
+		if f2, comp, err2 := utils.GetReader(boottreefile); err2 != nil {
+			io.LogError(err2)
+			return nil, err2
 		} else {
-			return ComputeSupportFile(ref, comp, logfile, empirical, cpus, supporter)
+			t, err4 := ComputeSupportFile(ref, comp, logfile, empirical, cpus, supporter)
+			if err4 != nil {
+				io.LogError(err4)
+				return nil, err4
+			}
+			if err3 := f.Close(); err3 != nil {
+				io.LogError(err3)
+				return nil, err3
+			}
+			if err3 := f2.Close(); err3 != nil {
+				io.LogError(err3)
+				return nil, err3
+			}
+			return t, nil
 		}
 	}
 }
 
-func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, empirical bool, cpus int, supporter Supporter) *tree.Tree {
-	var reftree *tree.Tree             // reference tree
-	var err error                      // error output
+func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, empirical bool, cpus int, supporter Supporter) (*tree.Tree, error) {
+	var reftree *tree.Tree // reference tree
+	var err error          // error output
+	var readerr error      // error reading comp file
+	var deptherr error     // error reading comp file
+	var computeerr error   // error in support computation
+
 	var nbEmpiricalTrees int = 10      // number of empirical trees to simulate
 	var maxcpus int = runtime.NumCPU() // max number of cpus
 	var randEdges [][]*tree.Edge       // Edges of shuffled trees
@@ -104,12 +124,16 @@ func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, 
 	}
 
 	if reftree, err = utils.ReadRefTreeFile(reftreefile); err != nil {
-		io.ExitWithMessage(err)
+		io.LogError(err)
+		return nil, err
 	}
 
 	tips = reftree.Tips()
 	edges = reftree.Edges()
-	max_depth = maxDepth(edges)
+	if max_depth, deptherr = maxDepth(edges); deptherr != nil {
+		return nil, deptherr
+	}
+
 	valuesBoot = make([]int, len(edges))
 	gtRandom = make([]float64, len(edges))
 	valuesRand = make([]int, len(edges))
@@ -125,7 +149,8 @@ func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, 
 		for i := 0; i < nbEmpiricalTrees; i++ {
 			var randT *tree.Tree
 			if randT, err = utils.ReadRefTreeFile(reftreefile); err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return nil, err
 			}
 			randT.ShuffleTips()
 			randEdges[i] = randT.Edges()
@@ -140,15 +165,22 @@ func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, 
 	}
 
 	go func() {
-		if nbtrees, err = utils.ReadCompTreesFile(boottreefile, bootTreeChannel); err != nil {
-			io.ExitWithMessage(err)
+		if nbtrees, readerr = utils.ReadCompTreesFile(boottreefile, bootTreeChannel); readerr != nil {
+			io.LogError(readerr)
+			close(bootTreeChannel)
 		}
 	}()
 
 	// We compute parsimony steps for all bootstrap trees
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
-		go supporter.ComputeValue(reftree, randTrees, cpu, empirical, edges, randEdges, &wg, bootTreeChannel, valuesChan, randValuesChan, speciesChannel)
+		go func() {
+			if err := supporter.ComputeValue(reftree, randTrees, cpu, empirical, edges, randEdges, bootTreeChannel, valuesChan, randValuesChan, speciesChannel); err != nil {
+				io.LogError(err)
+				computeerr = err
+			}
+			wg.Done()
+		}()
 	}
 
 	// Wait for step computation to close output channels
@@ -164,9 +196,11 @@ func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, 
 	go func() {
 		for val := range valuesChan {
 			valuesBoot[val.edgeid] += val.value
-			d, err := edges[val.edgeid].TopoDepth()
+			var d int
+			d, err = edges[val.edgeid].TopoDepth()
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				break
 			}
 			// If theoretical we must count number >= here
 			if !empirical {
@@ -202,6 +236,19 @@ func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, 
 
 	wg2.Wait()
 
+	if readerr != nil {
+		io.LogError(readerr)
+		return nil, readerr
+	}
+	if err != nil {
+		io.LogError(err)
+		return nil, err
+	}
+	if computeerr != nil {
+		io.LogError(computeerr)
+		return nil, computeerr
+	}
+
 	names := reftree.AllTipNames()
 	sort.Strings(names)
 
@@ -215,7 +262,8 @@ func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, 
 		if !edges[i].Right().Tip() {
 			d, err := e.TopoDepth()
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return nil, err
 			}
 			avg_val := float64(valuesBoot[i]) / float64(nbtrees)
 			var pval, avg_rand_val float64
@@ -233,5 +281,5 @@ func ComputeSupportFile(reftreefile, boottreefile *io.Reader, logfile *os.File, 
 		}
 	}
 
-	return reftree
+	return reftree, nil
 }

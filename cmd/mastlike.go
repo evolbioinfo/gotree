@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,10 @@ var mastlikeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		writeLogMast()
 		rand.Seed(mastSeed)
-		t := support.MastLike(supportIntree, supportBoottrees, supportLog, mastEmpirical, rootCpus)
+		t, err := support.MastLike(supportIntree, supportBoottrees, supportLog, mastEmpirical, rootCpus)
+		if err != nil {
+			io.ExitWithMessage(err)
+		}
 		supportOut.WriteString(t.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 	},

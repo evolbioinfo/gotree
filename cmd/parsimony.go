@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,10 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		writeLogParsimony()
 		rand.Seed(parsimonySeed)
-		t := support.Parsimony(supportIntree, supportBoottrees, supportLog, parsimonyEmpirical, rootCpus)
+		t, err := support.Parsimony(supportIntree, supportBoottrees, supportLog, parsimonyEmpirical, rootCpus)
+		if err != nil {
+			io.ExitWithMessage(err)
+		}
 		supportOut.WriteString(t.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 	},

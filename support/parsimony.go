@@ -7,7 +7,6 @@ import (
 	"math"
 	"os"
 	"sort"
-	"sync"
 )
 
 const (
@@ -94,17 +93,18 @@ func nbParsimonySteps(e *tree.Edge, bootTree *tree.Tree) int {
 	return (steps - 1)
 }
 
-func maxDepth(edges []*tree.Edge) int {
+func maxDepth(edges []*tree.Edge) (int, error) {
 	max_depth := 0
 	for _, e := range edges {
 		var d int
 		var err error
 		if d, err = e.TopoDepth(); err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return d, err
 		}
 		max_depth = max(d, max_depth)
 	}
-	return max_depth
+	return max_depth, nil
 }
 
 func nbParsimonyStepsRecur(cur *tree.Node, prev *tree.Node, bootTree *tree.Tree, e *tree.Edge, state *int, level int) int {
@@ -162,35 +162,33 @@ func nbParsimonyStepsRecur(cur *tree.Node, prev *tree.Node, bootTree *tree.Tree,
 // computes the number of pars steps for each edges of the ref tree
 // and send it to the result channel
 func (supporter *parsimonySupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-	wg *sync.WaitGroup, bootTreeChannel <-chan tree.Trees, stepsChan chan<- bootval, randStepsChan chan<- bootval, speciesChannel chan<- speciesmoved) {
-	func(cpu int) {
-		for treeV := range bootTreeChannel {
-			for i, e := range edges {
-				if e.Right().Tip() {
-					continue
-				}
-				nbsteps := nbParsimonySteps(e, treeV.Tree)
-				stepsChan <- bootval{
-					nbsteps,
-					i,
-					false,
-				}
-				// We compute the empirical steps
-				if empirical {
-					for j, _ := range empiricalTrees {
-						e2 := randEdges[j][i]
-						nbstepsrand := nbParsimonySteps(e2, treeV.Tree)
-						randStepsChan <- bootval{
-							nbstepsrand,
-							i,
-							nbsteps >= nbstepsrand,
-						}
+	bootTreeChannel <-chan tree.Trees, stepsChan chan<- bootval, randStepsChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
+	for treeV := range bootTreeChannel {
+		for i, e := range edges {
+			if e.Right().Tip() {
+				continue
+			}
+			nbsteps := nbParsimonySteps(e, treeV.Tree)
+			stepsChan <- bootval{
+				nbsteps,
+				i,
+				false,
+			}
+			// We compute the empirical steps
+			if empirical {
+				for j, _ := range empiricalTrees {
+					e2 := randEdges[j][i]
+					nbstepsrand := nbParsimonySteps(e2, treeV.Tree)
+					randStepsChan <- bootval{
+						nbstepsrand,
+						i,
+						nbsteps >= nbstepsrand,
 					}
 				}
 			}
 		}
-		wg.Done()
-	}(cpu)
+	}
+	return nil
 }
 
 func (supporter *parsimonySupporter) Init(maxdepth int, nbtips int) {
@@ -208,7 +206,7 @@ func (supporter *parsimonySupporter) ProbaDepthValue(d, v int) float64 {
 	return supporter.distribution_rand_step_val[d][v+1]
 }
 
-func Parsimony(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) *tree.Tree {
+func Parsimony(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
 	var supporter *parsimonySupporter = &parsimonySupporter{}
 	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }

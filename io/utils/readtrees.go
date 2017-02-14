@@ -2,22 +2,20 @@ package utils
 
 import (
 	"bufio"
-	"compress/gzip"
-	"github.com/fredericlemoine/gotree/io"
+	"strings"
+
 	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/tree"
-	"os"
-	"strings"
 )
 
 func ReadRefTree(inputfile string) (*tree.Tree, error) {
-	if r, err := GetReader(inputfile); err != nil {
+	if f, r, err := GetReader(inputfile); err != nil {
 		return nil, err
 	} else {
 		if t, err2 := ReadRefTreeFile(r); err2 != nil {
 			return nil, err2
 		} else {
-			if err = r.Close(); err != nil {
+			if err = f.Close(); err != nil {
 				return nil, err
 			}
 			return t, nil
@@ -26,8 +24,9 @@ func ReadRefTree(inputfile string) (*tree.Tree, error) {
 
 }
 
-// Reads one tree from the input file
-func ReadRefTreeFile(reader *io.Reader) (*tree.Tree, error) {
+// Reads one tree from the input reader
+// this function does not close the reader
+func ReadRefTreeFile(reader *bufio.Reader) (*tree.Tree, error) {
 	var reftree *tree.Tree
 	var err error
 
@@ -38,23 +37,27 @@ func ReadRefTreeFile(reader *io.Reader) (*tree.Tree, error) {
 	return reftree, nil
 }
 
+// Reads all the trees from the input file and send them to the channel
 func ReadCompTrees(inputfile string, compTrees chan<- tree.Trees) (int, error) {
-	if r, err := GetReader(inputfile); err != nil {
+	var i int
+	var readerr, closerr error
+	if f, r, err := GetReader(inputfile); err != nil {
 		return 0, err
 	} else {
-		if i, err2 := ReadCompTreesFile(r, compTrees); err2 != nil {
+		if i, readerr = ReadCompTreesFile(r, compTrees); readerr != nil {
+			return i, readerr
 		} else {
-			if err = compTreeFile.Close(); err != nil {
-				return id, err
+			if closerr = f.Close(); closerr != nil {
+				return i, closerr
 			}
-			return i, nil
 		}
 	}
+	return i, nil
 }
 
-// Read a bunch of trees from the input file. One line must define One tree.
-// One tree per line
-func ReadCompTreesFile(reader *io.Reader, compTrees chan<- tree.Trees) (int, error) {
+// Read a bunch of trees from the input reader and send each of them to the channel
+// this function does not close the reader
+func ReadCompTreesFile(reader *bufio.Reader, compTrees chan<- tree.Trees) (int, error) {
 	var compTree *tree.Tree
 	var err error
 	id := 0

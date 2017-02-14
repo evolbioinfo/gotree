@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"bufio"
+	"compress/gzip"
 	"os"
+	"strings"
 )
 
 func OpenFile(inputfile string) (*os.File, error) {
@@ -18,21 +21,22 @@ func OpenFile(inputfile string) (*os.File, error) {
 	return infile, nil
 }
 
-func GetReader(inputfile string) (*io.Reader, err) {
+/* Returns the opened file and a buffered reader (gzip or not) for the file */
+func GetReader(inputfile string) (*os.File, *bufio.Reader, error) {
 	var reader *bufio.Reader
 	if f, err := OpenFile(inputfile); err != nil {
-		return nil, err
+		return nil, nil, err
 	} else {
 
-		if strings.HasSuffix(refTreeFile.Name(), ".gz") {
-			if gr, err := gzip.NewReader(refTreeFile); err != nil {
-				return nil, err
+		if strings.HasSuffix(f.Name(), ".gz") {
+			if gr, err := gzip.NewReader(f); err != nil {
+				return nil, nil, err
 			} else {
 				reader = bufio.NewReader(gr)
 			}
 		} else {
-			reader = bufio.NewReader(refTreeFile)
+			reader = bufio.NewReader(f)
 		}
+		return f, reader, nil
 	}
-	return reader
 }
