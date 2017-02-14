@@ -40,6 +40,7 @@ func TestEdgeIndex2(t *testing.T) {
 		if _, err := utils.ReadCompTrees("data/twotrees.nw.gz", intrees); err != nil {
 			t.Error(err.Error)
 		}
+		close(intrees)
 	}()
 
 	edgeindex := tree.NewEdgeIndex(128, .75)

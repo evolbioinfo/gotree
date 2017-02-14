@@ -75,6 +75,5 @@ func ReadCompTreesFile(reader *bufio.Reader, compTrees chan<- tree.Trees) (int, 
 		id++
 		line, e = ReadUntilSemiColon(reader)
 	}
-	close(compTrees)
 	return id, nil
 }

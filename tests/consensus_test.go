@@ -15,7 +15,11 @@ func TestConsensus(t *testing.T) {
 	trees := make(chan tree.Trees)
 	trees2 := make(chan tree.Trees)
 	go func() {
-		utils.ReadCompTrees("data/bootstrap_trees.nw.gz", trees)
+		_, e := utils.ReadCompTrees("data/bootstrap_trees.nw.gz", trees)
+		if e != nil {
+			t.Error(e)
+		}
+		close(trees)
 	}()
 	majority := tree.Consensus(trees, 0.5)
 	edgeindex1 := tree.NewEdgeIndex(128, .75)
@@ -23,7 +27,11 @@ func TestConsensus(t *testing.T) {
 		edgeindex1.PutEdgeValue(e, 1, e.Length())
 	}
 	go func() {
-		utils.ReadCompTrees("data/bootstrap_trees.nw.gz", trees2)
+		_, e := utils.ReadCompTrees("data/bootstrap_trees.nw.gz", trees2)
+		if e != nil {
+			t.Error(e)
+		}
+		close(trees2)
 	}()
 	strict := tree.Consensus(trees2, 1)
 	edgeindex2 := tree.NewEdgeIndex(128, .75)

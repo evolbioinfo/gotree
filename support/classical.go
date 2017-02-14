@@ -9,9 +9,10 @@ import (
 	"sync"
 )
 
-func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
+func Classical(reftreefile, boottreefile string, cpus int) (*tree.Tree, error) {
 	var reftree *tree.Tree
 	var err error
+	var readerr error
 
 	maxcpus := runtime.NumCPU()
 	if cpus > maxcpus {
@@ -19,11 +20,14 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 	}
 
 	if reftree, err = utils.ReadRefTree(reftreefile); err != nil {
-		io.ExitWithMessage(err)
+		io.LogError(err)
+		return nil, err
 	}
 
 	if boottreefile == "none" {
-		io.ExitWithMessage(errors.New("You must provide a file containing bootstrap trees"))
+		er := errors.New("You must provide a file containing bootstrap trees")
+		io.LogError(er)
+		return nil, er
 	}
 
 	if cpus > maxcpus {
@@ -33,9 +37,10 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 	var nbtrees int
 	compareChannel := make(chan tree.Trees, 15)
 	go func() {
-		if nbtrees, err = utils.ReadCompTrees(boottreefile, compareChannel); err != nil {
-			io.ExitWithMessage(err)
+		if nbtrees, readerr = utils.ReadCompTrees(boottreefile, compareChannel); err != nil {
+			io.LogError(readerr)
 		}
+		close(compareChannel)
 	}()
 
 	edges := reftree.Edges()
@@ -85,6 +90,8 @@ func Classical(reftreefile, boottreefile string, cpus int) *tree.Tree {
 			edges[i].SetSupport(float64(count) / float64(nbtrees))
 		}
 	}
-
-	return reftree
+	if readerr != nil {
+		return nil, readerr
+	}
+	return reftree, nil
 }

@@ -24,6 +24,7 @@ func BenchmarkEdgeIndex(b *testing.B) {
 			if _, err := utils.ReadCompTrees("data/benchmark_boot.nw.gz", intrees); err != nil {
 				b.Error(err.Error)
 			}
+			close(intrees)
 		}()
 		var wg sync.WaitGroup
 		edgeindex := tree.NewEdgeIndex(24000, .75)

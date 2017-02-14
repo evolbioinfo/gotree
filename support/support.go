@@ -167,8 +167,8 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 	go func() {
 		if nbtrees, readerr = utils.ReadCompTreesFile(boottreefile, bootTreeChannel); readerr != nil {
 			io.LogError(readerr)
-			close(bootTreeChannel)
 		}
+		close(bootTreeChannel)
 	}()
 
 	// We compute parsimony steps for all bootstrap trees

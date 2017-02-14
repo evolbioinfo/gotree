@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,10 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		t := support.Classical(supportIntree, supportBoottrees, rootCpus)
+		t, e := support.Classical(supportIntree, supportBoottrees, rootCpus)
+		if e != nil {
+			io.ExitWithMessage(e)
+		}
 		supportOut.WriteString(t.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 	},
