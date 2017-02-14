@@ -10,10 +10,12 @@ var clearpvalueCmd = &cobra.Command{
 	Short: "Clear pvalues associated to supports from input trees",
 	Long:  `Clear pvalues associated to supports from input trees.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		for t := range clearIntrees {
+		f := openWriteFile(outtreefile)
+		for t := range readTrees(intreefile) {
 			t.Tree.ClearPvalues()
-			clearOutTrees.WriteString(t.Tree.Newick() + "\n")
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		f.Close()
 	},
 }
 

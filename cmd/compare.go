@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"os"
@@ -21,11 +20,8 @@ type stats struct {
 
 func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	maxcpus := runtime.NumCPU()
-	var refTree *tree.Tree
-	var err error
 	var edges []*tree.Edge
 
-	compareChannel := make(chan tree.Trees, 15)
 	statsChannel := make(chan stats, 15)
 
 	if tree2 == "none" {
@@ -40,16 +36,8 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	fmt.Fprintf(os.Stderr, "With tips : %t\n", tips)
 	fmt.Fprintf(os.Stderr, "Threads   : %d\n", cpus)
 
-	if refTree, err = utils.ReadRefTree(tree1); err != nil {
-		io.ExitWithMessage(err)
-	}
-
-	var nbtrees int
-	go func() {
-		if nbtrees, err = utils.ReadCompTrees(tree2, compareChannel); err != nil {
-			io.ExitWithMessage(err)
-		}
-	}()
+	refTree := readTree(intreefile)
+	compareChannel := readTrees(intree2file)
 
 	edges = refTree.Edges()
 	index := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
@@ -102,10 +90,6 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	}
 }
 
-var compareTree1 string
-var compareTree2 string
-var compareTips bool
-
 // compareCmd represents the compare command
 var compareCmd = &cobra.Command{
 	Use:   "compare",
@@ -116,13 +100,13 @@ for each trees in the compared tree file, prints the number of common edges
 between it and the reference tree, as well as the number of specific edges.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		compare(compareTree1, compareTree2, compareTips, rootCpus)
+		compare(intreefile, intree2file, compareTips, rootCpus)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(compareCmd)
-	compareCmd.PersistentFlags().StringVarP(&compareTree1, "reftree", "i", "stdin", "Reference tree input file")
-	compareCmd.PersistentFlags().StringVarP(&compareTree2, "compared", "c", "none", "Compared trees input file")
+	compareCmd.PersistentFlags().StringVarP(&intreefile, "reftree", "i", "stdin", "Reference tree input file")
+	compareCmd.PersistentFlags().StringVarP(&intree2file, "compared", "c", "none", "Compared trees input file")
 	compareCmd.Flags().BoolVarP(&compareTips, "tips", "l", false, "Compared trees input file")
 }

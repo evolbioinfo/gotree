@@ -2,16 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"os"
 	"sync"
 )
-
-var edgeInTree string
-var edgeOutFile string
 
 type EdgeStruct struct {
 	e   *tree.Edge
@@ -27,14 +22,8 @@ var edgeTreesCmd = &cobra.Command{
 The resulting trees are star trees to which we added one biparition. All branch lengths are set to 1.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		var t *tree.Tree
-		var err error
-		t, err = utils.ReadRefTree(edgeInTree)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
+		t := readTree(intreefile)
 		alltips := t.AllTipNames()
-
 		edges := make(chan EdgeStruct, 1000)
 
 		go func() {
@@ -52,16 +41,16 @@ The resulting trees are star trees to which we added one biparition. All branch 
 					if !edgeS.e.Right().Tip() {
 						var edgeOut *os.File
 
-						if edgeOutFile == "stdout" {
-							edgeOut = openWriteFile(edgeOutFile)
+						if outtreefile == "stdout" {
+							edgeOut = openWriteFile(outtreefile)
 						} else {
-							edgeOut = openWriteFile(fmt.Sprintf("%s_%06d.nw", edgeOutFile, edgeS.idx))
+							edgeOut = openWriteFile(fmt.Sprintf("%s_%06d.nw", outtreefile, edgeS.idx))
 						}
 						edgeTree := tree.EdgeTree(t, edgeS.e, alltips)
 
 						// We build a new Tree with a single edge
 						edgeOut.WriteString(edgeTree.Newick() + "\n")
-						if edgeOutFile != "stdout" {
+						if outtreefile != "stdout" {
 							edgeOut.Close()
 						}
 					}
@@ -75,6 +64,6 @@ The resulting trees are star trees to which we added one biparition. All branch 
 
 func init() {
 	computeCmd.AddCommand(edgeTreesCmd)
-	edgeTreesCmd.PersistentFlags().StringVarP(&edgeInTree, "reftree", "i", "stdin", "Reference tree input file")
-	edgeTreesCmd.PersistentFlags().StringVarP(&edgeOutFile, "out", "o", "stdout", "Output tree files prefix")
+	edgeTreesCmd.PersistentFlags().StringVarP(&intreefile, "reftree", "i", "stdin", "Reference tree input file")
+	edgeTreesCmd.PersistentFlags().StringVarP(&outtreefile, "out", "o", "stdout", "Output tree files prefix")
 }

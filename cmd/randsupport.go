@@ -2,21 +2,10 @@ package cmd
 
 import (
 	"github.com/fredericlemoine/gostats"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"math/rand"
-	"os"
 	"time"
 )
-
-var setsupportinput string
-var setsupportintrees chan tree.Trees
-var setsupportout string
-var setsupportseed int64
-var setsupportmean float64
-var setsupportoutfile *os.File
 
 // randsupportCmd represents the randbrlen command
 var randsupportCmd = &cobra.Command{
@@ -28,36 +17,26 @@ Support follows a uniform distribution in [0,1].
 
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		var err error
-		rand.Seed(setsupportseed)
-		setsupportintrees = make(chan tree.Trees, 15)
-		/* Read ref tree(s) */
-		go func() {
-			if _, err = utils.ReadCompTrees(setsupportinput, setsupportintrees); err != nil {
-				io.ExitWithMessage(err)
-			}
-		}()
-		setsupportoutfile = openWriteFile(setsupportout)
+		rand.Seed(seed)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		for tr := range setsupportintrees {
+		f := openWriteFile(outtreefile)
+		for tr := range readTrees(intreefile) {
 			for _, e := range tr.Tree.Edges() {
 				if !e.Right().Tip() {
 					e.SetSupport(gostats.Float64Range(0, 1))
 				}
 			}
-			setsupportoutfile.WriteString(tr.Tree.Newick() + "\n")
+			f.WriteString(tr.Tree.Newick() + "\n")
 		}
-	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		setsupportoutfile.Close()
+		f.Close()
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(randsupportCmd)
 
-	randsupportCmd.PersistentFlags().StringVarP(&setsupportinput, "input", "i", "stdin", "Input tree")
-	randsupportCmd.PersistentFlags().StringVarP(&setsupportout, "output", "o", "stdout", "Output file")
-	randsupportCmd.Flags().Int64VarP(&setsupportseed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
+	randsupportCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
+	randsupportCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
+	randsupportCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 }

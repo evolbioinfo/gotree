@@ -22,10 +22,12 @@ will be collapsed.
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		for t := range collapseIntrees {
+		f := openWriteFile(outtreefile)
+		for t := range readTrees(intreefile) {
 			t.Tree.CollapseTopoDepth(mindepthThreshold, maxdepthThreshold)
-			collapseOutTrees.WriteString(t.Tree.Newick() + "\n")
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		f.Close()
 	},
 }
 

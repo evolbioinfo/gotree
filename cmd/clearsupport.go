@@ -10,10 +10,12 @@ var clearsupportCmd = &cobra.Command{
 	Short: "Clear supports from input trees",
 	Long:  `Clear supports from input trees.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		for t := range clearIntrees {
+		f := openWriteFile(outtreefile)
+		for t := range readTrees(intreefile) {
 			t.Tree.ClearSupports()
-			clearOutTrees.WriteString(t.Tree.Newick() + "\n")
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		f.Close()
 	},
 }
 

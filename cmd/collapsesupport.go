@@ -16,10 +16,12 @@ Lowly supported branches are defined by a threshold (-s). All branches
 with support < threshold are removed.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		for t := range collapseIntrees {
+		f := openWriteFile(outtreefile)
+		for t := range readTrees(intreefile) {
 			t.Tree.CollapseLowSupport(lowSupportThreshold)
-			collapseOutTrees.WriteString(t.Tree.Newick() + "\n")
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		f.Close()
 	},
 }
 

@@ -2,15 +2,9 @@ package cmd
 
 import (
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"os"
 )
-
-var prunereftree string
-var prunecomptree string
-var pruneouttree string
 
 func specificTips(ref *tree.Tree, comp *tree.Tree) []string {
 	compmap := make(map[string]*tree.Node)
@@ -49,39 +43,15 @@ gotree prune -i reftree.nw -o outtree.nw t1 t2 t3
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		var comptree *tree.Tree
 		var err error
 		var specificTipNames []string
 
-		var f *os.File
-		if pruneouttree != "stdout" {
-			f, err = os.Create(pruneouttree)
-		} else {
-			f = os.Stdout
-		}
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-
-		if prunecomptree != "none" {
-			// Read comp Tree : Only one tree in input
-			comptree, err = utils.ReadRefTree(prunecomptree)
-			if err != nil {
-				io.ExitWithMessage(err)
-			}
-		}
-
-		intreesChan := make(chan tree.Trees, 15)
-		/* Read ref tree(s) */
-		go func() {
-			if _, err = utils.ReadCompTrees(prunereftree, intreesChan); err != nil {
-				io.ExitWithMessage(err)
-			}
-		}()
+		f := openWriteFile(outtreefile)
+		comptree := readTree(intree2file)
 
 		// Read ref Trees
-		for reftree := range intreesChan {
-			if prunecomptree != "none" {
+		for reftree := range readTrees(intreefile) {
+			if comptree != nil {
 				specificTipNames = specificTips(reftree.Tree, comptree)
 				err = reftree.Tree.RemoveTips(specificTipNames...)
 			} else {
@@ -98,7 +68,7 @@ gotree prune -i reftree.nw -o outtree.nw t1 t2 t3
 
 func init() {
 	RootCmd.AddCommand(pruneCmd)
-	pruneCmd.Flags().StringVarP(&prunereftree, "ref", "i", "stdin", "Input reference tree")
-	pruneCmd.Flags().StringVarP(&prunecomptree, "comp", "c", "none", "Input compared tree ")
-	pruneCmd.Flags().StringVarP(&pruneouttree, "output", "o", "stdout", "Output tree")
+	pruneCmd.Flags().StringVarP(&intreefile, "ref", "i", "stdin", "Input reference tree")
+	pruneCmd.Flags().StringVarP(&intree2file, "comp", "c", "none", "Input compared tree ")
+	pruneCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output tree")
 }

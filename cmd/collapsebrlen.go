@@ -17,10 +17,12 @@ with length <= threshold are removed.
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		for t := range collapseIntrees {
+		f := openWriteFile(outtreefile)
+		for t := range readTrees(intreefile) {
 			t.Tree.CollapseShortBranches(shortbranchesThreshold)
-			collapseOutTrees.WriteString(t.Tree.Newick() + "\n")
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		f.Close()
 	},
 }
 

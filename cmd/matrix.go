@@ -2,58 +2,34 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"os"
 )
-
-var matrixInputTree string
-var matrixOutput string
-var matrixIntrees chan tree.Trees
-var matrixOut *os.File
 
 // matrixCmd represents the matrix command
 var matrixCmd = &cobra.Command{
 	Use:   "matrix",
 	Short: "Prints distance matrix associated to the input tree",
 	Long:  `Prints distance matrix associated to the input tree.`,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		var err error
-		var nbtrees int = 0
-		matrixIntrees = make(chan tree.Trees, 15)
-
-		/* Read ref tree(s) */
-		go func() {
-			if nbtrees, err = utils.ReadCompTrees(matrixInputTree, matrixIntrees); err != nil {
-				io.ExitWithMessage(err)
-			}
-		}()
-
-		matrixOut = openWriteFile(matrixOutput)
-	},
 	Run: func(cmd *cobra.Command, args []string) {
-		for t := range matrixIntrees {
+		f := openWriteFile(outtreefile)
+		for t := range readTrees(intreefile) {
 			tips := t.Tree.Tips()
-			matrixOut.WriteString(fmt.Sprintf("%d\n", len(tips)))
+			f.WriteString(fmt.Sprintf("%d\n", len(tips)))
 			mat := t.Tree.ToDistanceMatrix()
 			for i, t := range tips {
-				matrixOut.WriteString(t.Name())
+				f.WriteString(t.Name())
 				for j, _ := range tips {
-					matrixOut.WriteString("\t" + fmt.Sprintf("%.12f", mat[i][j]))
+					f.WriteString("\t" + fmt.Sprintf("%.12f", mat[i][j]))
 				}
-				matrixOut.WriteString("\n")
+				f.WriteString("\n")
 			}
 		}
-	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		matrixOut.Close()
+		f.Close()
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(matrixCmd)
-	matrixCmd.PersistentFlags().StringVarP(&matrixInputTree, "input", "i", "stdin", "Input tree")
-	matrixCmd.PersistentFlags().StringVarP(&matrixOutput, "output", "o", "stdout", "Matrix output file")
+	matrixCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
+	matrixCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Matrix output file")
 }

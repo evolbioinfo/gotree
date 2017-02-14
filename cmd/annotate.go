@@ -10,16 +10,8 @@ import (
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
-
-var annotateInputTree string
-var annotateOutputTree string
-var annotateIntrees chan tree.Trees
-var annotateOutTrees *os.File
-var annotateNames map[string][]string
-var annotateInputMap string
 
 // annotateCmd represents the annotate command
 var annotateCmd = &cobra.Command{
@@ -33,42 +25,30 @@ Takes a map file with one line per internal node to annotate:
 => It will take the lca of taxa and annotate it with the given name
 => Output tree won't have bootstrap support at the branches anymore
 `,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if annotateInputMap == "none" {
+	Run: func(cmd *cobra.Command, args []string) {
+		if mapfile == "none" {
 			io.ExitWithMessage(errors.New("You should give a map file for node names"))
 		}
-		var err error
-		var nbtrees int = 0
-		annotateIntrees = make(chan tree.Trees, 15)
-		/* Read ref tree(s) */
-		go func() {
-			if nbtrees, err = utils.ReadCompTrees(annotateInputTree, annotateIntrees); err != nil {
-				io.ExitWithMessage(err)
-			}
-		}()
-		annotateOutTrees = openWriteFile(annotateOutputTree)
 
-		if annotateNames, err = readAnnotateNameMap(annotateInputMap); err != nil {
+		annotateNames, err := readAnnotateNameMap(mapfile)
+		if err != nil {
 			io.ExitWithMessage(err)
 		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		for t := range annotateIntrees {
-			t.Tree.Annotate(annotateNames)
-			annotateOutTrees.WriteString(t.Tree.Newick() + "\n")
-		}
 
-	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		annotateOutTrees.Close()
+		f := openWriteFile(outtreefile)
+		for t := range readTrees(intreefile) {
+			t.Tree.Annotate(annotateNames)
+			f.WriteString(t.Tree.Newick() + "\n")
+		}
+		f.Close()
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(annotateCmd)
-	annotateCmd.PersistentFlags().StringVarP(&annotateInputTree, "input", "i", "stdin", "Input tree(s) file")
-	annotateCmd.PersistentFlags().StringVarP(&annotateInputMap, "map-file", "m", "none", "Name map input file")
-	annotateCmd.PersistentFlags().StringVarP(&annotateOutputTree, "output", "o", "stdout", "Resolved tree(s) output file")
+	annotateCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree(s) file")
+	annotateCmd.PersistentFlags().StringVarP(&mapfile, "map-file", "m", "none", "Name map input file")
+	annotateCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Resolved tree(s) output file")
 }
 
 func readAnnotateNameMap(annotateInputMap string) (map[string][]string, error) {

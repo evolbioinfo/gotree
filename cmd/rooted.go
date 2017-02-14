@@ -17,15 +17,17 @@ gotree stats rooted -i t.nw
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		statsout.WriteString("tree\trooted\n")
-		for statsintree := range statintrees {
-			statsout.WriteString(fmt.Sprintf("%d\t", statsintree.Id))
+		f := openWriteFile(outtreefile)
+		f.WriteString("tree\trooted\n")
+		for statsintree := range readTrees(intreefile) {
+			f.WriteString(fmt.Sprintf("%d\t", statsintree.Id))
 			if statsintree.Tree.Rooted() {
-				statsout.WriteString("rooted\n")
+				f.WriteString("rooted\n")
 			} else {
-				statsout.WriteString("unrooted\n")
+				f.WriteString("unrooted\n")
 			}
 		}
+		f.Close()
 	},
 }
 

@@ -2,19 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 	"sync"
 )
 
-var roccurveIntree string
-var roccurveTruetree string
 var roccurveMinThr float64
 var roccurveMaxThr float64
 var roccurveStepThr float64
-var roccurveOutFile string
 var roccurvePvalue float64
 var roccurveMinBrLen float64
 var roccurveMaxBrLen float64
@@ -64,16 +59,9 @@ As output, a tab delimited file with columns:
 		tplen := make([]int, nbsteps)
 		fplen := make([]int, nbsteps)
 
-		var intree, truetree *tree.Tree
-		var err error
-
-		f := openWriteFile(roccurveOutFile)
-		if intree, err = utils.ReadRefTree(roccurveIntree); err != nil {
-			io.ExitWithMessage(err)
-		}
-		if truetree, err = utils.ReadRefTree(roccurveTruetree); err != nil {
-			io.ExitWithMessage(err)
-		}
+		f := openWriteFile(outtreefile)
+		intree := readTree(intreefile)
+		truetree := readTree(intree2file)
 
 		/* We fill the edges channel */
 		go func() {
@@ -152,7 +140,6 @@ As output, a tab delimited file with columns:
 			fmt.Fprintf(f, "%f\t%d\t%d\t%d\t%d\n", thr, tp[i], fp[i], tplen[i], fplen[i])
 			i++
 		}
-
 		f.Close()
 	},
 }
@@ -160,12 +147,13 @@ As output, a tab delimited file with columns:
 func init() {
 	computeCmd.AddCommand(roccurveCmd)
 
-	roccurveCmd.PersistentFlags().StringVarP(&roccurveIntree, "intree", "i", "stdin", "Input tree file")
-	roccurveCmd.PersistentFlags().StringVarP(&roccurveTruetree, "truetree", "r", "none", "True tree file")
+	roccurveCmd.PersistentFlags().StringVarP(&intreefile, "intree", "i", "stdin", "Input tree file")
+	roccurveCmd.PersistentFlags().StringVarP(&intree2file, "truetree", "r", "none", "True tree file")
+	roccurveCmd.PersistentFlags().StringVarP(&outtreefile, "out", "o", "stdout", "Output tree file, with supports")
+
 	roccurveCmd.PersistentFlags().Float64VarP(&roccurveMinThr, "min", "m", 0, "Min threshold")
 	roccurveCmd.PersistentFlags().Float64VarP(&roccurveMaxThr, "max", "M", 1, "Max threshold")
 	roccurveCmd.PersistentFlags().Float64VarP(&roccurveStepThr, "step", "s", 0.1, "Step between each threshold")
-	roccurveCmd.PersistentFlags().StringVarP(&roccurveOutFile, "out", "o", "stdout", "Output tree file, with supports")
 	roccurveCmd.PersistentFlags().Float64VarP(&roccurvePvalue, "pvalue", "p", 1.0, "Keep only branches that have a pvalue <=  value")
 	roccurveCmd.PersistentFlags().Float64Var(&roccurveMaxBrLen, "length-leq", -1.0, "Keep only branches that are <= value (-1=No filter) ")
 	roccurveCmd.PersistentFlags().Float64Var(&roccurveMinBrLen, "length-geq", -1.0, "Keep only branches that are >= value (-1=No filter) ")

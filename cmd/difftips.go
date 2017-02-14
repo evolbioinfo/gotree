@@ -4,13 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/spf13/cobra"
 	"os"
 )
-
-var difftipsTree1 string
-var difftipsTree2 string
 
 // difftipsCmd represents the difftips command
 var difftipsCmd = &cobra.Command{
@@ -31,42 +27,40 @@ should produce the following output:
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if difftipsTree2 == "none" {
+		if intree2file == "none" {
 			io.ExitWithMessage(errors.New("Compare tree file must be provided with -c"))
 		}
 		eq := 0
-		if refTree, err := utils.ReadRefTree(difftipsTree1); err != nil {
-			io.ExitWithMessage(err)
-		} else if compTree, err2 := utils.ReadRefTree(difftipsTree2); err2 != nil {
-			io.ExitWithMessage(err2)
-		} else {
-			for _, t := range refTree.Tips() {
-				if ok, err3 := compTree.ExistsTip(t.Name()); err3 != nil {
-					io.ExitWithMessage(err)
+
+		refTree := readTree(intreefile)
+		compTree := readTree(intree2file)
+
+		for _, t := range refTree.Tips() {
+			if ok, err3 := compTree.ExistsTip(t.Name()); err3 != nil {
+				io.ExitWithMessage(err3)
+			} else {
+				if !ok {
+					fmt.Fprintf(os.Stdout, "< %s\n", t.Name())
 				} else {
-					if !ok {
-						fmt.Fprintf(os.Stdout, "< %s\n", t.Name())
-					} else {
-						eq++
-					}
+					eq++
 				}
 			}
-			for _, t := range compTree.Tips() {
-				if ok, err4 := refTree.ExistsTip(t.Name()); err4 != nil {
-					io.ExitWithMessage(err)
-				} else {
-					if !ok {
-						fmt.Fprintf(os.Stdout, "> %s\n", t.Name())
-					}
-				}
-			}
-			fmt.Fprintf(os.Stdout, "= %d\n", eq)
 		}
+		for _, t := range compTree.Tips() {
+			if ok, err4 := refTree.ExistsTip(t.Name()); err4 != nil {
+				io.ExitWithMessage(err4)
+			} else {
+				if !ok {
+					fmt.Fprintf(os.Stdout, "> %s\n", t.Name())
+				}
+			}
+		}
+		fmt.Fprintf(os.Stdout, "= %d\n", eq)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(difftipsCmd)
-	difftipsCmd.Flags().StringVarP(&difftipsTree1, "reftree", "i", "stdin", "Reference tree input file")
-	difftipsCmd.Flags().StringVarP(&difftipsTree2, "compared", "c", "none", "Other tree file to compare with")
+	difftipsCmd.Flags().StringVarP(&intreefile, "reftree", "i", "stdin", "Reference tree input file")
+	difftipsCmd.Flags().StringVarP(&intree2file, "compared", "c", "none", "Other tree file to compare with")
 }

@@ -3,12 +3,26 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/spf13/cobra"
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
+
+	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/tree"
+	"github.com/spf13/cobra"
 )
+
+// Variables used in lots of commands
+var intreefile, intree2file, outtreefile string
+var seed int64
+var mapfile string
+var revert bool
+var mastdist bool
+var compareTips bool
+var tipfile string
+var cutoff float64
 
 var cfgFile string
 var rootCpus int
@@ -76,4 +90,47 @@ func Readln(r *bufio.Reader) (string, error) {
 		ln = append(ln, line...)
 	}
 	return string(ln), err
+}
+
+func readTrees(infile string) <-chan tree.Trees {
+	// Read Tree
+	intreesChan := make(chan tree.Trees, 15)
+	/* Read ref tree(s) */
+	go func() {
+		if _, err := utils.ReadCompTrees(infile, intreesChan); err != nil {
+			io.ExitWithMessage(err)
+		}
+		close(intreesChan)
+	}()
+	return intreesChan
+}
+
+func readTree(infile string) *tree.Tree {
+	var tree *tree.Tree
+	var err error
+	if infile != "none" {
+		// Read comp Tree : Only one tree in input
+		tree, err = utils.ReadRefTree(infile)
+		if err != nil {
+			io.ExitWithMessage(err)
+		}
+	}
+	return tree
+}
+
+func parseTipsFile(file string) []string {
+	tips := make([]string, 0, 100)
+	f, r, err := utils.GetReader(file)
+	if err != nil {
+		io.ExitWithMessage(err)
+	}
+	l, e := Readln(r)
+	for e == nil {
+		for _, name := range strings.Split(l, ",") {
+			tips = append(tips, name)
+		}
+		l, e = Readln(r)
+	}
+	f.Close()
+	return tips
 }

@@ -10,10 +10,12 @@ var clearlengthCmd = &cobra.Command{
 	Short: "Clear lengths from input trees",
 	Long:  `Clear lengths from input trees.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		for t := range clearIntrees {
+		f := openWriteFile(outtreefile)
+		for t := range readTrees(intreefile) {
 			t.Tree.ClearLengths()
-			clearOutTrees.WriteString(t.Tree.Newick() + "\n")
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		f.Close()
 	},
 }
 

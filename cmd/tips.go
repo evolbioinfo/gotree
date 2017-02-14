@@ -22,14 +22,16 @@ gotree stats tips -i t.mw
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		statsout.WriteString("tree\tid\tnneigh\tname\n")
-		for statsintree := range statintrees {
+		f := openWriteFile(outtreefile)
+		f.WriteString("tree\tid\tnneigh\tname\n")
+		for statsintree := range readTrees(intreefile) {
 			for i, n := range statsintree.Tree.Nodes() {
 				if n.Nneigh() == 1 {
-					statsout.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\n", statsintree.Id, i, n.Nneigh(), n.Name()))
+					f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\n", statsintree.Id, i, n.Nneigh(), n.Name()))
 				}
 			}
 		}
+		f.Close()
 	},
 }
 

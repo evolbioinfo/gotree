@@ -8,14 +8,10 @@ import (
 	"sort"
 
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
-
-/* If transfer dist should be also given in output */
-var edgesMastDist bool
 
 // compareedgesCmd represents the compareedges command
 var compareedgesCmd = &cobra.Command{
@@ -26,39 +22,25 @@ var compareedgesCmd = &cobra.Command{
 If the compared tree file contains several trees, it will take the first one only
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Fprintf(os.Stderr, "Reference : %s\n", compareTree1)
-		fmt.Fprintf(os.Stderr, "Compared  : %s\n", compareTree2)
-		var err error
-		var refTree *tree.Tree
-		if refTree, err = utils.ReadRefTree(compareTree1); err != nil {
-			io.ExitWithMessage(err)
-		}
+		fmt.Fprintf(os.Stderr, "Reference : %s\n", intreefile)
+		fmt.Fprintf(os.Stderr, "Compared  : %s\n", intree2file)
+
+		refTree := readTree(intreefile)
 		refTree.ComputeDepths()
 		names := refTree.AllTipNames()
 		sort.Strings(names)
 
-		nbtrees := 0
-		compareChannel := make(chan tree.Trees, 15)
-
-		go func() {
-			if nbtrees, err = utils.ReadCompTrees(compareTree2, compareChannel); err != nil {
-				io.ExitWithMessage(err)
-			}
-		}()
-
 		edges1 := refTree.Edges()
 		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
-		if edgesMastDist {
+		if mastdist {
 			fmt.Printf("\tmast")
 		}
 		fmt.Printf("\n")
-		for t2 := range compareChannel {
-
+		for t2 := range readTrees(intree2file) {
 			edges2 := t2.Tree.Edges()
-
 			var min_dist []uint16
 			var min_dist_edges []int
-			if edgesMastDist {
+			if mastdist {
 				tips := refTree.Tips()
 				min_dist = make([]uint16, len(edges1))
 				min_dist_edges = make([]int, len(edges1))
@@ -90,7 +72,7 @@ If the compared tree file contains several trees, it will take the first one onl
 				}
 				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(), found)
 
-				if edgesMastDist {
+				if mastdist {
 					var movedtaxa bytes.Buffer
 					be := edges2[min_dist_edges[i]]
 					plus, minus := speciesToMove(e1, be, int(min_dist[i]))
@@ -118,7 +100,7 @@ If the compared tree file contains several trees, it will take the first one onl
 
 func init() {
 	compareCmd.AddCommand(compareedgesCmd)
-	compareedgesCmd.PersistentFlags().BoolVarP(&edgesMastDist, "mast-dist", "m", false, "If mast dist must be computed for each edge")
+	compareedgesCmd.PersistentFlags().BoolVarP(&mastdist, "mast-dist", "m", false, "If mast dist must be computed for each edge")
 }
 
 // Returns the list of species to move to go from one branch to the other
