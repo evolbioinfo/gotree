@@ -1,9 +1,9 @@
 GO_EXECUTABLE := go
 VERSION := $(shell git describe --abbrev=10 --dirty --always --tags)
 DIST_DIRS := find * -type d -exec
-VERSION_PACKAGE := "github.com/fredericlemoine/gotree/cmd.Version"
-NAME := "gotree"
-PACKAGE:="github.com/fredericlemoine/gotree"
+VERSION_PACKAGE := github.com/fredericlemoine/gotree/cmd.Version
+NAME := gotree
+PACKAGE:=github.com/fredericlemoine/gotree
 
 all: build test install 
 
