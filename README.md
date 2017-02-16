@@ -138,14 +138,14 @@ Example of result:
 ### Comparing tips of two trees
 
 ```[bash]
-$ gotree difftips -i tree.tre -c tree2.tre
+$ gotree compare tips -i tree.tre -c tree2.tre
 ```
 This will compare the two sets of tips.
 
 Example:
 ```
-$ gotree difftips -i <(gotree generate uniformtree -l 10 -n 1) \
-               -c <(gotree generate uniformtree -l 11 -n 1)
+$ gotree compare tips -i <(gotree generate uniformtree -l 10 -n 1) \
+                      -c <(gotree generate uniformtree -l 11 -n 1)
 > Tip10
 = 10
 ```
@@ -169,14 +169,14 @@ It should print 100 tips.
 Count the number of common/specific bipartitions between two trees.
 
 ```[bash]
-$ gotree compare -i tree.tre -c other.tre
+$ gotree compare trees -i tree.tre -c other.tre
 ```
 
 You can test with random trees (there should be very few common bipartitions)
 
 ```[bash]
-$ gotree compare -i <(gotree generate uniformtree -l 100 -n 1) \
-                -c <(gotree generate uniformtree -l 100 -n 1)
+$ gotree compare trees -i <(gotree generate uniformtree -l 100 -n 1) \
+                       -c <(gotree generate uniformtree -l 100 -n 1)
 ```
 
 Tree  |  specref  |  common
