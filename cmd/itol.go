@@ -28,6 +28,17 @@ If --id is not given, it uploads the tree without account, and will be automatic
 
 If several trees are included in the input file, it will upload all of them, waiting 1 second between each upload
 
+It is possible to give itol annotation files to the uploader:
+gotree upload itol -i tree.tree --name tree --user-id uploadkey --project project annotation*.txt
+
+Urls are written on stdout
+Server responses are written on stderr
+
+So:
+gotree upload itol -i tree.tree --name tree --user-id uploadkey --project project annotation*.txt > urls
+
+Will store only urls in the output file
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		// args: All annotation files to add to the upload
@@ -40,8 +51,8 @@ If several trees are included in the input file, it will upload all of them, wai
 			}
 			fmt.Println(url)
 
-			fmt.Fprintf(os.Stderr, "Server response\n")
 			fmt.Fprintf(os.Stderr, "-------------------\n")
+			fmt.Fprintf(os.Stderr, "<Server response>\n")
 			fmt.Fprintf(os.Stderr, response)
 			fmt.Fprintf(os.Stderr, "-------------------\n")
 			time.Sleep(1 * time.Second)
