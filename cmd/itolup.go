@@ -42,7 +42,7 @@ Will store only urls in the output file
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		// args: All annotation files to add to the upload
-		upld := upload.NewItolUploader(itoluploadid, itolprojectname, args)
+		upld := upload.NewItolUploader(itoluploadid, itolprojectname, args...)
 		i := 0
 		for reftree := range readTrees(intreefile) {
 			url, response, err := upld.Upload(fmt.Sprintf("%s_%03d", itoltreename, i), reftree.Tree)

@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"bufio"
+	"compress/gzip"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -133,4 +135,46 @@ func parseTipsFile(file string) []string {
 	}
 	f.Close()
 	return tips
+}
+
+func readMapFile(file string, revert bool) (map[string]string, error) {
+	outmap := make(map[string]string, 0)
+	var mapfile *os.File
+	var err error
+	var reader *bufio.Reader
+
+	if mapfile, err = os.Open(file); err != nil {
+		return outmap, err
+	}
+
+	if strings.HasSuffix(file, ".gz") {
+		if gr, err2 := gzip.NewReader(mapfile); err2 != nil {
+			return outmap, err2
+		} else {
+			reader = bufio.NewReader(gr)
+		}
+	} else {
+		reader = bufio.NewReader(mapfile)
+	}
+	line, e := utils.Readln(reader)
+	nl := 1
+	for e == nil {
+		cols := strings.Split(line, "\t")
+		if len(cols) != 2 {
+			return outmap, errors.New("Map file does not have 2 fields at line: " + fmt.Sprintf("%d", nl))
+		}
+		if revert {
+			outmap[cols[1]] = cols[0]
+		} else {
+			outmap[cols[0]] = cols[1]
+		}
+		line, e = utils.Readln(reader)
+		nl++
+	}
+
+	if err = mapfile.Close(); err != nil {
+		return outmap, err
+	}
+
+	return outmap, nil
 }

@@ -24,7 +24,7 @@ type ItolUploader struct {
 // Initialize a new itoluploader
 // if uploadid=="", then tree will be public and deleted
 // after 30 days
-func NewItolUploader(uploadid, projectname string, annotationfiles []string) *ItolUploader {
+func NewItolUploader(uploadid, projectname string, annotationfiles ...string) *ItolUploader {
 	return &ItolUploader{uploadid, projectname, annotationfiles}
 }
 
