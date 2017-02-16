@@ -10,7 +10,7 @@ import (
 
 // difftipsCmd represents the difftips command
 var difftipsCmd = &cobra.Command{
-	Use:   "difftips",
+	Use:   "tips",
 	Short: "Print diff between tip names of two trees",
 	Long: `Print diff between tip names of two trees.
 
@@ -60,7 +60,5 @@ should produce the following output:
 }
 
 func init() {
-	RootCmd.AddCommand(difftipsCmd)
-	difftipsCmd.Flags().StringVarP(&intreefile, "reftree", "i", "stdin", "Reference tree input file")
-	difftipsCmd.Flags().StringVarP(&intree2file, "compared", "c", "none", "Other tree file to compare with")
+	compareCmd.AddCommand(difftipsCmd)
 }
