@@ -104,11 +104,11 @@ func (u *ItolUploader) Upload(name string, t *tree.Tree) (string, string, error)
 		return "", "", err
 	}
 
-	sub := successRegexp.FindStringSubmatch(responsesplit[len(responsesplit)-2])
+	sub := successRegexp.FindStringSubmatch(responsesplit[max(len(responsesplit)-2, 0)])
 	if len(sub) < 2 {
 		sub = successRegexp.FindStringSubmatch(responsesplit[0])
 		if len(sub) < 2 {
-			if errorRegexp.MatchString(responsesplit[len(responsesplit)-2]) {
+			if errorRegexp.MatchString(responsesplit[max(len(responsesplit)-2, 0)]) {
 				return "", "", errors.New(fmt.Sprintf("Upload failed. iTOL returned the following error message: %s", responsesplit[len(responsesplit)-1]))
 			}
 		}
@@ -154,4 +154,12 @@ func compressTree(filename, s string, annotationfiles []string) ([]byte, error) 
 		return b.Bytes(), err
 	}
 	return b.Bytes(), nil
+}
+
+func max(a, b int) (max int) {
+	max = a
+	if b > a {
+		max = b
+	}
+	return
 }
