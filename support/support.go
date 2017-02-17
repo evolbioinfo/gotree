@@ -31,6 +31,15 @@ type Supporter interface {
 	ProbaDepthValue(d int, v int) float64
 	ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
 		bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval, speciesChannel chan<- speciesmoved) error
+	// Returns the number of bootstrap trees that have been computed
+	Progress() int
+	// Increments the number of trees processed
+	NewBootTreeComputed()
+	// Tells the supported to stop accepting new bootstrap trees from the bootTreeChannel
+	// It will just finish the current computations
+	Cancel()
+	// Tells if hasbeen canceled or not
+	Canceled() bool
 }
 
 func min(a int, b int) int {
@@ -171,7 +180,7 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 		close(bootTreeChannel)
 	}()
 
-	// We compute parsimony steps for all bootstrap trees
+	// We compute value for each bootstrap tree
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
 		go func() {
@@ -186,6 +195,9 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 	// Wait for step computation to close output channels
 	go func() {
 		wg.Wait()
+		// Read remaining trees from boottreeChannel if computations have been stoped before
+		for _ = range bootTreeChannel {
+		}
 		close(valuesChan)
 		close(randValuesChan)
 		close(speciesChannel)
@@ -282,4 +294,18 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 	}
 
 	return reftree, nil
+}
+
+func maxDepth(edges []*tree.Edge) (int, error) {
+	max_depth := 0
+	for _, e := range edges {
+		var d int
+		var err error
+		if d, err = e.TopoDepth(); err != nil {
+			io.LogError(err)
+			return d, err
+		}
+		max_depth = max(d, max_depth)
+	}
+	return max_depth, nil
 }

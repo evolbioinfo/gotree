@@ -4,14 +4,19 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"os"
+	"sync"
+
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
-	"os"
 )
 
 type MastSupporter struct {
 	expected_rand_val     []float64
 	distribution_rand_val [][]float64
+	currentTree           int
+	mutex                 *sync.Mutex
+	stop                  bool
 }
 
 func (supporter *MastSupporter) ExpectedRandValues(depth int) float64 {
@@ -20,6 +25,23 @@ func (supporter *MastSupporter) ExpectedRandValues(depth int) float64 {
 
 func (supporter *MastSupporter) ProbaDepthValue(d int, v int) float64 {
 	return supporter.distribution_rand_val[d][v]
+}
+
+func (supporter *MastSupporter) NewBootTreeComputed() {
+	supporter.mutex.Lock()
+	supporter.currentTree++
+	supporter.mutex.Unlock()
+}
+
+func (supporter *MastSupporter) Progress() int {
+	return supporter.currentTree
+}
+
+func (supporter *MastSupporter) Cancel() {
+	supporter.stop = true
+}
+func (supporter *MastSupporter) Canceled() bool {
+	return supporter.stop
 }
 
 func (supporter *MastSupporter) Init(maxdepth int, nbtips int) {
@@ -34,6 +56,9 @@ func (supporter *MastSupporter) Init(maxdepth int, nbtips int) {
 			}
 		}
 	}
+	supporter.stop = false
+	supporter.mutex = &sync.Mutex{}
+	supporter.currentTree = 0
 }
 
 func Update_all_i_c_post_order_ref_tree(refTree *tree.Tree, edges *[]*tree.Edge, bootTree *tree.Tree, bootEdges *[]*tree.Edge, i_matrix *[][]uint16, c_matrix *[][]uint16) {
@@ -296,8 +321,11 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 			}
 			movedSpecies[sp] = 0
 		}
+		supporter.NewBootTreeComputed()
+		if supporter.stop {
+			break
+		}
 	}
-
 	return nil
 }
 
