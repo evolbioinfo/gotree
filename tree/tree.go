@@ -945,7 +945,7 @@ func (t *Tree) UnRoot() {
 		e3.SetLength(math.Max(0, e1.Length()) + math.Max(0, e2.Length()))
 	}
 	if !n1.Tip() && !n2.Tip() && (e1.Support() != NIL_SUPPORT || e2.Support() != NIL_SUPPORT) {
-		e3.SetSupport((math.Max(0, e1.Support()) + math.Max(0, e2.Support())) / 2.0)
+		e3.SetSupport(math.Max(math.Max(0, e1.Support()), math.Max(0, e2.Support())))
 	}
 	t.delNode(root)
 }
