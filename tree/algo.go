@@ -345,6 +345,8 @@ func (t *Tree) RerootOutGroup(tips ...string) error {
 
 	root := t.NewNode()
 	length := rootedge.Length()
+	support := rootedge.Support()
+
 	lnode := rootedge.Left()
 	rnode := rootedge.Right()
 	lnode.delNeighbor(rnode)
@@ -356,6 +358,8 @@ func (t *Tree) RerootOutGroup(tips ...string) error {
 	if length > 0 {
 		ne.SetLength(length / 2.0)
 		ne2.SetLength(length / 2.0)
+		ne.SetSupport(support)
+		ne2.SetSupport(support)
 	}
 
 	t.Reroot(root)
@@ -424,6 +428,7 @@ func (t *Tree) RerootMidPoint() {
 
 	newroot := t.NewNode()
 	l := potentialedges[i-1].Length()
+	b := potentialedges[i-1].Support()
 	node1.delNeighbor(node2)
 	node2.delNeighbor(node1)
 	e := t.ConnectNodes(newroot, node1)
@@ -431,6 +436,8 @@ func (t *Tree) RerootMidPoint() {
 
 	e.SetLength(l - cut)
 	e2.SetLength(cut)
+	e.SetSupport(b)
+	e2.SetSupport(b)
 
 	t.Reroot(newroot)
 	t.ClearBitSets()
