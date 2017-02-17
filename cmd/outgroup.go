@@ -25,6 +25,9 @@ Reroot using an outgroup defined by 3 tips using command args:
 
 gotree reroot outgroup -i tree.nw Tip1 Tip2 Tip3 > reroot.nw
 
+If the outgroup includes a tip that is not present in the tree,
+this tip will not be taken into account for the reroot.
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var tips []string

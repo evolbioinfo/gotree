@@ -30,10 +30,14 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 	tipindex := make(map[string]*Node, 0)
 	for _, name := range tips {
 		node, found := nodeindex.GetNode(name)
-		if !found {
-			io.ExitWithMessage(errors.New(fmt.Sprintf("Tip not found in the tree : %s", name)))
+		if found {
+			tipindex[name] = node
+		} else {
+			io.LogWarning(errors.New(fmt.Sprintf("Tip not found in the tree : %s", name)))
 		}
-		tipindex[name] = node
+	}
+	if len(tipindex) == 0 {
+		io.ExitWithMessage(errors.New("None of the given tips are present in the tree"))
 	}
 
 	// We search a tip that is not in the input tips
@@ -305,6 +309,8 @@ This function first unroot the input tree and reroot it using the outgroup in ar
 if the outgroup is not monophyletic, it will take all the descendant of the LCA.
 An error is triggered if the LCA is multifurcated, and several branches are possible
 for the placement of the root.
+If the outgroup includes a tip that is not present in the tree,
+this tip will not be taken into account for the reroot.
 */
 func (t *Tree) RerootOutGroup(tips ...string) error {
 	t.UnRoot()
