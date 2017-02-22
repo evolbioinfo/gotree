@@ -27,10 +27,10 @@ For example:
 			f.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Nodes())))
 			f.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Tips())))
 			f.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Edges())))
-			f.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.MeanBrLength()))
-			f.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.SumBranchLengths()))
-			f.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.MeanSupport()))
-			f.WriteString(fmt.Sprintf("\t%.4f", statsintree.Tree.MedianSupport()))
+			f.WriteString(fmt.Sprintf("\t%.8f", statsintree.Tree.MeanBrLength()))
+			f.WriteString(fmt.Sprintf("\t%.8f", statsintree.Tree.SumBranchLengths()))
+			f.WriteString(fmt.Sprintf("\t%.8f", statsintree.Tree.MeanSupport()))
+			f.WriteString(fmt.Sprintf("\t%.8f", statsintree.Tree.MedianSupport()))
 			if statsintree.Tree.Rooted() {
 				f.WriteString(fmt.Sprintf("\trooted\n"))
 			} else {
