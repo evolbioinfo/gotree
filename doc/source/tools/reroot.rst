@@ -1,4 +1,4 @@
-.. _clear-page:
+.. _reroot-page:
 
 gotree reroot
 =============

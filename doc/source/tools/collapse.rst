@@ -1,4 +1,4 @@
-.. _clear-page:
+.. _collapse-page:
 
 gotree collapse
 ===============
