@@ -21,7 +21,7 @@ var intreefile, intree2file, outtreefile string
 var seed int64
 var mapfile string
 var revert bool
-var mastdist bool
+var transferdist bool
 var compareTips bool
 var tipfile string
 var cutoff float64

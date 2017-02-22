@@ -11,7 +11,7 @@ import (
 	"github.com/fredericlemoine/gotree/tree"
 )
 
-type MastSupporter struct {
+type BoosterSupporter struct {
 	expected_rand_val     []float64
 	distribution_rand_val [][]float64
 	currentTree           int
@@ -19,32 +19,32 @@ type MastSupporter struct {
 	stop                  bool
 }
 
-func (supporter *MastSupporter) ExpectedRandValues(depth int) float64 {
+func (supporter *BoosterSupporter) ExpectedRandValues(depth int) float64 {
 	return supporter.expected_rand_val[depth]
 }
 
-func (supporter *MastSupporter) ProbaDepthValue(d int, v int) float64 {
+func (supporter *BoosterSupporter) ProbaDepthValue(d int, v int) float64 {
 	return supporter.distribution_rand_val[d][v]
 }
 
-func (supporter *MastSupporter) NewBootTreeComputed() {
+func (supporter *BoosterSupporter) NewBootTreeComputed() {
 	supporter.mutex.Lock()
 	supporter.currentTree++
 	supporter.mutex.Unlock()
 }
 
-func (supporter *MastSupporter) Progress() int {
+func (supporter *BoosterSupporter) Progress() int {
 	return supporter.currentTree
 }
 
-func (supporter *MastSupporter) Cancel() {
+func (supporter *BoosterSupporter) Cancel() {
 	supporter.stop = true
 }
-func (supporter *MastSupporter) Canceled() bool {
+func (supporter *BoosterSupporter) Canceled() bool {
 	return supporter.stop
 }
 
-func (supporter *MastSupporter) Init(maxdepth int, nbtips int) {
+func (supporter *BoosterSupporter) Init(maxdepth int, nbtips int) {
 	if supporter.expected_rand_val == nil {
 		supporter.expected_rand_val = make([]float64, maxdepth+1)
 		supporter.distribution_rand_val = make([][]float64, maxdepth+1)
@@ -220,7 +220,7 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 			(*hamming)[edge_id3][edge_id] = uint16(ntips) - (*hamming)[edge_id3][edge_id]
 		}
 
-		/*   and update the min of all Hamming (MAST-like) distances hamming[i][j] over all j */
+		/*   and update the min of all Hamming (Transfer) distances hamming[i][j] over all j */
 		if (*hamming)[edge_id3][edge_id] < (*min_dist)[edge_id3] {
 			(*min_dist)[edge_id3] = (*hamming)[edge_id3][edge_id]
 			(*min_dist_edge)[edge_id3] = edge_id
@@ -229,9 +229,9 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 }
 
 // Thread that takes bootstrap trees from the channel,
-// computes the mastlike dist for each edges of the ref tree
+// computes the transfer dist for each edges of the ref tree
 // and send it to the result channel
-func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
+func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
 	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
@@ -329,12 +329,12 @@ func (supporter *MastSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees 
 	return nil
 }
 
-func MastLike(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
-	var supporter *MastSupporter = &MastSupporter{}
+func Booster(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
+	var supporter *BoosterSupporter = &BoosterSupporter{}
 	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
-func MastLikeFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
-	var supporter *MastSupporter = &MastSupporter{}
+func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
+	var supporter *BoosterSupporter = &BoosterSupporter{}
 	return ComputeSupportFile(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
 

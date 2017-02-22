@@ -32,15 +32,15 @@ If the compared tree file contains several trees, it will take the first one onl
 
 		edges1 := refTree.Edges()
 		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
-		if mastdist {
-			fmt.Printf("\tmast")
+		if transferdist {
+			fmt.Printf("\ttransfer")
 		}
 		fmt.Printf("\n")
 		for t2 := range readTrees(intree2file) {
 			edges2 := t2.Tree.Edges()
 			var min_dist []uint16
 			var min_dist_edges []int
-			if mastdist {
+			if transferdist {
 				tips := refTree.Tips()
 				min_dist = make([]uint16, len(edges1))
 				min_dist_edges = make([]int, len(edges1))
@@ -72,7 +72,7 @@ If the compared tree file contains several trees, it will take the first one onl
 				}
 				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(), found)
 
-				if mastdist {
+				if transferdist {
 					var movedtaxa bytes.Buffer
 					be := edges2[min_dist_edges[i]]
 					plus, minus := speciesToMove(e1, be, int(min_dist[i]))
@@ -100,7 +100,7 @@ If the compared tree file contains several trees, it will take the first one onl
 
 func init() {
 	compareCmd.AddCommand(compareedgesCmd)
-	compareedgesCmd.PersistentFlags().BoolVarP(&mastdist, "mast-dist", "m", false, "If mast dist must be computed for each edge")
+	compareedgesCmd.PersistentFlags().BoolVarP(&transferdist, "tranfser-dist", "m", false, "If transfer dist must be computed for each edge")
 }
 
 // Returns the list of species to move to go from one branch to the other

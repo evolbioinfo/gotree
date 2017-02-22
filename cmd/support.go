@@ -21,8 +21,7 @@ var supportCmd = &cobra.Command{
 	Long: `Computes different kind of branch supports.
 
 The supports implemented are :
-- mast-like support
-- parsimony based support
+- booster support
 - Classical Felsenstein support
 
 `,

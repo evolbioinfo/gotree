@@ -114,7 +114,7 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 	var valuesRand []int               // Sum of number of bootValues per random edges over boot trees
 	var gtRandom []float64             // Number of times edges have steps that are >= rand steps
 	var randTrees []*tree.Tree         // Empirical rand trees
-	var speciesMovedCount []float64    // Number of times each species has been moved (for mast mainly)
+	var speciesMovedCount []float64    // Number of times each species has been moved (for booster mainly)
 
 	var wg sync.WaitGroup  // For waiting end of step computation
 	var wg2 sync.WaitGroup // For waiting end of final counting
@@ -122,7 +122,7 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 	var valuesChan chan bootval          // Channel of values computed for a given edge
 	var randValuesChan chan bootval      // Channel of values computed for a given shuffled edge
 	var bootTreeChannel chan tree.Trees  // Channel of bootstrap trees
-	var speciesChannel chan speciesmoved // Channel of number of times each species has been moved. Used only for mast support
+	var speciesChannel chan speciesmoved // Channel of number of times each species has been moved. Used only for booster support
 	valuesChan = make(chan bootval, 100)
 	randValuesChan = make(chan bootval, 100)
 	bootTreeChannel = make(chan tree.Trees, 15)
