@@ -49,36 +49,87 @@ make
 The `gotree` executable should be located in the `$GOPATH/bin` folder.
 
 ## Usage
-gotree implements several tree manipulation commands. Here are some short examples:
+gotree implements several tree manipulation commands. 
 
-### Generate random unrooted uniform binary trees
+### List of commands
+*  annotate:    Annotate internal nodes of a tree with given data
+*  clear:       Clear lengths or supports from input trees
+    * lengths
+    * supports
+*  collapse:    Collapse branches of input trees
+    * depth
+    * length
+    * support
+*  compare:     Compare full trees, edges, or tips
+    * edges: Individually compare edges of the reference tree to a compared tree
+    * tips: Compare the set of tips of the reference tree to a compared tree
+    * trees: Compare 2 trees in terms of common and specific branches
+*  compute:     Computations such as consensus and supports
+    * consensus: Compute the consensus from a set of input trees
+    * edgetrees: Write one output tree per branch of the input tree, with only one branch
+    * support: Compute bootstrap supports
+      * classical
+      * booster
+*  divide:      Divide an input tree file into several tree files
+*  dlimage:     Download a tree image from a server
+    * itol: download a tree image from iTOL, with given image options
+*  generate:    Generate random trees, branch lengths are simply drawn from an expontential(1) law
+    * balancedtree
+    * caterpillartree
+    * uniformtree
+    * yuletree
+*  matrix:      Print distance matrix associated to the input tree
+*  minbrlen:    Set a minimum branch length to all branches with length < cutoff
+*  prune:       Remove tips of the input tree that are not in the compared tree, or that are given on the command line
+*  randbrlen:   Assign a random length to edges of input trees
+*  randsupport: Assign a random support to edges of input trees
+*  rename:      Rename tips of the input tree, given a map file
+*  reroot:      Reroot trees using an outgroup or at midpoint
+    * midpoint
+    * outgroup
+*  resolve:     Resolve multifurcations by adding 0 length branches
+*  shuffletips: Shuffle tip names of an input tree
+*  stats:       Print statistics about the tree, its edges, its nodes, if it is rooted, and its tips
+    * -
+    * edges
+    * nodes
+    * rooted
+    * tips
+*  unroot:      Unroot input tree
+*  upload:      Upload a tree to a given server
+    * itol : Upload a tree to itol, with given annotations
+*  version:     Display version of gotree
+
+### Examples
+
+* Generate random unrooted uniform binary trees
 ```[bash]
 $ gotree generate uniformtree -l 100 -n 10 | gotree stats
 ```
 
-### Unrooting a tree
+* Unrooting a tree
 
 ```[bash]
 $ gotree unroot -i tree.tre -o unrooted.tre
 ```
 
-### Collapsing short branches
+* Collapsing short branches
 
 ```[bash]
 $ gotree collapse length -i tree.tre -l 0.001 -o collapsed.tre
 ```
-### Collapsing lowly supported branches
+* Collapsing lowly supported branches
 
 ```[bash]
 $ gotree collapse support -i tree.tre -s 0.8 -o collapsed.tre
 ```
 
-### Clearing length information
+* Clearing length information
 
 ```[bash]
 $ gotree clear lengths -i tree.nw -o nolength.nw
 ```
-### Clearing support information
+* Clearing support information
 
 ```[bash]
 $ gotree clear supports -i tree.nw -o nosupport.nw
@@ -89,12 +140,12 @@ Note that you can pipe the two previous commands:
 $ gotree clear supports -i tree.nw | gotree clear lengths -o nosupport.nw
 ```
 
-### Printing tree statistics
+* Printing tree statistics
 
 ```[bash]
 $ gotree stats -i tree.tre
 ```
-### Printing edge statistics
+* Printing edge statistics
 
 ```[bash]
 $ gotree stats edges -i tree.tre
@@ -116,7 +167,7 @@ tree  |  brid  |  length    |  support  |  terminal  |  depth  |  topodepth  |  
 0     |  10    |  0.003361  |  N/A      |  true      |  0      |  1          |  Tip16
 0     |  11    |  0.021988  |  N/A      |  true      |  0      |  1          |  Node0
 
-### Printing tips
+* Printing tips
 ```[bash]
 $ gotree stats tips -i tree.tre
 ```
@@ -135,7 +186,7 @@ Example of result:
 |0     |  16  |  1       |  Tip2   |
 |0     |  17  |  1       |  Tip1   |
 
-### Comparing tips of two trees
+* Comparing tips of two trees
 
 ```[bash]
 $ gotree compare tips -i tree.tre -c tree2.tre
@@ -151,7 +202,7 @@ $ gotree compare tips -i <(gotree generate uniformtree -l 10 -n 1) \
 ```
 10 tips are equal, and "Tip10" is present only in the second tree.
 
-### Removing tips that are absent from another tree
+* Removing tips that are absent from another tree
 
 ```[bash]
 $ gotree prune -i tree.tre -c other.tre -o pruned.tre
@@ -165,7 +216,7 @@ $ gotree prune -i <(gotree generate uniformtree -l 1000 -n 1) \
 ```
 It should print 100 tips.
 
-### Comparing bipartitions
+* Comparing bipartitions
 Count the number of common/specific bipartitions between two trees.
 
 ```[bash]
@@ -184,7 +235,7 @@ Tree  |  specref  |  common
 0     |  97       |  0
 
 
-### Renaming tips of the tree
+* Renaming tips of the tree
 If you have a file containing the mapping between current names and new names of the tips, you can rename the tips:
 
 ```[bash]
