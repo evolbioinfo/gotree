@@ -29,6 +29,10 @@ func NewItolUploader(uploadid, projectname string, annotationfiles ...string) *I
 }
 
 func (u *ItolUploader) Upload(name string, t *tree.Tree) (string, string, error) {
+	return u.UploadNewick(name, t.Newick())
+}
+
+func (u *ItolUploader) UploadNewick(name string, newick string) (string, string, error) {
 	var client http.Client
 	var body *bytes.Buffer
 	var writer *multipart.Writer
@@ -51,7 +55,7 @@ func (u *ItolUploader) Upload(name string, t *tree.Tree) (string, string, error)
 		return "", "", err
 	}
 
-	if zipbytes, err = compressTree(name+".tree", t.Newick(), u.annotationfiles); err != nil {
+	if zipbytes, err = compressTree(name+".tree", newick, u.annotationfiles); err != nil {
 		return "", "", err
 	}
 	formwriter.Write(zipbytes)
