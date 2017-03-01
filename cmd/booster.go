@@ -22,7 +22,7 @@ var boosterCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		writeLogBooster()
 		rand.Seed(boosterSeed)
-		t, err := support.Booster(supportIntree, supportBoottrees, supportLog, boosterEmpirical, rootCpus)
+		t, err := support.Booster(supportIntree, supportBoottrees, supportLog, supportSilent, boosterEmpirical, rootCpus)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}

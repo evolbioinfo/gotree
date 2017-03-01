@@ -13,6 +13,7 @@ var supportOutFile string
 var supportLogFile string
 var supportOut *os.File
 var supportLog *os.File
+var supportSilent bool
 
 // supportCmd represents the support command
 var supportCmd = &cobra.Command{
@@ -57,4 +58,5 @@ func init() {
 	supportCmd.PersistentFlags().StringVarP(&supportBoottrees, "bootstrap", "b", "none", "Bootstrap trees input file")
 	supportCmd.PersistentFlags().StringVarP(&supportOutFile, "out", "o", "stdout", "Output tree file, with supports")
 	supportCmd.PersistentFlags().StringVarP(&supportLogFile, "log-file", "l", "stderr", "Output log file")
+	supportCmd.PersistentFlags().BoolVar(&supportSilent, "silent", false, "If true, progress messages will not be printed to stderr")
 }

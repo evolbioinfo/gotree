@@ -17,6 +17,7 @@ type BoosterSupporter struct {
 	currentTree           int
 	mutex                 *sync.Mutex
 	stop                  bool
+	silent                bool
 }
 
 func (supporter *BoosterSupporter) ExpectedRandValues(depth int) float64 {
@@ -246,7 +247,9 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTre
 	var nb_branches_close int
 	for treeV := range bootTreeChannel {
 		nb_branches_close = 0
-		fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\n", cpu, treeV.Id)
+		if !supporter.silent {
+			fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\n", cpu, treeV.Id)
+		}
 		bootEdges := treeV.Tree.Edges()
 
 		for i, _ := range edges {
@@ -329,12 +332,14 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTre
 	return nil
 }
 
-func Booster(reftreefile, boottreefile string, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
+func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, empirical bool, cpus int) (*tree.Tree, error) {
 	var supporter *BoosterSupporter = &BoosterSupporter{}
+	supporter.silent = silent
 	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
-func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, empirical bool, cpus int) (*tree.Tree, error) {
+func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, silent bool, empirical bool, cpus int) (*tree.Tree, error) {
 	var supporter *BoosterSupporter = &BoosterSupporter{}
+	supporter.silent = silent
 	return ComputeSupportFile(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
 
