@@ -18,6 +18,7 @@ type BoosterSupporter struct {
 	mutex                 *sync.Mutex
 	stop                  bool
 	silent                bool
+	computeMovedSpecies   bool
 }
 
 func (supporter *BoosterSupporter) ExpectedRandValues(depth int) float64 {
@@ -273,23 +274,25 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTre
 			if e.Right().Tip() {
 				continue
 			}
-			be := bootEdges[min_dist_edge[i]]
 			vals[i] = int(min_dist[i])
-			td, err := e.TopoDepth()
-			if err != nil {
-				io.LogError(err)
-				return err
-			}
-			norm := 1.0 - float64(vals[i])/(float64(td)-1.0)
-			if norm > 0.95 && td >= 21 {
-				if sm, er := speciesToMove(e, be, vals[i]); er != nil {
-					io.LogError(er)
+			if supporter.computeMovedSpecies {
+				td, err := e.TopoDepth()
+				if err != nil {
+					io.LogError(err)
 					return err
-				} else {
-					for _, sp := range sm {
-						movedSpecies[sp]++
+				}
+				be := bootEdges[min_dist_edge[i]]
+				norm := 1.0 - float64(vals[i])/(float64(td)-1.0)
+				if norm > 0.95 && td >= 21 {
+					if sm, er := speciesToMove(e, be, vals[i]); er != nil {
+						io.LogError(er)
+						return err
+					} else {
+						for _, sp := range sm {
+							movedSpecies[sp]++
+						}
+						nb_branches_close++
 					}
-					nb_branches_close++
 				}
 			}
 			valChan <- bootval{
@@ -317,12 +320,14 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTre
 				}
 			}
 		}
-		for sp, nb := range movedSpecies {
-			speciesChannel <- speciesmoved{
-				uint(sp),
-				float64(nb) / float64(nb_branches_close),
+		if supporter.computeMovedSpecies {
+			for sp, nb := range movedSpecies {
+				speciesChannel <- speciesmoved{
+					uint(sp),
+					float64(nb) / float64(nb_branches_close),
+				}
+				movedSpecies[sp] = 0
 			}
-			movedSpecies[sp] = 0
 		}
 		supporter.NewBootTreeComputed()
 		if supporter.stop {
@@ -332,14 +337,16 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTre
 	return nil
 }
 
-func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, empirical bool, cpus int) (*tree.Tree, error) {
+func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, computeMovedSpecies bool, empirical bool, cpus int) (*tree.Tree, error) {
 	var supporter *BoosterSupporter = &BoosterSupporter{}
 	supporter.silent = silent
+	supporter.computeMovedSpecies = computeMovedSpecies
 	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
-func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, silent bool, empirical bool, cpus int) (*tree.Tree, error) {
+func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, silent bool, computeMovedSpecies bool, empirical bool, cpus int) (*tree.Tree, error) {
 	var supporter *BoosterSupporter = &BoosterSupporter{}
 	supporter.silent = silent
+	supporter.computeMovedSpecies = computeMovedSpecies
 	return ComputeSupportFile(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
 }
 

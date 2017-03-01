@@ -256,6 +256,7 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 		io.LogError(err)
 		return nil, err
 	}
+
 	if computeerr != nil {
 		io.LogError(computeerr)
 		return nil, computeerr
