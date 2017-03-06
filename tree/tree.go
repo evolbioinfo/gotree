@@ -336,14 +336,20 @@ func (t *Tree) Newick() string {
 // of the tip in the alphabetically ordered tip
 // name list
 func (t *Tree) UpdateTipIndex() {
-	names := t.AllTipNames()
-	sort.Strings(names)
+	names := t.SortedTips()
 	for k := range t.tipIndex {
 		delete(t.tipIndex, k)
 	}
 	for i, n := range names {
 		t.tipIndex[n] = uint(i)
 	}
+}
+
+/* Tips, sorted by their order in the bitsets*/
+func (t *Tree) SortedTips() []string {
+	names := t.AllTipNames()
+	sort.Strings(names)
+	return names
 }
 
 // if UpdateTipIndex has been called before ok
