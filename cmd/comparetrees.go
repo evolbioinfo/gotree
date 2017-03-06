@@ -13,10 +13,13 @@ import (
 
 // Type for channel of tree stats
 type stats struct {
-	id     int
-	tree1  int
-	common int
+	id       int
+	tree1    int
+	common   int
+	sametree bool
 }
+
+var comparetreeidentical bool
 
 func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	maxcpus := runtime.NumCPU()
@@ -62,8 +65,16 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 					io.ExitWithMessage(err)
 				}
 
+				sametree := true
 				for _, e2 := range edges2 {
-					_, ok := index.Value(e2)
+					ok := true
+					if !e2.Right().Tip() {
+						_, ok = index.Value(e2)
+					}
+					if !ok && comparetreeidentical {
+						sametree = false
+						break
+					}
 					if ok && (tips || !e2.Right().Tip()) {
 						common++
 					}
@@ -73,6 +84,7 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 					treeV.Id,
 					total - common,
 					common,
+					sametree,
 				}
 			}
 			wg.Done()
@@ -84,9 +96,16 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 		close(statsChannel)
 	}()
 
-	fmt.Printf("Tree\tspecref\tcommon\n")
-	for stats := range statsChannel {
-		fmt.Printf("%d\t%d\t%d\n", stats.id, stats.tree1, stats.common)
+	if comparetreeidentical {
+		fmt.Printf("Tree\tidentical\n")
+		for stats := range statsChannel {
+			fmt.Printf("%d\t%v\n", stats.id, stats.sametree)
+		}
+	} else {
+		fmt.Printf("Tree\tspecref\tcommon\n")
+		for stats := range statsChannel {
+			fmt.Printf("%d\t%d\t%d\n", stats.id, stats.tree1, stats.common)
+		}
 	}
 }
 
@@ -107,4 +126,5 @@ between it and the reference tree, as well as the number of specific edges.
 func init() {
 	compareCmd.AddCommand(compareTreesCmd)
 	compareTreesCmd.Flags().BoolVarP(&compareTips, "tips", "l", false, "Include tips in the comparison")
+	compareTreesCmd.Flags().BoolVar(&comparetreeidentical, "binary", false, "If true, then just print true (identical tree) or false (different tree) for each compared tree")
 }
