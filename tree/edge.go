@@ -104,7 +104,8 @@ func (e *Edge) DumpBitSet() string {
 	if e.bitset == nil {
 		return "nil"
 	}
-	return e.bitset.DumpAsBits()
+	s := e.bitset.DumpAsBits()
+	return s[len(s)-int(e.bitset.Len())-1 : len(s)]
 }
 
 /* Returns a string containing informations about the edge:
