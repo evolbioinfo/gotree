@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var boosterEmpirical bool
 var boosterSeed int64
 var boosterPrintMovedTaxa bool
 
@@ -23,7 +22,7 @@ var boosterCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		writeLogBooster()
 		rand.Seed(boosterSeed)
-		t, err := support.Booster(supportIntree, supportBoottrees, supportLog, supportSilent, boosterPrintMovedTaxa, boosterEmpirical, rootCpus)
+		t, err := support.Booster(supportIntree, supportBoottrees, supportLog, supportSilent, boosterPrintMovedTaxa, rootCpus)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
@@ -34,7 +33,6 @@ var boosterCmd = &cobra.Command{
 
 func init() {
 	supportCmd.AddCommand(boosterCmd)
-	boosterCmd.PersistentFlags().BoolVarP(&boosterEmpirical, "empirical", "e", false, "If the support is computed with comparison to empirical support classical steps (shuffles of the original tree)")
 	boosterCmd.PersistentFlags().BoolVar(&boosterPrintMovedTaxa, "moved-taxa", false, "If true, will print in log file (-l) taxa that move the most around branches")
 	boosterCmd.PersistentFlags().Int64VarP(&boosterSeed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed if empirical is ON")
 }
@@ -45,7 +43,6 @@ func writeLogBooster() {
 	supportLog.WriteString(fmt.Sprintf("Input tree  : %s\n", supportIntree))
 	supportLog.WriteString(fmt.Sprintf("Boot trees  : %s\n", supportBoottrees))
 	supportLog.WriteString(fmt.Sprintf("Output tree : %s\n", supportOutFile))
-	supportLog.WriteString(fmt.Sprintf("Theor norm  : %t\n", !boosterEmpirical))
 	supportLog.WriteString(fmt.Sprintf("Seed        : %d\n", boosterSeed))
 	supportLog.WriteString(fmt.Sprintf("CPUs        : %d\n", rootCpus))
 }

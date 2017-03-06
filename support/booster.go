@@ -15,18 +15,14 @@ type BoosterSupporter struct {
 	expected_rand_val     []float64
 	distribution_rand_val [][]float64
 	currentTree           int
-	mutex                 *sync.Mutex
+	mutex                 *sync.RWMutex
 	stop                  bool
 	silent                bool
 	computeMovedSpecies   bool
 }
 
 func (supporter *BoosterSupporter) ExpectedRandValues(depth int) float64 {
-	return supporter.expected_rand_val[depth]
-}
-
-func (supporter *BoosterSupporter) ProbaDepthValue(d int, v int) float64 {
-	return supporter.distribution_rand_val[d][v]
+	return float64(depth - 1)
 }
 
 func (supporter *BoosterSupporter) NewBootTreeComputed() {
@@ -36,7 +32,12 @@ func (supporter *BoosterSupporter) NewBootTreeComputed() {
 }
 
 func (supporter *BoosterSupporter) Progress() int {
+	supporter.mutex.RLock()
+	defer supporter.mutex.RUnlock()
 	return supporter.currentTree
+}
+func (supporter *BoosterSupporter) PrintMovingTaxa() bool {
+	return supporter.computeMovedSpecies
 }
 
 func (supporter *BoosterSupporter) Cancel() {
@@ -47,19 +48,8 @@ func (supporter *BoosterSupporter) Canceled() bool {
 }
 
 func (supporter *BoosterSupporter) Init(maxdepth int, nbtips int) {
-	if supporter.expected_rand_val == nil {
-		supporter.expected_rand_val = make([]float64, maxdepth+1)
-		supporter.distribution_rand_val = make([][]float64, maxdepth+1)
-		for i := 0; i <= maxdepth; i++ {
-			supporter.distribution_rand_val[i] = make([]float64, nbtips+1)
-			if i > 0 {
-				supporter.expected_rand_val[i] = float64(i) - 1
-				supporter.distribution_rand_val[i][i-1] = 1.0
-			}
-		}
-	}
 	supporter.stop = false
-	supporter.mutex = &sync.Mutex{}
+	supporter.mutex = &sync.RWMutex{}
 	supporter.currentTree = 0
 }
 
@@ -233,8 +223,8 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 // Thread that takes bootstrap trees from the channel,
 // computes the transfer dist for each edges of the ref tree
 // and send it to the result channel
-func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTrees []*tree.Tree, cpu int, empirical bool, edges []*tree.Edge, randEdges [][]*tree.Edge,
-	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, randvalChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
+func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
+	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
 	var min_dist_edge []int = make([]int, len(edges))
@@ -301,25 +291,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTre
 				false,
 			}
 		}
-		// We compute the empirical values
-		if empirical {
-			for j, et := range empiricalTrees {
-				for i, _ := range edges {
-					min_dist[i] = uint16(len(tips))
-				}
-				Update_all_i_c_post_order_ref_tree(et, &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
-				Update_all_i_c_post_order_boot_tree(et, uint(len(tips)), &randEdges[j], treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edge)
 
-				for i, _ := range randEdges[j] {
-					val := int(min_dist[i])
-					randvalChan <- bootval{
-						val,
-						i,
-						vals[i] >= val,
-					}
-				}
-			}
-		}
 		if supporter.computeMovedSpecies {
 			for sp, nb := range movedSpecies {
 				speciesChannel <- speciesmoved{
@@ -337,17 +309,17 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, empiricalTre
 	return nil
 }
 
-func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, computeMovedSpecies bool, empirical bool, cpus int) (*tree.Tree, error) {
+func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, computeMovedSpecies bool, cpus int) (*tree.Tree, error) {
 	var supporter *BoosterSupporter = &BoosterSupporter{}
 	supporter.silent = silent
 	supporter.computeMovedSpecies = computeMovedSpecies
-	return ComputeSupport(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
+	return ComputeSupport(reftreefile, boottreefile, logfile, cpus, supporter)
 }
-func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, silent bool, computeMovedSpecies bool, empirical bool, cpus int) (*tree.Tree, error) {
+func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, silent bool, computeMovedSpecies bool, cpus int) (*tree.Tree, error) {
 	var supporter *BoosterSupporter = &BoosterSupporter{}
 	supporter.silent = silent
 	supporter.computeMovedSpecies = computeMovedSpecies
-	return ComputeSupportFile(reftreefile, boottreefile, logfile, empirical, cpus, supporter)
+	return ComputeSupportFile(reftreefile, boottreefile, logfile, cpus, supporter)
 }
 
 // Returns the list of species to move to go from one branch to the other
