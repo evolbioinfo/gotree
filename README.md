@@ -95,6 +95,7 @@ gotree implements several tree manipulation commands.
     * nodes
     * rooted
     * tips
+    * splits
 *  unroot:      Unroot input tree
 *  upload:      Upload a tree to a given server
     * itol : Upload a tree to itol, with given annotations
