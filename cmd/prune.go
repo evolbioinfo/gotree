@@ -38,8 +38,14 @@ In output, we have a tree containing only tips that are common to both trees.
 If several trees are present in the file given by -i, they are all analyzed and 
 written in the output.
 
-If -c is not given, this command will take taxa names on command line :
+If -c and -f are not given, this command will take taxa names on command line :
 gotree prune -i reftree.nw -o outtree.nw t1 t2 t3 
+
+By order of priority:
+1) -f --tipfile
+2) -c --comp
+3) tips given on commandline
+4) Nothing is done
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -51,7 +57,11 @@ gotree prune -i reftree.nw -o outtree.nw t1 t2 t3
 
 		// Read ref Trees
 		for reftree := range readTrees(intreefile) {
-			if comptree != nil {
+			var tips []string
+			if tipfile != "none" {
+				tips = parseTipsFile(tipfile)
+				err = reftree.Tree.RemoveTips(revert, tips...)
+			} else if comptree != nil {
 				specificTipNames = specificTips(reftree.Tree, comptree)
 				err = reftree.Tree.RemoveTips(revert, specificTipNames...)
 			} else {
@@ -71,5 +81,6 @@ func init() {
 	pruneCmd.Flags().StringVarP(&intreefile, "ref", "i", "stdin", "Input reference tree")
 	pruneCmd.Flags().StringVarP(&intree2file, "comp", "c", "none", "Input compared tree ")
 	pruneCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output tree")
+	pruneCmd.Flags().StringVarP(&tipfile, "tipfile", "f", "none", "Tip file")
 	pruneCmd.Flags().BoolVarP(&revert, "revert", "r", false, "If true, then revert the behavior: will keep only species given in the command line, or remove the species that are in common with compared tree")
 }
