@@ -53,9 +53,9 @@ gotree prune -i reftree.nw -o outtree.nw t1 t2 t3
 		for reftree := range readTrees(intreefile) {
 			if comptree != nil {
 				specificTipNames = specificTips(reftree.Tree, comptree)
-				err = reftree.Tree.RemoveTips(specificTipNames...)
+				err = reftree.Tree.RemoveTips(revert, specificTipNames...)
 			} else {
-				err = reftree.Tree.RemoveTips(args...)
+				err = reftree.Tree.RemoveTips(revert, args...)
 			}
 			if err != nil {
 				io.ExitWithMessage(err)
@@ -71,4 +71,5 @@ func init() {
 	pruneCmd.Flags().StringVarP(&intreefile, "ref", "i", "stdin", "Input reference tree")
 	pruneCmd.Flags().StringVarP(&intree2file, "comp", "c", "none", "Input compared tree ")
 	pruneCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output tree")
+	pruneCmd.Flags().BoolVarP(&revert, "revert", "r", false, "If true, then revert the behavior: will keep only species given in the command line, or remove the species that are in common with compared tree")
 }

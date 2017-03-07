@@ -193,19 +193,23 @@ func (t *Tree) tipsRecur(tips *[]*Node, cur *Node, prev *Node) {
 }
 
 // Removes a set of tips from the tree, from tip names
-func (t *Tree) RemoveTips(names ...string) error {
-	nodeindex := NewNodeIndex(t)
+func (t *Tree) RemoveTips(revert bool, names ...string) error {
+	namemap := make(map[string]bool)
 
 	for _, name := range names {
-		n, ok := nodeindex.GetNode(name)
-		if !ok {
-			return errors.New("No tip named " + name + " in the Tree")
+		namemap[name] = true
+	}
+
+	for _, tip := range t.Tips() {
+		if len(tip.neigh) != 1 {
+			return errors.New("The node named " + tip.Name() + " is not a tip")
 		}
-		if len(n.neigh) != 1 {
-			return errors.New("The node named " + name + " is not a tip")
-		}
-		if err := t.removeTip(n); err != nil {
-			return err
+
+		_, ok := namemap[tip.Name()]
+		if (!revert && ok) || (revert && !ok) {
+			if err := t.removeTip(tip); err != nil {
+				return err
+			}
 		}
 	}
 
