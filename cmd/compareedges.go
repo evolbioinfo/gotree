@@ -27,8 +27,7 @@ If the compared tree file contains several trees, it will take the first one onl
 
 		refTree := readTree(intreefile)
 		refTree.ComputeDepths()
-		names := refTree.AllTipNames()
-		sort.Strings(names)
+		names := refTree.SortedTips()
 
 		edges1 := refTree.Edges()
 		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")

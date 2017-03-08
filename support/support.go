@@ -210,8 +210,7 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 		return nil, computeerr
 	}
 
-	names := reftree.AllTipNames()
-	sort.Strings(names)
+	names := reftree.SortedTips()
 
 	if supporter.PrintMovingTaxa() {
 		logfile.WriteString("Moving taxa\n")
