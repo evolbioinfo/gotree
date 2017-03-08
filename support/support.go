@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"sort"
 	"sync"
 
 	"github.com/fredericlemoine/gotree/io"
