@@ -121,11 +121,11 @@ func (e *Edge) ToStatsString() string {
 	var err error
 	var length = "N/A"
 	if e.Length() != NIL_LENGTH {
-		length = fmt.Sprintf("%f", e.Length())
+		length = fmt.Sprintf("%g", e.Length())
 	}
 	var support = "N/A"
 	if e.Support() != NIL_SUPPORT {
-		support = fmt.Sprintf("%f", e.Support())
+		support = fmt.Sprintf("%g", e.Support())
 	}
 
 	var depth, leftdepth, rightdepth int
@@ -145,7 +145,7 @@ func (e *Edge) ToStatsString() string {
 
 	name := ""
 	if e.PValue() != NIL_PVALUE {
-		name = fmt.Sprintf("%f/%f", e.Support(), e.PValue())
+		name = fmt.Sprintf("%g/%g", e.Support(), e.PValue())
 	} else {
 		name = e.Right().Name()
 	}

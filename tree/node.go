@@ -163,9 +163,9 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 				}
 				child.Newick(n, newick)
 				if n.br[i].support != NIL_SUPPORT && child.Name() == "" {
-					newick.WriteString(fmt.Sprintf("%f", n.br[i].support))
+					newick.WriteString(fmt.Sprintf("%g", n.br[i].support))
 					if n.br[i].pvalue != NIL_PVALUE {
-						newick.WriteString(fmt.Sprintf("/%f", n.br[i].pvalue))
+						newick.WriteString(fmt.Sprintf("/%g", n.br[i].pvalue))
 					}
 				}
 				if len(child.comment) != 0 {
@@ -177,7 +177,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 				}
 				if n.br[i].length != NIL_LENGTH {
 					newick.WriteString(":")
-					newick.WriteString(fmt.Sprintf("%f", n.br[i].length))
+					newick.WriteString(fmt.Sprintf("%g", n.br[i].length))
 				}
 				nbchild++
 			}
