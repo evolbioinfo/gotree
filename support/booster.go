@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"sync"
 
@@ -12,13 +13,36 @@ import (
 )
 
 type BoosterSupporter struct {
-	expected_rand_val     []float64
-	distribution_rand_val [][]float64
-	currentTree           int
-	mutex                 *sync.RWMutex
-	stop                  bool
-	silent                bool
-	computeMovedSpecies   bool
+	currentTree         int
+	mutex               *sync.RWMutex
+	stop                bool
+	silent              bool
+	computeMovedSpecies bool
+	/* Cutoff for considering a branch : ok if norm distance to current
+	bootstrap tree < cutoff (ex=0.05) => allows to compute a minimum depth also:
+	norm_dist = distance / (p-1)
+	=> If we want at least one species that moves (distance=1) at a given norm_dist cutoff, we need a depth p :
+	p=(1/norm_dist)+1
+	*/
+	movedSpeciesCutoff float64
+}
+
+func NewBoosterSupporter(silent bool, computeMovedSpecies bool, movedSpeciesCutoff float64) *BoosterSupporter {
+	if movedSpeciesCutoff < 0 {
+		movedSpeciesCutoff = 1.0
+	}
+	if movedSpeciesCutoff > 1 {
+		movedSpeciesCutoff = 1.0
+	}
+
+	return &BoosterSupporter{
+		currentTree:         0,
+		mutex:               &sync.RWMutex{},
+		stop:                false,
+		silent:              silent,
+		computeMovedSpecies: computeMovedSpecies,
+		movedSpeciesCutoff:  movedSpeciesCutoff,
+	}
 }
 
 func (supporter *BoosterSupporter) ExpectedRandValues(depth int) float64 {
@@ -272,8 +296,9 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 					return err
 				}
 				be := bootEdges[min_dist_edge[i]]
-				norm := 1.0 - float64(vals[i])/(float64(td)-1.0)
-				if norm > 0.95 && td >= 21 {
+				norm := float64(vals[i]) / (float64(td) - 1.0)
+				mindepth := int(math.Ceil(1.0/supporter.movedSpeciesCutoff + 1.0))
+				if norm <= supporter.movedSpeciesCutoff && td >= mindepth {
 					if sm, er := speciesToMove(e, be, vals[i]); er != nil {
 						io.LogError(er)
 						return err
@@ -309,16 +334,12 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 	return nil
 }
 
-func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, computeMovedSpecies bool, cpus int) (*tree.Tree, error) {
-	var supporter *BoosterSupporter = &BoosterSupporter{}
-	supporter.silent = silent
-	supporter.computeMovedSpecies = computeMovedSpecies
+func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) (*tree.Tree, error) {
+	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, movedSpeciedCutoff)
 	return ComputeSupport(reftreefile, boottreefile, logfile, cpus, supporter)
 }
-func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, silent bool, computeMovedSpecies bool, cpus int) (*tree.Tree, error) {
-	var supporter *BoosterSupporter = &BoosterSupporter{}
-	supporter.silent = silent
-	supporter.computeMovedSpecies = computeMovedSpecies
+func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) (*tree.Tree, error) {
+	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, movedSpeciedCutoff)
 	return ComputeSupportFile(reftreefile, boottreefile, logfile, cpus, supporter)
 }
 
