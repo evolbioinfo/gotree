@@ -34,6 +34,8 @@ gotree subtree -i tree.nhx -n "^Mammal.*"
 
 If several nodes match the given name/regexp, do nothing, and print the name of matching nodes.
 
+The only matching node must be an internal node, otherwise, it will do nothing and print the tip.
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
@@ -48,8 +50,13 @@ If several nodes match the given name/regexp, do nothing, and print the name of 
 			}
 			switch len(nodes) {
 			case 1:
-				subtree := reftree.Tree.SubTree(nodes[0])
-				f.WriteString(subtree.Newick() + "\n")
+				n := nodes[0]
+				if n.Tip() {
+					log.Print(fmt.Sprintf("Tree %d: Node %s is a tip", i, n.Name()))
+				} else {
+					subtree := reftree.Tree.SubTree(n)
+					f.WriteString(subtree.Newick() + "\n")
+				}
 			case 0:
 				log.Print(fmt.Sprintf("Tree %d: No node matches input name", i))
 			default:
