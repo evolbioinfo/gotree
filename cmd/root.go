@@ -19,6 +19,7 @@ import (
 // Variables used in lots of commands
 var intreefile, intree2file, outtreefile string
 var seed int64
+var inputname string
 var mapfile string
 var revert bool
 var transferdist bool

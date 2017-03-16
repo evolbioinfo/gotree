@@ -9,6 +9,7 @@ import (
 	"errors"
 	"math"
 	"math/rand"
+	"regexp"
 	"sort"
 
 	"github.com/fredericlemoine/bitset"
@@ -189,6 +190,24 @@ func (t *Tree) tipsRecur(tips *[]*Node, cur *Node, prev *Node) {
 		if n != prev {
 			t.tipsRecur(tips, n, cur)
 		}
+	}
+}
+
+/*
+ Returns the list of nodes having a name matching the given regexp
+ May return an error if the regexp is malformed. In this case, returns an empty (not nil) slice of nodes.
+*/
+func (t *Tree) SelectNodes(re string) ([]*Node, error) {
+	nodes := make([]*Node, 0)
+	if r, err := regexp.Compile(re); err == nil {
+		for _, n := range t.Nodes() {
+			if r.MatchString(n.Name()) {
+				nodes = append(nodes, n)
+			}
+		}
+		return nodes, err
+	} else {
+		return nodes, err
 	}
 }
 
@@ -1122,4 +1141,22 @@ func (t *Tree) copyTreeRecur(copytree *Tree, copynode, node *Node, edge *Edge) {
 			t.copyTreeRecur(copytree, copychild, child, e)
 		}
 	}
+}
+
+/*
+Assumes that the tree is rooted.
+Otherwise, will take the pseudo root
+implied by the initial newick file
+*/
+func (t *Tree) SubTree(n *Node) *Tree {
+	subtree := NewTree()
+	root := t.CopyNode(n)
+	subtree.SetRoot(root)
+	for _, e := range n.br {
+		if e.Left() == n {
+			t.copyTreeRecur(subtree, root, n, e)
+		}
+	}
+	subtree.UpdateTipIndex()
+	return (subtree)
 }
