@@ -26,6 +26,7 @@ var transferdist bool
 var compareTips bool
 var tipfile string
 var cutoff float64
+var movedtaxa bool
 
 var cfgFile string
 var rootCpus int

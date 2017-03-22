@@ -31,7 +31,7 @@ If the compared tree file contains several trees, it will take the first one onl
 		edges1 := refTree.Edges()
 		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
 		if transferdist {
-			fmt.Printf("\ttransfer")
+			fmt.Printf("\ttransfer\taxatomove")
 		}
 		fmt.Printf("\n")
 		for t2 := range readTrees(intree2file) {
@@ -71,24 +71,28 @@ If the compared tree file contains several trees, it will take the first one onl
 				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(), found)
 
 				if transferdist {
-					var movedtaxa bytes.Buffer
-					be := edges2[min_dist_edges[i]]
-					plus, minus := speciesToMove(e1, be, int(min_dist[i]))
-					for k, sp := range plus {
-						if k > 0 {
-							movedtaxa.WriteRune(',')
+					var movedtaxabuf bytes.Buffer
+					if movedtaxa {
+						be := edges2[min_dist_edges[i]]
+						plus, minus := speciesToMove(e1, be, int(min_dist[i]))
+						for k, sp := range plus {
+							if k > 0 {
+								movedtaxabuf.WriteRune(',')
+							}
+							movedtaxabuf.WriteRune('+')
+							movedtaxabuf.WriteString(names[sp])
 						}
-						movedtaxa.WriteRune('+')
-						movedtaxa.WriteString(names[sp])
-					}
-					for k, sp := range minus {
-						if k > 0 || (k == 0 && len(plus) > 0) {
-							movedtaxa.WriteRune(',')
+						for k, sp := range minus {
+							if k > 0 || (k == 0 && len(plus) > 0) {
+								movedtaxabuf.WriteRune(',')
+							}
+							movedtaxabuf.WriteRune('-')
+							movedtaxabuf.WriteString(names[sp])
 						}
-						movedtaxa.WriteRune('-')
-						movedtaxa.WriteString(names[sp])
+					} else {
+						movedtaxabuf.WriteRune('-')
 					}
-					fmt.Printf("\t%d\t%s", min_dist[e1.Id()], movedtaxa.String())
+					fmt.Printf("\t%d\t%s", min_dist[e1.Id()], movedtaxabuf.String())
 				}
 				fmt.Printf("\n")
 			}
@@ -98,7 +102,8 @@ If the compared tree file contains several trees, it will take the first one onl
 
 func init() {
 	compareCmd.AddCommand(compareedgesCmd)
-	compareedgesCmd.PersistentFlags().BoolVarP(&transferdist, "tranfser-dist", "m", false, "If transfer dist must be computed for each edge")
+	compareedgesCmd.PersistentFlags().BoolVarP(&transferdist, "transfer-dist", "m", false, "If transfer dist must be computed for each edge")
+	compareedgesCmd.PersistentFlags().BoolVar(&movedtaxa, "moved-taxa", false, "only if --transfer-dist is given: Then display, for each branch, taxa that must be moved")
 }
 
 // Returns the list of species to move to go from one branch to the other

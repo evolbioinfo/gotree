@@ -10,10 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var boosterSeed int64
-var boosterPrintMovedTaxa bool
-var boosterDistanceCutoff float64
-
 // boosterCmd represents the booster command
 var boosterCmd = &cobra.Command{
 	Use:   "booster",
@@ -22,8 +18,8 @@ var boosterCmd = &cobra.Command{
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		writeLogBooster()
-		rand.Seed(boosterSeed)
-		t, err := support.Booster(supportIntree, supportBoottrees, supportLog, supportSilent, boosterPrintMovedTaxa, boosterDistanceCutoff, rootCpus)
+		rand.Seed(seed)
+		t, err := support.Booster(supportIntree, supportBoottrees, supportLog, supportSilent, movedtaxa, cutoff, rootCpus)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
@@ -34,9 +30,9 @@ var boosterCmd = &cobra.Command{
 
 func init() {
 	supportCmd.AddCommand(boosterCmd)
-	boosterCmd.PersistentFlags().BoolVar(&boosterPrintMovedTaxa, "moved-taxa", false, "If true, will print in log file (-l) taxa that move the most around branches")
-	boosterCmd.PersistentFlags().Float64Var(&boosterDistanceCutoff, "dist-cutoff", 0.05, "If --moved-taxa, then this is the distance cutoff to consider a branch for moving taxa computation. It is the normalized distance to the current bootstrap tree (e.g. 0.05). Must be between 0 and 1, otherwise set to 0")
-	boosterCmd.PersistentFlags().Int64VarP(&boosterSeed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed if empirical is ON")
+	boosterCmd.PersistentFlags().BoolVar(&movedtaxa, "moved-taxa", false, "If true, will print in log file (-l) taxa that move the most around branches")
+	boosterCmd.PersistentFlags().Float64Var(&cutoff, "dist-cutoff", 0.05, "If --moved-taxa, then this is the distance cutoff to consider a branch for moving taxa computation. It is the normalized distance to the current bootstrap tree (e.g. 0.05). Must be between 0 and 1, otherwise set to 0")
+	boosterCmd.PersistentFlags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed if empirical is ON")
 }
 
 func writeLogBooster() {
@@ -45,6 +41,6 @@ func writeLogBooster() {
 	supportLog.WriteString(fmt.Sprintf("Input tree  : %s\n", supportIntree))
 	supportLog.WriteString(fmt.Sprintf("Boot trees  : %s\n", supportBoottrees))
 	supportLog.WriteString(fmt.Sprintf("Output tree : %s\n", supportOutFile))
-	supportLog.WriteString(fmt.Sprintf("Seed        : %d\n", boosterSeed))
+	supportLog.WriteString(fmt.Sprintf("Seed        : %d\n", seed))
 	supportLog.WriteString(fmt.Sprintf("CPUs        : %d\n", rootCpus))
 }
