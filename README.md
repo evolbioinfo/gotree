@@ -73,6 +73,8 @@ gotree implements several tree manipulation commands.
 *  divide:      Divide an input tree file into several tree files
 *  dlimage:     Download a tree image from a server
     * itol: download a tree image from iTOL, with given image options
+*  draw: Draw tree(s)
+    * text: Display tree(s) in ASCII format (in the terminal or in a file)
 *  generate:    Generate random trees, branch lengths are simply drawn from an expontential(1) law
     * balancedtree
     * caterpillartree
@@ -89,6 +91,7 @@ gotree implements several tree manipulation commands.
     * outgroup
 *  resolve:     Resolve multifurcations by adding 0 length branches
 *  shuffletips: Shuffle tip names of an input tree
+*  subtree: extract a subtree
 *  stats:       Print statistics about the tree, its edges, its nodes, if it is rooted, and its tips
     * -
     * edges
