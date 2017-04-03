@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/fredericlemoine/gotree/draw"
 	"github.com/spf13/cobra"
@@ -23,7 +24,11 @@ var pngCmd = &cobra.Command{
 		for tr := range readTrees(intreefile) {
 			fname := outtreefile
 			if ntree > 0 {
-				fname = fmt.Sprintf(outtreefile+"_%03d.png", ntree)
+				extension := filepath.Ext(fname)
+				if extension == ".png" {
+					fname = fname[0 : len(fname)-len(extension)]
+				}
+				fname = fmt.Sprintf(fname+"_%03d.png", ntree)
 			}
 			f := openWriteFile(fname)
 			d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
