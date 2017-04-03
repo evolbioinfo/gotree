@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"math"
 	"os"
 
 	"github.com/golang/freetype/truetype"
@@ -32,10 +33,11 @@ func NewPngTreeDrawer(file *os.File, width, height int, leftmargin, rightmargin,
 		bottommargin,
 		nil,
 		nil,
+		20.0,
 	}
 	ptd.img = image.NewRGBA(image.Rect(0, 0, width+leftmargin+rightmargin, height+bottommargin+topmargin))
 	ptd.gc = draw2dimg.NewGraphicContext(ptd.img)
-	initFonts()
+	ptd.initFonts()
 	ptd.gc.SetFontData(draw2d.FontData{Name: "goregular"})
 	return ptd
 }
@@ -53,6 +55,7 @@ type pngTreeDrawer struct {
 	bottommargin int                       // Bottom margin of the canvas (in addition to the height)
 	img          *image.RGBA               // Image
 	gc           *draw2dimg.GraphicContext // Graphic context to draw on the image
+	dTip         float64                   // Distance from tip tolabel
 }
 
 func (ptd *pngTreeDrawer) DrawHLine(x1, x2, y, maxlength, maxheight float64) {
@@ -81,13 +84,51 @@ func (ptd *pngTreeDrawer) DrawVLine(x, y1, y2, maxlength, maxheight float64) {
 	ptd.gc.FillStroke()
 }
 
-func (ptd *pngTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64) {
+func (ptd *pngTreeDrawer) DrawLine(x1, y1, x2, y2, maxlength, maxheight float64) {
+	y1pos := float64(ptd.height)*y1/maxheight + float64(ptd.topmargin)
+	y2pos := float64(ptd.height)*y2/maxheight + float64(ptd.topmargin)
+	x1pos := float64(ptd.width)*x1/maxlength + float64(ptd.leftmargin)
+	x2pos := float64(ptd.width)*x2/maxlength + float64(ptd.leftmargin)
+
 	ptd.gc.SetFillColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
 	ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+	ptd.gc.SetLineWidth(2)
+	ptd.gc.MoveTo(x1pos, y1pos)
+	ptd.gc.LineTo(x2pos, y2pos)
+	ptd.gc.Close()
+	ptd.gc.FillStroke()
+}
+
+/* angle:  incoming branch angle */
+func (ptd *pngTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64) {
+	//directionX := math.Cos(angle)
+	//directionY := math.Sin(angle)
+
+	ptd.gc.SetFillColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+	ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+	left, top, right, bottom := ptd.gc.GetStringBounds(name)
 	ypos := float64(ptd.height)*y/maxheight + float64(ptd.topmargin)
 	xpos := float64(ptd.width)*x/maxlength + float64(ptd.leftmargin)
-	ptd.gc.FillStringAt(name, xpos, ypos)
+
+	//xpos = xpos + ptd.dTip*directionX
+	//ypos = ypos + ptd.dTip*directionY
+	// We rotate the other way (text not upside down)
+	if angle < 3*math.Pi/2.0 && angle > math.Pi/2.0 {
+		ptd.gc.Translate(xpos, ypos)
+		ptd.gc.Rotate(angle - math.Pi)
+		ptd.gc.FillStringAt(name, -(right-left)-ptd.dTip, (bottom-top)/2.0)
+		ptd.gc.Rotate(-angle + math.Pi)
+		ptd.gc.Translate(-xpos, -ypos)
+
+	} else {
+		ptd.gc.Translate(xpos, ypos)
+		ptd.gc.Rotate(angle)
+		ptd.gc.FillStringAt(name, ptd.dTip, (bottom-top)/2.0)
+		ptd.gc.Rotate(-angle)
+		ptd.gc.Translate(-xpos, -ypos)
+	}
 }
+
 func (ptd *pngTreeDrawer) Write() {
 	// Create Writer from file
 	b := bufio.NewWriter(ptd.outfile)
@@ -110,7 +151,7 @@ func (fc myFontCache) Load(fd draw2d.FontData) (*truetype.Font, error) {
 	return font, nil
 }
 
-func initFonts() {
+func (ptd *pngTreeDrawer) initFonts() {
 	fontCache := myFontCache{}
 
 	TTFs := map[string]([]byte){
@@ -127,6 +168,5 @@ func initFonts() {
 		}
 		fontCache.Store(draw2d.FontData{Name: fontName}, font)
 	}
-
 	draw2d.SetFontCache(fontCache)
 }

@@ -2,6 +2,7 @@ package draw
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"os"
 )
@@ -66,7 +67,11 @@ func (ttd *textTreeDrawer) DrawVLine(x, y1, y2, maxlength, maxheight float64) {
 	}
 }
 
-func (ttd *textTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64) {
+func (ttd *textTreeDrawer) DrawLine(x1, x2, y1, y2, maxlength, maxheight float64) {
+	log.Print("Method DrawLine cannot be called on textTreeDrawer: The line will not be drawn")
+}
+
+func (ttd *textTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64) {
 	ypos := float64(ttd.height) * y / maxheight
 	xpos := float64(ttd.width) * x / maxlength
 	for i, c := range []rune(name) {

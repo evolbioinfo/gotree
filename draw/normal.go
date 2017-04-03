@@ -37,7 +37,7 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDis
 	if n.Tip() {
 		ypos = float64(*curtip)
 		nbchild = 1.0
-		layout.drawer.DrawName(distToRoot, ypos, n.Name(), maxlength, float64(nbtips))
+		layout.drawer.DrawName(distToRoot, ypos, n.Name(), maxlength, float64(nbtips), 0.0)
 		*curtip++
 	} else {
 		minpos := -1.0

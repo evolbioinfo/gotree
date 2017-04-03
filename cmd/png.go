@@ -9,6 +9,7 @@ import (
 
 var pngwidth int
 var pngheight int
+var pngradial bool
 
 // pngCmd represents the png command
 var pngCmd = &cobra.Command{
@@ -26,7 +27,11 @@ var pngCmd = &cobra.Command{
 			}
 			f := openWriteFile(fname)
 			d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
-			l = draw.NewNormalLayout(d)
+			if pngradial {
+				l = draw.NewRadialLayout(d, true)
+			} else {
+				l = draw.NewNormalLayout(d)
+			}
 			l.DrawTree(tr.Tree)
 			f.Close()
 			ntree++
@@ -38,4 +43,5 @@ func init() {
 	drawCmd.AddCommand(pngCmd)
 	pngCmd.PersistentFlags().IntVarP(&pngwidth, "width", "w", 200, "Width of png image in pixels")
 	pngCmd.PersistentFlags().IntVarP(&pngheight, "height", "H", 200, "Height of png image in pixels")
+	pngCmd.PersistentFlags().BoolVarP(&pngradial, "radial", "r", false, "Radial layout (default : normal)")
 }

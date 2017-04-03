@@ -23,7 +23,9 @@ Generic struct to draw on different supports:
 type TreeDrawer interface {
 	DrawHLine(x1, x2, y, maxlength, maxheight float64)
 	DrawVLine(x, y1, y2, maxlength, maxheight float64)
-	DrawName(x, y float64, name string, maxlength, maxheight float64)
+	DrawLine(x1, y1, x2, y2, maxlength, maxheight float64)
+	/* angle : angle of the tip incoming branch */
+	DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64)
 	Write()
 }
 
