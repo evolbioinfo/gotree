@@ -3,8 +3,12 @@ language: go
 go:
   - 1.6.4
   - 1.7.4
+  - 1.8.0
 
 install:
-  - go get github.com/fredericlemoine/bitset
-  - go get github.com/fredericlemoine/gostats
-  - go get github.com/spf13/cobra
+  - go get -u github.com/fredericlemoine/bitset
+  - go get -u github.com/fredericlemoine/gostats
+  - go get -u github.com/spf13/cobra
+  - go get -u github.com/golang/freetype/truetype
+  - go get -u github.com/llgcode/draw2d
+  - go get -u golang.org/x/image/font
