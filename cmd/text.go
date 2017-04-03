@@ -14,10 +14,12 @@ var textCmd = &cobra.Command{
 	Long:  `Print trees in ASCII.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var d draw.TreeDrawer
+		var l draw.TreeLayout
 		f := openWriteFile(outtreefile)
-		d = draw.NewTextTreeDrawer(f, termwidth, 10)
 		for tr := range readTrees(intreefile) {
-			d.DrawTree(tr.Tree)
+			d = draw.NewTextTreeDrawer(f, termwidth, len(tr.Tree.Tips())*2, 10)
+			l = draw.NewNormalLayout(d)
+			l.DrawTree(tr.Tree)
 		}
 		f.Close()
 	},
@@ -25,6 +27,5 @@ var textCmd = &cobra.Command{
 
 func init() {
 	drawCmd.AddCommand(textCmd)
-	drawCmd.PersistentFlags().IntVarP(&termwidth, "width", "w", 200, "Width of tree/terminal (in characters)")
-
+	textCmd.PersistentFlags().IntVarP(&termwidth, "width", "w", 200, "Width of tree/terminal (in characters)")
 }
