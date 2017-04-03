@@ -33,9 +33,9 @@ var pngCmd = &cobra.Command{
 			f := openWriteFile(fname)
 			d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
 			if pngradial {
-				l = draw.NewRadialLayout(d, true)
+				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels)
 			} else {
-				l = draw.NewNormalLayout(d)
+				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels)
 			}
 			l.DrawTree(tr.Tree)
 			f.Close()

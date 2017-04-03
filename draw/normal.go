@@ -5,12 +5,16 @@ import (
 )
 
 type normalLayout struct {
-	drawer TreeDrawer
+	drawer           TreeDrawer
+	hasBranchLengths bool
+	hasTipLabels     bool
 }
 
-func NewNormalLayout(td TreeDrawer) TreeLayout {
+func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels bool) TreeLayout {
 	return &normalLayout{
 		td,
+		withBranchLengths,
+		withTipLabels,
 	}
 }
 
@@ -37,7 +41,9 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDis
 	if n.Tip() {
 		ypos = float64(*curtip)
 		nbchild = 1.0
-		layout.drawer.DrawName(distToRoot, ypos, n.Name(), maxlength, float64(nbtips), 0.0)
+		if layout.hasTipLabels {
+			layout.drawer.DrawName(distToRoot, ypos, n.Name(), maxlength, float64(nbtips), 0.0)
+		}
 		*curtip++
 	} else {
 		minpos := -1.0
@@ -45,6 +51,9 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDis
 		for i, child := range n.Neigh() {
 			if child != prev {
 				len := n.Edges()[i].Length()
+				if !layout.hasBranchLengths {
+					len = 1.0
+				}
 				temppos := layout.drawTreeRecur(child, n, distToRoot, distToRoot+len, maxLength, curtip, nbtips, maxlength)
 				if minpos == -1 || minpos > temppos {
 					minpos = temppos
@@ -78,7 +87,7 @@ func (layout *normalLayout) maxLengthRecur(n *tree.Node, prev *tree.Node, curlen
 	for i, child := range n.Neigh() {
 		if child != prev {
 			brlen := n.Edges()[i].Length()
-			if brlen == tree.NIL_LENGTH {
+			if brlen == tree.NIL_LENGTH || !layout.hasBranchLengths {
 				brlen = 1.0
 			}
 			layout.maxLengthRecur(child, n, curlength+brlen, maxlength)

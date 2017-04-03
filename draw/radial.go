@@ -10,6 +10,7 @@ type radialLayout struct {
 	drawer           TreeDrawer
 	spread           float64
 	hasBranchLengths bool
+	hasTipLabels     bool
 	cache            *radialCache
 }
 
@@ -40,11 +41,12 @@ func newRadialCache() *radialCache {
 
 }
 
-func NewRadialLayout(td TreeDrawer, withBranchLengths bool) TreeLayout {
+func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels bool) TreeLayout {
 	return &radialLayout{
 		td,
 		0.0,
 		withBranchLengths,
+		withTipLabels,
 		newRadialCache(),
 	}
 }
@@ -129,8 +131,10 @@ func (layout *radialLayout) drawTree() {
 	for _, l := range layout.cache.branchPaths {
 		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset, xmax+xoffset, ymax+yoffset)
 	}
-	for _, p := range layout.cache.tipLabelPoints {
-		layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
+	if layout.hasTipLabels {
+		for _, p := range layout.cache.tipLabelPoints {
+			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
+		}
 	}
 }
 
