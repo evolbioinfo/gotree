@@ -76,6 +76,7 @@ gotree implements several tree manipulation commands.
 *  draw: Draw tree(s) with different layouts
     * text: Display tree(s) in ASCII format (in the terminal or in a file)
     * png : Draw tree(s) in png format, with normal or radial/unrooted layout
+    * svg : Draw tree(s) in svg format, with normal or radial/unrooted layout
 *  generate:    Generate random trees, branch lengths are simply drawn from an expontential(1) law
     * balancedtree
     * caterpillartree
