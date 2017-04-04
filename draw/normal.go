@@ -5,16 +5,18 @@ import (
 )
 
 type normalLayout struct {
-	drawer           TreeDrawer
-	hasBranchLengths bool
-	hasTipLabels     bool
+	drawer                TreeDrawer
+	hasBranchLengths      bool
+	hasTipLabels          bool
+	hasInternalNodeLabels bool
 }
 
-func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels bool) TreeLayout {
+func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel bool) TreeLayout {
 	return &normalLayout{
 		td,
 		withBranchLengths,
 		withTipLabels,
+		withInternalNodeLabel,
 	}
 }
 
@@ -51,7 +53,7 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDis
 		for i, child := range n.Neigh() {
 			if child != prev {
 				len := n.Edges()[i].Length()
-				if !layout.hasBranchLengths {
+				if !layout.hasBranchLengths || len == tree.NIL_LENGTH {
 					len = 1.0
 				}
 				temppos := layout.drawTreeRecur(child, n, distToRoot, distToRoot+len, maxLength, curtip, nbtips, maxlength)
@@ -67,6 +69,9 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDis
 		}
 		ypos /= nbchild
 		layout.drawer.DrawVLine(distToRoot, minpos, maxpos, maxlength, float64(nbtips))
+		if layout.hasInternalNodeLabels {
+			layout.drawer.DrawName(distToRoot, ypos, n.Name(), maxlength, float64(nbtips), 0.0)
+		}
 	}
 	layout.drawer.DrawHLine(prevDistToRoot, distToRoot, ypos, maxlength, float64(nbtips))
 	return ypos

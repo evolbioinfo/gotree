@@ -33,9 +33,9 @@ var svgCmd = &cobra.Command{
 			f := openWriteFile(fname)
 			d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 50, 50, 50, 50)
 			if svgradial {
-				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels)
+				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
 			} else {
-				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels)
+				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
 			}
 			l.DrawTree(tr.Tree)
 			f.Close()

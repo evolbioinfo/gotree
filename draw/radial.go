@@ -7,11 +7,12 @@ import (
 )
 
 type radialLayout struct {
-	drawer           TreeDrawer
-	spread           float64
-	hasBranchLengths bool
-	hasTipLabels     bool
-	cache            *radialCache
+	drawer                TreeDrawer
+	spread                float64
+	hasBranchLengths      bool
+	hasTipLabels          bool
+	hasInternalNodeLabels bool
+	cache                 *radialCache
 }
 
 type radialPoint struct {
@@ -41,12 +42,13 @@ func newRadialCache() *radialCache {
 
 }
 
-func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels bool) TreeLayout {
+func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabels bool) TreeLayout {
 	return &radialLayout{
 		td,
 		0.0,
 		withBranchLengths,
 		withTipLabels,
+		withInternalNodeLabels,
 		newRadialCache(),
 	}
 }
@@ -100,7 +102,7 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 					index = len(node.Neigh()) - i - 1
 				}
 				brLen := node.Edges()[num].Length()
-				if !layout.hasBranchLengths {
+				if !layout.hasBranchLengths || brLen == tree.NIL_LENGTH {
 					brLen = 1.0
 				}
 				a1 := a2
@@ -112,10 +114,10 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 				i++
 			}
 		}
+		layout.cache.nodePoints = append(layout.cache.nodePoints, nodePoint)
 	} else {
 		layout.cache.tipLabelPoints = append(layout.cache.tipLabelPoints, nodePoint)
 	}
-	//layout.cache.nodePoints = append(layout.cache.nodePoints, nodePoints)
 	return nodePoint
 }
 
@@ -138,6 +140,12 @@ func (layout *radialLayout) drawTree() {
 			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
 		}
 	}
+	if layout.hasInternalNodeLabels {
+		for _, p := range layout.cache.nodePoints {
+			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
+		}
+	}
+
 }
 
 func (layout *radialLayout) borders() (xmin, ymin, xmax, ymax float64) {

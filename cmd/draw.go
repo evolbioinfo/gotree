@@ -6,6 +6,7 @@ import (
 
 var drawNoTipLabels bool
 var drawNoBranchLengths bool
+var drawInternalNodeLabels bool
 
 // drawCmd represents the draw command
 var drawCmd = &cobra.Command{
@@ -21,4 +22,5 @@ func init() {
 	drawCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
 	drawCmd.PersistentFlags().BoolVar(&drawNoTipLabels, "no-tip-labels", false, "Draw the tree without tip labels")
 	drawCmd.PersistentFlags().BoolVar(&drawNoBranchLengths, "no-branch-lengths", false, "Draw the tree without branch lengths (all the same length)")
+	drawCmd.PersistentFlags().BoolVar(&drawInternalNodeLabels, "with-node-labels", false, "Draw the tree with internal node labels")
 }

@@ -18,7 +18,7 @@ var textCmd = &cobra.Command{
 		f := openWriteFile(outtreefile)
 		for tr := range readTrees(intreefile) {
 			d = draw.NewTextTreeDrawer(f, termwidth, len(tr.Tree.Tips())*2, 10)
-			l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels)
+			l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
 			l.DrawTree(tr.Tree)
 		}
 		f.Close()
