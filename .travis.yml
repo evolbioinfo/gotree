@@ -12,3 +12,4 @@ install:
   - go get -u github.com/golang/freetype/truetype
   - go get -u github.com/llgcode/draw2d
   - go get -u golang.org/x/image/font
+  - go get -u github.com/ajstarks/svgo
