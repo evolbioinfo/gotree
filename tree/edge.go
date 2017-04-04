@@ -3,9 +3,11 @@ package tree
 import (
 	"errors"
 	"fmt"
+	"math"
+	"strconv"
+
 	"github.com/fredericlemoine/bitset"
 	"github.com/fredericlemoine/gotree/io"
-	"math"
 )
 
 type Edge struct {
@@ -121,11 +123,11 @@ func (e *Edge) ToStatsString() string {
 	var err error
 	var length = "N/A"
 	if e.Length() != NIL_LENGTH {
-		length = fmt.Sprintf("%g", e.Length())
+		length = fmt.Sprintf("%s", strconv.FormatFloat(e.Length(), 'f', -1, 64))
 	}
 	var support = "N/A"
 	if e.Support() != NIL_SUPPORT {
-		support = fmt.Sprintf("%g", e.Support())
+		support = fmt.Sprintf("%s", strconv.FormatFloat(e.Support(), 'f', -1, 64))
 	}
 
 	var depth, leftdepth, rightdepth int
@@ -145,7 +147,7 @@ func (e *Edge) ToStatsString() string {
 
 	name := ""
 	if e.PValue() != NIL_PVALUE {
-		name = fmt.Sprintf("%g/%g", e.Support(), e.PValue())
+		name = fmt.Sprintf("%s/%s", strconv.FormatFloat(e.Support(), 'f', -1, 64), strconv.FormatFloat(e.PValue(), 'f', -1, 64))
 	} else {
 		name = e.Right().Name()
 	}

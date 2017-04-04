@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/fredericlemoine/gotree/io"
 )
 
@@ -163,9 +165,9 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 				}
 				child.Newick(n, newick)
 				if n.br[i].support != NIL_SUPPORT && child.Name() == "" {
-					newick.WriteString(fmt.Sprintf("%g", n.br[i].support))
+					newick.WriteString(strconv.FormatFloat(n.br[i].support, 'f', -1, 64))
 					if n.br[i].pvalue != NIL_PVALUE {
-						newick.WriteString(fmt.Sprintf("/%g", n.br[i].pvalue))
+						newick.WriteString(fmt.Sprintf("/%s", strconv.FormatFloat(n.br[i].pvalue, 'f', -1, 64)))
 					}
 				}
 				if len(child.comment) != 0 {
@@ -177,7 +179,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 				}
 				if n.br[i].length != NIL_LENGTH {
 					newick.WriteString(":")
-					newick.WriteString(fmt.Sprintf("%g", n.br[i].length))
+					newick.WriteString(strconv.FormatFloat(n.br[i].length, 'f', -1, 64))
 				}
 				nbchild++
 			}
