@@ -53,6 +53,8 @@ func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels bool) TreeL
 
 /*
 Draw the tree on the specific drawer. Does not close the file. The caller must do it.
+This layout is an adaptation in Go of the figtree radial layout : figtree/treeviewer/treelayouts/RadialTreeLayout.java
+( https://github.com/rambaut/figtree/ )
 */
 func (layout *radialLayout) DrawTree(t *tree.Tree) error {
 	root := t.Root()
