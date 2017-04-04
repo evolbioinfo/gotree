@@ -95,7 +95,6 @@ gotree implements several tree manipulation commands.
 *  shuffletips: Shuffle tip names of an input tree
 *  subtree: extract a subtree
 *  stats:       Print statistics about the tree, its edges, its nodes, if it is rooted, and its tips
-    * -
     * edges
     * nodes
     * rooted
@@ -108,11 +107,19 @@ gotree implements several tree manipulation commands.
 
 ### Examples
 
-* Generate random unrooted uniform binary trees
+* Generate 10 random unrooted uniform binary trees
 ```[bash]
 $ gotree generate uniformtree -l 100 -n 10 | gotree stats
 ```
-
+* Generate 1 tree with 50 tips, and display it on the terminal (width 100)
+```[bash]
+$ gotree generate yuletree -l 50 | gotree draw text -w 100
+```
+* Generate 1 tree with 50 tips, and draw it on a SVG image
+```[bash]
+$ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -o tree.svg
+$ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -r -o tree_radial.svg
+```
 * Unrooting a tree
 
 ```[bash]
