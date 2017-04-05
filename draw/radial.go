@@ -12,34 +12,7 @@ type radialLayout struct {
 	hasBranchLengths      bool
 	hasTipLabels          bool
 	hasInternalNodeLabels bool
-	cache                 *radialCache
-}
-
-type radialPoint struct {
-	x       float64
-	y       float64
-	brAngle float64 // Angle of the incoming branch
-	name    string
-}
-
-type radialLine struct {
-	p1 *radialPoint
-	p2 *radialPoint
-}
-
-type radialCache struct {
-	tipLabelPoints []*radialPoint
-	branchPaths    []*radialLine
-	nodePoints     []*radialPoint
-}
-
-func newRadialCache() *radialCache {
-	return &radialCache{
-		make([]*radialPoint, 0),
-		make([]*radialLine, 0),
-		make([]*radialPoint, 0),
-	}
-
+	cache                 *layoutCache
 }
 
 func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabels bool) TreeLayout {
@@ -49,7 +22,7 @@ func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 		withBranchLengths,
 		withTipLabels,
 		withInternalNodeLabels,
-		newRadialCache(),
+		newLayoutCache(),
 	}
 }
 
@@ -67,12 +40,12 @@ func (layout *radialLayout) DrawTree(t *tree.Tree) error {
 	return nil
 }
 
-func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *tree.Node, angleStart, angleFinish, xPosition, yPosition, length float64) *radialPoint {
+func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *tree.Node, angleStart, angleFinish, xPosition, yPosition, length float64) *layoutPoint {
 	branchAngle := (angleStart + angleFinish) / 2.0
 	directionX := math.Cos(branchAngle)
 	directionY := math.Sin(branchAngle)
 
-	nodePoint := &radialPoint{xPosition + (length * directionX), yPosition + (length * directionY), branchAngle, node.Name()}
+	nodePoint := &layoutPoint{xPosition + (length * directionX), yPosition + (length * directionY), branchAngle, node.Name()}
 
 	if !node.Tip() {
 		leafCounts := make([]int, 0)
@@ -108,7 +81,7 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 				a1 := a2
 				a2 = a1 + (span * float64(leafCounts[index]) / float64(sumLeafCount))
 				childPoint := layout.constructNode(t, child, node, a1, a2, nodePoint.x, nodePoint.y, brLen)
-				branchLine := &radialLine{childPoint, nodePoint}
+				branchLine := &layoutLine{childPoint, nodePoint}
 				//add the branchLine to the map of branch paths
 				layout.cache.branchPaths = append(layout.cache.branchPaths, branchLine)
 				i++
@@ -122,7 +95,7 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 }
 
 func (layout *radialLayout) drawTree() {
-	xmin, ymin, xmax, ymax := layout.borders()
+	xmin, ymin, xmax, ymax := layout.cache.borders()
 	xoffset := 0.0
 	if xmin < 0 {
 		xoffset = -xmin
@@ -146,16 +119,4 @@ func (layout *radialLayout) drawTree() {
 		}
 	}
 
-}
-
-func (layout *radialLayout) borders() (xmin, ymin, xmax, ymax float64) {
-	xmin, ymin = 100000.0, 100000.0
-	xmax, ymax = 0.0, 0.0
-	for _, line := range layout.cache.branchPaths {
-		xmin = math.Min(math.Min(xmin, line.p1.x), line.p2.x)
-		ymin = math.Min(math.Min(ymin, line.p1.y), line.p2.y)
-		xmax = math.Max(math.Max(xmax, line.p1.x), line.p2.x)
-		ymax = math.Max(math.Max(ymax, line.p1.y), line.p2.y)
-	}
-	return
 }

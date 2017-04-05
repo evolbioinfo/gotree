@@ -99,19 +99,28 @@ func (ptd *pngTreeDrawer) DrawLine(x1, y1, x2, y2, maxlength, maxheight float64)
 	ptd.gc.FillStroke()
 }
 
+func (ptd *pngTreeDrawer) DrawCurve(centerx, centery float64, middlex, middley float64, radius float64, startAngle, endAngle float64, maxlength, maxheight float64) {
+	centerx2 := centerx*float64(ptd.width)/maxlength + float64(ptd.topmargin)
+	centery2 := centery*float64(ptd.height)/maxheight + float64(ptd.leftmargin)
+	middlex2 := middlex*float64(ptd.width)/maxlength + float64(ptd.topmargin)
+	middley2 := middley*float64(ptd.height)/maxheight + float64(ptd.leftmargin)
+	radiusscaled := math.Sqrt(math.Pow((middley2-centery2), 2) + math.Pow((middlex2-centerx2), 2))
+
+	ptd.gc.SetFillColor(color.RGBA{0x00, 0x00, 0x00, 0x00})
+	ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+	ptd.gc.SetLineWidth(2)
+	ptd.gc.ArcTo(centerx2, centery2, radiusscaled, radiusscaled, startAngle, endAngle-startAngle)
+	ptd.gc.Stroke()
+}
+
 /* angle:  incoming branch angle */
 func (ptd *pngTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64) {
-	//directionX := math.Cos(angle)
-	//directionY := math.Sin(angle)
-
 	ptd.gc.SetFillColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
 	ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
 	left, top, right, bottom := ptd.gc.GetStringBounds(name)
 	ypos := float64(ptd.height)*y/maxheight + float64(ptd.topmargin)
 	xpos := float64(ptd.width)*x/maxlength + float64(ptd.leftmargin)
 
-	//xpos = xpos + ptd.dTip*directionX
-	//ypos = ypos + ptd.dTip*directionY
 	// We rotate the other way (text not upside down)
 	if angle < 3*math.Pi/2.0 && angle > math.Pi/2.0 {
 		ptd.gc.Translate(xpos, ypos)
@@ -135,6 +144,11 @@ func (ptd *pngTreeDrawer) Write() {
 	// Write the image into the buffer
 	_ = png.Encode(b, ptd.img)
 	_ = b.Flush()
+}
+
+func (ptd *pngTreeDrawer) Bounds() (width, height int) {
+	width, height = ptd.width, ptd.height
+	return
 }
 
 type myFontCache map[string]*truetype.Font

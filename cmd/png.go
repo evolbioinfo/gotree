@@ -11,6 +11,7 @@ import (
 var pngwidth int
 var pngheight int
 var pngradial bool
+var pngcircular bool
 
 // pngCmd represents the png command
 var pngCmd = &cobra.Command{
@@ -31,10 +32,14 @@ var pngCmd = &cobra.Command{
 				fname = fmt.Sprintf(fname+"_%03d.png", ntree)
 			}
 			f := openWriteFile(fname)
-			d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
 			if pngradial {
+				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
+			} else if pngcircular {
+				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), 30, 30, 30, 30)
+				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
 			} else {
+				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
 			}
 			l.DrawTree(tr.Tree)
@@ -49,4 +54,5 @@ func init() {
 	pngCmd.PersistentFlags().IntVarP(&pngwidth, "width", "w", 200, "Width of png image in pixels")
 	pngCmd.PersistentFlags().IntVarP(&pngheight, "height", "H", 200, "Height of png image in pixels")
 	pngCmd.PersistentFlags().BoolVarP(&pngradial, "radial", "r", false, "Radial layout (default : normal)")
+	pngCmd.PersistentFlags().BoolVarP(&pngcircular, "circular", "c", false, "Circular/Polar layout (default : normal)")
 }

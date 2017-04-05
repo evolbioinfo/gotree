@@ -24,9 +24,11 @@ type TreeDrawer interface {
 	DrawHLine(x1, x2, y, maxlength, maxheight float64)
 	DrawVLine(x, y1, y2, maxlength, maxheight float64)
 	DrawLine(x1, y1, x2, y2, maxlength, maxheight float64)
+	DrawCurve(centerx, centery float64, middlex, middley float64, radius float64, startAngle, endAngle float64, maxlength, maxheight float64)
 	/* angle : angle of the tip incoming branch */
 	DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64)
 	Write()
+	Bounds() (int, int) /* width, height*/
 }
 
 /*

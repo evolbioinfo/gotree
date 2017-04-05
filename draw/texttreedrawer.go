@@ -71,6 +71,10 @@ func (ttd *textTreeDrawer) DrawLine(x1, x2, y1, y2, maxlength, maxheight float64
 	log.Print("Method DrawLine cannot be called on textTreeDrawer: The line will not be drawn")
 }
 
+func (ttd *textTreeDrawer) DrawCurve(centerx, centery float64, middlex, middley float64, radius float64, startAngle, endAngle float64, maxlength, maxheight float64) {
+	log.Print("Method DrawCurve cannot be called on textTreeDrawer: The curve will not be drawn")
+}
+
 func (ttd *textTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64) {
 	ypos := float64(ttd.height) * y / maxheight
 	xpos := float64(ttd.width) * x / maxlength
@@ -87,4 +91,9 @@ func (ttd *textTreeDrawer) Write() {
 		}
 		ttd.outfile.WriteString("\n")
 	}
+}
+
+func (ttd *textTreeDrawer) Bounds() (width, height int) {
+	width, height = ttd.width, ttd.height
+	return
 }

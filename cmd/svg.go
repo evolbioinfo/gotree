@@ -11,6 +11,7 @@ import (
 var svgwidth int
 var svgheight int
 var svgradial bool
+var svgcircular bool
 
 // svgCmd represents the svg command
 var svgCmd = &cobra.Command{
@@ -31,10 +32,14 @@ var svgCmd = &cobra.Command{
 				fname = fmt.Sprintf(fname+"_%03d.svg", ntree)
 			}
 			f := openWriteFile(fname)
-			d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 50, 50, 50, 50)
 			if svgradial {
+				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
+			} else if svgcircular {
+				d = draw.NewSvgTreeDrawer(f, min(svgwidth, svgheight), min(svgwidth, svgheight), 30, 30, 30, 30)
+				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
 			} else {
+				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
 			}
 			l.DrawTree(tr.Tree)
@@ -49,4 +54,5 @@ func init() {
 	svgCmd.PersistentFlags().IntVarP(&svgwidth, "width", "w", 200, "Width of svg image in pixels")
 	svgCmd.PersistentFlags().IntVarP(&svgheight, "height", "H", 200, "Height of svg image in pixels")
 	svgCmd.PersistentFlags().BoolVarP(&svgradial, "radial", "r", false, "Radial layout (default : normal)")
+	svgCmd.PersistentFlags().BoolVarP(&svgcircular, "circular", "c", false, "Circular/Polar layout (default : normal)")
 }
