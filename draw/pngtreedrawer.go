@@ -6,8 +6,8 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"math"
-	"os"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/llgcode/draw2d"
@@ -22,9 +22,9 @@ import (
 TextTreeDrawer initializer. TextTreeDraws draws tree as ASCII on stdout or any file.
 So far: Does not take into account branch lengths.
 */
-func NewPngTreeDrawer(file *os.File, width, height int, leftmargin, rightmargin, topmargin, bottommargin int) TreeDrawer {
+func NewPngTreeDrawer(w io.Writer, width, height int, leftmargin, rightmargin, topmargin, bottommargin int) TreeDrawer {
 	ptd := &pngTreeDrawer{
-		file,
+		w,
 		width,
 		height,
 		leftmargin,
@@ -46,7 +46,7 @@ func NewPngTreeDrawer(file *os.File, width, height int, leftmargin, rightmargin,
 Draw a tree in a png file.
 */
 type pngTreeDrawer struct {
-	outfile      *os.File                  // Output file
+	outwriter    io.Writer                 // Output Writer
 	width        int                       // Width of the ascii canvas
 	height       int                       // Height of the ascii canvas
 	leftmargin   int                       // Left margin of the canvas (in addition to the width)
@@ -140,7 +140,7 @@ func (ptd *pngTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheig
 
 func (ptd *pngTreeDrawer) Write() {
 	// Create Writer from file
-	b := bufio.NewWriter(ptd.outfile)
+	b := bufio.NewWriter(ptd.outwriter)
 	// Write the image into the buffer
 	_ = png.Encode(b, ptd.img)
 	_ = b.Flush()

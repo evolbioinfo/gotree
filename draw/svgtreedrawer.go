@@ -1,8 +1,8 @@
 package draw
 
 import (
+	"io"
 	"math"
-	"os"
 
 	"github.com/ajstarks/svgo"
 )
@@ -11,9 +11,9 @@ import (
 TextTreeDrawer initializer. TextTreeDraws draws tree as ASCII on stdout or any file.
 So far: Does not take into account branch lengths.
 */
-func NewSvgTreeDrawer(file *os.File, width, height int, leftmargin, rightmargin, topmargin, bottommargin int) TreeDrawer {
+func NewSvgTreeDrawer(w io.Writer, width, height int, leftmargin, rightmargin, topmargin, bottommargin int) TreeDrawer {
 	svgtd := &svgTreeDrawer{
-		file,
+		w,
 		width,
 		height,
 		leftmargin,
@@ -23,7 +23,7 @@ func NewSvgTreeDrawer(file *os.File, width, height int, leftmargin, rightmargin,
 		nil,
 		20.0,
 	}
-	svgtd.canvas = svg.New(file)
+	svgtd.canvas = svg.New(w)
 	svgtd.canvas.Start(width+leftmargin+rightmargin, height+topmargin+bottommargin)
 	return svgtd
 }
@@ -32,15 +32,15 @@ func NewSvgTreeDrawer(file *os.File, width, height int, leftmargin, rightmargin,
 Draw a tree in a svg file.
 */
 type svgTreeDrawer struct {
-	outfile      *os.File // Output file
-	width        int      // Width of the ascii canvas
-	height       int      // Height of the ascii canvas
-	leftmargin   int      // Left margin of the canvas (in addition to the width)
-	rightmargin  int      // Right margin of the canvas (in addition to the width)
-	topmargin    int      // Top margin of the canvas (in addition to the height)
-	bottommargin int      // Bottom margin of the canvas (in addition to the height)
-	canvas       *svg.SVG // SVN Canvas
-	dTip         float64  // Distance from tip to label
+	outwriter    io.Writer // Output file
+	width        int       // Width of the ascii canvas
+	height       int       // Height of the ascii canvas
+	leftmargin   int       // Left margin of the canvas (in addition to the width)
+	rightmargin  int       // Right margin of the canvas (in addition to the width)
+	topmargin    int       // Top margin of the canvas (in addition to the height)
+	bottommargin int       // Bottom margin of the canvas (in addition to the height)
+	canvas       *svg.SVG  // SVN Canvas
+	dTip         float64   // Distance from tip to label
 }
 
 func (svgtd *svgTreeDrawer) DrawHLine(x1, x2, y, maxlength, maxheight float64) {

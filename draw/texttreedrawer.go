@@ -1,19 +1,20 @@
 package draw
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"math"
-	"os"
 )
 
 /*
 TextTreeDrawer initializer. TextTreeDraws draws tree as ASCII on stdout or any file.
 So far: Does not take into account branch lengths.
 */
-func NewTextTreeDrawer(file *os.File, width, height int, rightmargin int) TreeDrawer {
+func NewTextTreeDrawer(w io.Writer, width, height int, rightmargin int) TreeDrawer {
 	ttd := &textTreeDrawer{
-		file,
+		w,
 		width,
 		rightmargin,
 		height,
@@ -34,11 +35,11 @@ func NewTextTreeDrawer(file *os.File, width, height int, rightmargin int) TreeDr
 Draw a tree as ASCII in any file (stdout/stderr, etc.).
 */
 type textTreeDrawer struct {
-	outfile     *os.File // Output file
-	width       int      // Width of the ascii canvas
-	rightmargin int      // Right margin of the canvas (in addition to the width)
-	height      int      // Height of the ascii canvas
-	textCanvas  [][]rune // ascii canvas
+	outwriter   io.Writer // Output file
+	width       int       // Width of the ascii canvas
+	rightmargin int       // Right margin of the canvas (in addition to the width)
+	height      int       // Height of the ascii canvas
+	textCanvas  [][]rune  // ascii canvas
 }
 
 func (ttd *textTreeDrawer) DrawHLine(x1, x2, y, maxlength, maxheight float64) {
@@ -85,12 +86,15 @@ func (ttd *textTreeDrawer) DrawName(x, y float64, name string, maxlength, maxhei
 	}
 }
 func (ttd *textTreeDrawer) Write() {
+	// Create Buffered Writer from io.writer
+	b := bufio.NewWriter(ttd.outwriter)
 	for _, l := range ttd.textCanvas {
 		for _, c := range l {
-			ttd.outfile.WriteString(fmt.Sprintf("%c", c))
+			b.WriteString(fmt.Sprintf("%c", c))
 		}
-		ttd.outfile.WriteString("\n")
+		b.WriteString("\n")
 	}
+	_ = b.Flush()
 }
 
 func (ttd *textTreeDrawer) Bounds() (width, height int) {
