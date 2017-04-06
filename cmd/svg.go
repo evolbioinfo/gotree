@@ -34,14 +34,15 @@ var svgCmd = &cobra.Command{
 			f := openWriteFile(fname)
 			if svgradial {
 				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
-				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
+				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else if svgcircular {
 				d = draw.NewSvgTreeDrawer(f, min(svgwidth, svgheight), min(svgwidth, svgheight), 30, 30, 30, 30)
-				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
+				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else {
 				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
-				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
+				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
+			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(tr.Tree)
 			f.Close()
 			ntree++

@@ -76,6 +76,12 @@ func (ttd *textTreeDrawer) DrawCurve(centerx, centery float64, middlex, middley 
 	log.Print("Method DrawCurve cannot be called on textTreeDrawer: The curve will not be drawn")
 }
 
+func (ttd *textTreeDrawer) DrawCircle(x, y float64, maxwidth, maxheight float64) {
+	ypos := float64(ttd.height) * y / maxheight
+	xpos := float64(ttd.width) * x / maxwidth
+	ttd.textCanvas[int(ypos)][int(xpos)] = '*'
+}
+
 func (ttd *textTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64) {
 	ypos := float64(ttd.height) * y / maxheight
 	xpos := float64(ttd.width) * x / maxlength

@@ -12,18 +12,26 @@ type radialLayout struct {
 	hasBranchLengths      bool
 	hasTipLabels          bool
 	hasInternalNodeLabels bool
+	hasSupport            bool
+	supportCutoff         float64
 	cache                 *layoutCache
 }
 
-func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabels bool) TreeLayout {
+func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabels, withSuppportCircles bool) TreeLayout {
 	return &radialLayout{
 		td,
 		0.0,
 		withBranchLengths,
 		withTipLabels,
 		withInternalNodeLabels,
+		withSuppportCircles,
+		0.7,
 		newLayoutCache(),
 	}
+}
+
+func (layout *radialLayout) SetSupportCutoff(c float64) {
+	layout.supportCutoff = c
 }
 
 /*
@@ -34,13 +42,13 @@ This layout is an adaptation in Go of the figtree radial layout : figtree/treevi
 func (layout *radialLayout) DrawTree(t *tree.Tree) error {
 	root := t.Root()
 	layout.spread = 0.0
-	layout.constructNode(t, root, nil, 0.0, math.Pi*2, 0.0, 0.0, 0.0)
+	layout.constructNode(t, root, nil, 0.0, 0.0, math.Pi*2, 0.0, 0.0, 0.0)
 	layout.drawTree()
 	layout.drawer.Write()
 	return nil
 }
 
-func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *tree.Node, angleStart, angleFinish, xPosition, yPosition, length float64) *layoutPoint {
+func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *tree.Node, support, angleStart, angleFinish, xPosition, yPosition, length float64) *layoutPoint {
 	branchAngle := (angleStart + angleFinish) / 2.0
 	directionX := math.Cos(branchAngle)
 	directionY := math.Sin(branchAngle)
@@ -75,13 +83,15 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 					index = len(node.Neigh()) - i - 1
 				}
 				brLen := node.Edges()[num].Length()
+				supp := node.Edges()[num].Support()
+
 				if !layout.hasBranchLengths || brLen == tree.NIL_LENGTH {
 					brLen = 1.0
 				}
 				a1 := a2
 				a2 = a1 + (span * float64(leafCounts[index]) / float64(sumLeafCount))
-				childPoint := layout.constructNode(t, child, node, a1, a2, nodePoint.x, nodePoint.y, brLen)
-				branchLine := &layoutLine{childPoint, nodePoint}
+				childPoint := layout.constructNode(t, child, node, supp, a1, a2, nodePoint.x, nodePoint.y, brLen)
+				branchLine := &layoutLine{childPoint, nodePoint, supp}
 				//add the branchLine to the map of branch paths
 				layout.cache.branchPaths = append(layout.cache.branchPaths, branchLine)
 				i++
@@ -118,5 +128,11 @@ func (layout *radialLayout) drawTree() {
 			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
 		}
 	}
-
+	for _, l := range layout.cache.branchPaths {
+		middlex := (l.p1.x + l.p2.x + 2*xoffset) / 2.0
+		middley := (l.p1.y + l.p2.y + 2*yoffset) / 2.0
+		if layout.hasSupport && l.support != tree.NIL_SUPPORT && l.support >= layout.supportCutoff {
+			layout.drawer.DrawCircle(middlex, middley, xmax+xoffset, ymax+yoffset)
+		}
+	}
 }

@@ -12,10 +12,15 @@ type circularLayout struct {
 	hasBranchLengths      bool
 	hasTipLabels          bool
 	hasInternalNodeLabels bool
+	hasSupport            bool
+	supportCutoff         float64
 	cache                 *layoutCache
 }
 
-func NewCircularLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel bool) TreeLayout {
+/*
+If withSuppportCircles is true, then it will draw circles on branches whose support is > 0.7. The cutoff may be set with layout.SetSupportCutoff()
+*/
+func NewCircularLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel, withSupportCircles bool) TreeLayout {
 	w, h := td.Bounds()
 	if w != h {
 		log.Print("Width!=Height : This is not advised with circular layout")
@@ -25,8 +30,14 @@ func NewCircularLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInte
 		withBranchLengths,
 		withTipLabels,
 		withInternalNodeLabel,
+		withSupportCircles,
+		0.7,
 		newLayoutCache(),
 	}
+}
+
+func (layout *circularLayout) SetSupportCutoff(c float64) {
+	layout.supportCutoff = c
 }
 
 /*
@@ -38,7 +49,7 @@ func (layout *circularLayout) DrawTree(t *tree.Tree) error {
 	ntips := len(t.Tips())
 	curNbTips := 0
 	maxLength := layout.maxLength(t)
-	layout.drawTreeRecur(root, nil, 0, 0, maxLength, &curNbTips, ntips)
+	layout.drawTreeRecur(root, nil, tree.NIL_SUPPORT, 0, 0, maxLength, &curNbTips, ntips)
 	layout.drawTree()
 	layout.drawer.Write()
 	return err
@@ -47,7 +58,7 @@ func (layout *circularLayout) DrawTree(t *tree.Tree) error {
 /*
 Recursive function that draws the tree. Returns the angle of the current node
 */
-func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDistToRoot, distToRoot float64, maxLength float64, curtip *int, nbtips int) float64 {
+func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, support, prevDistToRoot, distToRoot float64, maxLength float64, curtip *int, nbtips int) float64 {
 	angle := 0.0
 	if n.Tip() {
 		angle = float64(*curtip)*2*math.Pi/float64(nbtips) + math.Pi/2
@@ -62,10 +73,11 @@ func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevD
 		for i, child := range n.Neigh() {
 			if child != prev {
 				len := n.Edges()[i].Length()
+				supp := n.Edges()[i].Support()
 				if !layout.hasBranchLengths || len == tree.NIL_LENGTH {
 					len = 1.0
 				}
-				tempangle := layout.drawTreeRecur(child, n, distToRoot, distToRoot+len, maxLength, curtip, nbtips)
+				tempangle := layout.drawTreeRecur(child, n, supp, distToRoot, distToRoot+len, maxLength, curtip, nbtips)
 				if minangle == -1 || minangle > tempangle {
 					minangle = tempangle
 				}
@@ -87,7 +99,7 @@ func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevD
 	y1 := prevDistToRoot * math.Sin(angle)
 	x2 := distToRoot * math.Cos(angle)
 	y2 := distToRoot * math.Sin(angle)
-	line := &layoutLine{&layoutPoint{x1, y1, angle, ""}, &layoutPoint{x2, y2, angle, ""}}
+	line := &layoutLine{&layoutPoint{x1, y1, angle, ""}, &layoutPoint{x2, y2, angle, ""}, support}
 	layout.cache.branchPaths = append(layout.cache.branchPaths, line)
 	return angle
 }
@@ -143,6 +155,13 @@ func (layout *circularLayout) drawTree() {
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, max, max, p.brAngle)
+		}
+	}
+	for _, l := range layout.cache.branchPaths {
+		middlex := (l.p1.x + l.p2.x + 2*xoffset) / 2.0
+		middley := (l.p1.y + l.p2.y + 2*yoffset) / 2.0
+		if layout.hasSupport && l.support != tree.NIL_SUPPORT && l.support >= layout.supportCutoff {
+			layout.drawer.DrawCircle(middlex, middley, max, max)
 		}
 	}
 }

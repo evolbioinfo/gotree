@@ -9,15 +9,25 @@ type normalLayout struct {
 	hasBranchLengths      bool
 	hasTipLabels          bool
 	hasInternalNodeLabels bool
+	hasSupport            bool
+	supportCutoff         float64
+	cache                 *layoutCache
 }
 
-func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel bool) TreeLayout {
+func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel, withSupportCircles bool) TreeLayout {
 	return &normalLayout{
 		td,
 		withBranchLengths,
 		withTipLabels,
 		withInternalNodeLabel,
+		withSupportCircles,
+		0.7,
+		newLayoutCache(),
 	}
+}
+
+func (layout *normalLayout) SetSupportCutoff(c float64) {
+	layout.supportCutoff = c
 }
 
 /*
@@ -29,7 +39,8 @@ func (layout *normalLayout) DrawTree(t *tree.Tree) error {
 	ntips := len(t.Tips())
 	curNbTips := 0
 	maxLength := layout.maxLength(t)
-	layout.drawTreeRecur(root, nil, 0, 0, maxLength, &curNbTips, ntips, maxLength)
+	layout.drawTreeRecur(root, nil, tree.NIL_SUPPORT, 0, 0, &curNbTips)
+	layout.drawTree(maxLength, ntips)
 	layout.drawer.Write()
 	return err
 }
@@ -37,14 +48,15 @@ func (layout *normalLayout) DrawTree(t *tree.Tree) error {
 /*
 Recursive function that draws the tree. Returns the yposition of the current node
 */
-func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDistToRoot, distToRoot float64, maxLength float64, curtip *int, nbtips int, maxlength float64) float64 {
+func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, support, prevDistToRoot, distToRoot float64, curtip *int) float64 {
 	ypos := 0.0
 	nbchild := 0.0
 	if n.Tip() {
 		ypos = float64(*curtip)
 		nbchild = 1.0
 		if layout.hasTipLabels {
-			layout.drawer.DrawName(distToRoot, ypos, n.Name(), maxlength, float64(nbtips), 0.0)
+			node := &layoutPoint{distToRoot, ypos, 0.0, n.Name()}
+			layout.cache.tipLabelPoints = append(layout.cache.tipLabelPoints, node)
 		}
 		*curtip++
 	} else {
@@ -53,10 +65,11 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDis
 		for i, child := range n.Neigh() {
 			if child != prev {
 				len := n.Edges()[i].Length()
+				supp := n.Edges()[i].Support()
 				if !layout.hasBranchLengths || len == tree.NIL_LENGTH {
 					len = 1.0
 				}
-				temppos := layout.drawTreeRecur(child, n, distToRoot, distToRoot+len, maxLength, curtip, nbtips, maxlength)
+				temppos := layout.drawTreeRecur(child, n, supp, distToRoot, distToRoot+len, curtip)
 				if minpos == -1 || minpos > temppos {
 					minpos = temppos
 				}
@@ -68,12 +81,15 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, prevDis
 			}
 		}
 		ypos /= nbchild
-		layout.drawer.DrawVLine(distToRoot, minpos, maxpos, maxlength, float64(nbtips))
-		if layout.hasInternalNodeLabels {
-			layout.drawer.DrawName(distToRoot, ypos, n.Name(), maxlength, float64(nbtips), 0.0)
-		}
+		line := &layoutVLine{distToRoot, minpos, maxpos, tree.NIL_SUPPORT}
+		layout.cache.verticalPaths = append(layout.cache.verticalPaths, line)
+
+		inode := &layoutPoint{distToRoot, ypos, 0.0, n.Name()}
+		layout.cache.nodePoints = append(layout.cache.nodePoints, inode)
 	}
-	layout.drawer.DrawHLine(prevDistToRoot, distToRoot, ypos, maxlength, float64(nbtips))
+
+	line := &layoutHLine{prevDistToRoot, distToRoot, ypos, support}
+	layout.cache.horizontalPaths = append(layout.cache.horizontalPaths, line)
 	return ypos
 }
 
@@ -96,6 +112,32 @@ func (layout *normalLayout) maxLengthRecur(n *tree.Node, prev *tree.Node, curlen
 				brlen = 1.0
 			}
 			layout.maxLengthRecur(child, n, curlength+brlen, maxlength)
+		}
+	}
+}
+
+func (layout *normalLayout) drawTree(maxLength float64, ntips int) {
+	for _, l := range layout.cache.horizontalPaths {
+		layout.drawer.DrawHLine(l.x1, l.x2, l.y, maxLength, float64(ntips))
+	}
+	for _, l := range layout.cache.verticalPaths {
+		layout.drawer.DrawVLine(l.x, l.y1, l.y2, maxLength, float64(ntips))
+	}
+	if layout.hasTipLabels {
+		for _, p := range layout.cache.tipLabelPoints {
+			layout.drawer.DrawName(p.x, p.y, p.name, maxLength, float64(ntips), 0.0)
+		}
+	}
+	if layout.hasInternalNodeLabels {
+		for _, p := range layout.cache.nodePoints {
+			layout.drawer.DrawName(p.x, p.y, p.name, maxLength, float64(ntips), 0.0)
+		}
+	}
+	for _, l := range layout.cache.horizontalPaths {
+		middlex := (l.x1 + l.x2) / 2.0
+		middley := (l.y + l.y) / 2.0
+		if layout.hasSupport && l.support != tree.NIL_SUPPORT && l.support >= layout.supportCutoff {
+			layout.drawer.DrawCircle(middlex, middley, maxLength, float64(ntips))
 		}
 	}
 }

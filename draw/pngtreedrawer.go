@@ -113,6 +113,18 @@ func (ptd *pngTreeDrawer) DrawCurve(centerx, centery float64, middlex, middley f
 	ptd.gc.Stroke()
 }
 
+func (ptd *pngTreeDrawer) DrawCircle(x, y float64, maxlength, maxheight float64) {
+	centerx2 := x*float64(ptd.width)/maxlength + float64(ptd.topmargin)
+	centery2 := y*float64(ptd.height)/maxheight + float64(ptd.leftmargin)
+
+	ptd.gc.SetFillColor(color.RGBA{0x77, 0xca, 0xff, 0xff})
+	ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+	ptd.gc.SetLineWidth(1)
+	ptd.gc.ArcTo(centerx2, centery2, 5, 5, 0, 2*math.Pi)
+	ptd.gc.Close()
+	ptd.gc.FillStroke()
+}
+
 /* angle:  incoming branch angle */
 func (ptd *pngTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64) {
 	ptd.gc.SetFillColor(color.RGBA{0x00, 0x00, 0x00, 0xff})

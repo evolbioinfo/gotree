@@ -34,14 +34,15 @@ var pngCmd = &cobra.Command{
 			f := openWriteFile(fname)
 			if pngradial {
 				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
-				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
+				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else if pngcircular {
 				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), 30, 30, 30, 30)
-				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
+				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else {
 				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
-				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels)
+				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
+			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(tr.Tree)
 			f.Close()
 			ntree++

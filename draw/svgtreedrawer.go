@@ -82,6 +82,12 @@ func (svgtd *svgTreeDrawer) DrawCurve(centerx, centery, middlex, middley float64
 	svgtd.canvas.Arc(round(x1), round(y1), radiusscaled, radiusscaled, 0, largeArcFlag, true, round(x2), round(y2), "stroke-width:2; fill:none;stroke: black;")
 }
 
+func (svgtd *svgTreeDrawer) DrawCircle(x, y float64, maxlength, maxheight float64) {
+	centerx2 := x*float64(svgtd.width)/maxlength + float64(svgtd.topmargin)
+	centery2 := y*float64(svgtd.height)/maxheight + float64(svgtd.leftmargin)
+	svgtd.canvas.Circle(round(centerx2), round(centery2), 5, "stroke-width:1; fill:orange;stroke: black;")
+}
+
 /* angle:  incoming branch angle */
 func (svgtd *svgTreeDrawer) DrawName(x, y float64, name string, maxlength, maxheight float64, angle float64) {
 	degree := angle * 180.0 / math.Pi
