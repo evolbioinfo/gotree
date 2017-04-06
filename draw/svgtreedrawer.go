@@ -101,13 +101,13 @@ func (svgtd *svgTreeDrawer) DrawName(x, y float64, name string, maxlength, maxhe
 	if angle < 3*math.Pi/2.0 && angle > math.Pi/2.0 {
 		svgtd.canvas.Translate(xpos, ypos)
 		svgtd.canvas.Rotate(degree - 180)
-		svgtd.canvas.Text(-(textsize)-int(svgtd.dTip), 0, name, "font-family: sans-serif;")
+		svgtd.canvas.Text(-(textsize)-int(svgtd.dTip), 0, name, "font-family: sans-serif;font-size:8px;")
 		svgtd.canvas.Gend()
 		svgtd.canvas.Gend()
 	} else {
 		svgtd.canvas.Translate(xpos, ypos)
 		svgtd.canvas.Rotate(degree)
-		svgtd.canvas.Text(int(svgtd.dTip), 0, name, "font-family: sans-serif;")
+		svgtd.canvas.Text(int(svgtd.dTip), 0, name, "font-family: sans-serif;font-size:8px;")
 		svgtd.canvas.Gend()
 		svgtd.canvas.Gend()
 	}

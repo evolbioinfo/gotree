@@ -39,6 +39,7 @@ func NewPngTreeDrawer(w io.Writer, width, height int, leftmargin, rightmargin, t
 	ptd.gc = draw2dimg.NewGraphicContext(ptd.img)
 	ptd.initFonts()
 	ptd.gc.SetFontData(draw2d.FontData{Name: "goregular"})
+	ptd.gc.SetFontSize(10.0)
 	return ptd
 }
 
