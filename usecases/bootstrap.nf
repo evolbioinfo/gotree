@@ -1,14 +1,17 @@
 params.outpath="results"
 params.align="data/align.phy"
-params.nboot=10
+params.nboot=100
+params.itolconfig = "data/itol_image_config.txt"
 
 align=file(params.align)
+itolconfig=file(params.itolconfig)
 outpath=file(params.outpath)
 outpath.with{mkdirs()}
 
 process buildtree {
 	input:
 	file(align)
+	val nboot from params.nboot
 
 	output:
 	file("tree.nw") into treeref
@@ -61,7 +64,7 @@ process supports {
 	file(boot) from boottrees
 
 	output:
-	file("support.nw") into support
+	file "support.nw" into support, support2, support3
 
 	shell:
 	'''
@@ -71,5 +74,52 @@ process supports {
 }
 
 support.subscribe{
+	f -> f.copyTo(outpath.resolve(f.name))
+}
+
+process drawTree{
+	input:
+	file tree from support2
+
+	output:
+	file "*.svg" into supportimage
+
+	shell:
+	'''
+	#!/usr/bin/env bash
+	gotree draw svg -i !{tree} -r -w 1000 -H 1000 --with-branch-support --support-cutoff 0.8 -o support.svg
+	'''
+}
+
+supportimage.subscribe{
+	f -> f.copyTo(outpath.resolve(f.name))
+}
+
+process uploadiTOL{
+	input:
+	file tree from support3
+	file itolconfig
+
+	output:
+	file "*.txt" into iTOLurl
+	file "*.svg" into iTOLimage
+
+	shell:
+	'''
+	#!/usr/bin/env bash
+	# Upload the tree
+	gotree upload itol --name "supporttree" -i !{tree} > support_url.txt
+	# We get the iTOL id
+	ID=$(basename $(cat support_url.txt ))
+	# We Download the image with options defined in data/itol_image_config.txt
+	gotree dlimage itol -c !{itolconfig} -f svg -o support_itol.svg -i $ID
+	'''
+}
+
+iTOLurl.subscribe{
+	f -> f.copyTo(outpath.resolve(f.name))
+}
+
+iTOLimage.subscribe{
 	f -> f.copyTo(outpath.resolve(f.name))
 }

@@ -1,0 +1,17 @@
+display_mode	2
+label_display	1
+align_labels	1
+ignore_branch_length	0
+vertical_shift_factor	1
+horizontal_scale_factor	1
+bootstrap_display	1
+bootstrap_type	1
+bootstrap_symbol	1
+bootstrap_slider_min	0.7
+bootstrap_slider_max	1
+bootstrap_symbol_min	12
+bootstrap_symbol_max	12
+bootstrap_symbol_color	#c8c7fc
+current_font_size	20
+line_width	3
+inverted	0
