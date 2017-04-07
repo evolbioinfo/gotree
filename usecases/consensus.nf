@@ -1,17 +1,20 @@
 params.outpath="results"
 params.align="data/align.phy"
 params.nboot=100
+params.seed=20000
 params.itolconfig = "data/itol_image_config.txt"
 
 align=file(params.align)
 itolconfig=file(params.itolconfig)
 outpath=file(params.outpath)
 outpath.with{mkdirs()}
+seed=params.seed
 
 process buildboots {
 	input:
 	file(align)
 	val nboot from params.nboot
+	val seed
 
 	output:
 	file("bootalign_*") into bootaligns mode flatten
@@ -21,7 +24,7 @@ process buildboots {
 	#!/usr/bin/env bash
 
 	# Will generate 1 outfile containing all alignments
-	goalign build seqboot -n !{params.nboot} -i !{align} -p -o bootalign_ -S
+	goalign build seqboot -n !{params.nboot} -i !{align} -p -o bootalign_ -S -s !{seed}
 	'''
 }
 
@@ -36,7 +39,7 @@ process treeboot {
 	'''
 	#!/usr/bin/env bash
 	phyml -i !{align} -m LG -o tlr -b 0 -d aa
-	mv !{align}_phyml_tree.txt boottree.nw
+	mv !{align}_phyml_tree* boottree.nw
 	'''
 }
 

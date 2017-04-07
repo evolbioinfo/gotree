@@ -1,10 +1,12 @@
 params.outpath="results"
 params.align="data/align.phy"
 params.nboot=10
+params.seed=30000
 
 align=file(params.align)
 outpath=file(params.outpath)
 outpath.with{mkdirs()}
+seed=params.seed
 
 process buildtree {
 	input:
@@ -16,15 +18,15 @@ process buildtree {
 	shell:
 	'''
 	#!/usr/bin/env bash
-
 	phyml -i !{align} -m LG -o tlr -b 0 -d aa
-	mv !{align}_phyml_tree.txt tree.nw
+	mv !{align}_phyml_tree* tree.nw
 	'''
 }
 
 process buildboots {
 	input:
 	file(align)
+	val seed
 
 	output:
 	file("bootalign_*") into bootaligns mode flatten
@@ -34,7 +36,7 @@ process buildboots {
 	#!/usr/bin/env bash
 
 	# Will generate bootstrap alignments
-	goalign build seqboot -n !{params.nboot} -i !{align} -p -o bootalign_ -S 
+	goalign build seqboot -n !{params.nboot} -i !{align} -p -o bootalign_ -S -s !{seed}
 	'''
 }
 
@@ -49,7 +51,7 @@ process treeboot {
 	'''
 	#!/usr/bin/env bash
 	phyml -i !{align} -m LG -o tlr -b 0 -d aa
-	mv !{align}_phyml_tree.txt boottree.nw
+	mv !{align}_phyml_tree* boottree.nw
 	'''
 }
 
@@ -66,7 +68,7 @@ process compare {
 	shell:
 	'''
 	#!/usr/bin/env bash
-	gotree compare -i !{ref} -c !{boot} > common.txt
+	gotree compare trees -i !{ref} -c !{boot} > common.txt
 	'''
 }
 

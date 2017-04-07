@@ -2,11 +2,13 @@ params.outpath="results"
 params.align="data/align.phy"
 params.nboot=100
 params.itolconfig = "data/itol_image_config.txt"
+params.seed = 10000
 
 align=file(params.align)
 itolconfig=file(params.itolconfig)
 outpath=file(params.outpath)
 outpath.with{mkdirs()}
+seed = params.seed
 
 process buildtree {
 	input:
@@ -21,13 +23,14 @@ process buildtree {
 	#!/usr/bin/env bash
 
 	phyml -i !{align} -m LG -o tlr -b 0 -d aa
-	mv !{align}_phyml_tree.txt tree.nw
+	mv !{align}_phyml_tree* tree.nw
 	'''
 }
 
 process buildboots {
 	input:
 	file(align)
+	val seed
 
 	output:
 	file("bootalign_*") into bootaligns mode flatten
@@ -37,7 +40,7 @@ process buildboots {
 	#!/usr/bin/env bash
 
 	# Will generate bootstrap alignments
-	goalign build seqboot -n !{params.nboot} -i !{align} -p -o bootalign_ -S 
+	goalign build seqboot -n !{params.nboot} -i !{align} -p -o bootalign_ -S  -s !{seed}
 	'''
 }
 
@@ -52,7 +55,7 @@ process treeboot {
 	'''
 	#!/usr/bin/env bash
 	phyml -i !{align} -m LG -o tlr -b 0 -d aa
-	mv !{align}_phyml_tree.txt boottree.nw
+	mv !{align}_phyml_tree* boottree.nw
 	'''
 }
 
