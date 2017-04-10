@@ -30,32 +30,32 @@ should produce the following output:
 		if intree2file == "none" {
 			io.ExitWithMessage(errors.New("Compare tree file must be provided with -c"))
 		}
-		eq := 0
 
 		refTree := readTree(intreefile)
-		compTree := readTree(intree2file)
-
-		for _, t := range refTree.Tips() {
-			if ok, err3 := compTree.ExistsTip(t.Name()); err3 != nil {
-				io.ExitWithMessage(err3)
-			} else {
-				if !ok {
-					fmt.Fprintf(os.Stdout, "< %s\n", t.Name())
+		for compTree := range readTrees(intree2file) {
+			eq := 0
+			for _, t := range refTree.Tips() {
+				if ok, err3 := compTree.Tree.ExistsTip(t.Name()); err3 != nil {
+					io.ExitWithMessage(err3)
 				} else {
-					eq++
+					if !ok {
+						fmt.Fprintf(os.Stdout, "(Tree %d) < %s\n", compTree.Id, t.Name())
+					} else {
+						eq++
+					}
 				}
 			}
-		}
-		for _, t := range compTree.Tips() {
-			if ok, err4 := refTree.ExistsTip(t.Name()); err4 != nil {
-				io.ExitWithMessage(err4)
-			} else {
-				if !ok {
-					fmt.Fprintf(os.Stdout, "> %s\n", t.Name())
+			for _, t := range compTree.Tree.Tips() {
+				if ok, err4 := refTree.ExistsTip(t.Name()); err4 != nil {
+					io.ExitWithMessage(err4)
+				} else {
+					if !ok {
+						fmt.Fprintf(os.Stdout, "(Tree %d) > %s\n", compTree.Id, t.Name())
+					}
 				}
 			}
+			fmt.Fprintf(os.Stdout, "(Tree %d) = %d\n", compTree.Id, eq)
 		}
-		fmt.Fprintf(os.Stdout, "= %d\n", eq)
 	},
 }
 
