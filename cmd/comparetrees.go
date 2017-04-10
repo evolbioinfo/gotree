@@ -15,6 +15,7 @@ import (
 type stats struct {
 	id       int
 	tree1    int
+	tree2    int
 	common   int
 	sametree bool
 }
@@ -56,6 +57,7 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 		wg.Add(1)
 		go func(cpu int) {
 			for treeV := range compareChannel {
+				total2 := 0
 				common := 0
 				var err error
 
@@ -68,6 +70,9 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 				sametree := true
 				for _, e2 := range edges2 {
 					ok := true
+					if tips || !e2.Right().Tip() {
+						total2++
+					}
 					if !e2.Right().Tip() {
 						_, ok = index.Value(e2)
 					}
@@ -83,6 +88,7 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 				statsChannel <- stats{
 					treeV.Id,
 					total - common,
+					total2 - common,
 					common,
 					sametree,
 				}
@@ -97,14 +103,14 @@ func compare(tree1 string, tree2 string, tips bool, cpus int) {
 	}()
 
 	if comparetreeidentical {
-		fmt.Printf("Tree\tidentical\n")
+		fmt.Printf("tree\tidentical\n")
 		for stats := range statsChannel {
 			fmt.Printf("%d\t%v\n", stats.id, stats.sametree)
 		}
 	} else {
-		fmt.Printf("Tree\tspecref\tcommon\n")
+		fmt.Printf("tree\treference\tcommon\tcompared\n")
 		for stats := range statsChannel {
-			fmt.Printf("%d\t%d\t%d\n", stats.id, stats.tree1, stats.common)
+			fmt.Printf("%d\t%d\t%d\t%d\n", stats.id, stats.tree1, stats.common, stats.tree2)
 		}
 	}
 }
@@ -115,8 +121,19 @@ var compareTreesCmd = &cobra.Command{
 	Short: "Compare a reference tree with a set of trees",
 	Long: `Compare a reference tree with a set of trees.
 
-for each trees in the compared tree file, prints the number of common edges
-between it and the reference tree, as well as the number of specific edges.
+If --binary is given:
+For each trees in the compared tree file, it will print tab separated values with:
+1) The index of the compared tree in the file
+2) "true" if the tree is identical, 
+   "false" otherwise
+
+Otherwise:
+For each trees in the compared tree file, it will print tab separated values with:
+1) The index of the compared tree in the file
+2) The number of branches that are specific to the reference tree
+3) The number of branches that are common to both trees
+4) The number of branches that are specific to the compared tree
+
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		compare(intreefile, intree2file, compareTips, rootCpus)
