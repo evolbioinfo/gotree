@@ -1,4 +1,4 @@
-# GoTree
+# Gotree
 ![build](https://travis-ci.com/fredericlemoine/gotree.svg?token=RArpyiGztKLXKpPBa91f&branch=master)
 
 GoTree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
@@ -74,9 +74,9 @@ gotree implements several tree manipulation commands.
 *  dlimage:     Download a tree image from a server
     * itol: download a tree image from iTOL, with given image options
 *  draw: Draw tree(s) with different layouts
-    * text: Display tree(s) in ASCII format (in the terminal or in a file)
-    * png : Draw tree(s) in png format, with normal or radial/unrooted layout
-    * svg : Draw tree(s) in svg format, with normal or radial/unrooted layout
+    * text: Display tree(s) in ASCII text format
+    * png : Draw tree(s) in png format, with normal, radial/unrooted or circular layout
+    * svg : Draw tree(s) in svg format, with normal, radial/unrooted or circular layout
 *  generate:    Generate random trees, branch lengths are simply drawn from an expontential(1) law
     * balancedtree
     * caterpillartree
@@ -105,45 +105,45 @@ gotree implements several tree manipulation commands.
     * itol : Upload a tree to itol, with given annotations
 *  version:     Display version of gotree
 
-### Examples
+### Gotree commandline examples
 
 * Generate 10 random unrooted uniform binary trees
 ```[bash]
 $ gotree generate uniformtree -l 100 -n 10 | gotree stats
 ```
-* Generate 1 tree with 50 tips, and display it on the terminal (width 100)
+
+* Generate 1 Yule-Harding tree with 50 tips, and display it on the terminal (width 100)
 ```[bash]
 $ gotree generate yuletree -l 50 | gotree draw text -w 100
 ```
+
 * Generate 1 tree with 50 tips, and draw it on a SVG image
 ```[bash]
 $ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -o tree.svg
 $ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -r -o tree_radial.svg
 ```
-* Unrooting a tree
 
+* Unrooting a tree
 ```[bash]
 $ gotree unroot -i tree.tre -o unrooted.tre
 ```
 
 * Collapsing short branches
-
 ```[bash]
 $ gotree collapse length -i tree.tre -l 0.001 -o collapsed.tre
 ```
-* Collapsing lowly supported branches
 
+* Collapsing lowly supported branches
 ```[bash]
 $ gotree collapse support -i tree.tre -s 0.8 -o collapsed.tre
 ```
 
-* Clearing length information
-
+* Removing length information
 ```[bash]
 $ gotree clear lengths -i tree.nw -o nolength.nw
 ```
-* Clearing support information
 
+* Remving support information
 ```[bash]
 $ gotree clear supports -i tree.nw -o nosupport.nw
 ```
@@ -154,15 +154,15 @@ $ gotree clear supports -i tree.nw | gotree clear lengths -o nosupport.nw
 ```
 
 * Printing tree statistics
-
 ```[bash]
 $ gotree stats -i tree.tre
 ```
-* Printing edge statistics
 
+* Printing edge statistics
 ```[bash]
 $ gotree stats edges -i tree.tre
 ```
+
 Example of result:
 
 tree  |  brid  |  length    |  support  |  terminal  |  depth  |  topodepth  |  rightname
@@ -200,7 +200,6 @@ Example of result:
 |0     |  17  |  1       |  Tip1   |
 
 * Comparing tips of two trees
-
 ```[bash]
 $ gotree compare tips -i tree.tre -c tree2.tre
 ```
@@ -216,7 +215,6 @@ $ gotree compare tips -i <(gotree generate uniformtree -l 10 -n 1) \
 10 tips are equal, and "Tip10" is present only in the second tree.
 
 * Removing tips that are absent from another tree
-
 ```[bash]
 $ gotree prune -i tree.tre -c other.tre -o pruned.tre
 ```
@@ -242,11 +240,9 @@ You can test with random trees (there should be very few common bipartitions)
 $ gotree compare trees -i <(gotree generate uniformtree -l 100 -n 1) \
                        -c <(gotree generate uniformtree -l 100 -n 1)
 ```
-
-Tree  |  specref  |  common
-------|-----------|---------
-0     |  97       |  0
-
+Tree  | reference | common | compared
+------|-----------|--------|---------
+   0  |     97    |    0   |    97   
 
 * Renaming tips of the tree
 If you have a file containing the mapping between current names and new names of the tips, you can rename the tips:
@@ -260,4 +256,179 @@ You can try by doing:
 $ gotree generate uniformtree -l 100 -n 1 -o tree.tre
 $ gotree stats tips -i tree.tre | awk '{if(NR>1){print $4 "\tNEWNAME" $4}}' > mapfile.txt
 $ gotree rename -i tree.tre -m mapfile.txt | gotree stats tips
+```
+
+### Gotree api usage examples
+
+* Parsing a newick string
+```go
+package main
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/fredericlemoine/gotree/io/newick"
+	"github.com/fredericlemoine/gotree/tree"
+)
+
+func main() {
+	var treeString string
+	var t *tree.Tree
+	var err error
+	treeString = "(Tip2,Tip0,(Tip3,(Tip4,Tip1)));"
+	t, err = newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(t.Newick())
+}
+```
+
+* Parsing a newick file
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/fredericlemoine/gotree/io/newick"
+	"github.com/fredericlemoine/gotree/tree"
+)
+
+func main() {
+
+	var t *tree.Tree
+	var err error
+	var f *os.File
+	if f, err = os.Open("t.nw"); err != nil {
+		panic(err)
+	}
+	t, err = newick.NewParser(f).Parse()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(t.Newick())
+}
+```
+* Helper functions to parse multi tree newick file
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+
+	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/tree"
+)
+
+func main() {
+	var t tree.Trees
+	var err error
+	var ntrees int
+	var f *os.File
+	var trees chan tree.Trees
+	var br *bufio.Reader
+
+	trees = make(chan tree.Trees)
+	if f, err = os.Open("t.nw"); err != nil {
+		panic(err)
+	}
+	br = bufio.NewReader(f)
+	go func() {
+		if ntrees, err = utils.ReadCompTreesFile(br, trees); err != nil {
+			panic(err)
+		}
+		close(trees)
+	}()
+
+	for t = range trees {
+		fmt.Println(t.Tree.Newick())
+	}
+	fmt.Printf("Number of trees: %d\n", ntrees)
+	if err = f.Close(); err != nil {
+		panic(err)
+	}
+}
+```
+* Tree model functions
+```go
+// Getting edges
+var edges []*tree.Edge = t.Edges()
+// Getting Nodes
+var nodes []*tree.Node = t.Nodes()
+// Getting tips
+var tips []*tree.Node = t.Tips()
+// Getting tip names
+var tipnames []string = t.AllTipNames()
+```
+* Removing tips
+```go
+if err = t.RemoveTips(false, "Tip0"); err != nil {
+	panic(err)
+}
+fmt.Println(t.Newick())
+```
+* Knowning if a tip exists in the tree
+```go
+var exists bool
+var err error
+exists,err = t.ExistsTip("Tip0")
+```
+* Shuffling tip names of the tree
+```go
+t.ShuffleTips()
+```
+* Removing branches
+```go
+// Short branches
+t.CollapseShortBranches(0.01)
+// Lowly supported branches
+t.CollapseLowSupport(0.7)
+// Branches with "depth" <=10 && >= 1
+t.CollapseTopoDepth(1,10)
+```
+* Randomly resolving multifurcations
+```go
+t.Resolve()
+```
+* Removing branch informations
+```go
+// Branch lengths
+t.ClearLengths()
+// Branch supports
+t.ClearSupports()
+```
+* Unrooting the tree
+```go
+t.Unroot()
+```
+* Cloning the tree
+```go
+t.Clone()
+```
+* Rerooting at midpoint
+```go
+t.RerootMidPoint()
+```
+* Generating random trees
+```go
+var ntips int = 100
+var rooted bool = true
+// Uniform tree
+t,err = tree.RandomUniformBinaryTree(ntips, rooted)
+// Balanced tree
+t,err = tree.RandomBalancedBinaryTree(ntips, rooted)
+// Yule-Harding tree
+t,err = tree.RandomYuleBinaryTree(ntips, rooted)
+```
+* Computing bootstrap supports from tree files
+```go
+import "github.com/fredericlemoine/gotree/support"
+...
+var cpus int = 1
+boottree,err := support.ClassicalFile("referencetreefile", "bootstraptreesfile", cpus)
 ```
