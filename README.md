@@ -143,7 +143,7 @@ $ gotree collapse support -i tree.tre -s 0.8 -o collapsed.tre
 $ gotree clear lengths -i tree.nw -o nolength.nw
 ```
 
-* Remving support information
+* Removing support information
 ```[bash]
 $ gotree clear supports -i tree.nw -o nosupport.nw
 ```
@@ -312,6 +312,7 @@ func main() {
 	fmt.Println(t.Newick())
 }
 ```
+
 * Helper functions to parse multi tree newick file
 ```go
 package main
@@ -354,17 +355,57 @@ func main() {
 	}
 }
 ```
-* Tree model functions
+
+* Tree functions
 ```go
 // Getting edges
 var edges []*tree.Edge = t.Edges()
+// Internal edges only
+var iedges []*tree.Edge = t.InternalEdges()
+// Tip edges only
+var tedges []*tree.Edge = t.TipEdges()
 // Getting Nodes
 var nodes []*tree.Node = t.Nodes()
+// Tips only
+var tips []*tree.Node = t.Tips()
 // Getting tips
 var tips []*tree.Node = t.Tips()
 // Getting tip names
 var tipnames []string = t.AllTipNames()
+// Root/Pseudoroot node
+var root *tree.Node = t.Root()
+// If the tree is rooted or not
+var rooted bool = t.Rooted()
 ```
+
+* Branch functions
+```go
+// Branch length
+var l float64 = e.Length()
+// Branch support
+var s float64 = e.Support()
+// Node on the "right"
+var n1 *tree.Node = e.Right()
+// Node on the "left"
+var n2 *tree.Node = e.Left()
+// Number of leaves under this edge
+var nt uint = e.NumTips()
+```
+
+* Node functions
+```go
+// Node name
+var n string = n.Name()
+// Number of neighbors
+var nn int = n.Nneigh()
+// List of neighbors (including "parent")
+var neighb []*tree.Node = n.Neigh()
+// If a node is a tip or not
+var tip bool = n.Tip()
+// List of branches going from this node (including "parent")
+var edges []*tree.Edge = n.Edges()
+```
+
 * Removing tips
 ```go
 if err = t.RemoveTips(false, "Tip0"); err != nil {
@@ -372,16 +413,19 @@ if err = t.RemoveTips(false, "Tip0"); err != nil {
 }
 fmt.Println(t.Newick())
 ```
+
 * Knowning if a tip exists in the tree
 ```go
 var exists bool
 var err error
 exists,err = t.ExistsTip("Tip0")
 ```
+
 * Shuffling tip names of the tree
 ```go
 t.ShuffleTips()
 ```
+
 * Removing branches
 ```go
 // Short branches
@@ -391,10 +435,12 @@ t.CollapseLowSupport(0.7)
 // Branches with "depth" <=10 && >= 1
 t.CollapseTopoDepth(1,10)
 ```
+
 * Randomly resolving multifurcations
 ```go
 t.Resolve()
 ```
+
 * Removing branch informations
 ```go
 // Branch lengths
@@ -402,18 +448,22 @@ t.ClearLengths()
 // Branch supports
 t.ClearSupports()
 ```
+
 * Unrooting the tree
 ```go
 t.Unroot()
 ```
+
 * Cloning the tree
 ```go
 t.Clone()
 ```
+
 * Rerooting at midpoint
 ```go
 t.RerootMidPoint()
 ```
+
 * Generating random trees
 ```go
 var ntips int = 100
@@ -425,10 +475,37 @@ t,err = tree.RandomBalancedBinaryTree(ntips, rooted)
 // Yule-Harding tree
 t,err = tree.RandomYuleBinaryTree(ntips, rooted)
 ```
+
 * Computing bootstrap supports from tree files
 ```go
 import "github.com/fredericlemoine/gotree/support"
 ...
 var cpus int = 1
 boottree,err := support.ClassicalFile("referencetreefile", "bootstraptreesfile", cpus)
+```
+
+* SVG Tree drawing 
+```go
+import "github.com/fredericlemoine/gotree/draw"
+...
+f, err := os.Create("image.svg")
+d = draw.NewSvgTreeDrawer(f, 800, 800, 30, 30, 30, 30)
+l = draw.NewRadialLayout(d, false, false, false, false)
+// or l = draw.NewCircularLayout(d, false, false, false, false)
+// or l = draw.NewNormalLayout(d, false, false, false, false)
+l.DrawTree(t)
+f.Close()
+```
+
+* PNG Tree drawing 
+```go
+import "github.com/fredericlemoine/gotree/draw"
+...
+f, err := os.Create("image.svg")
+d = draw.NewPngTreeDrawer(f, 800, 800, 30, 30, 30, 30)
+l = draw.NewRadialLayout(d, false, false, false, false)
+// or l = draw.NewCircularLayout(d, false, false, false, false)
+// or l = draw.NewNormalLayout(d, false, false, false, false)
+l.DrawTree(t)
+f.Close()
 ```
