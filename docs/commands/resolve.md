@@ -31,7 +31,7 @@ gotree draw svg -w 200 -H 200  -i outtree2.nw -o commands/resolve_2.svg
 gotree draw svg -w 200 -H 200  -i outtree3.nw --no-branch-lengths --with-branch-support --support-cutoff 0.5 -o commands/resolve_3.svg
 ```
 
-Initial random Tree            | Collapsed Tree                     | Resolved Tree
--------------------------------|------------------------------------|---------------------------------
-![Random Tree 1](resolve_1.svg) | ![Random Supports](resolve_2.svg) | ![Random Supports](resolve_3.svg)
+Initial random Tree             | Collapsed Tree                     | Resolved Tree
+--------------------------------|------------------------------------|---------------------------------
+![Random Tree 1](resolve_1.svg) | ![Collapsed tree](resolve_2.svg)   | ![Resolved Supports](resolve_3.svg)
 

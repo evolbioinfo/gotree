@@ -44,7 +44,7 @@ gotree draw svg -w 200 -H 200  -i outtree2.nw --with-branch-support --support-cu
 
 Initial random Tree            | Rerooted Tree
 -------------------------------|---------------------------------------
-![Random Tree 1](reroot_1.svg) | ![Random Supports](reroot_2.svg)
+![Random Tree 1](reroot_1.svg) | ![Rerooted](reroot_2.svg)
 
 * Reroot a random tree using an outgroup in commandline
 
@@ -66,4 +66,4 @@ gotree draw svg -w 200 -H 200  -i outtree2.nw --with-branch-support --support-cu
 
 Initial random Tree            | Rerooted Tree at Midpoint
 -------------------------------|---------------------------------------
-![Random Tree 1](reroot_3.svg) | ![Random Supports](reroot_4.svg)
+![Random Tree 1](reroot_3.svg) | ![Rerooted](reroot_4.svg)

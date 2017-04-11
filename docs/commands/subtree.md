@@ -40,4 +40,4 @@ gotree draw svg -w 200 -H 200  -i outtree2.nw -o commands/subtree_2.svg
 
 Initial random Tree                 | Subtree
 ------------------------------------|---------------------------------------
-![Random Tree 1](subtree_1.svg)     | ![Random Supports](subtree_2.svg) 
+![Random Tree](subtree_1.svg)       | ![Subtree](subtree_2.svg) 

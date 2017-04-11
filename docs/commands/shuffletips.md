@@ -31,4 +31,4 @@ gotree draw svg -w 200 -H 200  -i outtree2.nw -o commands/shuffletips_2.svg
 
 Initial random Tree                 | Shuffled Tree
 ------------------------------------|---------------------------------------
-![Random Tree 1](shuffletips_1.svg) | ![Random Supports](shuffletips_2.svg) 
+![Random Tree 1](shuffletips_1.svg) | ![Shuffled tree](shuffletips_2.svg) 
