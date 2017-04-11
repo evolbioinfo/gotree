@@ -64,7 +64,7 @@ Command                                                            | Subcommand 
 --                                                                 | caterpillartree   | Randomly generates perfectly caterpillar trees
 --                                                                 | uniformtree       | Randomly generates uniform trees
 --                                                                 | yuletree          | Randomly generates Yule-Harding trees
-[matrix](commands/matrix/md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
+[matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
 [minbrlen](commands/minbrlen) ([api](api/minbrlen.md))             |                   | Sets a minimum branch length to all branches with length < cutoff
 [prune](commands/prune) ([api](api/prune.md))                      |                   | Removes tips of the input tree that are not in the compared tree, or that are given on the command line
 [randbrlen](commands/randbrlen) ([api](api/randbrlen.md))          |                   | Assigns a random length to edges of input trees
