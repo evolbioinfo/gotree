@@ -65,10 +65,10 @@ Command                                                            | Subcommand 
 --                                                                 | uniformtree       | Randomly generates uniform trees
 --                                                                 | yuletree          | Randomly generates Yule-Harding trees
 [matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
-[minbrlen](commands/minbrlen) ([api](api/minbrlen.md))             |                   | Sets a minimum branch length to all branches with length < cutoff
-[prune](commands/prune) ([api](api/prune.md))                      |                   | Removes tips of the input tree that are not in the compared tree, or that are given on the command line
-[randbrlen](commands/randbrlen) ([api](api/randbrlen.md))          |                   | Assigns a random length to edges of input trees
-[randsupport](commands/randsupport) ([api](api/randsupport.md))    |                   | Assigns a random support to edges of input trees
+[minbrlen](commands/minbrlen.md) ([api](api/minbrlen.md))          |                   | Sets a minimum branch length to all branches with length < cutoff
+[prune](commands/prune.md) ([api](api/prune.md))                   |                   | Removes tips of the input tree that are not in the compared tree, or that are given on the command line
+[randbrlen](commands/randbrlen.md) ([api](api/randbrlen.md))       |                   | Assigns a random length to edges of input trees
+[randsupport](commands/randsupport.md) ([api](api/randsupport.md)) |                   | Assigns a random support to edges of input trees
 [rename](commands/rename.md) ([api](api/rename.md))                |                   | Renames tips of the input tree, given a map file
 [reroot](commands/reroot.md) ([api](api/reroot.md))                |                   | Reroots trees using an outgroup or at midpoint
 --                                                                 | midpoint          | Reroots trees at midpoint position

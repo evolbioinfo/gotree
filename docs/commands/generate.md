@@ -7,7 +7,7 @@ This command generates random trees according to different models:
 * `gotree generate balancedtree` : perfectly balanced binary tree
 * `gotree generate caterpillartree`: caterpillar tree
 * `gotree generate uniform tree` : uniform tree (edges are added randomly in the middle of any previous edge)
-* `gotree generate yuletree`: Yule-Harding model (edges are added randomly in the middle of any external edge)
+* `gotree generate yuletree`: Yule-Harding model (edges are added randomly in the middle of any external edge). If `-r` is not specified, the tree is unrooted.
 
 All commands take a number of taxa/leaves (`-l`) as option except the balancedtree commands that takes a depth (`-d`).
 
