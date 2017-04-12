@@ -961,6 +961,9 @@ func (t *Tree) RemoveEdges(edges ...*Edge) {
 func (t *Tree) SumBranchLengths() float64 {
 	sumlen := 0.0
 	for _, e := range t.Edges() {
+		if e.Length() == NIL_LENGTH {
+			return math.NaN()
+		}
 		sumlen += e.Length()
 	}
 	return sumlen
@@ -1045,6 +1048,9 @@ func (t *Tree) MeanBrLength() float64 {
 	mean := 0.0
 	edges := t.Edges()
 	for _, e := range edges {
+		if e.Length() == NIL_LENGTH {
+			return math.NaN()
+		}
 		mean += e.Length()
 	}
 	return mean / float64(len(edges))
@@ -1054,6 +1060,9 @@ func (t *Tree) SumBrLength() float64 {
 	sum := 0.0
 	edges := t.Edges()
 	for _, e := range edges {
+		if e.Length() == NIL_LENGTH {
+			return math.NaN()
+		}
 		sum += e.Length()
 	}
 	return sum
@@ -1065,10 +1074,14 @@ func (t *Tree) MeanSupport() float64 {
 	i := 0
 	for _, e := range edges {
 		if !e.Right().Tip() {
+			if e.Support() == NIL_SUPPORT {
+				return math.NaN()
+			}
 			mean += e.Support()
 			i++
 		}
 	}
+
 	return mean / float64(i)
 }
 
@@ -1082,6 +1095,9 @@ func (t *Tree) MedianSupport() float64 {
 	i := 0
 	for _, e := range edges {
 		if !e.Right().Tip() {
+			if e.Support() == NIL_SUPPORT {
+				return math.NaN()
+			}
 			supports[i] = e.Support()
 			i++
 		}
