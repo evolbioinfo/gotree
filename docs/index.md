@@ -83,6 +83,6 @@ Command                                                            | Subcommand 
 --                                                                 | tips              | Prints informations about all the tips
 --                                                                 | splits            | Prints all the splits/bipartitions of the tree  (bit vectors)
 [unroot](commands/unroot.md) ([api](api/unroot.md))                |                   | Unroots input tree(s)
-[upload](commmands/upload.md) ([api](api/upload.md))               |                   | Uploads trees to a given server
+[upload](commands/upload.md) ([api](api/upload.md))                |                   | Uploads trees to a given server
 --                                                                 | itol              | Uploads trees to itol, with given annotations
 version                                                            |                   | Prints gotree version
