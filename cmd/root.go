@@ -101,7 +101,7 @@ func readTrees(infile string) <-chan tree.Trees {
 	intreesChan := make(chan tree.Trees, 15)
 	/* Read ref tree(s) */
 	go func() {
-		if _, err := utils.ReadCompTrees(infile, intreesChan); err != nil {
+		if _, err := utils.ReadMultiTreeFile(infile, intreesChan); err != nil {
 			io.ExitWithMessage(err)
 		}
 		close(intreesChan)

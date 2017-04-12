@@ -125,7 +125,7 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 		cpus = maxcpus
 	}
 
-	if reftree, err = utils.ReadRefTreeFile(reftreefile); err != nil {
+	if reftree, err = utils.ReadTreeFile(reftreefile); err != nil {
 		io.LogError(err)
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func ComputeSupportFile(reftreefile, boottreefile *bufio.Reader, logfile *os.Fil
 
 	// We read all bootstrap trees and put them in the channel
 	go func() {
-		if nbtrees, readerr = utils.ReadCompTreesFile(boottreefile, bootTreeChannel); readerr != nil {
+		if nbtrees, readerr = utils.ReadMultiTrees(boottreefile, bootTreeChannel); readerr != nil {
 			io.LogError(readerr)
 		}
 		close(bootTreeChannel)

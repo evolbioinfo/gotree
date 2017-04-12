@@ -96,7 +96,7 @@ func ClassicalFile(reftreefile, boottreefile string, cpus int) (*tree.Tree, erro
 
 	compareChannel := make(chan tree.Trees, 15)
 	go func() {
-		if _, readerr = utils.ReadCompTrees(boottreefile, compareChannel); err != nil {
+		if _, readerr = utils.ReadMultiTreeFile(boottreefile, compareChannel); err != nil {
 			io.LogError(readerr)
 		}
 		close(compareChannel)
