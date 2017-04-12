@@ -2,10 +2,9 @@
 
 ## API
 
-### annotate
+### clear
 
-Annotate function may be used to set a name to an internal node
-
+Clear branch lengths
 ```go
 package main
 
@@ -21,20 +20,18 @@ func main() {
 	var treeString string
 	var t *tree.Tree
 	var err error
-	treeString = "(Tip4,Tip0,(Tip3,(Tip2,Tip1)));"
+	treeString = "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2):0.3):0.4);"
 	t, err = newick.NewParser(strings.NewReader(treeString)).Parse()
 	if err != nil {
 		panic(err)
 	}
-	namemap := make(map[string][]string)
-	namemap["internalnode"] = []string{"Tip1", "Tip2", "Tip3"}
-	t.Annotate(namemap)
+	t.ClearLengths()
 	fmt.Println(t.Newick())
-	// Should print (Tip4,Tip0,(Tip3,(Tip2,Tip1))internalnode);
+	// Should print (Tip4,Tip0,(Tip3,(Tip2,Tip1)));
 }
 ```
 
-Also, we can use LeastCommonAncestor function
+Clear branch supports
 ```go
 package main
 
@@ -50,19 +47,12 @@ func main() {
 	var treeString string
 	var t *tree.Tree
 	var err error
-	treeString = "(Tip4,Tip0,(Tip3,(Tip2,Tip1)));"
+	treeString = "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.8:0.3)0.9:0.4);"
 	t, err = newick.NewParser(strings.NewReader(treeString)).Parse()
 	if err != nil {
 		panic(err)
 	}
-
-	tipnames := []string{"Tip1","Tip2","Tip3"}
-	nodeindex := tree.NewNodeIndex(t)
-	n, _, _, err := t.LeastCommonAncestorUnrooted(nodeindex, tipnames...)
-	if err != nil {
-		panic(err)
-	}
-	n.SetName("internalnode")
+	n.ClearSupports("internalnode")
 	fmt.Println(t.Newick())
 	// Should print (Tip4,Tip0,(Tip3,(Tip2,Tip1))internalnode);
 }
