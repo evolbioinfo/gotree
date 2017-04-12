@@ -20,7 +20,10 @@ func TestLeastCommonAncestorUnrooted(t *testing.T) {
 		t.Error(err)
 	}
 
-	n, e, mono := tree.LeastCommonAncestorUnrooted(nil, "3", "4")
+	n, e, mono, err := tree.LeastCommonAncestorUnrooted(nil, "3", "4")
+	if err != nil {
+		t.Error(err)
+	}
 	if n == nil {
 		t.Error("No common ancestor found")
 	}
@@ -43,7 +46,11 @@ func TestLeastCommonAncestorUnrooted(t *testing.T) {
 		}
 	}
 
-	n, e, mono = tree.LeastCommonAncestorUnrooted(nil, "3", "5")
+	n, e, mono, err = tree.LeastCommonAncestorUnrooted(nil, "3", "5")
+	if err != nil {
+		t.Error(err)
+	}
+
 	if n == nil {
 		t.Error("No common ancestor found")
 	}
@@ -62,7 +69,11 @@ func TestLeastCommonAncestorUnrooted(t *testing.T) {
 	if err2 != nil {
 		t.Error(err2)
 	}
-	n, e, mono = star.LeastCommonAncestorUnrooted(nil, "3", "4", "5", "2")
+	n, e, mono, err = star.LeastCommonAncestorUnrooted(nil, "3", "4", "5", "2")
+	if err != nil {
+		t.Error(err)
+	}
+
 	if n == nil {
 		t.Error("No common ancestor found")
 	}
@@ -84,7 +95,11 @@ func TestAddBipartition(t *testing.T) {
 	if err2 != nil {
 		t.Error(err2)
 	}
-	n, e, mono := star.LeastCommonAncestorUnrooted(nil, "3", "4", "5")
+	n, e, mono, err := star.LeastCommonAncestorUnrooted(nil, "3", "4", "5")
+	if err != nil {
+		t.Error(err)
+	}
+
 	if n == nil {
 		t.Error("No common ancestor found")
 	}
@@ -99,7 +114,11 @@ func TestAddBipartition(t *testing.T) {
 		t.Error("Edge Length should be 3 and is %d", len(e))
 	}
 	star.AddBipartition(n, e, 0.001, 0.9)
-	n, e, mono = star.LeastCommonAncestorUnrooted(nil, "4", "5")
+	n, e, mono, err = star.LeastCommonAncestorUnrooted(nil, "4", "5")
+	if err != nil {
+		t.Error(err)
+	}
+
 	if n == nil {
 		t.Error("No common ancestor found")
 	}
@@ -116,7 +135,11 @@ func TestAddBipartition(t *testing.T) {
 	fmt.Fprintf(os.Stdout, "%s\n", star.Newick())
 	star.AddBipartition(n, e, 0.001, 0.9)
 	fmt.Fprintf(os.Stdout, "%s\n", star.Newick())
-	n, e, mono = star.LeastCommonAncestorUnrooted(nil, "1", "2")
+	n, e, mono, err = star.LeastCommonAncestorUnrooted(nil, "1", "2")
+	if err != nil {
+		t.Error(err)
+	}
+
 	if n == nil {
 		t.Error("No common ancestor found")
 	}

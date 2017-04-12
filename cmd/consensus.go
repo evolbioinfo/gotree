@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,10 @@ In the output consensus tree:
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
 		treechan := readTrees(intreefile)
-		consensus := tree.Consensus(treechan, cutoff)
+		consensus, err := tree.Consensus(treechan, cutoff)
+		if err != nil {
+			io.ExitWithMessage(err)
+		}
 		f.WriteString(consensus.Newick() + "\n")
 		f.Close()
 	},

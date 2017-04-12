@@ -1013,13 +1013,17 @@ Takes a map with
 => It will take the lca of taxa and annotate it
 => Output tree won't have bootstrap support at the branches anymore
 */
-func (t *Tree) Annotate(names map[string][]string) {
+func (t *Tree) Annotate(names map[string][]string) error {
 	nodeindex := NewNodeIndex(t)
 
 	for k, v := range names {
-		n, _, _ := t.LeastCommonAncestorUnrooted(nodeindex, v...)
+		n, _, _, err := t.LeastCommonAncestorUnrooted(nodeindex, v...)
+		if err != nil {
+			return err
+		}
 		n.SetName(k)
 	}
+	return nil
 }
 
 // This function renames nodes of the tree based on the map in argument

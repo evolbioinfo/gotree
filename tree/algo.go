@@ -3,6 +3,8 @@ package tree
 import (
 	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/fredericlemoine/gotree/io"
 	//"os"
 )
@@ -23,7 +25,7 @@ and the edges that connects this node to the subtree
 LeastCommonAncestorUnrooted(1,2) returns a,e1,e2,true
 returned boolean value is true if the group is monophyletic
 */
-func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string) (*Node, []*Edge, bool) {
+func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string) (*Node, []*Edge, bool, error) {
 	if nodeindex == nil {
 		nodeindex = NewNodeIndex(t)
 	}
@@ -37,7 +39,7 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 		}
 	}
 	if len(tipindex) == 0 {
-		io.ExitWithMessage(errors.New("None of the given tips are present in the tree"))
+		return nil, nil, false, errors.New("None of the given tips are present in the tree")
 	}
 
 	// We search a tip that is not in the input tips
@@ -53,10 +55,13 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 
 	// If temproot == nil : Means that the input tips consist of all the tips of the tree
 	if temproot == nil {
-		io.ExitWithMessage(errors.New("All tips of the tree given : Nothing to do"))
+		return nil, nil, false, errors.New("All tips of the tree given : Nothing to do")
 	}
 	// otherwise we take the only child of the tip as first root
-	ancestor, goodedges, _, diff, _ := t.LeastCommonAncestorUnrootedRecur(temproot.neigh[0], nil, tipindex)
+	ancestor, goodedges, _, diff, _, err := t.LeastCommonAncestorUnrootedRecur(temproot.neigh[0], nil, tipindex)
+	if err != nil {
+		return nil, nil, false, err
+	}
 
 	// fmt.Println("--")
 	// fmt.Println(com)
@@ -66,11 +71,11 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 	// 	fmt.Println(s)
 	// }
 	// fmt.Println("--")
-	return ancestor, goodedges, diff == 0
+	return ancestor, goodedges, diff == 0, nil
 }
 
 /* Returns for a given node ... */
-func (t *Tree) LeastCommonAncestorUnrootedRecur(current *Node, prev *Node, tipIndex map[string]*Node) (*Node, []*Edge, int, int, bool) {
+func (t *Tree) LeastCommonAncestorUnrootedRecur(current *Node, prev *Node, tipIndex map[string]*Node) (*Node, []*Edge, int, int, bool, error) {
 	common := 0
 	edges := make([]*Edge, 0, 3)
 	different := 0
@@ -85,7 +90,7 @@ func (t *Tree) LeastCommonAncestorUnrootedRecur(current *Node, prev *Node, tipIn
 			if idx, e := current.NodeIndex(prev); e == nil {
 				edges = append(edges, current.br[idx])
 			} else {
-				io.ExitWithMessage(e)
+				return nil, nil, -1, -1, false, e
 			}
 		} else {
 			different = 1
@@ -96,10 +101,13 @@ func (t *Tree) LeastCommonAncestorUnrootedRecur(current *Node, prev *Node, tipIn
 	tmpdiff := 0
 	for i, n := range current.neigh {
 		if n != prev {
-			node, succedges, com, diff, found := t.LeastCommonAncestorUnrootedRecur(n, current, tipIndex)
+			node, succedges, com, diff, found, err := t.LeastCommonAncestorUnrootedRecur(n, current, tipIndex)
+			if err != nil {
+				return nil, nil, -1, -1, false, err
+			}
 			if found {
 				//fmt.Println("int found - diff:", diff)
-				return node, succedges, com, diff, found
+				return node, succedges, com, diff, found, nil
 			} else if com > 0 {
 				edges = append(edges, current.br[i])
 				common += com
@@ -113,11 +121,11 @@ func (t *Tree) LeastCommonAncestorUnrootedRecur(current *Node, prev *Node, tipIn
 	allFound = common == len(tipIndex)
 	if allFound {
 		//fmt.Println("found - diff:", different)
-		return current, edges, common, different, allFound
+		return current, edges, common, different, allFound, nil
 	} else {
 		different += tmpdiff
 		//fmt.Println("diff:", different)
-		return nil, nil, common, different, allFound
+		return nil, nil, common, different, allFound, nil
 	}
 }
 
@@ -143,20 +151,20 @@ if we call AddBipartition(n,{e3,e4,e5}) we end with:
    / | \
  e5 e4  e3
 */
-func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) *Edge {
+func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) (*Edge, error) {
 	n2 := t.NewNode()
 	// Number of edges in direction n->e->other
 	nbout := 0
 	// Number of edges in direction n<-e<-other
 	nbin := 0
 	if len(edges) <= 1 || len(edges) >= len(n.br)-1 {
-		io.ExitWithMessage(errors.New("We cannot add the bipartition, it already exists"))
+		return nil, errors.New("We cannot add the bipartition, it already exists")
 	}
 	for _, e := range edges {
 		// We check if the edges are connected to the node
 		// Else it exits with an error
 		if e.Left() != n && e.Right() != n {
-			io.ExitWithMessage(errors.New("Edges need to be connected to the node to add a bipartition"))
+			return nil, errors.New("Edges need to be connected to the node to add a bipartition")
 		}
 		// Direction : true if n->e->other..., false if n<-e<-other
 		// According to left / right
@@ -192,7 +200,7 @@ func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) *
 	}
 	e.SetLength(length)
 	e.SetSupport(support)
-	return e
+	return e, nil
 }
 
 /*
@@ -207,9 +215,9 @@ There can be errors if:
 * The tip names are different in the different trees
 * Incompatible bipartition are generated to build the consensus (It should not happen since cutoff should be >=0.5)
 */
-func Consensus(trees <-chan Trees, cutoff float64) *Tree {
+func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 	if cutoff < 0.5 || cutoff > 1 {
-		io.ExitWithMessage(errors.New("Min frequency for bipartition must be >=0.5 and <=1"))
+		return nil, errors.New("Min frequency for bipartition must be >=0.5 and <=1")
 	}
 	nbtrees := 0
 	edgeindex := NewEdgeIndex(128, .75)
@@ -224,7 +232,7 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 		if startree == nil {
 			alltips = curtree.Tree.AllTipNames()
 			if startree, err = StarTreeFromTree(curtree.Tree); err != nil {
-				io.ExitWithMessage(err)
+				return nil, err
 			} else {
 				nbtips = len(alltips)
 				// We first build the node index
@@ -235,13 +243,13 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 			// Error if different sets (use already computed indexes)
 			names := curtree.Tree.AllTipNames()
 			if len(names) != nbtips {
-				io.ExitWithMessage(errors.New("Trees do not have the same set of tips"))
+				return nil, errors.New("Trees do not have the same set of tips")
 			}
 			for _, name := range names {
 				if ok, err3 := startree.ExistsTip(name); err3 != nil {
-					io.ExitWithMessage(err)
+					return nil, err3
 				} else if !ok {
-					io.ExitWithMessage(errors.New("Trees do not have the same set of tips"))
+					return nil, errors.New("Trees do not have the same set of tips")
 				}
 			}
 		}
@@ -259,7 +267,7 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 		names := make([]string, 0, bs.key.Count())
 		for _, n := range alltips {
 			if idx, err := startree.TipIndex(n); err != nil {
-				io.ExitWithMessage(err)
+				return nil, err
 			} else {
 				if bs.key.Test(idx) {
 					names = append(names, n)
@@ -271,23 +279,26 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 		if len(names) < 2 {
 			if len(names) == 1 {
 				if t, ok := nodeindex.GetNode(names[0]); !ok || !t.Tip() {
-					io.ExitWithMessage(errors.New(fmt.Sprintf("This taxon name does not exist in the consensus: %s", names[0])))
+					return nil, errors.New(fmt.Sprintf("This taxon name does not exist in the consensus: %s", names[0]))
 				} else {
 					t.br[0].SetLength(float64(bs.val.Len) / float64(bs.val.Count))
 				}
 			} else {
-				io.ExitWithMessage(errors.New("This bipartition has a side with no taxa"))
+				return nil, errors.New("This bipartition has a side with no taxa")
 			}
 		} else {
-			node, edges, monophyletic := startree.LeastCommonAncestorUnrooted(nodeindex, names...)
+			node, edges, monophyletic, err := startree.LeastCommonAncestorUnrooted(nodeindex, names...)
+			if err != nil {
+				return nil, err
+			}
 			if node == nil {
-				io.ExitWithMessage(errors.New("Consensus error: No common ancestor found for biparition"))
+				return nil, errors.New("Consensus error: No common ancestor found for biparition")
 			}
 			if edges == nil || len(edges) == 0 {
-				io.ExitWithMessage(errors.New("Consensus error: No common ancestor Edges found"))
+				return nil, errors.New("Consensus error: No common ancestor Edges found")
 			}
 			if !monophyletic {
-				io.ExitWithMessage(errors.New("The group should be monophyletic"))
+				return nil, errors.New("The group should be monophyletic")
 			}
 			// We add the bipartition with a support value corresponding to the percentage of
 			// trees in which it appears
@@ -301,7 +312,7 @@ func Consensus(trees <-chan Trees, cutoff float64) *Tree {
 	startree.UpdateBitSet()
 	startree.ComputeDepths()
 
-	return startree
+	return startree, nil
 }
 
 /*
@@ -315,7 +326,10 @@ this tip will not be taken into account for the reroot.
 func (t *Tree) RerootOutGroup(tips ...string) error {
 	t.UnRoot()
 
-	n, edges, _ := t.LeastCommonAncestorUnrooted(nil, tips...)
+	n, edges, _, err := t.LeastCommonAncestorUnrooted(nil, tips...)
+	if err != nil {
+		return err
+	}
 	var rootedge *Edge
 
 	if len(n.br) == 1 {
@@ -496,4 +510,92 @@ func pathLengths(cur *Node, prev *Node, lengths []float64, curlength float64) {
 			}
 		}
 	}
+}
+
+// Type for channel of tree stats
+type BipartitionStats struct {
+	Id       int   // Identifier of the tree analyzed
+	Tree1    int   // Number of bipartitions specific to the first tree
+	Tree2    int   // Number of bipartitions specific to the second tree
+	Common   int   // Number of common bipartitions specific to the second tree
+	Sametree bool  // True if the trees are identical
+	Err      error // Wether an error occured or not in the computation
+}
+
+/* This function compares bipartitions of a reference tree with a set of trees given in the input channel.
+If tips is true, then comparison includes external branches. If comparetreeidentical is true, does not compute
+the exact number of common and specific branches, but just put sametree=true or sametree=false in the stat channel.
+At the end, stats channel is closed. This function returns immediately because computation is done in several go routines.
+So after call to this function, you must iterate over stats channel in order to wait for the end of computations.
+*/
+func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical bool, cpus int, stats chan<- BipartitionStats) error {
+	var edges []*Edge
+
+	if refTree == nil {
+		return errors.New("Tree 1 in comparison is null")
+	}
+
+	edges = refTree.Edges()
+	index := NewEdgeIndex(int64(len(edges)*2), 0.75)
+	total := 0
+	for i, e := range edges {
+		index.PutEdgeValue(e, i, e.Length())
+		if tips || !e.Right().Tip() {
+			total++
+		}
+	}
+
+	var wg sync.WaitGroup
+	for cpu := 0; cpu < cpus; cpu++ {
+		wg.Add(1)
+		go func(cpu int) {
+			for treeV := range compTrees {
+				total2 := 0
+				common := 0
+				var err error
+
+				edges2 := treeV.Tree.Edges()
+				// Check wether the 2 trees have the same set of tip names
+				// Else an error is included in the stats
+				sametree := false
+				if err = refTree.CompareTipIndexes(treeV.Tree); err == nil {
+					sametree = true
+					for _, e2 := range edges2 {
+						ok := true
+						if tips || !e2.Right().Tip() {
+							total2++
+						}
+						if !e2.Right().Tip() {
+							_, ok = index.Value(e2)
+						}
+						if !ok {
+							sametree = false
+							if comparetreeidentical {
+								break
+							}
+						}
+						if ok && (tips || !e2.Right().Tip()) {
+							common++
+						}
+					}
+				}
+				stats <- BipartitionStats{
+					treeV.Id,
+					total - common,
+					total2 - common,
+					common,
+					sametree,
+					err,
+				}
+			}
+			wg.Done()
+		}(cpu)
+	}
+
+	go func() {
+		wg.Wait()
+		close(stats)
+	}()
+
+	return nil
 }

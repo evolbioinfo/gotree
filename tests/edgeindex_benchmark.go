@@ -21,7 +21,7 @@ func BenchmarkEdgeIndex(b *testing.B) {
 		intrees := make(chan tree.Trees, 15)
 		/* Read ref tree(s) */
 		go func() {
-			if _, err := utils.ReadCompTrees("data/benchmark_boot.nw.gz", intrees); err != nil {
+			if _, err := utils.ReadMultiTreeFile("data/benchmark_boot.nw.gz", intrees); err != nil {
 				b.Error(err.Error)
 			}
 			close(intrees)

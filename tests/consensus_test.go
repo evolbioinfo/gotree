@@ -15,25 +15,33 @@ func TestConsensus(t *testing.T) {
 	trees := make(chan tree.Trees)
 	trees2 := make(chan tree.Trees)
 	go func() {
-		_, e := utils.ReadCompTrees("data/bootstrap_trees.nw.gz", trees)
+		_, e := utils.ReadMultiTreeFile("data/bootstrap_trees.nw.gz", trees)
 		if e != nil {
 			t.Error(e)
 		}
 		close(trees)
 	}()
-	majority := tree.Consensus(trees, 0.5)
+	majority, err := tree.Consensus(trees, 0.5)
+	if err != nil {
+		t.Error(err)
+	}
+
 	edgeindex1 := tree.NewEdgeIndex(128, .75)
 	for _, e := range majority.Edges() {
 		edgeindex1.PutEdgeValue(e, 1, e.Length())
 	}
 	go func() {
-		_, e := utils.ReadCompTrees("data/bootstrap_trees.nw.gz", trees2)
+		_, e := utils.ReadMultiTreeFile("data/bootstrap_trees.nw.gz", trees2)
 		if e != nil {
 			t.Error(e)
 		}
 		close(trees2)
 	}()
-	strict := tree.Consensus(trees2, 1)
+	strict, err := tree.Consensus(trees2, 1)
+	if err != nil {
+		t.Error(err)
+	}
+
 	edgeindex2 := tree.NewEdgeIndex(128, .75)
 	for _, e := range strict.Edges() {
 		edgeindex2.PutEdgeValue(e, 1, e.Length())
@@ -96,7 +104,11 @@ func TestConsensus2(t *testing.T) {
 		trees <- tree.Trees{randtree1, 1}
 		close(trees)
 	}()
-	consens := tree.Consensus(trees, 0.5)
+	consens, err := tree.Consensus(trees, 0.5)
+	if err != nil {
+		t.Error(err)
+	}
+
 	edgeindex := tree.NewEdgeIndex(128, .75)
 	if len(consens.Edges()) != len(randtree1.Edges()) {
 		t.Error("Consensus and Initial trees have different number of edges")
@@ -118,7 +130,11 @@ func TestConsensus2(t *testing.T) {
 		trees2 <- tree.Trees{randtree3, 3}
 		close(trees2)
 	}()
-	consens = tree.Consensus(trees2, 1)
+	consens, err = tree.Consensus(trees2, 1)
+	if err != nil {
+		t.Error(err)
+	}
+
 	ntips, _ := consens.NbTips()
 	if len(consens.Edges()) > ntips {
 		t.Error("Strict Consensus of 3 random binary trees (1000 tips) should strongly probably be a star tree")
