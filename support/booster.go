@@ -1,7 +1,6 @@
 package support
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"math"
@@ -247,8 +246,9 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 // Thread that takes bootstrap trees from the channel,
 // computes the transfer dist for each edges of the ref tree
 // and send it to the result channel
+// At the end, returns the number of treated trees
 func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
-	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
+	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) (int, error) {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
 	var min_dist_edge []int = make([]int, len(edges))
@@ -256,11 +256,17 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 	var c_matrix [][]uint16 = make([][]uint16, len(edges))
 	var hamming [][]uint16 = make([][]uint16, len(edges))
 	var movedSpecies []int = make([]int, len(tips))
+	var ntrees int = 0
 	vals := make([]int, len(edges))
 	// Number of branches that have a normalized similarity (1- (min_dist/(n-1)) to
 	// bootstrap trees > 0.8
 	var nb_branches_close int
 	for treeV := range bootTreeChannel {
+		ntrees++
+		if treeV.Err != nil {
+			io.LogError(treeV.Err)
+			return ntrees, treeV.Err
+		}
 		nb_branches_close = 0
 		if !supporter.silent {
 			fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\n", cpu, treeV.Id)
@@ -293,7 +299,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 				td, err := e.TopoDepth()
 				if err != nil {
 					io.LogError(err)
-					return err
+					return ntrees, err
 				}
 				be := bootEdges[min_dist_edge[i]]
 				norm := float64(vals[i]) / (float64(td) - 1.0)
@@ -301,7 +307,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 				if norm <= supporter.movedSpeciesCutoff && td >= mindepth {
 					if sm, er := speciesToMove(e, be, vals[i]); er != nil {
 						io.LogError(er)
-						return err
+						return ntrees, err
 					} else {
 						for _, sp := range sm {
 							movedSpecies[sp]++
@@ -331,16 +337,12 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 			break
 		}
 	}
-	return nil
+	return ntrees, nil
 }
 
-func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) (*tree.Tree, error) {
+func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) error {
 	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, movedSpeciedCutoff)
-	return ComputeSupportFile(reftreefile, boottreefile, logfile, cpus, supporter)
-}
-func BoosterFile(reftreereader, boottreereader *bufio.Reader, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) (*tree.Tree, error) {
-	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, movedSpeciedCutoff)
-	return ComputeSupportReader(reftreereader, boottreereader, logfile, cpus, supporter)
+	return ComputeSupport(reftree, boottrees, logfile, cpus, supporter)
 }
 
 // Returns the list of species to move to go from one branch to the other

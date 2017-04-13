@@ -35,11 +35,15 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		writeLogClassical()
-		t, e := support.ClassicalFile(supportIntree, supportBoottrees, rootCpus)
+		refTree := readTree(supportIntree)
+		boottreefile, boottreechan := readTrees(supportBoottrees)
+		defer boottreefile.Close()
+
+		e := support.Classical(refTree, boottreechan, rootCpus)
 		if e != nil {
 			io.ExitWithMessage(e)
 		}
-		supportOut.WriteString(t.Newick() + "\n")
+		supportOut.WriteString(refTree.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 	},
 }

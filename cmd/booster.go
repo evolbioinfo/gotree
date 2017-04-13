@@ -19,11 +19,15 @@ var boosterCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		writeLogBooster()
 		rand.Seed(seed)
-		t, err := support.Booster(supportIntree, supportBoottrees, supportLog, supportSilent, movedtaxa, cutoff, rootCpus)
+		refTree := readTree(supportIntree)
+		boottreefile, boottreechan := readTrees(supportBoottrees)
+		defer boottreefile.Close()
+
+		err := support.Booster(refTree, boottreechan, supportLog, supportSilent, movedtaxa, cutoff, rootCpus)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
-		supportOut.WriteString(t.Newick() + "\n")
+		supportOut.WriteString(refTree.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 	},
 }

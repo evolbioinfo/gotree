@@ -1,15 +1,13 @@
 package support
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"runtime"
 	"sync"
+	"sync/atomic"
 
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 )
 
@@ -28,7 +26,7 @@ type Supporter interface {
 	Init(maxdepth int, nbtips int)
 	ExpectedRandValues(depth int) float64
 	ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
-		bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) error
+		bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) (int, error)
 	// Returns the number of bootstrap trees that have been computed
 	Progress() int
 	// Increments the number of trees processed
@@ -63,81 +61,12 @@ func min_uint(a uint16, b uint16) uint16 {
 	return b
 }
 
-func ComputeSupportFile(reftreefile, boottreefile string, logfile *os.File, cpus int, supporter Supporter) (*tree.Tree, error) {
-	var reftree *tree.Tree
-	var err error
-	var bootfile *os.File
-	var bootreader *bufio.Reader
-	var compareChannel <-chan tree.Trees
-
-	maxcpus := runtime.NumCPU()
-	if cpus > maxcpus {
-		cpus = maxcpus
-	}
-
-	if reftree, err = utils.ReadTree(reftreefile); err != nil {
-		io.LogError(err)
-		return nil, err
-	}
-
-	if boottreefile == "none" {
-		er := errors.New("You must provide a file containing bootstrap trees")
-		io.LogError(er)
-		return nil, er
-	}
-
-	if bootfile, bootreader, err = utils.GetReader(boottreefile); err != nil {
-		return nil, err
-	}
-	defer bootfile.Close()
-
-	compareChannel = utils.ReadMultiTrees(bootreader)
-
-	if err = ComputeSupport(reftree, compareChannel, logfile, cpus, supporter); err != nil {
-		return nil, err
-	}
-
-	return reftree, nil
-}
-
-func ComputeSupportReader(refreader, bootreader *bufio.Reader, logfile *os.File, cpus int, supporter Supporter) (*tree.Tree, error) {
-	var reftree *tree.Tree
-	var err error
-	var compareChannel <-chan tree.Trees
-
-	maxcpus := runtime.NumCPU()
-	if cpus > maxcpus {
-		cpus = maxcpus
-	}
-	if refreader == nil {
-		er := errors.New("You must provide a file containing reference trees")
-		io.LogError(er)
-		return nil, er
-	}
-	if reftree, err = utils.ReadTreeReader(refreader); err != nil {
-		io.LogError(err)
-		return nil, err
-	}
-	if bootreader == nil {
-		er := errors.New("You must provide a file containing bootstrap trees")
-		io.LogError(er)
-		return nil, er
-	}
-	compareChannel = utils.ReadMultiTrees(bootreader)
-
-	if err = ComputeSupport(reftree, compareChannel, logfile, cpus, supporter); err != nil {
-		return nil, err
-	}
-
-	return reftree, nil
-}
-
 func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os.File, cpus int, supporter Supporter) error {
 	var deptherr error   // error reading comp file
 	var computeerr error // error in support computation
 
 	var maxcpus int = runtime.NumCPU() // max number of cpus
-	var nbtrees int                    // Number of bootstrap trees
+	var nbtrees int32                  // Number of bootstrap trees
 	var max_depth int                  // Maximum topo depth of all edges of ref tree
 	var tips []*tree.Node              // Tip nodes of the ref tree
 	var edges []*tree.Edge             // Edges of the reference tree
@@ -178,9 +107,11 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
 		go func() {
-			if err := supporter.ComputeValue(reftree, cpu, edges, boottrees, valuesChan, speciesChannel); err != nil {
+			if nt, err := supporter.ComputeValue(reftree, cpu, edges, boottrees, valuesChan, speciesChannel); err != nil {
 				io.LogError(err)
 				computeerr = err
+			} else {
+				atomic.AddInt32(&nbtrees, int32(nt))
 			}
 			wg.Done()
 		}()

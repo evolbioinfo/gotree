@@ -1,15 +1,10 @@
 package support
 
 import (
-	"bufio"
-	"errors"
-	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
 
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 )
 
@@ -74,40 +69,4 @@ func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error 
 		}
 	}
 	return err
-}
-
-func ClassicalFile(reftreefile, boottreefile string, cpus int) (*tree.Tree, error) {
-	var reftree *tree.Tree
-	var err error
-	var bootfile *os.File
-	var bootreader *bufio.Reader
-	var compareChannel <-chan tree.Trees
-
-	maxcpus := runtime.NumCPU()
-	if cpus > maxcpus {
-		cpus = maxcpus
-	}
-
-	if reftree, err = utils.ReadTree(reftreefile); err != nil {
-		io.LogError(err)
-		return nil, err
-	}
-
-	if boottreefile == "none" {
-		er := errors.New("You must provide a file containing bootstrap trees")
-		io.LogError(er)
-		return nil, er
-	}
-
-	if bootfile, bootreader, err = utils.GetReader(boottreefile); err != nil {
-		return nil, err
-	}
-	defer bootfile.Close()
-
-	compareChannel = utils.ReadMultiTrees(bootreader)
-
-	if err = Classical(reftree, compareChannel, cpus); err != nil {
-		return nil, err
-	}
-	return reftree, nil
 }
