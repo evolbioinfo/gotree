@@ -21,16 +21,15 @@ func main() {
 	var reftree *tree.Tree
 	var f *os.File
 	var err error
-	var comptrees chan tree.Trees
-	stats := make(chan tree.BipartitionStats)
-	comptrees = make(chan tree.Trees)
+	var comptrees <-chan tree.Trees
+	var stats <-chan tree.BipartitionStats
+
 	// Parsing multi tree newick (compared trees
-	go func() {
-		if _, err = utils.ReadMultiTreeFile("comp.nw", comptrees); err != nil {
-			panic(err)
-		}
-		close(comptrees)
-	}()
+	if treefile, treereader, err = utils.GetReader("trees.nw"); err != nil {
+		panic(err)
+	}
+	defer treefile.Close()
+	trees = utils.ReadMultiTrees(treereader)
 	// Parsing single tree newick file
 	if f, err = os.Open("ref.nw"); err != nil {
 		panic(err)
@@ -41,10 +40,13 @@ func main() {
 	}
 	f.Close()
 	// Comparing reftree with all comp trees
-	err = tree.Compare(reftree, comptrees, false, false, 1, stats)
+	stats, err = tree.Compare(reftree, comptrees, false, false, 1)
 	// Iterating over statistic channel
 	fmt.Printf("tree\treference\tcommon\tcompared\n")
 	for stats := range stats {
+		if stats.Err != nil {
+			panic(err)
+		}
 		fmt.Printf("%d\t%d\t%d\t%d\n", stats.Id, stats.Tree1, stats.Common, stats.Tree2)
 	}
 }
