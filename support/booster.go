@@ -260,82 +260,88 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 	// Number of branches that have a normalized similarity (1- (min_dist/(n-1)) to
 	// bootstrap trees > 0.8
 	var nb_branches_close int
+	var err error
 	for treeV := range bootTreeChannel {
 		if treeV.Err != nil {
 			io.LogError(treeV.Err)
-			return treeV.Err
-		}
-		nb_branches_close = 0
-		if !supporter.silent {
-			fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\n", cpu, treeV.Id)
-		}
-		bootEdges := treeV.Tree.Edges()
+			err = treeV.Err
+		} else {
+			err = refTree.CompareTipIndexes(treeV.Tree)
 
-		for i, _ := range edges {
-			min_dist[i] = uint16(len(tips))
-			min_dist_edge[i] = -1
-			if len(bootEdges) > len(i_matrix[i]) {
-				i_matrix[i] = make([]uint16, len(bootEdges))
-				c_matrix[i] = make([]uint16, len(bootEdges))
-				hamming[i] = make([]uint16, len(bootEdges))
-			}
-		}
-
-		for i, e := range bootEdges {
-			e.SetId(i)
-		}
-
-		Update_all_i_c_post_order_ref_tree(refTree, &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
-		Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edge)
-
-		for i, e := range edges {
-			if e.Right().Tip() {
-				continue
-			}
-			vals[i] = int(min_dist[i])
-			if supporter.computeMovedSpecies {
-				td, err := e.TopoDepth()
-				if err != nil {
-					io.LogError(err)
-					return err
+			if err == nil {
+				nb_branches_close = 0
+				if !supporter.silent {
+					fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\n", cpu, treeV.Id)
 				}
-				be := bootEdges[min_dist_edge[i]]
-				norm := float64(vals[i]) / (float64(td) - 1.0)
-				mindepth := int(math.Ceil(1.0/supporter.movedSpeciesCutoff + 1.0))
-				if norm <= supporter.movedSpeciesCutoff && td >= mindepth {
-					if sm, er := speciesToMove(e, be, vals[i]); er != nil {
-						io.LogError(er)
-						return err
-					} else {
-						for _, sp := range sm {
-							movedSpecies[sp]++
-						}
-						nb_branches_close++
+				bootEdges := treeV.Tree.Edges()
+
+				for i, _ := range edges {
+					min_dist[i] = uint16(len(tips))
+					min_dist_edge[i] = -1
+					if len(bootEdges) > len(i_matrix[i]) {
+						i_matrix[i] = make([]uint16, len(bootEdges))
+						c_matrix[i] = make([]uint16, len(bootEdges))
+						hamming[i] = make([]uint16, len(bootEdges))
 					}
 				}
-			}
-			valChan <- bootval{
-				vals[i],
-				i,
-				false,
-			}
-		}
 
-		if supporter.computeMovedSpecies {
-			for sp, nb := range movedSpecies {
-				speciesChannel <- speciesmoved{
-					uint(sp),
-					float64(nb) / float64(nb_branches_close),
+				for i, e := range bootEdges {
+					e.SetId(i)
 				}
-				movedSpecies[sp] = 0
+
+				Update_all_i_c_post_order_ref_tree(refTree, &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
+				Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edge)
+
+				for i, e := range edges {
+					if e.Right().Tip() {
+						continue
+					}
+					vals[i] = int(min_dist[i])
+					if supporter.computeMovedSpecies {
+						td, err := e.TopoDepth()
+						if err != nil {
+							io.LogError(err)
+							return err
+						}
+						be := bootEdges[min_dist_edge[i]]
+						norm := float64(vals[i]) / (float64(td) - 1.0)
+						mindepth := int(math.Ceil(1.0/supporter.movedSpeciesCutoff + 1.0))
+						if norm <= supporter.movedSpeciesCutoff && td >= mindepth {
+							if sm, er := speciesToMove(e, be, vals[i]); er != nil {
+								io.LogError(er)
+								return err
+							} else {
+								for _, sp := range sm {
+									movedSpecies[sp]++
+								}
+								nb_branches_close++
+							}
+						}
+					}
+					valChan <- bootval{
+						vals[i],
+						i,
+						false,
+					}
+				}
+
+				if supporter.computeMovedSpecies {
+					for sp, nb := range movedSpecies {
+						speciesChannel <- speciesmoved{
+							uint(sp),
+							float64(nb) / float64(nb_branches_close),
+						}
+						movedSpecies[sp] = 0
+					}
+				}
+				supporter.NewBootTreeComputed()
+				if supporter.stop {
+					break
+				}
 			}
-		}
-		supporter.NewBootTreeComputed()
-		if supporter.stop {
-			break
 		}
 	}
-	return nil
+	return err
 }
 
 func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) error {

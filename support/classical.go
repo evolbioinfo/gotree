@@ -38,14 +38,18 @@ func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error 
 			for treeV := range boottrees {
 				if treeV.Err != nil {
 					err = treeV.Err
-				}
-				atomic.AddInt32(&ntrees, 1)
-				edges2 := treeV.Tree.Edges()
-				for _, e2 := range edges2 {
-					if !e2.Right().Tip() {
-						val, ok := edgeIndex.Value(e2)
-						if ok {
-							foundEdges <- val.Count
+				} else {
+					err = reftree.CompareTipIndexes(treeV.Tree)
+					if err == nil {
+						atomic.AddInt32(&ntrees, 1)
+						edges2 := treeV.Tree.Edges()
+						for _, e2 := range edges2 {
+							if !e2.Right().Tip() {
+								val, ok := edgeIndex.Value(e2)
+								if ok {
+									foundEdges <- val.Count
+								}
+							}
 						}
 					}
 				}
