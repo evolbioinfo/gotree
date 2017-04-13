@@ -112,6 +112,9 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 				t.SetRoot(newNode)
 				node = newNode
 			} else {
+				if *level == 0 {
+					return -1, errors.New("An open parenthesis at level 0 of recursion... Forgot a ';' at the end of previous tree?")
+				}
 				t.ConnectNodes(node, newNode)
 			}
 			(*level)++
