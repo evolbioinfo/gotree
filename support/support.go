@@ -5,7 +5,6 @@ import (
 	"os"
 	"runtime"
 	"sync"
-	"sync/atomic"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -26,7 +25,7 @@ type Supporter interface {
 	Init(maxdepth int, nbtips int)
 	ExpectedRandValues(depth int) float64
 	ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
-		bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) (int, error)
+		bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) error
 	// Returns the number of bootstrap trees that have been computed
 	Progress() int
 	// Increments the number of trees processed
@@ -66,7 +65,6 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	var computeerr error // error in support computation
 
 	var maxcpus int = runtime.NumCPU() // max number of cpus
-	var nbtrees int32                  // Number of bootstrap trees
 	var max_depth int                  // Maximum topo depth of all edges of ref tree
 	var tips []*tree.Node              // Tip nodes of the ref tree
 	var edges []*tree.Edge             // Edges of the reference tree
@@ -107,11 +105,9 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
 		go func() {
-			if nt, err := supporter.ComputeValue(reftree, cpu, edges, boottrees, valuesChan, speciesChannel); err != nil {
+			if err := supporter.ComputeValue(reftree, cpu, edges, boottrees, valuesChan, speciesChannel); err != nil {
 				io.LogError(err)
 				computeerr = err
-			} else {
-				atomic.AddInt32(&nbtrees, int32(nt))
 			}
 			wg.Done()
 		}()
@@ -167,7 +163,7 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 				io.LogError(err)
 				return err
 			}
-			avg_val := float64(valuesBoot[i]) / float64(nbtrees)
+			avg_val := float64(valuesBoot[i]) / float64(supporter.Progress())
 			avg_rand_val := supporter.ExpectedRandValues(d)
 			support := float64(1) - avg_val/avg_rand_val
 

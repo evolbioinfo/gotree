@@ -248,7 +248,7 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 // and send it to the result channel
 // At the end, returns the number of treated trees
 func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
-	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) (int, error) {
+	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
 	var min_dist_edge []int = make([]int, len(edges))
@@ -256,16 +256,14 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 	var c_matrix [][]uint16 = make([][]uint16, len(edges))
 	var hamming [][]uint16 = make([][]uint16, len(edges))
 	var movedSpecies []int = make([]int, len(tips))
-	var ntrees int = 0
 	vals := make([]int, len(edges))
 	// Number of branches that have a normalized similarity (1- (min_dist/(n-1)) to
 	// bootstrap trees > 0.8
 	var nb_branches_close int
 	for treeV := range bootTreeChannel {
-		ntrees++
 		if treeV.Err != nil {
 			io.LogError(treeV.Err)
-			return ntrees, treeV.Err
+			return treeV.Err
 		}
 		nb_branches_close = 0
 		if !supporter.silent {
@@ -299,7 +297,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 				td, err := e.TopoDepth()
 				if err != nil {
 					io.LogError(err)
-					return ntrees, err
+					return err
 				}
 				be := bootEdges[min_dist_edge[i]]
 				norm := float64(vals[i]) / (float64(td) - 1.0)
@@ -307,7 +305,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 				if norm <= supporter.movedSpeciesCutoff && td >= mindepth {
 					if sm, er := speciesToMove(e, be, vals[i]); er != nil {
 						io.LogError(er)
-						return ntrees, err
+						return err
 					} else {
 						for _, sp := range sm {
 							movedSpecies[sp]++
@@ -337,7 +335,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 			break
 		}
 	}
-	return ntrees, nil
+	return nil
 }
 
 func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) error {
