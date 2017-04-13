@@ -44,7 +44,13 @@ Will store only urls in the output file
 		// args: All annotation files to add to the upload
 		upld := upload.NewItolUploader(itoluploadid, itolprojectname, args...)
 		i := 0
-		for reftree := range readTrees(intreefile) {
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for reftree := range trees {
+			if reftree.Err != nil {
+				io.ExitWithMessage(reftree.Err)
+			}
 			url, response, err := upld.Upload(fmt.Sprintf("%s_%03d", itoltreename, i), reftree.Tree)
 			if err != nil {
 				io.ExitWithMessage(err)

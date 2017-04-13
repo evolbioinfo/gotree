@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -17,13 +18,19 @@ gotree minbrlen -i tree.nw -o out.nw -l 0.001
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		for tr := range readTrees(intreefile) {
-			for _, e := range tr.Tree.Edges() {
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for t := range trees {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+			for _, e := range t.Tree.Edges() {
 				if e.Length() < cutoff {
 					e.SetLength(cutoff)
 				}
 			}
-			f.WriteString(tr.Tree.Newick() + "\n")
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		f.Close()
 

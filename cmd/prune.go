@@ -56,7 +56,13 @@ By order of priority:
 		comptree := readTree(intree2file)
 
 		// Read ref Trees
-		for reftree := range readTrees(intreefile) {
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for reftree := range trees {
+			if reftree.Err != nil {
+				io.ExitWithMessage(reftree.Err)
+			}
 			var tips []string
 			if tipfile != "none" {
 				tips = parseTipsFile(tipfile)

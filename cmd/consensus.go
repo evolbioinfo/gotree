@@ -27,7 +27,9 @@ In the output consensus tree:
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		treechan := readTrees(intreefile)
+
+		treefile, treechan := readTrees(intreefile)
+		defer treefile.Close()
 		consensus, err := tree.Consensus(treechan, cutoff)
 		if err != nil {
 			io.ExitWithMessage(err)

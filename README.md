@@ -318,7 +318,9 @@ func main() {
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
@@ -327,18 +329,23 @@ import (
 func main() {
 	var t tree.Trees
 	var err error
-	var ntrees int
-	var trees chan tree.Trees
+	var ntrees int = 0
+	var trees <-chan tree.Trees
+	var treefile *os.File
+	var treereader *bufio.Reader
 
-	trees = make(chan tree.Trees)
-	go func() {
-		if ntrees, err = utils.ReadMultiTreeFile("t.nw", trees); err != nil {
-			panic(err)
-		}
-		close(trees)
-	}()
+	/* File reader (plain text or gzip) */
+	if treefile, treereader, err = utils.GetReader("trees.nw"); err != nil {
+		panic(err)
+	}
+	defer treefile.Close()
+	trees = utils.ReadMultiTrees(treereader)
 
 	for t = range trees {
+		if t.Err != nil {
+			panic(t.Err)
+		}
+		ntrees++
 		fmt.Println(t.Tree.Newick())
 	}
 	fmt.Printf("Number of trees: %d\n", ntrees)

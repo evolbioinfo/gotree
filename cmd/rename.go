@@ -50,13 +50,19 @@ gotree rename -m MapFile -i t.nw
 
 		f := openWriteFile(outtreefile)
 		// Read ref Trees and rename them
-		for reftree := range readTrees(intreefile) {
-			err = reftree.Tree.Rename(namemap)
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for tr := range trees {
+			if tr.Err != nil {
+				io.ExitWithMessage(tr.Err)
+			}
+			err = tr.Tree.Rename(namemap)
 			if err != nil {
 				io.ExitWithMessage(err)
 			}
 
-			f.WriteString(reftree.Tree.Newick() + "\n")
+			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 		f.Close()
 	},

@@ -336,11 +336,11 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 
 func Booster(reftreefile, boottreefile string, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) (*tree.Tree, error) {
 	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, movedSpeciedCutoff)
-	return ComputeSupport(reftreefile, boottreefile, logfile, cpus, supporter)
-}
-func BoosterFile(reftreefile, boottreefile *bufio.Reader, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) (*tree.Tree, error) {
-	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, movedSpeciedCutoff)
 	return ComputeSupportFile(reftreefile, boottreefile, logfile, cpus, supporter)
+}
+func BoosterFile(reftreereader, boottreereader *bufio.Reader, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) (*tree.Tree, error) {
+	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, movedSpeciedCutoff)
+	return ComputeSupportReader(reftreereader, boottreereader, logfile, cpus, supporter)
 }
 
 // Returns the list of species to move to go from one branch to the other

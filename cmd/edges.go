@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -45,12 +47,18 @@ gotree stats edges -i t.nw
 			f.WriteString("\tlocalityhy")
 		}
 		f.WriteString("\n")
-		for statsintree := range readTrees(intreefile) {
-			statsintree.Tree.ComputeDepths()
-			for i, e := range statsintree.Tree.Edges() {
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for t := range trees {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+			t.Tree.ComputeDepths()
+			for i, e := range t.Tree.Edges() {
 				f.WriteString(
 					fmt.Sprintf("%d\t%d\t%s",
-						statsintree.Id, i, e.ToStatsString()))
+						t.Id, i, e.ToStatsString()))
 				if locality {
 					if e.Right().Tip() {
 						f.WriteString("\tN/A\tN/A\tN/A\tN/A\tN/A")

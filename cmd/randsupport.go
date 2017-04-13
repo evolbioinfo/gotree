@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/fredericlemoine/gostats"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 	"math/rand"
 	"time"
@@ -21,7 +22,13 @@ Support follows a uniform distribution in [0,1].
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		for tr := range readTrees(intreefile) {
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for tr := range trees {
+			if tr.Err != nil {
+				io.ExitWithMessage(tr.Err)
+			}
 			for _, e := range tr.Tree.Edges() {
 				if !e.Right().Tip() {
 					e.SetSupport(gostats.Float64Range(0, 1))

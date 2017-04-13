@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -20,9 +21,15 @@ var resolveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		rand.Seed(seed)
 		f := openWriteFile(outtreefile)
-		for t := range readTrees(intreefile) {
-			t.Tree.Resolve()
-			f.WriteString(t.Tree.Newick() + "\n")
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for tr := range trees {
+			if tr.Err != nil {
+				io.ExitWithMessage(tr.Err)
+			}
+			tr.Tree.Resolve()
+			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 		f.Close()
 	},

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/fredericlemoine/gotree/draw"
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +23,12 @@ var svgCmd = &cobra.Command{
 		var d draw.TreeDrawer
 		var l draw.TreeLayout
 		ntree := 0
-		for tr := range readTrees(intreefile) {
+		treefile, treechan := readTrees(intreefile)
+		defer treefile.Close()
+		for t := range treechan {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
 			fname := outtreefile
 			if ntree > 0 {
 				extension := filepath.Ext(fname)
@@ -43,7 +49,7 @@ var svgCmd = &cobra.Command{
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
 			l.SetSupportCutoff(drawSupportCutoff)
-			l.DrawTree(tr.Tree)
+			l.DrawTree(t.Tree)
 			f.Close()
 			ntree++
 		}

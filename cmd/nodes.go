@@ -28,13 +28,19 @@ gotree stats nodes -i t.nw
 		f.WriteString("tree\tnid\tnneigh\tname\tdepth\n")
 		var depth int
 		var err error
-		for statsintree := range readTrees(intreefile) {
-			statsintree.Tree.ComputeDepths()
-			for i, n := range statsintree.Tree.Nodes() {
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for t := range trees {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+			t.Tree.ComputeDepths()
+			for i, n := range t.Tree.Nodes() {
 				if depth, err = n.Depth(); err != nil {
 					io.ExitWithMessage(err)
 				}
-				f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\t%d\n", statsintree.Id, i, n.Nneigh(), n.Name(), depth))
+				f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\t%d\n", t.Id, i, n.Nneigh(), n.Name(), depth))
 			}
 		}
 		f.Close()

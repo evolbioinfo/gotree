@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -16,9 +17,15 @@ gotree reroot midpoint  -i tree.nw > reroot.nw
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		for t2 := range readTrees(intreefile) {
-			t2.Tree.RerootMidPoint()
-			f.WriteString(t2.Tree.Newick() + "\n")
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for t := range trees {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+			t.Tree.RerootMidPoint()
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		f.Close()
 	},

@@ -96,17 +96,20 @@ func Readln(r *bufio.Reader) (string, error) {
 	return string(ln), err
 }
 
-func readTrees(infile string) <-chan tree.Trees {
+/*File in output must be closed by calling function */
+func readTrees(infile string) (*os.File, <-chan tree.Trees) {
 	// Read Tree
-	intreesChan := make(chan tree.Trees, 15)
-	/* Read ref tree(s) */
-	go func() {
-		if _, err := utils.ReadMultiTreeFile(infile, intreesChan); err != nil {
-			io.ExitWithMessage(err)
-		}
-		close(intreesChan)
-	}()
-	return intreesChan
+	var treefile *os.File
+	var treereader *bufio.Reader
+	var err error
+	var treeChannel <-chan tree.Trees
+
+	if treefile, treereader, err = utils.GetReader(infile); err != nil {
+		io.ExitWithMessage(err)
+	}
+	treeChannel = utils.ReadMultiTrees(treereader)
+
+	return treefile, treeChannel
 }
 
 func readTree(infile string) *tree.Tree {
@@ -114,7 +117,7 @@ func readTree(infile string) *tree.Tree {
 	var err error
 	if infile != "none" {
 		// Read comp Tree : Only one tree in input
-		tree, err = utils.ReadRefTree(infile)
+		tree, err = utils.ReadTree(infile)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}

@@ -25,6 +25,7 @@ type Tree struct {
 type Trees struct {
 	Tree *Tree
 	Id   int
+	Err  error
 }
 
 func NewTree() *Tree {

@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +14,13 @@ var matrixCmd = &cobra.Command{
 	Long:  `Prints distance matrix associated to the input tree.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		for t := range readTrees(intreefile) {
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for t := range trees {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
 			tips := t.Tree.Tips()
 			f.WriteString(fmt.Sprintf("%d\n", len(tips)))
 			mat := t.Tree.ToDistanceMatrix()

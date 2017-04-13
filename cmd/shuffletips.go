@@ -1,9 +1,11 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"math/rand"
 	"time"
+
+	"github.com/fredericlemoine/gotree/io"
+	"github.com/spf13/cobra"
 )
 
 // shuffletipsCmd represents the shuffletips command
@@ -28,9 +30,14 @@ gotree shuffletips -i t.nw
 		// Read Tree
 		rand.Seed(seed)
 		f := openWriteFile(outtreefile)
-		for t2 := range readTrees(intreefile) {
-			t2.Tree.ShuffleTips()
-			f.WriteString(t2.Tree.Newick() + "\n")
+		treefile, treechan := readTrees(intreefile)
+		defer treefile.Close()
+		for t := range treechan {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+			t.Tree.ShuffleTips()
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		f.Close()
 	},

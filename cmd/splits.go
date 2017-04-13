@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -17,9 +18,14 @@ Then: One line per branch, and 0/1
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		for statsintree := range readTrees(intreefile) {
+		treefile, treechan := readTrees(intreefile)
+		defer treefile.Close()
+		for t := range treechan {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
 			f.WriteString("Tree\t")
-			names := statsintree.Tree.SortedTips()
+			names := t.Tree.SortedTips()
 			for i := len(names) - 1; i >= 0; i-- {
 				if i < len(names)-1 {
 					f.WriteString("|")
@@ -27,8 +33,8 @@ Then: One line per branch, and 0/1
 				f.WriteString(names[i])
 			}
 			f.WriteString("\n")
-			for _, e := range statsintree.Tree.Edges() {
-				f.WriteString(fmt.Sprintf("%d\t", statsintree.Id))
+			for _, e := range t.Tree.Edges() {
+				f.WriteString(fmt.Sprintf("%d\t", t.Id))
 				f.WriteString(e.DumpBitSet() + "\n")
 			}
 		}

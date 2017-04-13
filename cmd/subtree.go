@@ -43,8 +43,14 @@ The only matching node must be an internal node, otherwise, it will do nothing a
 
 		f := openWriteFile(outtreefile)
 		i := 0
-		for reftree := range readTrees(intreefile) {
-			nodes, err = reftree.Tree.SelectNodes(inputname)
+		treefile, treechan := readTrees(intreefile)
+		defer treefile.Close()
+		for t := range treechan {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+
+			nodes, err = t.Tree.SelectNodes(inputname)
 			if err != nil {
 				io.ExitWithMessage(err)
 			}
@@ -54,7 +60,7 @@ The only matching node must be an internal node, otherwise, it will do nothing a
 				if n.Tip() {
 					log.Print(fmt.Sprintf("Tree %d: Node %s is a tip", i, n.Name()))
 				} else {
-					subtree := reftree.Tree.SubTree(n)
+					subtree := t.Tree.SubTree(n)
 					f.WriteString(subtree.Newick() + "\n")
 				}
 			case 0:

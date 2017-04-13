@@ -1,7 +1,9 @@
 package support
 
 import (
+	"bufio"
 	"errors"
+	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -14,7 +16,7 @@ import (
 /*
 Computes bootstrap supports of reftree branches, given trees in boottrees channel
 */
-func Classical(reftree *tree.Tree, boottrees chan tree.Trees, cpus int) {
+func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error {
 	maxcpus := runtime.NumCPU()
 	if cpus > maxcpus {
 		cpus = maxcpus
@@ -34,10 +36,14 @@ func Classical(reftree *tree.Tree, boottrees chan tree.Trees, cpus int) {
 		edgeIndex.PutEdgeValue(e, i, e.Length())
 	}
 	var wg sync.WaitGroup
+	var err error
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
 		go func(cpu int) {
 			for treeV := range boottrees {
+				if treeV.Err != nil {
+					err = treeV.Err
+				}
 				atomic.AddInt32(&ntrees, 1)
 				edges2 := treeV.Tree.Edges()
 				for _, e2 := range edges2 {
@@ -67,19 +73,22 @@ func Classical(reftree *tree.Tree, boottrees chan tree.Trees, cpus int) {
 			edges[i].SetSupport(float64(count) / float64(ntrees))
 		}
 	}
+	return err
 }
 
 func ClassicalFile(reftreefile, boottreefile string, cpus int) (*tree.Tree, error) {
 	var reftree *tree.Tree
 	var err error
-	var readerr error
+	var bootfile *os.File
+	var bootreader *bufio.Reader
+	var compareChannel <-chan tree.Trees
 
 	maxcpus := runtime.NumCPU()
 	if cpus > maxcpus {
 		cpus = maxcpus
 	}
 
-	if reftree, err = utils.ReadRefTree(reftreefile); err != nil {
+	if reftree, err = utils.ReadTree(reftreefile); err != nil {
 		io.LogError(err)
 		return nil, err
 	}
@@ -90,18 +99,15 @@ func ClassicalFile(reftreefile, boottreefile string, cpus int) (*tree.Tree, erro
 		return nil, er
 	}
 
-	if cpus > maxcpus {
-		cpus = maxcpus
+	if bootfile, bootreader, err = utils.GetReader(boottreefile); err != nil {
+		return nil, err
 	}
+	defer bootfile.Close()
 
-	compareChannel := make(chan tree.Trees, 15)
-	go func() {
-		if _, readerr = utils.ReadMultiTreeFile(boottreefile, compareChannel); err != nil {
-			io.LogError(readerr)
-		}
-		close(compareChannel)
-	}()
-	Classical(reftree, compareChannel, cpus)
+	compareChannel = utils.ReadMultiTrees(bootreader)
 
-	return reftree, readerr
+	if err = Classical(reftree, compareChannel, cpus); err != nil {
+		return nil, err
+	}
+	return reftree, nil
 }

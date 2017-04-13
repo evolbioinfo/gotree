@@ -41,13 +41,19 @@ will be issued.
 		}
 
 		f := openWriteFile(outtreefile)
-		for t2 := range readTrees(intreefile) {
-			err := t2.Tree.RerootOutGroup(tips...)
+		treefile, trees := readTrees(intreefile)
+		defer treefile.Close()
+
+		for t := range trees {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+			err := t.Tree.RerootOutGroup(tips...)
 			if err != nil {
 				io.ExitWithMessage(err)
 			}
 
-			f.WriteString(t2.Tree.Newick() + "\n")
+			f.WriteString(t.Tree.Newick() + "\n")
 		}
 
 		f.Close()

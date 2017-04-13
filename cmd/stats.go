@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -21,17 +23,22 @@ For example:
 		/* Dividing trees */
 		f := openWriteFile(outtreefile)
 		f.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tsumbrlen\tmeansupport\tmediansupport\trooted\n")
-		for statsintree := range readTrees(intreefile) {
-			statsintree.Tree.ComputeDepths()
-			f.WriteString(fmt.Sprintf("%d", statsintree.Id))
-			f.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Nodes())))
-			f.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Tips())))
-			f.WriteString(fmt.Sprintf("\t%d", len(statsintree.Tree.Edges())))
-			f.WriteString(fmt.Sprintf("\t%.8f", statsintree.Tree.MeanBrLength()))
-			f.WriteString(fmt.Sprintf("\t%.8f", statsintree.Tree.SumBranchLengths()))
-			f.WriteString(fmt.Sprintf("\t%.8f", statsintree.Tree.MeanSupport()))
-			f.WriteString(fmt.Sprintf("\t%.8f", statsintree.Tree.MedianSupport()))
-			if statsintree.Tree.Rooted() {
+		treefile, treechan := readTrees(intreefile)
+		defer treefile.Close()
+		for t := range treechan {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+			t.Tree.ComputeDepths()
+			f.WriteString(fmt.Sprintf("%d", t.Id))
+			f.WriteString(fmt.Sprintf("\t%d", len(t.Tree.Nodes())))
+			f.WriteString(fmt.Sprintf("\t%d", len(t.Tree.Tips())))
+			f.WriteString(fmt.Sprintf("\t%d", len(t.Tree.Edges())))
+			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.MeanBrLength()))
+			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.SumBranchLengths()))
+			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.MeanSupport()))
+			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.MedianSupport()))
+			if t.Tree.Rooted() {
 				f.WriteString(fmt.Sprintf("\trooted\n"))
 			} else {
 				f.WriteString(fmt.Sprintf("\tunrooted\n"))

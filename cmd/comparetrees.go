@@ -42,22 +42,34 @@ For each trees in the compared tree file, it will print tab separated values wit
 			rootCpus = maxcpus
 		}
 		refTree := readTree(intreefile)
-		compareChannel := readTrees(intree2file)
-		stats := make(chan tree.BipartitionStats)
-		err := tree.Compare(refTree, compareChannel, compareTips, comparetreeidentical, rootCpus, stats)
+		treefile, compareChannel := readTrees(intree2file)
+		defer treefile.Close()
+		stats, err := tree.Compare(refTree, compareChannel, compareTips, comparetreeidentical, rootCpus)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
 
 		if comparetreeidentical {
 			fmt.Printf("tree\tidentical\n")
-			for stats := range stats {
-				fmt.Printf("%d\t%v\n", stats.Id, stats.Sametree)
+			for st := range stats {
+				if st.Err != nil {
+					/* We empty the channel if needed*/
+					for _ = range stats {
+					}
+					io.ExitWithMessage(st.Err)
+				}
+				fmt.Printf("%d\t%v\n", st.Id, st.Sametree)
 			}
 		} else {
 			fmt.Printf("tree\treference\tcommon\tcompared\n")
-			for stats := range stats {
-				fmt.Printf("%d\t%d\t%d\t%d\n", stats.Id, stats.Tree1, stats.Common, stats.Tree2)
+			for st := range stats {
+				if st.Err != nil {
+					/* We empty the channel if needed*/
+					for _ = range stats {
+					}
+					io.ExitWithMessage(st.Err)
+				}
+				fmt.Printf("%d\t%d\t%d\t%d\n", st.Id, st.Tree1, st.Common, st.Tree2)
 			}
 		}
 	},

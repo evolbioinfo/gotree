@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/spf13/cobra"
 )
 
@@ -19,9 +21,14 @@ gotree stats rooted -i t.nw
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
 		f.WriteString("tree\trooted\n")
-		for statsintree := range readTrees(intreefile) {
-			f.WriteString(fmt.Sprintf("%d\t", statsintree.Id))
-			if statsintree.Tree.Rooted() {
+		treefile, treechan := readTrees(intreefile)
+		defer treefile.Close()
+		for t := range treechan {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+			f.WriteString(fmt.Sprintf("%d\t", t.Id))
+			if t.Tree.Rooted() {
 				f.WriteString("rooted\n")
 			} else {
 				f.WriteString("unrooted\n")

@@ -34,7 +34,12 @@ If the compared tree file contains several trees, it will take the first one onl
 			fmt.Printf("\ttransfer\taxatomove")
 		}
 		fmt.Printf("\n")
-		for t2 := range readTrees(intree2file) {
+		treefile, treechan := readTrees(intree2file)
+		defer treefile.Close()
+		for t2 := range treechan {
+			if t2.Err != nil {
+				io.ExitWithMessage(t2.Err)
+			}
 			edges2 := t2.Tree.Edges()
 			var min_dist []uint16
 			var min_dist_edges []int
