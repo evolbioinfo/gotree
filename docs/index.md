@@ -52,7 +52,7 @@ Command                                                            | Subcommand 
 --                                                                 | edgetrees         | Writes one output tree per branch of the input tree, with only one branch
 --                                                                 | support classical | Computes classical bootstrap supports
 --                                                                 | support booster   | Computes booster bootstrap supports
-[divide](commands/divide.md) ([api](api/divide.md))                |                   | Divides an input tree file into several tree files
+[divide](commands/divide.md)                                       |                   | Divides an input tree file into several tree files
 [dlimage](commands/dlimage.md) ([api](api/dlimage.md))             |                   | Downloads a tree image from a server
 --                                                                 | iTOL              | Downloads a tree image from iTOL, with given image options
 [draw](commands/draw.md) ([api](api/draw.md))                      |                   | Draws tree(s) with different layouts
