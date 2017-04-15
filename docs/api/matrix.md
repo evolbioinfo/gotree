@@ -4,7 +4,7 @@
 
 ### matrix
 
-Generating distance matrix from an input tree
+Generating distance matrix from an random tree
 ```go
 package main
 
@@ -22,18 +22,24 @@ func main() {
 	var rooted bool = true
 	var nbtips int = 1000
 	var mat [][]float64
-	
+	var tips []*tree.Node
+
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	t, err = tree.RandomYuleBinaryTree(nbtips, rooted)
+	if err != nil {
+		panic(err)
+	}
 
 	mat = t.ToDistanceMatrix()
-	for i, t := range tips {
-		f.WriteString(t.Name())
+	tips = t.Tips()
+
+	for i, tip := range tips {
+		fmt.Print(tip.Name())
 		for j, _ := range tips {
-			f.WriteString("\t" + fmt.Sprintf("%.12f", mat[i][j]))
+			fmt.Print("\t" + fmt.Sprintf("%.12f", mat[i][j]))
 		}
-		f.WriteString("\n")
+		fmt.Println()
 	}
 }
 ```
