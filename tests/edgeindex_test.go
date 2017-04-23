@@ -1,12 +1,15 @@
 package tests
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strings"
+	"testing"
+
 	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
-	"strings"
-	"testing"
 )
 
 func TestEdgeIndex(t *testing.T) {
@@ -33,20 +36,22 @@ func TestEdgeIndex(t *testing.T) {
 }
 
 func TestEdgeIndex2(t *testing.T) {
+	var treefile *os.File
+	var treereader *bufio.Reader
+	var err error
+	var trees <-chan tree.Trees
 
-	intrees := make(chan tree.Trees, 15)
-	/* Read ref tree(s) */
-	go func() {
-		if _, err := utils.ReadMultiTreeFile("data/twotrees.nw.gz", intrees); err != nil {
-			t.Error(err.Error)
-		}
-		close(intrees)
-	}()
+	/* File reader (plain text or gzip) */
+	if treefile, treereader, err = utils.GetReader("data/twotrees.nw.gz"); err != nil {
+		t.Error(err)
+	}
+	defer treefile.Close()
+	trees = utils.ReadMultiTrees(treereader)
 
 	edgeindex := tree.NewEdgeIndex(128, .75)
 	nbtrees := 1
 	numLoops := 10
-	for tr := range intrees {
+	for tr := range trees {
 		edges := tr.Tree.Edges()
 		for i := 1; i <= numLoops; i++ {
 			for _, e := range edges {

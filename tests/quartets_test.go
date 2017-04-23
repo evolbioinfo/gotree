@@ -1,15 +1,34 @@
 package tests
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/fredericlemoine/gotree/hashmap"
+	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
-	"testing"
 )
 
 func TestQuartets(t *testing.T) {
-	quartet, _ := utils.ReadRefTree("data/quartets.nw.gz")
+	var treefile *os.File
+	var treereader *bufio.Reader
+	var err error
+	var quartet *tree.Tree
+
+	// Parsing single tree newick file
+	if treefile, treereader, err = utils.GetReader("data/quartets.nw.gz"); err != nil {
+		t.Error(err)
+	}
+	defer treefile.Close()
+
+	quartet, err = newick.NewParser(treereader).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+
 	nbspec, nbtotal := 0, 0
 	quartet.Quartets(true, func(q *tree.Quartet) {
 		nbspec++
@@ -172,7 +191,21 @@ func TestIndexQuartets2(t *testing.T) {
 Test with real data
 */
 func TestIndexQuartets3(t *testing.T) {
-	quartet, _ := utils.ReadRefTree("data/quartets.nw.gz")
+	var treefile *os.File
+	var treereader *bufio.Reader
+	var err error
+	var quartet *tree.Tree
+
+	// Parsing single tree newick file
+	if treefile, treereader, err = utils.GetReader("data/quartets.nw.gz"); err != nil {
+		t.Error(err)
+	}
+	defer treefile.Close()
+
+	quartet, err = newick.NewParser(treereader).Parse()
+	if err != nil {
+		t.Error(err)
+	}
 
 	index := quartet.IndexQuartets(false)
 

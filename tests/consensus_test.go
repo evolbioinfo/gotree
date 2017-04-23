@@ -1,27 +1,35 @@
 package tests
 
 import (
+	"bufio"
+	"os"
+	"testing"
+
+	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
-	"testing"
 )
 
 /*
  Function to test consensus tree generation
- It compares majority and strict consensus to a given already computed
+ It compares majority consensus to a given already computed
  consensus (from phylip consense)
 */
-func TestConsensus(t *testing.T) {
-	trees := make(chan tree.Trees)
-	trees2 := make(chan tree.Trees)
-	go func() {
-		_, e := utils.ReadMultiTreeFile("data/bootstrap_trees.nw.gz", trees)
-		if e != nil {
-			t.Error(e)
-		}
-		close(trees)
-	}()
-	majority, err := tree.Consensus(trees, 0.5)
+func TestMajorityConsensus(t *testing.T) {
+	var treefile, treefile2 *os.File
+	var treereader, treereader2 *bufio.Reader
+	var trees <-chan tree.Trees
+	var err error
+	var majority, expected_majority *tree.Tree
+
+	/* File reader (plain text or gzip) */
+	if treefile, treereader, err = utils.GetReader("data/bootstrap_trees.nw.gz"); err != nil {
+		t.Error(err)
+	}
+	defer treefile.Close()
+	trees = utils.ReadMultiTrees(treereader)
+
+	majority, err = tree.Consensus(trees, 0.5)
 	if err != nil {
 		t.Error(err)
 	}
@@ -30,57 +38,88 @@ func TestConsensus(t *testing.T) {
 	for _, e := range majority.Edges() {
 		edgeindex1.PutEdgeValue(e, 1, e.Length())
 	}
-	go func() {
-		_, e := utils.ReadMultiTreeFile("data/bootstrap_trees.nw.gz", trees2)
-		if e != nil {
-			t.Error(e)
-		}
-		close(trees2)
-	}()
-	strict, err := tree.Consensus(trees2, 1)
+
+	// Parsing single tree newick file
+	if treefile2, treereader2, err = utils.GetReader("data/bootstrap_majority.nw.gz"); err != nil {
+		t.Error(err)
+	}
+	defer treefile2.Close()
+	expected_majority, err = newick.NewParser(treereader2).Parse()
 	if err != nil {
 		t.Error(err)
 	}
 
 	edgeindex2 := tree.NewEdgeIndex(128, .75)
-	for _, e := range strict.Edges() {
-		edgeindex2.PutEdgeValue(e, 1, e.Length())
-	}
-
-	expected_majority, _ := utils.ReadRefTree("data/bootstrap_majority.nw.gz")
-	edgeindex3 := tree.NewEdgeIndex(128, .75)
 	for _, e := range expected_majority.Edges() {
-		edgeindex3.PutEdgeValue(e, 1, e.Length())
+		edgeindex2.PutEdgeValue(e, 1, e.Length())
 		_, ok := edgeindex1.Value(e)
 		if !ok {
 			t.Error("One edge of the majority consensus is present in the expected tree but absent from the consensus")
 		}
 	}
 
-	expected_strict, _ := utils.ReadRefTree("data/bootstrap_strict.nw.gz")
-	edgeindex4 := tree.NewEdgeIndex(128, .75)
-	for _, e := range expected_strict.Edges() {
-		edgeindex4.PutEdgeValue(e, 1, e.Length())
-		_, ok := edgeindex2.Value(e)
-		if !ok {
-			t.Error("One edge of the strict consensus is present in the expected tree but absent from the consensus")
-		}
-	}
-
 	for _, e := range majority.Edges() {
-		_, ok := edgeindex3.Value(e)
+		_, ok := edgeindex2.Value(e)
 		if !ok {
 			t.Error("One edge of the majority consensus is present in the consensus but absent from the expected tree")
 		}
 	}
+}
 
+/*
+ Function to test consensus tree generation
+ It compares majority consensus to a given already computed
+ consensus (from phylip consense)
+*/
+func TestStrictConsensus(t *testing.T) {
+	var treefile, treefile2 *os.File
+	var treereader, treereader2 *bufio.Reader
+	var trees <-chan tree.Trees
+	var err error
+	var strict, expected_strict *tree.Tree
+
+	/* File reader (plain text or gzip) */
+	if treefile, treereader, err = utils.GetReader("data/bootstrap_trees.nw.gz"); err != nil {
+		t.Error(err)
+	}
+	defer treefile.Close()
+	trees = utils.ReadMultiTrees(treereader)
+
+	strict, err = tree.Consensus(trees, 1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	edgeindex1 := tree.NewEdgeIndex(128, .75)
 	for _, e := range strict.Edges() {
-		_, ok := edgeindex4.Value(e)
+		edgeindex1.PutEdgeValue(e, 1, e.Length())
+	}
+
+	// Parsing single tree newick file
+	if treefile2, treereader2, err = utils.GetReader("data/bootstrap_strict.nw.gz"); err != nil {
+		t.Error(err)
+	}
+	defer treefile2.Close()
+	expected_strict, err = newick.NewParser(treereader2).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+
+	edgeindex2 := tree.NewEdgeIndex(128, .75)
+	for _, e := range expected_strict.Edges() {
+		edgeindex2.PutEdgeValue(e, 1, e.Length())
+		_, ok := edgeindex1.Value(e)
 		if !ok {
-			t.Error("One edge of the strict consensus is present in the consensus but absent from the expected tree")
+			t.Error("One edge of the Strict consensus is present in the expected tree but absent from the consensus")
 		}
 	}
 
+	for _, e := range strict.Edges() {
+		_, ok := edgeindex2.Value(e)
+		if !ok {
+			t.Error("One edge of the Strict consensus is present in the consensus but absent from the expected tree")
+		}
+	}
 }
 
 // We generate a random tree and the consensus
@@ -101,7 +140,7 @@ func TestConsensus2(t *testing.T) {
 	}
 
 	go func() {
-		trees <- tree.Trees{randtree1, 1}
+		trees <- tree.Trees{randtree1, 1, nil}
 		close(trees)
 	}()
 	consens, err := tree.Consensus(trees, 0.5)
@@ -125,9 +164,9 @@ func TestConsensus2(t *testing.T) {
 	}
 
 	go func() {
-		trees2 <- tree.Trees{randtree1, 1}
-		trees2 <- tree.Trees{randtree2, 2}
-		trees2 <- tree.Trees{randtree3, 3}
+		trees2 <- tree.Trees{randtree1, 1, nil}
+		trees2 <- tree.Trees{randtree2, 2, nil}
+		trees2 <- tree.Trees{randtree3, 3, nil}
 		close(trees2)
 	}()
 	consens, err = tree.Consensus(trees2, 1)
