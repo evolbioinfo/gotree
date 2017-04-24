@@ -37,6 +37,10 @@ type Supporter interface {
 	Canceled() bool
 	// Print moving taxa
 	PrintMovingTaxa() bool
+
+	// If true, the support is 1-avg_value/ExpectedRandValues()
+	// If false, the support is avg
+	NormalizeByExpected() bool
 }
 
 func min(a int, b int) int {
@@ -163,9 +167,10 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 				io.LogError(err)
 				return err
 			}
-			avg_val := float64(valuesBoot[i]) / float64(supporter.Progress())
-			avg_rand_val := supporter.ExpectedRandValues(d)
-			support := float64(1) - avg_val/avg_rand_val
+			support := float64(valuesBoot[i]) / float64(supporter.Progress())
+			if supporter.NormalizeByExpected() {
+				support = float64(1) - support/supporter.ExpectedRandValues(d)
+			}
 
 			edges[i].SetSupport(support)
 		}

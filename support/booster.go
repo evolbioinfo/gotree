@@ -48,6 +48,10 @@ func (supporter *BoosterSupporter) ExpectedRandValues(depth int) float64 {
 	return float64(depth - 1)
 }
 
+func (supporter *BoosterSupporter) NormalizeByExpected() bool {
+	return true
+}
+
 func (supporter *BoosterSupporter) NewBootTreeComputed() {
 	supporter.mutex.Lock()
 	supporter.currentTree++
