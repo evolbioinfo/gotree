@@ -31,7 +31,9 @@ If the compared tree file contains several trees, it will take the first one onl
 		edges1 := refTree.Edges()
 		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
 		if transferdist {
-			fmt.Printf("\ttransfer\ttaxatomove")
+			fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename")
+		} else {
+			fmt.Printf("\tcomparednodename")
 		}
 		fmt.Printf("\n")
 		treefile, treechan := readTrees(intree2file)
@@ -66,9 +68,15 @@ If the compared tree file contains several trees, it will take the first one onl
 			}
 
 			for i, e1 := range edges1 {
+				var nodename string = "-"
 				found := false
 				for _, e2 := range edges2 {
 					if e1.SameBipartition(e2) {
+						if e2.Left().Name() != "" {
+							nodename = e2.Left().Name()
+						} else if e2.Right().Name() != "" {
+							nodename = e2.Right().Name()
+						}
 						found = true
 						break
 					}
@@ -94,10 +102,19 @@ If the compared tree file contains several trees, it will take the first one onl
 							movedtaxabuf.WriteRune('-')
 							movedtaxabuf.WriteString(names[sp])
 						}
+						if be.Left().Name() != "" {
+							nodename = be.Left().Name()
+						} else if be.Right().Name() != "" {
+							nodename = be.Right().Name()
+						}
+
 					} else {
 						movedtaxabuf.WriteRune('-')
 					}
-					fmt.Printf("\t%d\t%s", min_dist[e1.Id()], movedtaxabuf.String())
+
+					fmt.Printf("\t%d\t%s\t%s", min_dist[e1.Id()], movedtaxabuf.String(), nodename)
+				} else {
+					fmt.Printf("\t%s", nodename)
 				}
 				fmt.Printf("\n")
 			}
