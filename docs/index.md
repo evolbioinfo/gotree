@@ -48,6 +48,7 @@ Command                                                            | Subcommand 
 --                                                                 | tips              | Compares the set of tips of the reference tree to a compared tree
 --                                                                 | trees             | Compare 2 trees in terms of common and specific branches
 [compute](commands/compute.md) ([api](api/compute.md))             |                   | Computations such as consensus and supports
+--                                                                 | bipartitiontree   | Builds one tree with only one given bipartition
 --                                                                 | consensus         | Computes the consensus from a set of input trees
 --                                                                 | edgetrees         | Writes one output tree per branch of the input tree, with only one branch
 --                                                                 | support classical | Computes classical bootstrap supports

@@ -352,3 +352,55 @@ func EdgeTree(t *Tree, e *Edge, alltips []string) *Tree {
 	}
 	return edgeTree
 }
+
+/**
+Builds a single edge tree, given left taxa and right taxa
+\     /
+-*---*-
+/     \
+*/
+func BipartitionTree(leftTips []string, rightTips []string) (*Tree, error) {
+
+	if len(leftTips) <= 1 || len(rightTips) <= 1 {
+		return nil, errors.New("Left and Right tip sets must have length > 1")
+	}
+
+	tipMap := make(map[string]bool)
+	for _, t := range leftTips {
+		tipMap[t] = true
+	}
+	for _, t := range rightTips {
+		if _, ok := tipMap[t]; ok {
+			return nil, errors.New("One or more tips are common between left set and right set")
+		}
+	}
+
+	bipartitionTree := NewTree()
+	n := bipartitionTree.NewNode()
+	n2 := bipartitionTree.NewNode()
+	et := bipartitionTree.ConnectNodes(n2, n)
+	et.SetLength(1.0)
+	bipartitionTree.SetRoot(n2)
+	// We add left tips on the left of the first edge
+	for _, name := range leftTips {
+		ntmp := bipartitionTree.NewNode()
+		ntmp.SetName(name)
+		// Left
+		etmp := bipartitionTree.ConnectNodes(n2, ntmp)
+		etmp.SetLength(1.0)
+	}
+	// We add right tips on the right of the first edge
+	for _, name := range rightTips {
+		ntmp := bipartitionTree.NewNode()
+		ntmp.SetName(name)
+		// Right
+		etmp := bipartitionTree.ConnectNodes(n, ntmp)
+		etmp.SetLength(1.0)
+	}
+	bipartitionTree.UpdateTipIndex()
+	bipartitionTree.ClearBitSets()
+	bipartitionTree.UpdateBitSet()
+	bipartitionTree.ComputeDepths()
+
+	return bipartitionTree, nil
+}

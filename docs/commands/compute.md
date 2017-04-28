@@ -4,6 +4,7 @@
 
 ### compute
 This command performs different computations. Sub-commands:
+* `gotree compute bipartitiontree`: Builds a tree with only one branch/bipartition. It takes an input tree, and a set of tip/leave names. It will build one tree with left tips being the given ones, and right tips the remaining of the input tree tips.
 * `gotree compute consensus` : Computes a consensus tree from a set of input trees (`-i`). As input, `-f` sets the minimum required frequency of the branch (more than or equal to 0.5). As output, produces a consensus tree with:
   1. Branch label being the proportion of trees in which the bipartition is present;
   2. Branch length begin the average length of this branch branch over all the trees where it is present;
@@ -19,10 +20,22 @@ Usage:
   gotree compute [command]
 
 Available Commands:
-  consensus   Computes the consensus of a set of trees
-  edgetrees   For each edge of the input tree, builds a tree with only this edge
-  roccurve    Computes true positives and false positives at different thresholds
-  support     Computes different kind of branch supports
+  bipartitiontree Builds a tree with only one branch/bipartition
+  consensus       Computes the consensus of a set of trees
+  edgetrees       For each edge of the input tree, builds a tree with only this edge
+  roccurve        Computes true positives and false positives at different thresholds
+  support         Computes different kind of branch supports
+```
+
+bipartitiontree command
+```
+Usage:
+  gotree compute bipartitiontree [flags]
+
+Flags:
+  -i, --input string     Input tree (default "stdin")
+  -o, --output string    Output tree (default "stdout")
+  -f, --tipfile string   Tip file (default "none")
 ```
 
 Consensus command
@@ -70,6 +83,11 @@ Global Flags:
 ```
 
 #### Examples
+
+* We generate a random tree, and build a tree with one bipartition have on the left (Tip1, Tip2, Tip3)
+```
+gotree generate yuletree -s 10 | gotree compute bipartitiontree Tip1 Tip2 Tip3
+```
 
 * We generate a random phylogenetic tree with gotree, 1 alignment with seq-gen, and we infer a tree with FastTree
 

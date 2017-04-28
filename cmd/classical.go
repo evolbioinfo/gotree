@@ -39,7 +39,9 @@ to quickly create a Cobra application.`,
 		boottreefile, boottreechan := readTrees(supportBoottrees)
 		defer boottreefile.Close()
 
-		e := support.Classical(refTree, boottreechan, rootCpus)
+		var supporter *support.ClassicalSupporter = support.NewClassicalSupporter(false)
+		e := support.ComputeSupport(refTree, boottreechan, nil, rootCpus, supporter)
+		//e := support.Classical(refTree, boottreechan, rootCpus)
 		if e != nil {
 			io.ExitWithMessage(e)
 		}

@@ -65,6 +65,7 @@ gotree implements several tree manipulation commands.
     * tips: Compare the set of tips of the reference tree to a compared tree
     * trees: Compare 2 trees in terms of common and specific branches
 *  compute:     Computations such as consensus and supports
+    * bipartitiontree: Builds one tree with only one given bipartition
     * consensus: Compute the consensus from a set of input trees
     * edgetrees: Write one output tree per branch of the input tree, with only one branch
     * support: Compute bootstrap supports

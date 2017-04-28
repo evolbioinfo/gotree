@@ -4,7 +4,34 @@
 
 ### compute
 
-Coputing consensus tree
+Building one bipartition tree
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/fredericlemoine/gotree/tree"
+)
+
+func main() {
+	var bipartitionTree *tree.Tree
+	var err error
+
+	rightTips := []string{"T1", "T2", "T3", "T4"}
+	leftTips := []string{"T5", "T6", "T7"}
+
+	bipartitionTree, err = tree.BipartitionTree(leftTips, rightTips)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(bipartitionTree.Newick())
+}
+```
+
+
+Computing consensus tree
 ```go
 package main
 
