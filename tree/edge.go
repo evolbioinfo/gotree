@@ -99,7 +99,7 @@ func (e *Edge) Name(rooted bool) (nodename string) {
 	if rooted || e.bitset.Count() <= e.bitset.Len() {
 		nodename = e.Right().Name()
 	} else {
-		nodename = e.Right().Name()
+		nodename = e.Left().Name()
 	}
 	return
 }
