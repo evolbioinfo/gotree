@@ -72,11 +72,7 @@ If the compared tree file contains several trees, it will take the first one onl
 				found := false
 				for _, e2 := range edges2 {
 					if e1.SameBipartition(e2) {
-						if e2.Left().Name() != "" {
-							nodename = e2.Left().Name()
-						} else if e2.Right().Name() != "" {
-							nodename = e2.Right().Name()
-						}
+						nodename = e2.Name(t2.Tree.Rooted())
 						found = true
 						break
 					}
@@ -102,12 +98,7 @@ If the compared tree file contains several trees, it will take the first one onl
 							movedtaxabuf.WriteRune('-')
 							movedtaxabuf.WriteString(names[sp])
 						}
-						if be.Left().Name() != "" {
-							nodename = be.Left().Name()
-						} else if be.Right().Name() != "" {
-							nodename = be.Right().Name()
-						}
-
+						nodename = be.Name(t2.Tree.Rooted())
 					} else {
 						movedtaxabuf.WriteRune('-')
 					}

@@ -86,6 +86,24 @@ func (e *Edge) SetId(id int) {
 	e.id = id
 }
 
+/*
+If rooted, the output clade name is the name of the
+descendent node.
+
+if not rooted, then the clade name is the name of the node on
+the lightest side
+*/
+func (e *Edge) Name(rooted bool) (nodename string) {
+	//If rooted, the clade name is the name of the
+	// descendent node
+	if rooted || e.bitset.Count() <= e.bitset.Len() {
+		nodename = e.Right().Name()
+	} else {
+		nodename = e.Right().Name()
+	}
+	return
+}
+
 // Returns the size (number of tips) of the smallest subtree
 // between the two subtrees connected to this edge
 func (e *Edge) TopoDepth() (int, error) {
