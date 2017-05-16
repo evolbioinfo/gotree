@@ -16,6 +16,8 @@ This command compares a reference tree -given with `-i` with a set of compared t
  9. "true" if the branch is present in the compared tree, "false" otherwise;
  10. if `-m` is given : transfer distance between the reference branch and its closest branch of the compared tree;
  11. if `-m` and `--moved-taxa` are given: List of taxa to move from left to right, and from right to left, to go from the reference branch to its closest branch of the compared tree.
+ 12. Name of the matching node in the compared tree if any (best match if -m is given of exact match otherwise). If the tree is rooted, the node name is the name of the descendent node. Otherwise the node name is the name of the node on the lightest side of the matching  bipartition.
+
 * `gotree compare tips`: Compares the set of tips of the reference tree with the set of tips of all the compared trees, in the manner of unix diff. Output:
   * For each missing tip in the compared tree, will print: `(Tree <id>) < TipName`,
   * For each missing tip in the reference tree, will print: `(Tree <id>) > TipName`,
