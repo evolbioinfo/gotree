@@ -1013,12 +1013,13 @@ Takes a map with
 -  value: names of taxa
 => It will take the lca of taxa and annotate it
 => Output tree won't have bootstrap support at the branches anymore
+=> Considers the tree as rooted (even if multifurcation at root)!
 */
 func (t *Tree) Annotate(names map[string][]string) error {
 	nodeindex := NewNodeIndex(t)
 
 	for k, v := range names {
-		n, _, _, err := t.LeastCommonAncestorUnrooted(nodeindex, v...)
+		n, _, _, err := t.LeastCommonAncestorRooted(nodeindex, v...)
 		if err != nil {
 			return err
 		}

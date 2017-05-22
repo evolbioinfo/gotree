@@ -58,7 +58,7 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 		return nil, nil, false, errors.New("All tips of the tree given : Nothing to do")
 	}
 	// otherwise we take the only child of the tip as first root
-	ancestor, goodedges, _, diff, _, err := t.LeastCommonAncestorUnrootedRecur(temproot.neigh[0], nil, tipindex)
+	ancestor, goodedges, _, diff, _, err := t.LeastCommonAncestorRecur(temproot.neigh[0], nil, tipindex)
 	if err != nil {
 		return nil, nil, false, err
 	}
@@ -74,8 +74,44 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 	return ancestor, goodedges, diff == 0, nil
 }
 
+/* Given a set of tip names
+returns the node that is the common ancestor of them
+and the edges that connects this node to the subtree
+=> Considers the tree as Rooted
+returned boolean value is true if the group is monophyletic
+*/
+func (t *Tree) LeastCommonAncestorRooted(nodeindex *nodeIndex, tips ...string) (*Node, []*Edge, bool, error) {
+	if nodeindex == nil {
+		nodeindex = NewNodeIndex(t)
+	}
+	tipindex := make(map[string]*Node, 0)
+	for _, name := range tips {
+		node, found := nodeindex.GetNode(name)
+		if found {
+			tipindex[name] = node
+		} else {
+			io.LogWarning(errors.New(fmt.Sprintf("Tip not found in the tree : %s", name)))
+		}
+	}
+	if len(tipindex) == 0 {
+		return nil, nil, false, errors.New("None of the given tips are present in the tree")
+	}
+
+	// We search a tip that is not in the input tips
+	// It will serve as a temporary root for the tree
+	var temproot *Node = t.Root()
+
+	// We take the only child of the tip as first root
+	ancestor, goodedges, _, diff, _, err := t.LeastCommonAncestorRecur(temproot, nil, tipindex)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	return ancestor, goodedges, diff == 0, nil
+}
+
 /* Returns for a given node ... */
-func (t *Tree) LeastCommonAncestorUnrootedRecur(current *Node, prev *Node, tipIndex map[string]*Node) (*Node, []*Edge, int, int, bool, error) {
+func (t *Tree) LeastCommonAncestorRecur(current *Node, prev *Node, tipIndex map[string]*Node) (*Node, []*Edge, int, int, bool, error) {
 	common := 0
 	edges := make([]*Edge, 0, 3)
 	different := 0
@@ -101,7 +137,7 @@ func (t *Tree) LeastCommonAncestorUnrootedRecur(current *Node, prev *Node, tipIn
 	tmpdiff := 0
 	for i, n := range current.neigh {
 		if n != prev {
-			node, succedges, com, diff, found, err := t.LeastCommonAncestorUnrootedRecur(n, current, tipIndex)
+			node, succedges, com, diff, found, err := t.LeastCommonAncestorRecur(n, current, tipIndex)
 			if err != nil {
 				return nil, nil, -1, -1, false, err
 			}
