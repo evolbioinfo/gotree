@@ -55,8 +55,24 @@ func (e *Edge) Length() float64 {
 	return e.length
 }
 
+func (e *Edge) LengthString() string {
+	length := "N/A"
+	if e.Length() != NIL_LENGTH {
+		length = fmt.Sprintf("%s", strconv.FormatFloat(e.Length(), 'f', -1, 64))
+	}
+	return length
+}
+
 func (e *Edge) Support() float64 {
 	return e.support
+}
+
+func (e *Edge) SupportString() string {
+	support := "N/A"
+	if e.Support() != NIL_SUPPORT {
+		support = fmt.Sprintf("%s", strconv.FormatFloat(e.Support(), 'f', -1, 64))
+	}
+	return support
 }
 
 func (e *Edge) PValue() float64 {
@@ -139,14 +155,8 @@ Tab delimited:
 */
 func (e *Edge) ToStatsString() string {
 	var err error
-	var length = "N/A"
-	if e.Length() != NIL_LENGTH {
-		length = fmt.Sprintf("%s", strconv.FormatFloat(e.Length(), 'f', -1, 64))
-	}
-	var support = "N/A"
-	if e.Support() != NIL_SUPPORT {
-		support = fmt.Sprintf("%s", strconv.FormatFloat(e.Support(), 'f', -1, 64))
-	}
+	length := e.LengthString()
+	support := e.SupportString()
 
 	var depth, leftdepth, rightdepth int
 
