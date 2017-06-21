@@ -50,6 +50,8 @@ The `gotree` executable should be located in the `$GOPATH/bin` folder.
 ## Usage
 gotree implements several tree manipulation commands. 
 
+You may go to the [doc](docs/index.md) for a more detailed documentation of the commands.
+
 ### List of commands
 *  annotate:    Annotate internal nodes of a tree with given data
 *  clear:       Clear lengths or supports from input trees
