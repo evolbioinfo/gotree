@@ -3,7 +3,7 @@
 
 GoTree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
 
-The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wiki/Newick_format) format, through several basic commands. Each command may print result (a tree for example) in the standard output, and thus can piped to the standard input of the next gotree command.
+The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wiki/Newick_format) format, through several basic commands. Each command may print result (a tree for example) in the standard output, and thus can be piped to the standard input of the next gotree command.
 
 **Example:**
 ```[bash]
@@ -11,19 +11,18 @@ $ gotree generate uniformtree -l 100 -n 10 | gotree stats
 ```
 This will generate 10 random unrooted uniform binary trees, each having 100 tips, and print statistics about them, for example:
 
-tree | nodes | tips | edges | meanbrlen | meansupport | mediansupport | rooted
------|-------|------|-------|-----------|-------------|---------------|----------
-0    | 198   | 100  | 197   | 0.0821    | -1.0000     | -1.0000       | unrooted
-1    | 198   | 100  | 197   | 0.0898    | -1.0000     | -1.0000       | unrooted
-2    | 198   | 100  | 197   | 0.0765    | -1.0000     | -1.0000       | unrooted
-3    | 198   | 100  | 197   | 0.0746    | -1.0000     | -1.0000       | unrooted
-4    | 198   | 100  | 197   | 0.0846    | -1.0000     | -1.0000       | unrooted
-5    | 198   | 100  | 197   | 0.0784    | -1.0000     | -1.0000       | unrooted
-6    | 198   | 100  | 197   | 0.0884    | -1.0000     | -1.0000       | unrooted
-7    | 198   | 100  | 197   | 0.0943    | -1.0000     | -1.0000       | unrooted
-8    | 198   | 100  | 197   | 0.0885    | -1.0000     | -1.0000       | unrooted
-9    | 198   | 100  | 197   | 0.0839    | -1.0000     | -1.0000       | unrooted
-
+|tree  |  nodes  |  tips  |  edges  |  meanbrlen   |  sumbrlen     |  meansupport  |  mediansupport  |  rooted    |
+|------|---------|--------|---------|--------------|---------------|---------------|-----------------|------------|
+|0     |  198    |  100   |  197    |  0.08143890  |  16.04346409  |  NaN          |  NaN            |  unrooted  |
+|1     |  198    |  100   |  197    |  0.08896295  |  17.52570158  |  NaN          |  NaN            |  unrooted  |
+|2     |  198    |  100   |  197    |  0.07622673  |  15.01666610  |  NaN          |  NaN            |  unrooted  |
+|3     |  198    |  100   |  197    |  0.07433737  |  14.64446097  |  NaN          |  NaN            |  unrooted  |
+|4     |  198    |  100   |  197    |  0.09340993  |  18.40175678  |  NaN          |  NaN            |  unrooted  |
+|5     |  198    |  100   |  197    |  0.08389979  |  16.52825835  |  NaN          |  NaN            |  unrooted  |
+|6     |  198    |  100   |  197    |  0.08146519  |  16.04864327  |  NaN          |  NaN            |  unrooted  |
+|7     |  198    |  100   |  197    |  0.07461762  |  14.69967048  |  NaN          |  NaN            |  unrooted  |
+|8     |  198    |  100   |  197    |  0.08672365  |  17.08455809  |  NaN          |  NaN            |  unrooted  |
+|9     |  198    |  100   |  197    |  0.09403232  |  18.52436632  |  NaN          |  NaN            |  unrooted  |
 
 ## Installation
 ### Binaries
@@ -50,6 +49,8 @@ The `gotree` executable should be located in the `$GOPATH/bin` folder.
 
 ## Usage
 gotree implements several tree manipulation commands. 
+
+You may go to the [doc](docs/index.md) for a more detailed documentation of the commands.
 
 ### List of commands
 *  annotate:    Annotate internal nodes of a tree with given data
