@@ -178,15 +178,15 @@ process histCommonbranches {
 	file compare 
 
 	output:
-	file "*.png" into comparehist
+	file "*.svg" into comparehist
 
 	shell:
 	'''
 	#!/usr/bin/env Rscript
 
 	comp=read.table("!{compare}",header=T)
-	png("common.png")
-	hist(comp$common*100/(comp$common+comp$reference),xlim=c(0,100),main="Distribution of distances",xlab="% Common branches")
+	svg("common.svg",width=14,height=7)
+	hist(100-comp$common*100/(comp$common+comp$reference),main="Distribution of distances",xlab="% Common branches")
 	dev.off()
 	'''
 }
