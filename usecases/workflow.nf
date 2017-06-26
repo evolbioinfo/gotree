@@ -31,9 +31,10 @@ process downloadAlignment{
 process inferTrueTree{
 	input:
 	file align from truealign
+	val seed
 
 	output:
-	file "truetree.nw" into truetree, truetree2, truetreedraw, truetreecopy, truetreeitol
+	file "truetree.nw" into truetree, truetree2, truetreedraw, truetreecopy
 
 	shell:
 	outfile="truetree.nw"
@@ -74,9 +75,10 @@ simualignphylip.into{refalign1; refalign2}
 process inferReferenceTree{
 	input:
 	file align from refalign1
+	val seed
 
 	output:
-	file "reftree.nw" into reftree, reftreedraw, reftreecopy, reftreeitol
+	file "reftree.nw" into reftree
 
 	shell:
 	outfile="reftree.nw"
@@ -105,7 +107,8 @@ process seqBoots {
 process inferBootstrapTrees{
 	input:
 	file align from bootaligns
-
+	val seed
+	
 	output:
 	file "boot.nw" into boottree
 
@@ -124,7 +127,7 @@ process consensus {
 	file boot from boottrees1
 
 	output:
-	file "consensus.nw" into consensuscopy,consensusdraw, consensusitol
+	file "consensus.nw" into consensuscopy,consensusdraw
 
 	shell:
 	'''
@@ -138,11 +141,11 @@ process consensus {
 /**********************************/
 process supports {
 	input:
-	file(ref) from reftree
-	file(boot) from boottrees2
+	file ref from reftree
+	file boot from boottrees2
 
 	output:
-	file "support.nw" into supportcopy, supportdraw, supportitol
+	file "support.nw" into supportcopy,supportdraw
 
 	shell:
 	'''
@@ -161,7 +164,7 @@ process compareTrees {
 	file boot from boottrees3
 
 	output:
-	file("common.txt") into compare
+	file "common.txt" into compare
 
 	shell:
 	'''
@@ -172,10 +175,10 @@ process compareTrees {
 
 process histCommonbranches {
 	input:
-	file(compare)
+	file compare 
 
 	output:
-	file("*.png") into comparehist
+	file "*.png" into comparehist
 
 	shell:
 	'''
@@ -193,9 +196,24 @@ process histCommonbranches {
 /*               Tree drawing                 */
 /**********************************************/
 
+// Reroot the trees to draw using an outgroup
+process reroot{
+	input:
+	file tree from truetreedraw.mix(consensusdraw, supportdraw)
+
+	output:
+	file "${tree.baseName}_reroot.nw" into treestodraw, treestodrawitol
+
+	shell:
+	'''
+	#/usr/bin/env bash
+	gotree reroot outgroup -i !{tree} Mouse Bovine > !{tree.baseName}_reroot.nw
+	'''
+}
+
 process drawTree {
 	input:
-	file tree from truetreedraw.mix(reftreedraw, consensusdraw, supportdraw)
+	file tree from treestodraw
 
 	output:
 	file "*.svg" into treeimages
@@ -203,13 +221,13 @@ process drawTree {
 	shell:
 	'''
 	#!/usr/bin/env bash
-	gotree draw svg -i !{tree} -r -w 1000 -H 1000 --with-branch-support --support-cutoff 0.8 -o !{tree}.svg
+	gotree draw svg -i !{tree} -w 1000 -H 1000 --with-branch-support --support-cutoff 0.7 -o !{tree}.svg
 	'''
 }
 
 process uploadiTOL{
 	input:
-	file tree from truetreeitol.mix(reftreeitol, consensusitol, supportitol)
+	file tree from treestodrawitol
 	file itolconfig
 
 	output:
@@ -231,7 +249,7 @@ process uploadiTOL{
 /*********************************************/
 /*                File  COPY                 */
 /*********************************************/
-truetreecopy.mix(reftreecopy, consensuscopy, supportcopy).subscribe{
+truetreecopy.mix(consensuscopy, supportcopy).subscribe{
 	f -> f.copyTo(outpath.resolve(f.name))
 }
 treeimages.subscribe{
