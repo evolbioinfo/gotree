@@ -1,6 +1,6 @@
 params.dataurl="http://evolution.gs.washington.edu/book/primates.dna"
 params.nboot = 100
-params.seed=10000
+params.seed=2000
 params.outpath="results"
 params.itolconfig= "data/itol_image_config.txt"
 
