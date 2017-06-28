@@ -5,11 +5,11 @@ import (
 	"bufio"
 	"compress/gzip"
 	"errors"
-	"fmt"
 	"io"
 	"regexp"
 	"strings"
 
+	gtio "github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/jlaffaye/ftp"
@@ -45,12 +45,14 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 		return nil, err
 	}
 	// Retrieve the "taxdump.tar.gz" file
+	gtio.LogInfo("Downloading from NCBI ftp")
 	reader, err = client.Retr(d.path)
 	if err != nil {
 		return nil, err
 	}
 
 	// Reading tar gz and processing nodes.dmp and names.dmp
+	gtio.LogInfo("Extracting files from archive")
 	if gzreader, err = gzip.NewReader(reader); err != nil {
 		return nil, err
 	}
@@ -68,9 +70,9 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 		case tar.TypeDir:
 			continue
 		case tar.TypeReg:
-			fmt.Println("Name: ", header.Name)
 			// We handle names of ncbi taxonomy nodes
 			if header.Name == "names.dmp" {
+				gtio.LogInfo("Parsing name file")
 				namemap, err = ParseNcbiNames(tarreader)
 				if err != nil {
 					return nil, err
@@ -78,6 +80,7 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 			}
 			// We handle the tree
 			if header.Name == "nodes.dmp" {
+				gtio.LogInfo("Parsing node file")
 				t, err = ParseNcbiTree(tarreader)
 				if err != nil {
 					return nil, err
@@ -87,8 +90,9 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 			return nil, errors.New("Problem with tar archive")
 		}
 	}
-
+	gtio.LogInfo("Removing single nodes")
 	t.RemoveSingleNodes()
+	gtio.LogInfo("Renaming taxid -> taxnames")
 	RenameTreeNodes(t, namemap)
 
 	return t, err
@@ -110,15 +114,14 @@ func ParseNcbiNames(reader io.Reader) (map[string]string, error) {
 	r := bufio.NewReader(reader)
 	l, err := utils.Readln(r)
 	namemap := make(map[string]string)
+	re := regexp.MustCompile("[\\[\\]\\(\\)\\:\\,\\s\\;]")
 	for err == nil {
 		cols := regexp.MustCompile("\t*\\|\t*").Split(l, -1)
 		tax := cols[0]
 		name := cols[1]
 		tpe := cols[3]
 		if tpe == "scientific name" || tpe == "synonym" {
-			clean := regexp.MustCompile("[\\[\\]\\(\\)\\:\\,\\s\\;]").ReplaceAllString(name, "_")
-			// fmt.Println(tax)
-			// fmt.Println(name)
+			clean := re.ReplaceAllString(name, "_")
 			namemap[tax] = clean
 		}
 		l, err = utils.Readln(r)

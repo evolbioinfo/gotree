@@ -30,3 +30,7 @@ func LogWarning(err error) {
 	name := strings.Split(fn, "/gotree/")[1]
 	fmt.Fprintf(os.Stderr, "[Warning] in %s (line %d), message: %v\n", name, line, err)
 }
+
+func LogInfo(message string) {
+	fmt.Fprintf(os.Stderr, "[Info] message: %v\n", message)
+}
