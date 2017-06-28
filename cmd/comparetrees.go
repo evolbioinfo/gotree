@@ -42,6 +42,7 @@ For each trees in the compared tree file, it will print tab separated values wit
 			rootCpus = maxcpus
 		}
 		refTree := readTree(intreefile)
+		refTree.ReinitIndexes()
 		treefile, compareChannel := readTrees(intree2file)
 		defer treefile.Close()
 		stats, err := tree.Compare(refTree, compareChannel, compareTips, comparetreeidentical, rootCpus)

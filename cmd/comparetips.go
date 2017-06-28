@@ -32,12 +32,15 @@ should produce the following output:
 		}
 
 		refTree := readTree(intreefile)
+		refTree.UpdateTipIndex()
 		treefile, treechan := readTrees(intree2file)
 		defer treefile.Close()
 		for compTree := range treechan {
 			if compTree.Err != nil {
 				io.ExitWithMessage(compTree.Err)
 			}
+			compTree.Tree.UpdateTipIndex()
+
 			eq := 0
 			for _, t := range refTree.Tips() {
 				if ok, err3 := compTree.Tree.ExistsTip(t.Name()); err3 != nil {

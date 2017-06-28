@@ -155,6 +155,7 @@ func (supporter *ClassicalSupporter) ComputeValue(refTree *tree.Tree, cpu int, e
 		if treeV.Err != nil {
 			err = treeV.Err
 		} else {
+			treeV.Tree.ReinitIndexes()
 			err = refTree.CompareTipIndexes(treeV.Tree)
 			if err == nil {
 				edges2 := treeV.Tree.Edges()

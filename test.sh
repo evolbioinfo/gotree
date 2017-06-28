@@ -421,7 +421,7 @@ cat > expected <<EOF
 EOF
 gotree generate yuletree -s 10 | gotree annotate -m clade | gotree subtree -n clade > result
 diff expected result
-rm -f expected result
+rm -f expected result clade
 
 
 echo "->gotree stats"

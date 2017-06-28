@@ -23,6 +23,7 @@ The resulting trees are star trees to which we added one biparition. All branch 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		t := readTree(intreefile)
+		t.ReinitIndexes()
 		alltips := t.AllTipNames()
 		edges := make(chan EdgeStruct, 1000)
 

@@ -39,7 +39,7 @@ or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 
 		f := openWriteFile(outtreefile)
 		tr := readTree(intreefile)
-
+		tr.UpdateTipIndex()
 		if tipfile != "none" {
 			tipNames = parseTipsFile(tipfile)
 		} else {

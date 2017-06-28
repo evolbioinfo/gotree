@@ -606,12 +606,12 @@ func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical b
 				total2 := 0
 				common := 0
 				var err error
-
 				err = treeV.Err
 				// Check wether the 2 trees have the same set of tip names
 				// Else an error is included in the stats
 				sametree := false
 				if err == nil {
+					treeV.Tree.ReinitIndexes()
 					edges2 := treeV.Tree.Edges()
 					if err = refTree.CompareTipIndexes(treeV.Tree); err == nil {
 						sametree = true

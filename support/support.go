@@ -87,7 +87,7 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	if cpus > maxcpus {
 		cpus = maxcpus
 	}
-
+	reftree.ReinitIndexes()
 	tips = reftree.Tips()
 	edges = reftree.Edges()
 	if max_depth, deptherr = maxDepth(edges); deptherr != nil {

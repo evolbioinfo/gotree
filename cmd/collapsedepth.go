@@ -27,6 +27,7 @@ will be collapsed.
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
+			t.Tree.ReinitIndexes()
 			if t.Err != nil {
 				io.ExitWithMessage(t.Err)
 			}

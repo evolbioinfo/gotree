@@ -270,6 +270,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 			io.LogError(treeV.Err)
 			err = treeV.Err
 		} else {
+			treeV.Tree.ReinitIndexes()
 			err = refTree.CompareTipIndexes(treeV.Tree)
 
 			if err == nil {

@@ -24,6 +24,7 @@ Then: One line per branch, and 0/1
 			if t.Err != nil {
 				io.ExitWithMessage(t.Err)
 			}
+			t.Tree.ReinitIndexes()
 			f.WriteString("Tree\t")
 			names := t.Tree.SortedTips()
 			for i := len(names) - 1; i >= 0; i-- {
