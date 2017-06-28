@@ -88,6 +88,7 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 		}
 	}
 
+	t.RemoveSingleNodes()
 	RenameTreeNodes(t, namemap)
 
 	return t, err
@@ -101,6 +102,10 @@ func RenameTreeNodes(t *tree.Tree, namemap map[string]string) {
 	}
 }
 
+/*
+Parse name file and convert names with the following rules:
+Special characters are replaces with "_" ->  '(', ')', '[', ']', ':', ',', ' ', ';'
+*/
 func ParseNcbiNames(reader io.Reader) (map[string]string, error) {
 	r := bufio.NewReader(reader)
 	l, err := utils.Readln(r)
@@ -111,15 +116,17 @@ func ParseNcbiNames(reader io.Reader) (map[string]string, error) {
 		name := cols[1]
 		tpe := cols[3]
 		if tpe == "scientific name" || tpe == "synonym" {
-			fmt.Println(tax)
-			fmt.Println(name)
-			namemap[tax] = name
+			clean := regexp.MustCompile("[\\[\\]\\(\\)\\:\\,\\s\\;]").ReplaceAllString(name, "_")
+			// fmt.Println(tax)
+			// fmt.Println(name)
+			namemap[tax] = clean
 		}
 		l, err = utils.Readln(r)
 	}
 	return namemap, nil
 }
 
+// Build a gotree.tree.Tree
 func ParseNcbiTree(reader io.Reader) (*tree.Tree, error) {
 	r := bufio.NewReader(reader)
 	l, err := utils.Readln(r)
