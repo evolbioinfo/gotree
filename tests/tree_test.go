@@ -36,10 +36,13 @@ func TestClearSupports(t *testing.T) {
 func TestCollapseDepth(t *testing.T) {
 	treeString := "(Tip4,Tip0,(Tip3,(Tip2,Tip1)));"
 	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	tr.ReinitIndexes()
 	if err != nil {
 		t.Error(err)
 	}
-	tr.CollapseTopoDepth(2, 3)
+	if err = tr.CollapseTopoDepth(2, 3); err != nil {
+		t.Error(err)
+	}
 	if tr.Newick() != "(Tip4,Tip0,Tip3,Tip2,Tip1);" {
 		t.Error(fmt.Sprintf("Tree after collapse depth is not valid: %s", tr.Newick()))
 	}
@@ -77,7 +80,7 @@ func TestBipartitionTree(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
+	tr.ReinitIndexes()
 	if len(tr.Tips()) != 7 {
 		t.Error(fmt.Sprintf("Tree should have 7 tips but have %d", len(tr.Tips())))
 	}

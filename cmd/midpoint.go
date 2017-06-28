@@ -24,7 +24,10 @@ gotree reroot midpoint  -i tree.nw > reroot.nw
 			if t.Err != nil {
 				io.ExitWithMessage(t.Err)
 			}
-			t.Tree.RerootMidPoint()
+			err := t.Tree.RerootMidPoint()
+			if err != nil {
+				io.ExitWithMessage(err)
+			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		f.Close()

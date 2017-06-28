@@ -177,7 +177,11 @@ func TestMaxLengthPath(t *testing.T) {
 				t.Error(fmt.Sprintf("Tip %s not found in the tree", name))
 			}
 		}
-		e, l := tree.MaxLengthPath(tip, nil)
+		e, l, err2 := tree.MaxLengthPath(tip, nil)
+		if err2 != nil {
+			t.Error(err2)
+
+		}
 		if l != expmaxlen[i] {
 			t.Error(fmt.Sprintf("Maximum length from Tip %s should be %f and is %f", name, expmaxlen[i], l))
 		}

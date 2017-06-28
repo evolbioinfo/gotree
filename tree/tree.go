@@ -478,6 +478,20 @@ func (t *Tree) ClearBitSets() error {
 	return nil
 }
 
+/*
+This Function initializes or reinitializes
+memory consuming structures:
+- bitset indexes
+- Tipindex
+- And computes node depths
+*/
+func (t *Tree) ReinitIndexes() {
+	t.UpdateTipIndex()
+	t.ClearBitSets()
+	t.UpdateBitSet()
+	t.ComputeDepths()
+}
+
 // Recursively update bitsets of edges from the Node n
 // If node == nil then it starts from the root
 func (t *Tree) clearBitSetsRecur(n *Node, parent *Node, ntip uint) {
@@ -804,12 +818,12 @@ func (t *Tree) CollapseLowSupport(support float64) {
 // Collapses (removes) the branches having their depth d
 // (# taxa on the lightest side of the bipartition)
 // mindepththreshold<=d<=maxdepththreshold
-func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int) {
+func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int) error {
 	edges := t.Edges()
 	depthbranches := make([]*Edge, 0, 1000)
 	for _, e := range edges {
 		if d, err := e.TopoDepth(); err != nil {
-			io.ExitWithMessage(err)
+			return err
 		} else {
 			if d >= mindepthThreshold && d <= maxdepthThreshold {
 				depthbranches = append(depthbranches, e)
@@ -817,6 +831,7 @@ func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int) {
 		}
 	}
 	t.RemoveEdges(depthbranches...)
+	return nil
 }
 
 // Resolves multifurcating nodes (>3 neighbors)
@@ -895,6 +910,70 @@ func (t *Tree) resolveRecur(current, previous *Node) {
 			togroup = append(togroup, e)
 		}
 	}
+}
+
+// Remove Edges for which the left node has a unique child:
+// Example:   t1          t1
+//           /	         /
+// n0--n1--n2   => n0--n2
+//           \	         \
+//            t2          t2
+// Will remove edge n1-n2 and keep node n2 informations (name, etc.)
+// It adds n1-n2 length to n0-n1 (if any) and keeps n0-n1 support (if any)
+// Useful for cleaning ncbi taxonomy for example.
+// Not necessary for trees imported from newick files because
+// the parser would complain about such trees
+func (t *Tree) RemoveSingleNodes() {
+	root := t.Root()
+
+	t.removeSingleNodesRecur(root, nil, nil)
+}
+
+// Remove recursively Edges for which the left node has a unique child
+// Post order: We first remove in subtrees,
+// and then look at the current node
+// This function does not update bitsets on edges:
+// The calling function must do it with:
+// err := t.ClearBitSets()
+// if err != nil {
+// 	return err
+// }
+// t.UpdateBitSet()
+func (t *Tree) removeSingleNodesRecur(current, previous *Node, e *Edge) error {
+	// Resolve neighbors
+	for i, n := range current.Neigh() {
+		if n != previous {
+			t.removeSingleNodesRecur(n, current, current.br[i])
+		}
+	}
+	// Remove the current node if needed connect descendant node to parent
+	if len(current.Neigh()) == 2 && current != t.Root() {
+		// Remove the edge from left and right node
+		length := e.Length()
+		previous.delNeighbor(current)
+		current.delNeighbor(previous)
+
+		// Connect the edges of right node to left node
+		for _, child := range current.Neigh() {
+			if child != previous { // Should not happen anyway since we removed the edge...
+				idx, err := child.NodeIndex(current)
+				if err != nil {
+					return err
+				}
+				child.neigh[idx] = previous
+				if child.br[idx].left == current {
+					child.br[idx].left = previous
+				} else {
+					return errors.New("Problem in edge orientation")
+				}
+				previous.addChild(child, child.br[idx])
+				if child.br[idx].Length() != NIL_LENGTH && length != NIL_LENGTH {
+					child.br[idx].SetLength(child.br[idx].Length() + length)
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // Clears support (set to NIL_SUPPORT) of all branches of the tree
@@ -1137,7 +1216,9 @@ func (t *Tree) CopyEdge(e *Edge, copy *Edge) {
 	copy.support = e.support
 	copy.pvalue = e.pvalue
 	copy.id = e.id
-	copy.bitset = e.bitset.Clone()
+	if e.bitset != nil {
+		copy.bitset = e.bitset.Clone()
+	}
 }
 
 // Clone the input tree
@@ -1148,7 +1229,9 @@ func (t *Tree) Clone() *Tree {
 	for _, e := range t.Root().br {
 		t.copyTreeRecur(copy, root, t.Root(), e)
 	}
-	copy.UpdateTipIndex()
+	if t.tipIndex != nil {
+		copy.UpdateTipIndex()
+	}
 	return (copy)
 }
 

@@ -63,10 +63,6 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	if !rooted {
 		err = t.RerootFirst()
 	}
-	t.UpdateTipIndex()
-	t.ClearBitSets()
-	t.UpdateBitSet()
-	t.ComputeDepths()
 	return t, err
 }
 
@@ -90,10 +86,6 @@ func RandomBalancedBinaryTree(depth int, rooted bool) (*Tree, error) {
 	if !rooted {
 		t.UnRoot()
 	}
-	t.UpdateTipIndex()
-	t.ClearBitSets()
-	t.UpdateBitSet()
-	t.ComputeDepths()
 	return t, nil
 }
 
@@ -178,10 +170,6 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	if !rooted {
 		err = t.RerootFirst()
 	}
-	t.UpdateTipIndex()
-	t.ClearBitSets()
-	t.UpdateBitSet()
-	t.ComputeDepths()
 	return t, err
 }
 
@@ -238,10 +226,6 @@ func RandomCaterpilarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	if !rooted {
 		err = t.RerootFirst()
 	}
-	t.UpdateTipIndex()
-	t.ClearBitSets()
-	t.UpdateBitSet()
-	t.ComputeDepths()
 	return t, err
 }
 
@@ -285,10 +269,6 @@ func StarTreeFromName(names ...string) (*Tree, error) {
 		for i, t := range t.Tips() {
 			t.SetName(names[i])
 		}
-		t.UpdateTipIndex()
-		t.ClearBitSets()
-		t.UpdateBitSet()
-		t.ComputeDepths()
 		return t, nil
 	}
 }
@@ -305,10 +285,6 @@ func StarTreeFromTree(t *Tree) (*Tree, error) {
 			te.Right().SetName(edges[i].Right().Name())
 			te.SetLength(edges[i].Length())
 		}
-		star.UpdateTipIndex()
-		star.ClearBitSets()
-		star.UpdateBitSet()
-		star.ComputeDepths()
 		return star, nil
 	}
 }
@@ -397,10 +373,5 @@ func BipartitionTree(leftTips []string, rightTips []string) (*Tree, error) {
 		etmp := bipartitionTree.ConnectNodes(n, ntmp)
 		etmp.SetLength(1.0)
 	}
-	bipartitionTree.UpdateTipIndex()
-	bipartitionTree.ClearBitSets()
-	bipartitionTree.UpdateBitSet()
-	bipartitionTree.ComputeDepths()
-
 	return bipartitionTree, nil
 }

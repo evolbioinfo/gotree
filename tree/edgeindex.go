@@ -1,8 +1,11 @@
 package tree
 
 import (
+	"errors"
+
 	"github.com/fredericlemoine/bitset"
 	"github.com/fredericlemoine/gotree/hashmap"
+	"github.com/fredericlemoine/gotree/io"
 )
 
 type EdgeIndex struct {
@@ -83,7 +86,11 @@ func (em *EdgeIndex) Value(e *Edge) (*EdgeIndexInfo, bool) {
 
 // Increment edge count for an edge if it already exists in the map
 // Otherwise adds it with count 1
-func (em *EdgeIndex) AddEdgeCount(e *Edge) {
+func (em *EdgeIndex) AddEdgeCount(e *Edge) error {
+	if e.Bitset() == nil {
+		io.LogError(errors.New("Bitset not initialized"))
+		return errors.New("Bitset not initialized")
+	}
 	v, ok := em.hash.Value(&EdgeKey{e.Bitset()})
 	if !ok {
 		em.hash.PutValue(&EdgeKey{e.Bitset()}, &EdgeIndexInfo{1, e.Length()})
@@ -91,13 +98,19 @@ func (em *EdgeIndex) AddEdgeCount(e *Edge) {
 		v.(*EdgeIndexInfo).Count++
 		v.(*EdgeIndexInfo).Len += e.Length()
 	}
+	return nil
 }
 
 // Adds the edge in the map, with given value
 // If the edge already exists in the index
 // The old value is erased
-func (em *EdgeIndex) PutEdgeValue(e *Edge, count int, length float64) {
+func (em *EdgeIndex) PutEdgeValue(e *Edge, count int, length float64) error {
+	if e.Bitset() == nil {
+		io.LogError(errors.New("Bitset not initialized"))
+		return errors.New("Bitset not initialized")
+	}
 	em.hash.PutValue(&EdgeKey{e.Bitset()}, &EdgeIndexInfo{count, length})
+	return nil
 }
 
 // Returns all the Bipartitions of the index (bitset) with their counts

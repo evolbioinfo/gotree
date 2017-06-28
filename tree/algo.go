@@ -264,18 +264,21 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 	var err error
 	// We fill the edge index with all the bipartition and their count
 	for curtree := range trees {
+		curtree.Tree.ReinitIndexes()
 		if curtree.Err != nil {
 			/* We empty the channel if needed */
 			for _ = range trees {
 			}
 			return nil, curtree.Err
 		}
+
 		// If the star tree is not initialized, we create it with the tips of the first tree
 		if startree == nil {
 			alltips = curtree.Tree.AllTipNames()
 			if startree, err = StarTreeFromTree(curtree.Tree); err != nil {
 				return nil, err
 			} else {
+				startree.UpdateTipIndex()
 				nbtips = len(alltips)
 				// We first build the node index
 				nodeindex = NewNodeIndex(startree)
@@ -349,11 +352,7 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 		}
 	}
 
-	startree.UpdateTipIndex()
-	startree.ClearBitSets()
-	startree.UpdateBitSet()
-	startree.ComputeDepths()
-
+	startree.ReinitIndexes()
 	return startree, nil
 }
 
@@ -425,7 +424,7 @@ func (t *Tree) RerootOutGroup(tips ...string) error {
 	return nil
 }
 
-func (t *Tree) RerootMidPoint() {
+func (t *Tree) RerootMidPoint() error {
 	// We first unroot the tree
 	t.UnRoot()
 
@@ -438,13 +437,15 @@ func (t *Tree) RerootMidPoint() {
 
 	// We take the max length path of all the tips
 	for _, t := range tips {
-		edges, length := MaxLengthPath(t, nil)
+		edges, length, err := MaxLengthPath(t, nil)
+		if err != nil {
+			return err
+		}
 		if length > curlength {
 			curlength = length
 			potentialedges = edges
 		}
 	}
-
 	// Path potentialedges starts from tip 1:
 	// potentialedges[0].Right()
 	// And ends at tip 2:
@@ -499,26 +500,34 @@ func (t *Tree) RerootMidPoint() {
 	t.ClearBitSets()
 	t.UpdateBitSet()
 	t.ComputeDepths()
+	return nil
 }
 
 // Take as argument the node from which we want to get the farthest
 // tip (longest possible path)
 // It returns the path (slice of edges), and the sum of branch lengths
 // of this path
-func MaxLengthPath(cur *Node, prev *Node) ([]*Edge, float64) {
+// Returns an error if a branch has no length
+func MaxLengthPath(cur *Node, prev *Node) ([]*Edge, float64, error) {
 	var potentialedges []*Edge
 	curlength := 0.0
 	for i, child := range cur.neigh {
 		if child != prev {
 			e := cur.br[i]
-			edges, l := MaxLengthPath(child, cur)
+			if e.Length() == NIL_LENGTH {
+				return nil, -1, errors.New("Some branches have no length")
+			}
+			edges, l, err := MaxLengthPath(child, cur)
+			if err != nil {
+				return nil, -1, err
+			}
 			if l+e.Length() > curlength {
 				curlength = l + e.Length()
 				potentialedges = append(edges, e)
 			}
 		}
 	}
-	return potentialedges, curlength
+	return potentialedges, curlength, nil
 }
 
 /*

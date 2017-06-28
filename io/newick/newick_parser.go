@@ -54,7 +54,7 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 	return
 }
 
-// Parse parses a SQL SELECT statement.
+// Parses a Newick String.
 func (p *Parser) Parse() (*tree.Tree, error) {
 
 	// First token should be a "OPENPAR" token.
@@ -73,19 +73,19 @@ func (p *Parser) Parse() (*tree.Tree, error) {
 		return nil, err
 	}
 	if level != 0 {
-		return nil, fmt.Errorf("Newick Error : Mismatched parenthesis")
+		return nil, fmt.Errorf("Newick Error : Mismatched parenthesis after parsing")
 	}
 	tok, lit = p.scanIgnoreWhitespace()
 	if tok != EOT {
 		return nil, fmt.Errorf("found %q, expected ;", lit)
 	}
 
-	tree.UpdateTipIndex()
-	err = tree.ClearBitSets()
-	if err != nil {
-		return nil, err
-	}
-	tree.UpdateBitSet()
+	//tree.UpdateTipIndex()
+	// err = tree.ClearBitSets()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//tree.UpdateBitSet()
 	// Not necessary at the parsing step...
 	// may be too long to do each time
 	//tree.ComputeDepths()
@@ -234,7 +234,7 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 		case EOT:
 			p.unscan()
 			if (*level) != 0 {
-				return -1, errors.New("Newick Error: Mismatched parenthesis")
+				return -1, errors.New("Newick Error: Mismatched parenthesis at ;")
 			}
 			return tok, nil
 		case EOF:

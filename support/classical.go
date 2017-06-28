@@ -12,6 +12,10 @@ import (
 Computes bootstrap supports of reftree branches, given trees in boottrees channel
 */
 func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error {
+	var err error
+
+	reftree.ReinitIndexes()
+
 	maxcpus := runtime.NumCPU()
 	if cpus > maxcpus {
 		cpus = maxcpus
@@ -28,10 +32,11 @@ func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error 
 		if !e.Left().Tip() {
 			e.Left().SetName("")
 		}
-		edgeIndex.PutEdgeValue(e, i, e.Length())
+		if err = edgeIndex.PutEdgeValue(e, i, e.Length()); err != nil {
+			return err
+		}
 	}
 	var wg sync.WaitGroup
-	var err error
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
 		go func(cpu int) {
@@ -39,6 +44,7 @@ func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error 
 				if treeV.Err != nil {
 					err = treeV.Err
 				} else {
+					treeV.Tree.ReinitIndexes()
 					err = reftree.CompareTipIndexes(treeV.Tree)
 					if err == nil {
 						atomic.AddInt32(&ntrees, 1)

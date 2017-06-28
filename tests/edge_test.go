@@ -109,6 +109,7 @@ func TestLocality2(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	tr.ReinitIndexes()
 	edges := tr.Edges()
 	for _, e := range edges {
 		d, err := e.TopoDepth()

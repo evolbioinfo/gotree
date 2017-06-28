@@ -26,7 +26,6 @@ const (
 func (p *Node) addChild(n *Node, e *Edge) {
 	p.neigh = append(p.neigh, n)
 	p.br = append(p.br, e)
-
 }
 
 func (n *Node) SetName(name string) {
