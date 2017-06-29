@@ -170,11 +170,55 @@ process downloadNewickTaxonomy {
 	'''
 }
 
-process annotateSupportTree{
+process rerootSupport{
 	input:
 	file support from supportannot
-	file ncbi from ncbitax
+
+	output:
+	file "rerooted_support.nw" into rerootedsupportncbi
+
+	shell:
+	'''
+	#!/usr/bin/env bash
+	gotree reroot outgroup -i !{support} Mouse Bovine > rerooted_support.nw
+	'''
+}
+
+process renameSupport {
+	input:
+	file tree from rerootedsupportncbi
 	file mapfile from mapfile
+	
+	output:
+	file "renamed_support.nw" into renamedsupport1, renamedsupport2
+
+	shell:
+	'''
+	#!/usr/bin/env bash	
+	gotree rename -i !{tree} -m !{mapfile} -o renamed_support.nw
+	'''
+}
+
+process pruneNCBITax {
+
+	input:
+	file tree from renamedsupport1
+	file ncbi from ncbitax
+
+	output:
+	file "ncbi_pruned.nw" into ncbipruned
+
+	shell:
+	'''
+	#!/usr/bin/env bash
+	gotree prune -i !{ncbi} -c !{tree} -o ncbi_pruned.nw
+	'''
+}
+
+process annotateSupportTree{
+	input:
+	file renamed from renamedsupport2
+	file ncbi from ncbipruned
 
 	output:
 	file "annotated_support.nw" into annotatedsupport, annotatedsupportcopy
@@ -182,9 +226,7 @@ process annotateSupportTree{
 	shell:
 	'''
 	#!/usr/bin/env bash
-	gotree rename -i !{support} -m !{mapfile} -r -o renamed
-	gotree prune -i !{ncbi} -c !{renamed} -o ncbi_pruned
-	gotree annotate -i !{renamed} -c {ncbi_pruned} -o annotated_support.nw
+	gotree annotate -i !{renamed} -c !{ncbi} -o annotated_support.nw
 	'''
 }
 
@@ -234,7 +276,7 @@ process histCommonbranches {
 // Reroot the trees to draw using an outgroup
 process reroot{
 	input:
-	file tree from truetreedraw.mix(consensusdraw, supportdraw, annotatedsupport)
+	file tree from truetreedraw.mix(consensusdraw, supportdraw)
 
 	output:
 	file "${tree.baseName}_reroot.nw" into treestodraw, treestodrawitol
@@ -248,7 +290,7 @@ process reroot{
 
 process drawTree {
 	input:
-	file tree from treestodraw
+	file tree from treestodraw.mix(annotatedsupport)
 
 	output:
 	file "*.svg" into treeimages
@@ -256,7 +298,7 @@ process drawTree {
 	shell:
 	'''
 	#!/usr/bin/env bash
-	gotree draw svg -i !{tree} -w 1000 -H 1000 --with-branch-support --support-cutoff 0.7 -o !{tree}.svg
+	gotree draw svg -i !{tree} -w 1000 -H 1000 --with-branch-support --with-node-labels --support-cutoff 0.7 -o !{tree}.svg
 	'''
 }
 
@@ -277,7 +319,7 @@ process uploadiTOL{
 	# We get the iTOL id
 	ID=$(basename $(cat !{tree}_url.txt ))
 	# We Download the image with options defined in data/itol_image_config.txt
-	gotree dlimage itol -c !{itolconfig} -f svg -o !{tree}_itol.svg -i $ID
+	gotree download itol -c !{itolconfig} -f svg -o !{tree}_itol.svg -i $ID
 	'''
 }
 

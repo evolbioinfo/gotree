@@ -97,7 +97,7 @@ and for each internal edge ec of the compared tree, this command will print in t
 							}
 							depth, err := e2.TopoDepth()
 							if err != nil {
-								io.ExitWithMessage(t2.Err)
+								io.ExitWithMessage(err)
 							}
 							fmt.Printf("%d\t%d\t%d\t%d\t%s\t%s\t%d\t%s\n", t2.Id, e1.Id(), e2.Id(), int(dist), e2.LengthString(), e2.SupportString(), int(depth), movedtaxabuf.String())
 						}

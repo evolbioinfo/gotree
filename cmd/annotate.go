@@ -10,6 +10,9 @@ import (
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/support"
+	"github.com/fredericlemoine/gotree/tree"
+
 	"github.com/spf13/cobra"
 )
 
@@ -19,39 +22,98 @@ var annotateCmd = &cobra.Command{
 	Short: "Annotates internal branches of a tree with given data",
 	Long: `Annotates internal branches of a tree with given data.
 
-Takes a map file with one line per internal node to annotate:
-<name of internal branch>:<name of taxon 1>,<name of taxon2>,...,<name of taxon n>
-
-=> It will take the lca of taxa and annotate it with the given name
-=> Output tree won't have bootstrap support at the branches anymore
+Data for annotation may be (in order of priority):
+- A tree with labels on internal nodes (-c). in that case, it will label each branch of 
+   the input tree with label of the closest branch of the given compared tree (-c) in terms
+   of transfer distance. The labels are of the form: "label_distance_depth)";
+- A file with one line per internal node to annotate (-m), and with the following format:
+   <name of internal branch>:<name of taxon 1>,<name of taxon2>,...,<name of taxon n>
+   => It will take the lca of taxa and annotate it with the given name
+   => Output tree won't have bootstrap support at the branches anymore
+If neither -c nor -m are given, gotree annotate will wait for data on stdin
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if mapfile == "none" {
-			io.ExitWithMessage(errors.New("You should give a map file for node names"))
-		}
-
-		annotateNames, err := readAnnotateNameMap(mapfile)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-
 		f := openWriteFile(outtreefile)
+		defer f.Close()
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
-		for t := range treechan {
-			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+
+		if mapfile != "none" {
+			annotateNames, err := readAnnotateNameMap(mapfile)
+			if err != nil {
+				io.ExitWithMessage(err)
 			}
-			t.Tree.Annotate(annotateNames)
-			f.WriteString(t.Tree.Newick() + "\n")
+
+			for t := range treechan {
+				if t.Err != nil {
+					io.ExitWithMessage(t.Err)
+				}
+				t.Tree.Annotate(annotateNames)
+				f.WriteString(t.Tree.Newick() + "\n")
+			}
+		} else {
+			if intree2file == "none" {
+				intree2file = "stdin"
+			}
+			// We will annotate branches using labels of closest branches in
+			// the closest tree
+			compTree := readTree(intree2file)
+			compTree.ReinitIndexes()
+			edges2 := compTree.Edges()
+			for i, e := range edges2 {
+				e.SetId(i)
+				e.SetSupport(tree.NIL_SUPPORT)
+			}
+
+			for t := range treechan {
+				if t.Err != nil {
+					io.ExitWithMessage(t.Err)
+				}
+				t.Tree.ReinitIndexes()
+				edges1 := t.Tree.Edges()
+				var min_dist []uint16
+				var min_dist_edges []int
+				tips := t.Tree.Tips()
+				min_dist = make([]uint16, len(edges1))
+				min_dist_edges = make([]int, len(edges1))
+				var i_matrix [][]uint16 = make([][]uint16, len(edges1))
+				var c_matrix [][]uint16 = make([][]uint16, len(edges1))
+				var hamming [][]uint16 = make([][]uint16, len(edges1))
+
+				for i, e := range edges1 {
+					e.SetId(i)
+					min_dist[i] = uint16(len(tips))
+					i_matrix[i] = make([]uint16, len(edges2))
+					c_matrix[i] = make([]uint16, len(edges2))
+					hamming[i] = make([]uint16, len(edges2))
+				}
+				support.Update_all_i_c_post_order_ref_tree(t.Tree, &edges1, compTree, &edges2, &i_matrix, &c_matrix)
+				support.Update_all_i_c_post_order_boot_tree(t.Tree, uint(len(tips)), &edges1, compTree, &edges2, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edges)
+				for _, e1 := range edges1 {
+					if !e1.Right().Tip() {
+						e2 := edges2[min_dist_edges[e1.Id()]]
+						dist := min_dist[e1.Id()]
+						if dist > uint16(len(tips))/2 {
+							dist = uint16(len(tips)) - dist
+						}
+
+						depth, err := e1.TopoDepth()
+						if err != nil {
+							io.ExitWithMessage(err)
+						}
+						e1.Right().SetName(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+					}
+				}
+				f.WriteString(t.Tree.Newick() + "\n")
+			}
 		}
-		f.Close()
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(annotateCmd)
 	annotateCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree(s) file")
+	annotateCmd.PersistentFlags().StringVarP(&intree2file, "compared", "c", "stdin", "Compared tree file")
 	annotateCmd.PersistentFlags().StringVarP(&mapfile, "map-file", "m", "none", "Name map input file")
 	annotateCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Resolved tree(s) output file")
 }
