@@ -3,12 +3,14 @@ params.nboot = 100
 params.seed=2000
 params.outpath="results"
 params.itolconfig= "data/itol_image_config.txt"
+params.mapfile="data/mapfile.txt"
 
 dataurl=params.dataurl
 nboot = params.nboot
 seed = params.seed
 outpath = file(params.outpath)
 itolconfig=file(params.itolconfig)
+mapfile=file(params.mapfile)
 
 /**********************************/
 /*     General tree inferences    */
@@ -19,7 +21,7 @@ process downloadAlignment{
 	val dataurl
 
 	output:
-	file "primates.phy" into truealign
+	file "primates.phy" into truealign, truealigncopy
 
 	shell:
 	'''
@@ -145,7 +147,7 @@ process supports {
 	file boot from boottrees2
 
 	output:
-	file "support.nw" into supportcopy,supportdraw
+	file "support.nw" into supportcopy, supportdraw, supportannot
 
 	shell:
 	'''
@@ -153,6 +155,39 @@ process supports {
 	gotree compute support classical -i !{ref} -b !{boot} -o support.nw
 	'''
 }
+
+/**********************************/
+/*  Comparison with NCBI taxonomy */
+/**********************************/
+process downloadNewickTaxonomy {
+	output:
+	file "ncbi.nw" into ncbitax
+
+	shell:
+	'''
+	#!/usr/bin/env bash
+	gotree download ncbitax -o ncbi.nw
+	'''
+}
+
+process annotateSupportTree{
+	input:
+	file support from supportannot
+	file ncbi from ncbitax
+	file mapfile from mapfile
+
+	output:
+	file "annotated_support.nw" into annotatedsupport, annotatedsupportcopy
+
+	shell:
+	'''
+	#!/usr/bin/env bash
+	gotree rename -i !{support} -m !{mapfile} -r -o renamed
+	gotree prune -i !{ncbi} -c !{renamed} -o ncbi_pruned
+	gotree annotate -i !{renamed} -c {ncbi_pruned} -o annotated_support.nw
+	'''
+}
+
 
 /***********************************/
 /* Comparison of bootstrap trees   */
@@ -199,7 +234,7 @@ process histCommonbranches {
 // Reroot the trees to draw using an outgroup
 process reroot{
 	input:
-	file tree from truetreedraw.mix(consensusdraw, supportdraw)
+	file tree from truetreedraw.mix(consensusdraw, supportdraw, annotatedsupport)
 
 	output:
 	file "${tree.baseName}_reroot.nw" into treestodraw, treestodrawitol
@@ -249,7 +284,7 @@ process uploadiTOL{
 /*********************************************/
 /*                File  COPY                 */
 /*********************************************/
-truetreecopy.mix(consensuscopy, supportcopy).subscribe{
+truetreecopy.mix(consensuscopy, supportcopy, annotatedsupportcopy, truealigncopy).subscribe{
 	f -> f.copyTo(outpath.resolve(f.name))
 }
 treeimages.subscribe{

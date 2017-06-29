@@ -10,6 +10,9 @@ import (
 )
 
 var dlconfig string
+var dltreeid string
+var dlformat string
+var dloutput string
 
 // dlitolCmd represents the dlitol command
 var dlitolCmd = &cobra.Command{
@@ -53,6 +56,9 @@ http://itol.embl.de/help.cgi#bExOpt
 }
 
 func init() {
-	dlimageCmd.AddCommand(dlitolCmd)
+	downloadCmd.AddCommand(dlitolCmd)
 	dlitolCmd.PersistentFlags().StringVarP(&dlconfig, "config", "c", "", "Itol image config file")
+	dlitolCmd.PersistentFlags().StringVarP(&dltreeid, "tree-id", "i", "", "Tree id to download")
+	dlitolCmd.PersistentFlags().StringVarP(&dlformat, "format", "f", "pdf", "Image format (png, pdf, eps, svg)")
+	dlitolCmd.PersistentFlags().StringVarP(&dloutput, "output", "o", "", "Image output file")
 }

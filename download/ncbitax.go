@@ -91,6 +91,7 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 		}
 	}
 	gtio.LogInfo("Removing single nodes")
+	AddSpeciesTips(t)
 	t.RemoveSingleNodes()
 	gtio.LogInfo("Renaming taxid -> taxnames")
 	RenameTreeNodes(t, namemap)
@@ -140,12 +141,16 @@ func ParseNcbiTree(reader io.Reader) (*tree.Tree, error) {
 		cols := strings.Split(l, "\t|\t")
 		tax := cols[0]
 		parent := cols[1]
+		rank := cols[2]
 		n1, ok1 := nodes[tax]
 		if !ok1 {
 			n1 = t.NewNode()
 			n1.SetName(tax)
 			nodes[tax] = n1
 		}
+		// We add the rank in order to be able
+		// resolve cases were a species have also children
+		n1.AddComment(rank)
 		n2, ok2 := nodes[parent]
 		if !ok2 {
 			n2 = t.NewNode()
@@ -170,4 +175,18 @@ func ParseNcbiTree(reader io.Reader) (*tree.Tree, error) {
 	// t.UpdateBitSet()
 	// t.ComputeDepths()
 	return t, nil
+}
+
+// if an internal node is a species, then we add a new tip
+func AddSpeciesTips(t *tree.Tree) {
+	for _, n := range t.Nodes() {
+		if len(n.Neigh()) > 1 &&
+			len(n.Comments()) > 0 &&
+			n.Comments()[0] == "species" {
+			tip := t.NewNode()
+			tip.SetName(n.Name())
+			tip.AddComment(n.Comments()[0])
+			t.ConnectNodes(n, tip)
+		}
+	}
 }

@@ -941,21 +941,25 @@ func (t *Tree) RemoveSingleNodes() {
 // t.UpdateBitSet()
 func (t *Tree) removeSingleNodesRecur(current, previous *Node, e *Edge) error {
 	// Resolve neighbors
-	for i, n := range current.Neigh() {
+	// Temporary slice of node neighbors (the real neighbor slice will be updated
+	// during traversal)
+	tmpslice := make([]*Node, len(current.Neigh()))
+	copy(tmpslice, current.Neigh())
+	for i, n := range tmpslice {
 		if n != previous {
 			t.removeSingleNodesRecur(n, current, current.br[i])
 		}
 	}
+	tmpslice = nil
 	// Remove the current node if needed connect descendant node to parent
 	if len(current.Neigh()) == 2 && current != t.Root() {
 		// Remove the edge from left and right node
 		length := e.Length()
-		previous.delNeighbor(current)
 		current.delNeighbor(previous)
-
-		// Connect the edges of right node to left node
+		previous.delNeighbor(current)
+		// Connect the edges of children if current to parent node (previous)
 		for _, child := range current.Neigh() {
-			if child != previous { // Should not happen anyway since we removed the edge...
+			if child != previous {
 				idx, err := child.NodeIndex(current)
 				if err != nil {
 					return err
@@ -972,6 +976,7 @@ func (t *Tree) removeSingleNodesRecur(current, previous *Node, e *Edge) error {
 				}
 			}
 		}
+
 	}
 	return nil
 }
