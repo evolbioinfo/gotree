@@ -37,7 +37,7 @@ and for each internal edge ec of the compared tree, this command will print in t
 		fmt.Fprintf(os.Stderr, "Compared  : %s\n", intree2file)
 
 		refTree := readTree(intreefile)
-		refTree.ComputeDepths()
+		refTree.ReinitIndexes()
 		names := refTree.SortedTips()
 
 		edges1 := refTree.Edges()
@@ -48,6 +48,8 @@ and for each internal edge ec of the compared tree, this command will print in t
 			if t2.Err != nil {
 				io.ExitWithMessage(t2.Err)
 			}
+			t2.Tree.ReinitIndexes()
+
 			edges2 := t2.Tree.Edges()
 			var min_dist []uint16
 			var min_dist_edges []int
