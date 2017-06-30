@@ -4,8 +4,8 @@
 
 ### download
 This command downloads trees or tree images from a given source. Two subcommands so far:
-* `gotree download itol`, which downloads a tree image from [iTOL](http://itol.embl.de/), given a tree id (`-i`) and a configuration file (`-c`). The configuration file is a tab separated key/value file corresponding to the iTOL [api optionql parameters](http://itol.embl.de/help.cgi#bExOpt).
-* `gotre download ncbitax`, which downloads the ncbi taxonomy from NCBI ftp server and converts it in Newick format. Internal and tip node names are NCBI names given by the file "names.dmp". Please not that to conform to Newick format, following character are replaced by `_` : `()[]:, ;`. Moreover, the NCBI taxononomy may have species (~tips) with children (ex: [taxid:9606](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Tree&id=9606)). These cases are resolved by Gotree by adding a new corresponding tip.
+* `gotree download itol`, which downloads a tree image from [iTOL](http://itol.embl.de/), given a tree id (`-i`) and a configuration file (`-c`). The configuration file is a tab separated key/value file corresponding to the iTOL [api optional parameters](http://itol.embl.de/help.cgi#bExOpt).
+* `gotree download ncbitax`, which downloads the ncbi taxonomy from NCBI ftp server and converts it in Newick format. Internal and tip node names are NCBI names given by the file "names.dmp". Please not that to conform to Newick format, following character are replaced by `_` : `()[]:, ;`. Moreover, the NCBI taxononomy may have species (~tips) with children (ex: [taxid:9606](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Tree&id=9606)). These cases are resolved by Gotree by adding a new corresponding tip.
 
 #### Usage
 
