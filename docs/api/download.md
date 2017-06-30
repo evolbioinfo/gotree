@@ -2,8 +2,9 @@
 
 ## API
 
-### dlimage
+### download
 
+#### Download itol
 Downloading a tree image from iTOL
 ```go
 package main
@@ -38,5 +39,25 @@ func main() {
 		io.ExitWithMessage(err)
 	}
 	ioutil.WriteFile(dloutput, b, 0644)
+}
+```
+#### Download and convert NCBI taxonomy
+
+```go
+package main
+
+import (
+	"github.com/fredericlemoine/gotree/download"
+)
+
+func main(){
+	dl := download.NewNcbiTreeDownloader()
+	t, err := dl.Download("")
+	if err != nil {
+		panic(err)
+	}
+	f := openWriteFile("ncbi.nw")
+	f.WriteString(t.Newick() + "\n")
+	f.Close()
 }
 ```

@@ -3,6 +3,19 @@
 ## Commands
 
 ### annotate
+This command annotates internal branches of a tree with given data.
+
+Data for annotation may be (in order of priority):
+- A tree with labels on internal nodes (-c). in that case, it will label each branch of 
+   the input tree with label of the closest branch of the given compared tree (-c) in terms
+   of transfer distance. The labels are of the form: "`label_distance_depth`";
+- A file with one line per internal node to annotate (-m), and with the following format:
+   `<name of internal branch>:<name of taxon 1>,<name of taxon2>,...,<name of taxon n>`
+   => It will take the lca of taxa and annotate it with the given name
+   => Output tree won't have bootstrap support at the branches anymore
+
+If neither -c nor -m are given, gotree annotate will wait for data on stdin
+
 This command annotates internal branches of a set of trees with given data.
 
 It takes a map file with one line per internal node to annotate:
@@ -23,16 +36,15 @@ Usage:
   gotree annotate [flags]
 
 Flags:
+  -c, --compared string   Compared tree file (default "stdin")
   -i, --input string      Input tree(s) file (default "stdin")
   -m, --map-file string   Name map input file (default "none")
   -o, --output string     Resolved tree(s) output file (default "stdout")
-
-Global Flags:
-  -t, --threads int   Number of threads (Max=12) (default 1)
 ```
 
 #### Example
 
+* Using a mapfile
 mapfile.txt
 ```
 internal1:Tip6,Tip5,Tip1
@@ -46,3 +58,5 @@ gotree generate yuletree -s 10 | gotree annotate -m mapfile.txt | gotree draw sv
 Should give:
 
 ![Tree image](annotate_1.svg)
+
+* Using a reference tree: See example in documentation for [download](download.md) command. 

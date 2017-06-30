@@ -54,8 +54,9 @@ Command                                                            | Subcommand 
 --                                                                 | support classical | Computes classical bootstrap supports
 --                                                                 | support booster   | Computes booster bootstrap supports
 [divide](commands/divide.md)                                       |                   | Divides an input tree file into several tree files
-[dlimage](commands/dlimage.md) ([api](api/dlimage.md))             |                   | Downloads a tree image from a server
---                                                                 | iTOL              | Downloads a tree image from iTOL, with given image options
+[download](commands/download.md) ([api](api/download.md))          |                   | Downloads trees from a server
+--                                                                 | itol              | Downloads a tree image from iTOL, with given image options
+--                                                                 | ncbitax           | Downloads the full ncbi taxonomy from NCBI ftp server and cinverts it in Newick
 [draw](commands/draw.md) ([api](api/draw.md))                      |                   | Draws tree(s) with different layouts
 --                                                                 | text              | Draws tree(s) in text/ascii format
 --                                                                 | png               | Draws tree(s) in png format
