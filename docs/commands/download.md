@@ -76,7 +76,8 @@ gotree download itol -i $ID -f svg -c config.txt -o commands/download_1.svg
 
 ![Image from iTOL](download_1.svg)
 
-* We download NCBI taxonomy, prune it to get the same taxa than the tree to test (test.nw) and we compare internal branches to the NCBI topology
+* We download NCBI taxonomy, prune it to get the same taxa than the tree to test (test.nw) and we compare internal branches to the NCBI topology:
+
 test.nw:
 ```
 (((((Hylobates_pileatus:0.23988592,(Pongo_pygmaeus_abelii:0.11809071,(Gorilla_gorilla_gorilla:0.13596645,(Homo_sapiens:0.11344407,Pan_troglodytes:0.11665038)0.62:0.02364476)0.78:0.04257513)0.93:0.15711475)0.56:0.03966791,(Macaca_sylvanus:0.06332916,(Macaca_fascicularis_fascicularis:0.07605049,(Macaca_mulatta:0.06998962,Macaca_fuscata:0)0.98:0.08492791)0.47:0.02236558)0.89:0.11208218)0.43:0.0477543,Saimiri_sciureus:0.25824985)0.71:0.14311537,(Tarsius_tarsier:0.62272677,Lemur_sp.:0.40249393)0.35:0)0.62:0.077084225,(Mus_musculus:0.4057381,Bos_taurus:0.65776307)0.62:0.077084225);
@@ -86,7 +87,7 @@ test.nw:
 gotree download ncbitax -o ncbi.nw
 gotree prune -i ncbi.nw -c test.nw -o ncbi_prune.nw
 gotree annotate -i test.nw -c ncbi_prune.nw -o test_annotated.nw
-gotree draw text -i 
+gotree draw text -i test_annotated.nw -w 100
 ```
 
 It should give a tree like that:
