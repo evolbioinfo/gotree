@@ -92,6 +92,7 @@ func main() {
 	}
 	f.Close()
 	// Building reference edge index
+	reftree.ReinitIndexes()
 	refEdges = reftree.Edges()
 	edgeIndex = tree.NewEdgeIndex(int64(len(refEdges)*2), 0.75)
 	for _, e := range refEdges {
@@ -102,8 +103,11 @@ func main() {
 		if t2.Err != nil {
 			panic(t2.Err)
 		}
+		// We initialize edge bitsets
+		t2.Tree.ReinitIndexes()
 		// All edges
 		for j, e := range t2.Tree.Edges() {
+
 			// We check if the edge is present in the index
 			_, ok := edgeIndex.Value(e)
 			fmt.Printf("tree %d | branch %d | #tips %v | found %v\n", t2.Id, j, e.NumTips(), ok)
