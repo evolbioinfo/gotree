@@ -170,10 +170,6 @@ func ParseNcbiTree(reader io.Reader) (*tree.Tree, error) {
 	if root == nil {
 		return nil, errors.New("No root found in the NCBI Taxonomy")
 	}
-	// t.UpdateTipIndex()
-	// t.ClearBitSets()
-	// t.UpdateBitSet()
-	// t.ComputeDepths()
 	return t, nil
 }
 
