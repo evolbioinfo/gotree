@@ -579,6 +579,7 @@ the exact number of common and specific branches, but just put sametree=true or 
 This function returns almost immediately because computation is done in several go routines in background.
 The function returns a Channel which will contain bipartition statistics computed so far. This channel is closed at the end of the computations,
 so you can iterate over this channel in order to wait for the end of computations.
+It First Initializes bitsets of the reference tree
 */
 func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical bool, cpus int) (<-chan BipartitionStats, error) {
 	var edges []*Edge
@@ -587,7 +588,7 @@ func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical b
 	if refTree == nil {
 		return nil, errors.New("Tree 1 in comparison is null")
 	}
-
+	refTree.ReinitIndexes()
 	edges = refTree.Edges()
 	index := NewEdgeIndex(int64(len(edges)*2), 0.75)
 	total := 0
