@@ -14,6 +14,3 @@ install:
   - go get -u golang.org/x/image/font
   - go get -u github.com/ajstarks/svgo
   - go get -u github.com/jlaffaye/ftp
-
-after_success:
-  - ./test.sh
