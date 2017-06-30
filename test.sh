@@ -1,5 +1,8 @@
 ########### Test Suite for Gotree command line tools ##############
 
+set -e
+set -u
+set -o pipefail
 
 # gotree annotate
 echo "->gotree annotate"
@@ -128,6 +131,65 @@ cat > expected <<EOF
 (Tree 0) = 10
 EOF
 gotree compare tips -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1 -l 12) > result
+diff expected result
+rm -f expected result
+
+
+# gotree compare distances
+echo "->gotree compare distances"
+cat > expected <<EOF
+tree_id	er_id	ec_id	tdist	ec_length	ec_support	ec_topodepth	moving_taxa
+0	0	0	3	0.009431375327575379	N/A	2	+Tip6,-Tip2,-Tip7
+0	0	4	4	0.05806229063227526	N/A	3	+Tip0,+Tip6,-Tip2,-Tip7
+0	0	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip6,-Tip2,-Tip7
+0	0	7	4	0.01928476038232059	N/A	3	+Tip8,+Tip9,-Tip4,-Tip7
+0	0	8	5	0.0025657553764472595	N/A	2	+Tip0,+Tip1,+Tip3,+Tip5,+Tip6
+0	0	12	4	0.06468741289168706	N/A	3	+Tip1,+Tip5,-Tip2,-Tip4
+0	0	13	3	0.002591557233084285	N/A	2	+Tip5,-Tip2,-Tip4
+0	2	0	4	0.009431375327575379	N/A	2	+Tip4,+Tip6,-Tip2,-Tip7
+0	2	4	5	0.05806229063227526	N/A	3	+Tip0,+Tip4,+Tip6,-Tip2,-Tip7
+0	2	6	4	0.006167968511774678	N/A	4	+Tip1,+Tip5,+Tip8,+Tip9
+0	2	7	3	0.01928476038232059	N/A	3	+Tip8,+Tip9,-Tip7
+0	2	8	4	0.0025657553764472595	N/A	2	+Tip8,+Tip9,-Tip2,-Tip7
+0	2	12	3	0.06468741289168706	N/A	3	+Tip1,+Tip5,-Tip2
+0	2	13	2	0.002591557233084285	N/A	2	+Tip5,-Tip2
+0	6	0	4	0.009431375327575379	N/A	2	+Tip0,+Tip2,+Tip7,-Tip6
+0	6	4	3	0.05806229063227526	N/A	3	+Tip2,+Tip7,-Tip6
+0	6	6	4	0.006167968511774678	N/A	4	+Tip2,+Tip7,-Tip3,-Tip6
+0	6	7	5	0.01928476038232059	N/A	3	+Tip0,+Tip4,+Tip7,-Tip8,-Tip9
+0	6	8	4	0.0025657553764472595	N/A	2	-Tip1,-Tip3,-Tip5,-Tip6
+0	6	12	5	0.06468741289168706	N/A	3	+Tip0,+Tip2,+Tip4,-Tip1,-Tip5
+0	6	13	4	0.002591557233084285	N/A	2	+Tip0,+Tip2,+Tip4,-Tip5
+0	7	0	5	0.009431375327575379	N/A	2	+Tip0,+Tip1,+Tip2,+Tip5,+Tip7
+0	7	4	4	0.05806229063227526	N/A	3	+Tip1,+Tip2,+Tip5,+Tip7
+0	7	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip4,+Tip6,-Tip8,-Tip9
+0	7	7	2	0.01928476038232059	N/A	3	+Tip2,-Tip3
+0	7	8	1	0.0025657553764472595	N/A	2	-Tip3
+0	7	12	4	0.06468741289168706	N/A	3	+Tip0,+Tip2,+Tip4,+Tip6
+0	7	13	5	0.002591557233084285	N/A	2	+Tip0,+Tip1,+Tip2,+Tip4,+Tip6
+0	9	0	4	0.009431375327575379	N/A	2	+Tip4,+Tip6,-Tip3,-Tip9
+0	9	4	5	0.05806229063227526	N/A	3	+Tip0,+Tip4,+Tip6,-Tip3,-Tip9
+0	9	6	4	0.006167968511774678	N/A	4	+Tip0,+Tip4,+Tip6,-Tip9
+0	9	7	3	0.01928476038232059	N/A	3	+Tip2,+Tip8,-Tip3
+0	9	8	2	0.0025657553764472595	N/A	2	+Tip8,-Tip3
+0	9	12	5	0.06468741289168706	N/A	3	+Tip0,+Tip2,+Tip4,+Tip6,+Tip8
+0	9	13	4	0.002591557233084285	N/A	2	+Tip5,+Tip7,-Tip3,-Tip9
+0	12	0	3	0.009431375327575379	N/A	2	+Tip4,-Tip1,-Tip5
+0	12	4	4	0.05806229063227526	N/A	3	+Tip0,+Tip4,-Tip1,-Tip5
+0	12	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip4,-Tip1,-Tip5
+0	12	7	4	0.01928476038232059	N/A	3	+Tip0,+Tip3,+Tip4,+Tip7
+0	12	8	5	0.0025657553764472595	N/A	2	+Tip0,+Tip2,+Tip3,+Tip4,+Tip7
+0	12	12	2	0.06468741289168706	N/A	3	+Tip7,-Tip6
+0	12	13	3	0.002591557233084285	N/A	2	+Tip7,-Tip1,-Tip6
+0	13	0	2	0.009431375327575379	N/A	2	+Tip4,-Tip5
+0	13	4	3	0.05806229063227526	N/A	3	+Tip0,+Tip4,-Tip5
+0	13	6	4	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip4,-Tip5
+0	13	7	5	0.01928476038232059	N/A	3	+Tip0,+Tip1,+Tip3,+Tip4,+Tip7
+0	13	8	4	0.0025657553764472595	N/A	2	+Tip8,+Tip9,-Tip5,-Tip6
+0	13	12	3	0.06468741289168706	N/A	3	+Tip1,+Tip7,-Tip6
+0	13	13	2	0.002591557233084285	N/A	2	+Tip7,-Tip6
+EOF
+gotree compare distances -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1) > result 2>/dev/null
 diff expected result
 rm -f expected result
 
