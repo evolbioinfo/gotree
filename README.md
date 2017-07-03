@@ -75,8 +75,9 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
       * classical
       * booster
 *  divide:      Divide an input tree file into several tree files
-*  dlimage:     Download a tree image from a server
+*  download:     Download a tree image from a server
     * itol: download a tree image from iTOL, with given image options
+    * ncbitax: Download the full ncbi taxonomy in newick format
 *  draw: Draw tree(s) with different layouts
     * text: Display tree(s) in ASCII text format
     * png : Draw tree(s) in png format, with normal, radial/unrooted or circular layout
