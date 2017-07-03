@@ -5,6 +5,8 @@ GoTree is a set of command line tools to manipulate phylogenetic trees. It is im
 
 The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wiki/Newick_format) format, through several basic commands. Each command may print result (a tree for example) in the standard output, and thus can be piped to the standard input of the next gotree command.
 
+See also [Goalign](https://github.com/fredericlemoine/goalign) for handling multiple alignments.
+
 **Example:**
 ```[bash]
 $ gotree generate uniformtree -l 100 -n 10 | gotree stats
