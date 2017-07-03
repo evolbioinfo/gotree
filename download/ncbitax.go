@@ -16,13 +16,27 @@ import (
 )
 
 type NcbiTreeDownloader struct {
-	server string
-	path   string
+	server      string
+	path        string
+	tipstaxids  bool // If taxids only must be printed as tips of the output tree
+	nodestaxids bool // If taxids only must be printed as internal nodes of the output tree
 }
 
 /* NCBI taxonomy downloader */
 func NewNcbiTreeDownloader() *NcbiTreeDownloader {
-	return &NcbiTreeDownloader{"ftp.ncbi.nih.gov:21", "/pub/taxonomy/taxdump.tar.gz"}
+	return &NcbiTreeDownloader{"ftp.ncbi.nih.gov:21", "/pub/taxonomy/taxdump.tar.gz", false, false}
+}
+
+// If taxids only must be printed as internal nodes of the output tree
+// Otherwise taxa names
+func (d *NcbiTreeDownloader) SetInternalNodesTaxId(val bool) {
+	d.nodestaxids = val
+}
+
+// If taxids only must be printed as tips of the output tree
+// Otherwise taxa names
+func (d *NcbiTreeDownloader) SetTipsTaxId(val bool) {
+	d.tipstaxids = val
 }
 
 // Download the NCBI taxonomy as a tree.Tree
@@ -94,15 +108,17 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 	AddSpeciesTips(t)
 	t.RemoveSingleNodes()
 	gtio.LogInfo("Renaming taxid -> taxnames")
-	RenameTreeNodes(t, namemap)
+	RenameTreeNodes(t, namemap, d.tipstaxids, d.nodestaxids)
 
 	return t, err
 }
 
-func RenameTreeNodes(t *tree.Tree, namemap map[string]string) {
+func RenameTreeNodes(t *tree.Tree, namemap map[string]string, tipstaxids bool, nodestaxids bool) {
 	for _, n := range t.Nodes() {
-		if name, ok := namemap[n.Name()]; ok {
-			n.SetName(name)
+		if (n.Tip() && !tipstaxids) || (!n.Tip() && !nodestaxids) {
+			if name, ok := namemap[n.Name()]; ok {
+				n.SetName(name)
+			}
 		}
 	}
 }
