@@ -54,6 +54,18 @@ gotree generate yuletree -s 10 -n 10 | gotree randsupport | gotree clear support
 diff result expected
 rm -f expected result
 
+# gotree clear comments
+echo "->gotree clear comments"
+cat > input <<EOF
+(t1[c1],t2[c2],(t3[c3],t4[c4])[c5]);
+EOF
+cat > expected <<EOF
+(t1,t2,(t3,t4));
+EOF
+gotree clear comments -i input > result
+diff result expected
+rm -f expected result input
+
 
 # gotree collapse length
 echo "->gotree collapse length"

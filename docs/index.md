@@ -39,6 +39,7 @@ Command                                                            | Subcommand 
 [clear](commands/clear.md) ([api](api/clear.md))                   |                   | Clears lengths or supports from input trees
 --                                                                 | lengths           | Clears lengths from input trees
 --                                                                 | supports          | Clears supports from input trees
+--                                                                 | comments          | Clears comments from input tree nodes
 [collapse](commands/collapse.md) ([api](api/collapse.md))          |                   | Collapses/Removes branches of input trees
 --                                                                 | depth             | Collapses/Removes branches of input trees having a given depth
 --                                                                 | length            | Collapses/Removes short branches of input trees

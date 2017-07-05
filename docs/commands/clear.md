@@ -12,8 +12,10 @@ Usage:
   gotree clear [command]
 
 Available Commands:
+  comments    Removes node/tip comments
   lengths     Clear lengths from input trees
   supports    Clear supports from input trees
+  
 
 Flags:
   -i, --input string    Input tree (default "stdin")
@@ -95,4 +97,14 @@ Should produce:
 (Tip9,Tip0,(Tip8,((Tip7,Tip4),((Tip6,Tip2),(Tip3,(Tip5,Tip1))))));
 ((((Tip7,(Tip8,(Tip9,Tip6))),Tip5),Tip4),Tip0,(Tip2,(Tip3,Tip1)));
 
+```
+
+3. Removing node comments from an input tree
+```
+echo "(t1[c1],t2[c2],(t3[c3],t4[c4])[c5]);" | gotree clear comments
+```
+
+Should print:
+```
+(t1,t2,(t3,t4));
 ```

@@ -1006,6 +1006,14 @@ func (t *Tree) ClearLengths() {
 	}
 }
 
+// Clears comments associated to all nodes and tips of the tree
+func (t *Tree) ClearComments() {
+	nodes := t.Nodes()
+	for _, n := range nodes {
+		n.comment = n.comment[:0]
+	}
+}
+
 // Removes branches from the tree if they are not tip edges
 // And if they do not connects the root of a rooted tree
 // Merges the 2 nodes and creates multifurcations

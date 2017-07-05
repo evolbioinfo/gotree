@@ -32,6 +32,17 @@ func TestClearSupports(t *testing.T) {
 		t.Error(fmt.Sprintf("Tree after clear lengths is not valid: %s", tr.Newick()))
 	}
 }
+func TestClearComments(t *testing.T) {
+	treeString := "(Tip4:0.1[c1],Tip0:0.1[c2],(Tip3:0.1[c3],(Tip2:0.2[c4],Tip1:0.2[c5])0.8:0.3[c6])0.9:0.4[c7])[c8];"
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	tr.ClearComments()
+	if tr.Newick() != "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.8:0.3)0.9:0.4);" {
+		t.Error(fmt.Sprintf("Tree after clear comments is not valid: %s", tr.Newick()))
+	}
+}
 
 func TestCollapseDepth(t *testing.T) {
 	treeString := "(Tip4,Tip0,(Tip3,(Tip2,Tip1)));"
