@@ -9,6 +9,7 @@ import (
 var ncbioutput string
 var ncbitiptaxid bool
 var ncbinodetaxid bool
+var ncbitaxidtoname string
 
 // dlncbiCmd represents the dlncbi command
 var dlncbiCmd = &cobra.Command{
@@ -19,6 +20,9 @@ var dlncbiCmd = &cobra.Command{
 		dl := download.NewNcbiTreeDownloader()
 		dl.SetInternalNodesTaxId(ncbinodetaxid)
 		dl.SetTipsTaxId(ncbitiptaxid)
+		if ncbitaxidtoname != "none" {
+			dl.SetMapFileOutputPath(ncbitaxidtoname)
+		}
 		t, err := dl.Download("")
 		if err != nil {
 			io.ExitWithMessage(err)
@@ -34,4 +38,5 @@ func init() {
 	dlncbiCmd.PersistentFlags().StringVarP(&ncbioutput, "output", "o", "stdout", "NCBI newick output file")
 	dlncbiCmd.PersistentFlags().BoolVar(&ncbitiptaxid, "tips-taxid", false, "Keeps tax id as tip names")
 	dlncbiCmd.PersistentFlags().BoolVar(&ncbinodetaxid, "nodes-taxid", false, "Keeps tax id as internal nodes identifiers")
+	dlncbiCmd.PersistentFlags().StringVar(&ncbitaxidtoname, "map", "none", "Output mapping file between taxid and species name (tab separated)")
 }

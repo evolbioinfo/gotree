@@ -5,7 +5,9 @@ import (
 	"bufio"
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"io"
+	"os"
 	"regexp"
 	"strings"
 
@@ -20,11 +22,12 @@ type NcbiTreeDownloader struct {
 	path        string
 	tipstaxids  bool // If taxids only must be printed as tips of the output tree
 	nodestaxids bool // If taxids only must be printed as internal nodes of the output tree
+	mapfile     string
 }
 
 /* NCBI taxonomy downloader */
 func NewNcbiTreeDownloader() *NcbiTreeDownloader {
-	return &NcbiTreeDownloader{"ftp.ncbi.nih.gov:21", "/pub/taxonomy/taxdump.tar.gz", false, false}
+	return &NcbiTreeDownloader{"ftp.ncbi.nih.gov:21", "/pub/taxonomy/taxdump.tar.gz", false, false, ""}
 }
 
 // If taxids only must be printed as internal nodes of the output tree
@@ -37,6 +40,12 @@ func (d *NcbiTreeDownloader) SetInternalNodesTaxId(val bool) {
 // Otherwise taxa names
 func (d *NcbiTreeDownloader) SetTipsTaxId(val bool) {
 	d.tipstaxids = val
+}
+
+// If called, the downloader will also write mapping between
+// ncbi taxid and tax name in the given output file
+func (d *NcbiTreeDownloader) SetMapFileOutputPath(output string) {
+	d.mapfile = output
 }
 
 // Download the NCBI taxonomy as a tree.Tree
@@ -87,7 +96,7 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 			// We handle names of ncbi taxonomy nodes
 			if header.Name == "names.dmp" {
 				gtio.LogInfo("Parsing name file")
-				namemap, err = ParseNcbiNames(tarreader)
+				namemap, err = d.parseNcbiNames(tarreader)
 				if err != nil {
 					return nil, err
 				}
@@ -95,7 +104,7 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 			// We handle the tree
 			if header.Name == "nodes.dmp" {
 				gtio.LogInfo("Parsing node file")
-				t, err = ParseNcbiTree(tarreader)
+				t, err = d.parseNcbiTree(tarreader)
 				if err != nil {
 					return nil, err
 				}
@@ -105,15 +114,15 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 		}
 	}
 	gtio.LogInfo("Removing single nodes")
-	AddSpeciesTips(t)
+	d.addSpeciesTips(t)
 	t.RemoveSingleNodes()
 	gtio.LogInfo("Renaming taxid -> taxnames")
-	RenameTreeNodes(t, namemap, d.tipstaxids, d.nodestaxids)
-
+	d.renameTreeNodes(t, namemap, d.tipstaxids, d.nodestaxids)
+	err = d.writeMapfile(namemap)
 	return t, err
 }
 
-func RenameTreeNodes(t *tree.Tree, namemap map[string]string, tipstaxids bool, nodestaxids bool) {
+func (d *NcbiTreeDownloader) renameTreeNodes(t *tree.Tree, namemap map[string]string, tipstaxids bool, nodestaxids bool) {
 	for _, n := range t.Nodes() {
 		if (n.Tip() && !tipstaxids) || (!n.Tip() && !nodestaxids) {
 			if name, ok := namemap[n.Name()]; ok {
@@ -127,7 +136,7 @@ func RenameTreeNodes(t *tree.Tree, namemap map[string]string, tipstaxids bool, n
 Parse name file and convert names with the following rules:
 Special characters are replaces with "_" ->  '(', ')', '[', ']', ':', ',', ' ', ';'
 */
-func ParseNcbiNames(reader io.Reader) (map[string]string, error) {
+func (d *NcbiTreeDownloader) parseNcbiNames(reader io.Reader) (map[string]string, error) {
 	r := bufio.NewReader(reader)
 	l, err := utils.Readln(r)
 	namemap := make(map[string]string)
@@ -147,7 +156,7 @@ func ParseNcbiNames(reader io.Reader) (map[string]string, error) {
 }
 
 // Build a gotree.tree.Tree
-func ParseNcbiTree(reader io.Reader) (*tree.Tree, error) {
+func (d *NcbiTreeDownloader) parseNcbiTree(reader io.Reader) (*tree.Tree, error) {
 	r := bufio.NewReader(reader)
 	l, err := utils.Readln(r)
 	t := tree.NewTree()
@@ -190,7 +199,7 @@ func ParseNcbiTree(reader io.Reader) (*tree.Tree, error) {
 }
 
 // if an internal node is a species, then we add a new tip
-func AddSpeciesTips(t *tree.Tree) {
+func (d *NcbiTreeDownloader) addSpeciesTips(t *tree.Tree) {
 	for _, n := range t.Nodes() {
 		if len(n.Neigh()) > 1 &&
 			len(n.Comments()) > 0 &&
@@ -201,4 +210,19 @@ func AddSpeciesTips(t *tree.Tree) {
 			t.ConnectNodes(n, tip)
 		}
 	}
+}
+
+// if an internal node is a species, then we add a new tip
+func (d *NcbiTreeDownloader) writeMapfile(namemap map[string]string) error {
+	if d.mapfile != "" {
+		f, err := os.Create(d.mapfile)
+		if err != nil {
+			return err
+		}
+		for k, v := range namemap {
+			fmt.Fprintf(f, "%s\t%s\n", k, v)
+		}
+		f.Close()
+	}
+	return nil
 }

@@ -39,7 +39,10 @@ Usage:
   gotree download ncbitax [flags]
 
 Flags:
+      --map string      Output mapping file between taxid and species name (tab separated) (default "none")
+      --nodes-taxid     Keeps tax id as internal nodes identifiers
   -o, --output string   NCBI newick output file (default "stdout")
+      --tips-taxid      Keeps tax id as tip names
 ```
 
 #### Example
