@@ -1010,7 +1010,7 @@ func (t *Tree) ClearLengths() {
 func (t *Tree) ClearComments() {
 	nodes := t.Nodes()
 	for _, n := range nodes {
-		n.comment = n.comment[:0]
+		n.ClearComments()
 	}
 }
 

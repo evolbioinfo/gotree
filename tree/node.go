@@ -39,6 +39,9 @@ func (n *Node) AddComment(comment string) {
 func (n *Node) Comments() []string {
 	return n.comment
 }
+func (n *Node) ClearComments() {
+	n.comment = n.comment[:0]
+}
 
 func (n *Node) SetDepth(depth int) {
 	n.depth = depth
