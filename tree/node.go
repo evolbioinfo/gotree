@@ -39,6 +39,20 @@ func (n *Node) AddComment(comment string) {
 func (n *Node) Comments() []string {
 	return n.comment
 }
+
+func (n *Node) CommentsString() string {
+	var buf bytes.Buffer
+	buf.WriteRune('[')
+	for i, c := range n.comment {
+		if i > 0 {
+			buf.WriteRune(',')
+		}
+		buf.WriteString(c)
+	}
+	buf.WriteRune(']')
+	return buf.String()
+}
+
 func (n *Node) ClearComments() {
 	n.comment = n.comment[:0]
 }
