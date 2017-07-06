@@ -30,6 +30,7 @@ This commands display informations about trees, edges, nodes or tips. Several su
    3. Number of neighbors of the node (3 if internal node without multifurcation, 1 if a tip)
    4. Name of the node (Tip name if tip, Internal node name if any)
    5. Depth of the node: length of the shortest path to a tip
+   6. Comments associated to tree nodes (in the form `(1,2,3)[comment]` in Newick format)
    
 * `gotree stats rooted` : Tells if each input tree is rooted or not, in tab delimited format, with columns:
    1. Tree id (input file order)
