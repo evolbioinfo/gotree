@@ -164,10 +164,7 @@ func assignSequencesToTree(t *tree.Tree, seqs []*AncestralSequence, alphabet []r
 			// If no state has a count> 0 : All are possible
 			// -
 			if nb == 0 {
-				for i, _ := range state.counts {
-					subbuffer.WriteRune(alphabet[i])
-				}
-				nb = len(alphabet)
+				subbuffer.WriteRune('*')
 			}
 			if nb > 1 {
 				buffer.WriteRune('{')
