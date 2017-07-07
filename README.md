@@ -7,24 +7,42 @@ The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wi
 
 See also [Goalign](https://github.com/fredericlemoine/goalign) for handling multiple alignments.
 
-**Example:**
+**Examples:**
+
+```[bash]
+$ echo "(1,(2,(3,4,5,6)polytomy)internal)root;" | gotree draw text --with-node-labels -w 50
++--------------- 1                                          
+|                                                           
+root            +---------------- 2                         
+|               |                                           
++---------------|internal        +--------------- 3         
+                |                |                          
+                |                |--------------- 4         
+                +----------------|polytomy                  
+                                 |--------------- 5         
+                                 |                          
+                                 +--------------- 6         
+
+```
+
 ```[bash]
 $ gotree generate uniformtree -l 100 -n 10 | gotree stats
-```
-This will generate 10 random unrooted uniform binary trees, each having 100 tips, and print statistics about them, for example:
 
 |tree  |  nodes  |  tips  |  edges  |  meanbrlen   |  sumbrlen     |  meansupport  |  mediansupport  |  rooted    |
 |------|---------|--------|---------|--------------|---------------|---------------|-----------------|------------|
-|0     |  198    |  100   |  197    |  0.08143890  |  16.04346409  |  NaN          |  NaN            |  unrooted  |
-|1     |  198    |  100   |  197    |  0.08896295  |  17.52570158  |  NaN          |  NaN            |  unrooted  |
-|2     |  198    |  100   |  197    |  0.07622673  |  15.01666610  |  NaN          |  NaN            |  unrooted  |
-|3     |  198    |  100   |  197    |  0.07433737  |  14.64446097  |  NaN          |  NaN            |  unrooted  |
-|4     |  198    |  100   |  197    |  0.09340993  |  18.40175678  |  NaN          |  NaN            |  unrooted  |
-|5     |  198    |  100   |  197    |  0.08389979  |  16.52825835  |  NaN          |  NaN            |  unrooted  |
-|6     |  198    |  100   |  197    |  0.08146519  |  16.04864327  |  NaN          |  NaN            |  unrooted  |
-|7     |  198    |  100   |  197    |  0.07461762  |  14.69967048  |  NaN          |  NaN            |  unrooted  |
-|8     |  198    |  100   |  197    |  0.08672365  |  17.08455809  |  NaN          |  NaN            |  unrooted  |
-|9     |  198    |  100   |  197    |  0.09403232  |  18.52436632  |  NaN          |  NaN            |  unrooted  |
+|0     |  198    |  100   |  197    |  0.09029828  |  17.78876078  |  NaN          |  NaN            |  unrooted  |
+|1     |  198    |  100   |  197    |  0.08391711  |  16.53167037  |  NaN          |  NaN            |  unrooted  |
+|2     |  198    |  100   |  197    |  0.08369861  |  16.48862662  |  NaN          |  NaN            |  unrooted  |
+|3     |  198    |  100   |  197    |  0.08652623  |  17.04566698  |  NaN          |  NaN            |  unrooted  |
+|4     |  198    |  100   |  197    |  0.07970206  |  15.70130625  |  NaN          |  NaN            |  unrooted  |
+|5     |  198    |  100   |  197    |  0.09145831  |  18.01728772  |  NaN          |  NaN            |  unrooted  |
+|6     |  198    |  100   |  197    |  0.08482117  |  16.70977068  |  NaN          |  NaN            |  unrooted  |
+|7     |  198    |  100   |  197    |  0.08470308  |  16.68650662  |  NaN          |  NaN            |  unrooted  |
+|8     |  198    |  100   |  197    |  0.08646811  |  17.03421732  |  NaN          |  NaN            |  unrooted  |
+|9     |  198    |  100   |  197    |  0.07088132  |  13.96362091  |  NaN          |  NaN            |  unrooted  |
+
+```
+This will generate 10 random unrooted uniform binary trees, each having 100 tips, and print statistics about them.
 
 ## Installation
 ### Binaries
