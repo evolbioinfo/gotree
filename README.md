@@ -72,8 +72,8 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * consensus: Compute the consensus from a set of input trees
     * edgetrees: Write one output tree per branch of the input tree, with only one branch
     * support: Compute bootstrap supports
-      * classical
-      * booster
+      * classical ([Felsenstein Bootstrap](https://www.jstor.org/stable/2408678))
+      * booster ([Transfer Bootstrap](http://biorxiv.org/content/early/2017/06/23/154542))
 *  divide:      Divide an input tree file into several tree files
 *  download:     Download a tree image from a server
     * itol: download a tree image from iTOL, with given image options
@@ -87,7 +87,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * caterpillartree
     * uniformtree
     * yuletree
-*  matrix:      Print distance matrix associated to the input tree
+*  matrix:      Print (patristic) distance matrix associated to the input tree
 *  minbrlen:    Set a minimum branch length to all branches with length < cutoff
 *  prune:       Remove tips of the input tree that are not in the compared tree, or that are given on the command line
 *  randbrlen:   Assign a random length to edges of input trees
