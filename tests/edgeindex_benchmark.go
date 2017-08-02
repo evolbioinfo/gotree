@@ -19,7 +19,7 @@ func BenchmarkEdgeIndex(b *testing.B) {
 		var treereader *bufio.Reader
 		var intrees <-chan tree.Trees
 
-		reftree, err := utils.ReadTree("data/benchmark_ref.nw.gz")
+		reftree, err := utils.ReadTree("data/benchmark_ref.nw.gz", utils.FORMAT_NEWICK)
 		if err != nil {
 			b.Error(err.Error)
 		}
@@ -28,7 +28,7 @@ func BenchmarkEdgeIndex(b *testing.B) {
 			b.Error(err)
 		}
 		defer treefile.Close()
-		intrees = utils.ReadMultiTrees(treereader)
+		intrees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 		var wg sync.WaitGroup
 		edgeindex := tree.NewEdgeIndex(24000, .75)

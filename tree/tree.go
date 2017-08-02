@@ -354,6 +354,25 @@ func (t *Tree) Newick() string {
 	return buffer.String()
 }
 
+func (t *Tree) Nexus() string {
+	newick := t.Newick()
+	var buffer bytes.Buffer
+	buffer.WriteString("#NEXUS\n")
+	buffer.WriteString("BEGIN TAXA;\n")
+	buffer.WriteString(" TAXLABELS")
+	for _, tip := range t.Tips() {
+		buffer.WriteString(" " + tip.Name())
+	}
+	buffer.WriteString(";\n")
+	buffer.WriteString("END;\n")
+	buffer.WriteString("BEGIN TREES;\n")
+	buffer.WriteString("  TREE tree1 = ")
+	buffer.WriteString(newick)
+	buffer.WriteString("\n")
+	buffer.WriteString("END;\n")
+	return buffer.String()
+}
+
 // Updates the tipindex which maps tip names
 // To index in the bitsets
 // Bitset indexes correspond to the position

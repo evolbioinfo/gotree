@@ -24,7 +24,7 @@ func TestClassicalSupport_1(t *testing.T) {
 		t.Error(err)
 	}
 	defer treefile.Close()
-	trees = utils.ReadMultiTrees(treereader)
+	trees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 	// Parsing single tree newick file
 	// Parsing multi tree newick (compared trees
@@ -64,7 +64,7 @@ func TestClassicalSupport_2(t *testing.T) {
 		t.Error(err)
 	}
 	defer treefile.Close()
-	trees = utils.ReadMultiTrees(treereader)
+	trees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 	// Parsing single tree newick file
 	if reftreefile, reftreereader, err = utils.GetReader("data/rand_tree.nw.gz"); err != nil {
@@ -104,7 +104,7 @@ func TestClassicalSupport_3(t *testing.T) {
 		t.Error(err)
 	}
 	defer treefile.Close()
-	trees = utils.ReadMultiTrees(treereader)
+	trees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 	// Parsing single tree newick file
 	if reftreefile, reftreereader, err = utils.GetReader("data/rand_tree.nw.gz"); err != nil {
@@ -143,7 +143,7 @@ func TestClassicalSupport_4(t *testing.T) {
 		t.Error(err)
 	}
 	defer treefile.Close()
-	trees = utils.ReadMultiTrees(treereader)
+	trees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 	// Parsing single tree newick file
 	if reftreefile, reftreereader, err = utils.GetReader("data/rand_tree.nw.gz"); err != nil {

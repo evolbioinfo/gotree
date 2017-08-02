@@ -5,6 +5,7 @@ import (
 	"github.com/fredericlemoine/gotree/tree"
 )
 
+// The nexus structure, with several trees (gotree) and one alignment (goalign)
 type Nexus struct {
 	HasAlignment bool            // If the Nexus structure has contains an Alignment
 	HasTrees     bool            // If the Nexus structure has contains a Tree
@@ -45,4 +46,13 @@ func (n *Nexus) IterateTrees(it func(string, *tree.Tree)) {
 	for i, t := range n.trees {
 		it(n.treeNames[i], t)
 	}
+}
+
+// returns the first tree of the nexus data structure
+// If no tree is present, then returns nil
+func (n *Nexus) FirstTree() *tree.Tree {
+	if len(n.trees) > 0 {
+		return n.trees[0]
+	}
+	return nil
 }

@@ -126,7 +126,7 @@ func (s *Scanner) scanIdent() (tok Token, lit string) {
 			return NEXUS, buf.String()
 		case "BEGIN":
 			return BEGIN, buf.String()
-		case "DATA":
+		case "DATA", "CHARACTERS":
 			return DATA, buf.String()
 		case "TAXA":
 			return TAXA, buf.String()

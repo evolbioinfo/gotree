@@ -27,7 +27,7 @@ func TestMajorityConsensus(t *testing.T) {
 		t.Error(err)
 	}
 	defer treefile.Close()
-	trees = utils.ReadMultiTrees(treereader)
+	trees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 	majority, err = tree.Consensus(trees, 0.5)
 	if err != nil {
@@ -83,7 +83,7 @@ func TestStrictConsensus(t *testing.T) {
 		t.Error(err)
 	}
 	defer treefile.Close()
-	trees = utils.ReadMultiTrees(treereader)
+	trees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 	strict, err = tree.Consensus(trees, 1)
 	if err != nil {

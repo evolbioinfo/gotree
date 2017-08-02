@@ -46,7 +46,7 @@ func TestEdgeIndex2(t *testing.T) {
 		t.Error(err)
 	}
 	defer treefile.Close()
-	trees = utils.ReadMultiTrees(treereader)
+	trees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 	edgeindex := tree.NewEdgeIndex(128, .75)
 	nbtrees := 1

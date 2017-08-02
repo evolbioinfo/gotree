@@ -27,6 +27,7 @@ var compareTips bool
 var tipfile string
 var cutoff float64
 var movedtaxa bool
+var treeformat = utils.FORMAT_NEWICK
 
 var cfgFile string
 var rootCpus int
@@ -107,7 +108,7 @@ func readTrees(infile string) (*os.File, <-chan tree.Trees) {
 	if treefile, treereader, err = utils.GetReader(infile); err != nil {
 		io.ExitWithMessage(err)
 	}
-	treeChannel = utils.ReadMultiTrees(treereader)
+	treeChannel = utils.ReadMultiTrees(treereader, treeformat)
 
 	return treefile, treeChannel
 }
@@ -117,7 +118,7 @@ func readTree(infile string) *tree.Tree {
 	var err error
 	if infile != "none" {
 		// Read comp Tree : Only one tree in input
-		tree, err = utils.ReadTree(infile)
+		tree, err = utils.ReadTree(infile, treeformat)
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
