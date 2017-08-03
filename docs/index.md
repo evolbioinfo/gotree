@@ -72,10 +72,13 @@ Command                                                            | Subcommand 
 [prune](commands/prune.md) ([api](api/prune.md))                   |                   | Removes tips of the input tree that are not in the compared tree, or that are given on the command line
 [randbrlen](commands/randbrlen.md)                                 |                   | Assigns a random length to edges of input trees
 [randsupport](commands/randsupport.md)                             |                   | Assigns a random support to edges of input trees
+[rename](commands/reformat.md) ([api](api/reformat.md))            |                   | Reformats input file
+--                                                                 | newick            | Reformats input file (nexus or newick) into newick
+--                                                                 | nexus             | Reformats input file (nexus or newick) into nexus
 [rename](commands/rename.md) ([api](api/rename.md))                |                   | Renames tips of the input tree, given a map file
 [reroot](commands/reroot.md) ([api](api/reroot.md))                |                   | Reroots trees using an outgroup or at midpoint
 --                                                                 | midpoint          | Reroots trees at midpoint position
---                                                                 | outgroup          | Rerootes trees using a given outgroup
+--                                                                 | outgroup          | Reroots trees using a given outgroup
 [resolve](commands/resolve.md) ([api](api/resolve.md))             |                   | Resolves multifurcations by adding 0 length branches
 [shuffletips](commands/shuffletips.md) ([api](api/shuffletips.md)) |                   | Shuffles tip names of an input tree
 [subtree](commands/subtree.md) ([api](api/subtree.md))             |                   | Extracts a subtree starting at a given node
