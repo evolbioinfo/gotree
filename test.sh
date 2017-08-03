@@ -602,3 +602,99 @@ EOF
 gotree annotate -i inferred -c annotated -o result
 diff expected result
 rm -f expected result annotated inferred
+
+
+echo "->gotree reformat nexus"
+cat > newick <<EOF
+(fish, (frog, (snake, mouse)));
+(fish, (snake, (frog, mouse)));
+(fish, (mouse, (snake, frog)));
+(mouse, (frog, (snake, fish)));
+EOF
+cat > expected <<EOF
+#NEXUS
+BEGIN TAXA;
+ TAXLABELS fish frog snake mouse;
+END;
+BEGIN TREES;
+  TREE tree0 = (fish,(frog,(snake,mouse)));
+  TREE tree1 = (fish,(snake,(frog,mouse)));
+  TREE tree2 = (fish,(mouse,(snake,frog)));
+  TREE tree3 = (mouse,(frog,(snake,fish)));
+END;
+EOF
+gotree reformat nexus -i newick -f newick -o result
+diff expected result
+rm -f expected result newick
+
+
+echo "->gotree reformat newick 1"
+cat > nexus <<EOF
+#NEXUS
+BEGIN TAXA;
+      TaxLabels fish frog snake mouse;
+END;
+
+BEGIN CHARACTERS;
+      Dimensions NChar=40;
+      Format DataType=DNA;
+      Matrix
+        fish   ACATA GAGGG TACCT CTAAA
+        frog   ACATA GAGGG TACCT CTAAC
+        snake  ACATA GAGGG TACCT CTAAG
+        mouse  ACATA GAGGG TACCT CTAAT
+
+        fish   ACATA GAGGG TACCT CTAAG
+        frog   CCATA GAGGG TACCT CTAAG
+        snake  GCATA GAGGG TACCT CTAAG
+        mouse  TCATA GAGGG TACCT CTAAG
+;
+END;
+
+BEGIN TREES;
+      Tree best=(fish, (frog, (snake, mouse)));
+END;
+EOF
+cat > expected <<EOF
+(fish,(frog,(snake,mouse)));
+EOF
+gotree reformat newick -i nexus -f nexus -o result
+diff expected result
+rm -f expected result nexus
+
+
+echo "->gotree reformat newick 2"
+cat > nexus <<EOF
+#NEXUS
+BEGIN TAXA;
+      TaxLabels fish frog snake mouse;
+END;
+
+BEGIN CHARACTERS;
+      Dimensions NChar=40;
+      Format DataType=DNA;
+      Matrix
+        fish   ACATA GAGGG TACCT CTAAA
+        fish   ACATA GAGGG TACCT CTAAG
+
+        frog   ACATA GAGGG TACCT CTAAC
+        frog   CCATA GAGGG TACCT CTAAG
+
+        snake  ACATA GAGGG TACCT CTAAG
+        snake  GCATA GAGGG TACCT CTAAG
+
+        mouse  ACATA GAGGG TACCT CTAAT
+        mouse  TCATA GAGGG TACCT CTAAG
+;
+END;
+
+BEGIN TREES;
+      Tree best=(fish, (frog, (snake, mouse)));
+END;
+EOF
+cat > expected <<EOF
+(fish,(frog,(snake,mouse)));
+EOF
+gotree reformat newick -i nexus -f nexus -o result
+diff expected result
+rm -f expected result nexus

@@ -56,14 +56,16 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 	return
 }
 
-// Parses a Newick String.
+// Parses Nexus content from the reader
 func (p *Parser) Parse() (*Nexus, error) {
 	var nchar, ntax int64
 	datatype := "dna"
 	missing := '*'
 	gap := '-'
 	var taxlabels map[string]bool = nil
-	var names, sequences, treestrings, treenames []string
+	var names, treestrings, treenames []string
+	var sequences map[string]string
+
 	nexus := NewNexus()
 
 	// First token should be a "NEXUS" token.
@@ -89,9 +91,9 @@ func (p *Parser) Parse() (*Nexus, error) {
 			// Next token should be the name of the block
 			tok2, lit2 := p.scanIgnoreWhitespace()
 			// Then a ;
-			tok3, _ := p.scanIgnoreWhitespace()
+			tok3, lit3 := p.scanIgnoreWhitespace()
 			if tok3 != ENDOFCOMMAND {
-				return nil, fmt.Errorf("found %q, expected ;", lit)
+				return nil, fmt.Errorf("found %q, expected ;", lit3)
 			}
 			var err error
 			switch tok2 {
@@ -129,11 +131,12 @@ func (p *Parser) Parse() (*Nexus, error) {
 		if len(names) != int(ntax) && ntax != -1 {
 			return nil, fmt.Errorf("Number of taxa in alignment (%d)  does not correspond to definition %d", len(names), ntax)
 		}
-		for i, seq := range sequences {
+		for i, name := range names {
+			seq, _ := sequences[name]
 			if len(seq) != int(nchar) && nchar != -1 {
 				return nil, fmt.Errorf("Number of character in sequence #%d (%d) does not correspond to definition %d", i, len(seq), nchar)
 			}
-			if err := al.AddSequence(names[i], seq, ""); err != nil {
+			if err := al.AddSequence(name, seq, ""); err != nil {
 				return nil, err
 			}
 		}
@@ -293,12 +296,12 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 }
 
 // DATA / Characters BLOCK
-func (p *Parser) parseData() (names, sequences []string, nchar, ntax int64, datatype string, missing, gap rune, err error) {
+func (p *Parser) parseData() (names []string, sequences map[string]string, nchar, ntax int64, datatype string, missing, gap rune, err error) {
 	datatype = "dna"
 	missing = '*'
 	gap = '-'
 	stopdata := false
-	sequences = make([]string, 0)
+	sequences = make(map[string]string)
 	names = make([]string, 0)
 	nchar = -1
 	ntax = -1
@@ -439,15 +442,17 @@ func (p *Parser) parseData() (names, sequences []string, nchar, ntax int64, data
 				tok2, lit2 := p.scanIgnoreWhitespace()
 				switch tok2 {
 				case IDENT:
-					//We remove whitespaces in sequences if any
+					// We remove whitespaces in sequences if any
+					// and take into account possibly interleaved
+					// sequences
 					stopseq := false
-					names = append(names, lit2)
-					sequences = append(sequences, "")
+					name := lit2
+					sequence := ""
 					for !stopseq {
 						tok3, lit3 := p.scanIgnoreWhitespace()
 						switch tok3 {
 						case IDENT:
-							sequences[len(sequences)-1] = sequences[len(sequences)-1] + lit3
+							sequence = sequence + lit3
 						case ENDOFLINE:
 							stopseq = true
 						default:
@@ -457,6 +462,8 @@ func (p *Parser) parseData() (names, sequences []string, nchar, ntax int64, data
 					}
 					if err != nil {
 						stopmatrix = true
+					} else {
+						addseq(sequences, &names, sequence, name)
 					}
 				case ENDOFLINE:
 					break
@@ -470,7 +477,6 @@ func (p *Parser) parseData() (names, sequences []string, nchar, ntax int64, data
 			if err != nil {
 				stopdata = true
 			}
-
 		default:
 			err = p.parseUnsupportedCommand()
 			treeio.LogWarning(fmt.Errorf("Unsupported command %q in block DATA, skipping", lit))
@@ -539,4 +545,17 @@ func (p *Parser) parseUnsupportedBlock() error {
 		}
 	}
 	return err
+}
+
+// Append a sequence to the hashmap map[name]seq.
+// If the name does not exists in the map, adds the name to names and the sequence to the map (to keep order of the input nexus matrix
+// Otherwise, append the sequence to the already insert sequence in the map
+func addseq(sequences map[string]string, names *[]string, sequence string, name string) {
+	seq, ok := sequences[name]
+	if !ok {
+		*names = append(*names, name)
+		sequences[name] = sequence
+	} else {
+		sequences[name] = seq + sequence
+	}
 }

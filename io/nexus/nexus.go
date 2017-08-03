@@ -21,7 +21,7 @@ func NewNexus() *Nexus {
 		HasAlignment: false,
 		HasTrees:     false,
 		GapChar:      '-',
-		MissingChar:  '?',
+		MissingChar:  '*',
 		trees:        make([]*tree.Tree, 0),
 		treeNames:    make([]string, 0),
 		align:        nil,
@@ -55,4 +55,10 @@ func (n *Nexus) FirstTree() *tree.Tree {
 		return n.trees[0]
 	}
 	return nil
+}
+
+// returns the first tree of the nexus data structure
+// If no tree is present, then returns nil
+func (n *Nexus) NTrees() int {
+	return len(n.trees)
 }

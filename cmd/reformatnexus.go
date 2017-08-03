@@ -25,6 +25,10 @@ var nexusCmd = &cobra.Command{
 		buffer.WriteString("#NEXUS\n")
 
 		for t := range treechan {
+			if t.Err != nil {
+				io.ExitWithMessage(t.Err)
+			}
+
 			if !taxlabels {
 				buffer.WriteString("BEGIN TAXA;\n")
 				buffer.WriteString(" TAXLABELS")
@@ -35,9 +39,6 @@ var nexusCmd = &cobra.Command{
 				buffer.WriteString("END;\n")
 				buffer.WriteString("BEGIN TREES;\n")
 				taxlabels = true
-			}
-			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
 			}
 			buffer.WriteString("  TREE tree")
 			buffer.WriteString(strconv.Itoa(t.Id))
