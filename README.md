@@ -151,19 +151,19 @@ $ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -r -o tree_ra
 
 * Reformating 10 input random trees into Nexus format:
 ```[bash]
-$ gotree generate yuletree -n 4 -l 4 -s 10 | gotree clear lengths | gotree reformat nexus
+$ gotree generate yuletree -n 4 -l 8 -s 10 | gotree clear lengths | gotree reformat nexus
 ```
 Will output:
 ```
 #NEXUS
 BEGIN TAXA;
- TAXLABELS Tip2 Tip0 Tip3 Tip1;
+ TAXLABELS Tip4 Tip7 Tip2 Tip0 Tip3 Tip6 Tip5 Tip1;
 END;
 BEGIN TREES;
-  TREE tree0 = (Tip2,Tip0,(Tip3,Tip1));
-  TREE tree1 = (Tip2,Tip0,(Tip3,Tip1));
-  TREE tree2 = (Tip2,Tip0,(Tip3,Tip1));
-  TREE tree3 = ((Tip3,Tip2),Tip0,Tip1);
+  TREE tree0 = ((Tip4,(Tip7,Tip2)),Tip0,(Tip3,((Tip6,Tip5),Tip1)));
+  TREE tree1 = (Tip5,Tip0,((Tip6,Tip4),((Tip3,Tip2),(Tip7,Tip1))));
+  TREE tree2 = (((Tip7,Tip3),(Tip4,Tip2)),Tip0,((Tip6,Tip5),Tip1));
+  TREE tree3 = (Tip4,Tip0,((Tip5,Tip2),(Tip3,(Tip6,(Tip7,Tip1)))));
 END;
 ```
 
