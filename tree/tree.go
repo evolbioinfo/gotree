@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"regexp"
 	"sort"
+	"strconv"
 
 	"github.com/fredericlemoine/bitset"
 	"github.com/fredericlemoine/gotree/io"
@@ -359,8 +360,12 @@ func (t *Tree) Nexus() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("#NEXUS\n")
 	buffer.WriteString("BEGIN TAXA;\n")
+	tips := t.Tips()
+	buffer.WriteString(" DIMENSIONS NTAX=")
+	buffer.WriteString(strconv.Itoa(len(tips)))
+	buffer.WriteString(";\n")
 	buffer.WriteString(" TAXLABELS")
-	for _, tip := range t.Tips() {
+	for _, tip := range tips {
 		buffer.WriteString(" " + tip.Name())
 	}
 	buffer.WriteString(";\n")

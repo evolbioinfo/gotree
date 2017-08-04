@@ -58,7 +58,7 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 
 // Parses Nexus content from the reader
 func (p *Parser) Parse() (*Nexus, error) {
-	var nchar, ntax int64
+	var nchar, ntax, taxantax int64
 	datatype := "dna"
 	missing := '*'
 	gap := '-'
@@ -86,6 +86,15 @@ func (p *Parser) Parse() (*Nexus, error) {
 		if tok == ENDOFLINE {
 			continue
 		}
+
+		if tok == OPENBRACK {
+			var err error
+			if tok, lit, err = p.consumeComment(tok, lit); err != nil {
+				return nil, err
+			}
+			tok, lit = p.scanIgnoreWhitespace()
+		}
+
 		// Beginning of a block
 		if tok == BEGIN {
 			// Next token should be the name of the block
@@ -99,7 +108,7 @@ func (p *Parser) Parse() (*Nexus, error) {
 			switch tok2 {
 			case TAXA:
 				// TAXA BLOCK
-				taxlabels, err = p.parseTaxa()
+				taxantax, taxlabels, err = p.parseTaxa()
 			case TREES:
 				// TREES BLOCK
 				treenames, treestrings, err = p.parseTrees()
@@ -116,6 +125,10 @@ func (p *Parser) Parse() (*Nexus, error) {
 				return nil, err
 			}
 		}
+	}
+
+	if int(taxantax) != -1 && int(taxantax) != len(taxlabels) {
+		return nil, fmt.Errorf("Number of defined taxa in TAXLABELS/DIMENSIONS (%d) is different from length of taxa list (%d)", taxantax, len(taxlabels))
 	}
 
 	if gap != '-' || missing != '*' {
@@ -184,10 +197,11 @@ func (p *Parser) Parse() (*Nexus, error) {
 }
 
 // Parse taxa block
-func (p *Parser) parseTaxa() (map[string]bool, error) {
+func (p *Parser) parseTaxa() (int64, map[string]bool, error) {
 	taxlabels := make(map[string]bool)
 	var err error
 	stoptaxa := false
+	var ntax int64 = -1
 	for !stoptaxa {
 		tok, lit := p.scanIgnoreWhitespace()
 		switch tok {
@@ -205,6 +219,39 @@ func (p *Parser) parseTaxa() (map[string]bool, error) {
 				err = fmt.Errorf("End token without ;")
 			}
 			stoptaxa = true
+		case DIMENSIONS:
+			// Dimensions of the data: ntax
+			stopdimensions := false
+			for !stopdimensions {
+				tok2, lit2 := p.scanIgnoreWhitespace()
+				switch tok2 {
+				case ENDOFCOMMAND:
+					stopdimensions = true
+				case NTAX:
+					tok3, lit3 := p.scanIgnoreWhitespace()
+					if tok3 != EQUAL {
+						err = fmt.Errorf("Expecting '=' after NTAX, got %q", lit3)
+						stopdimensions = true
+					}
+					tok4, lit4 := p.scanIgnoreWhitespace()
+					if tok4 != NUMERIC {
+						err = fmt.Errorf("Expecting Integer value after 'NTAX=', got %q", lit4)
+						stopdimensions = true
+					}
+					ntax, err = strconv.ParseInt(lit4, 10, 64)
+					if err != nil {
+						stopdimensions = true
+					}
+				default:
+					if err = p.parseUnsupportedKey(lit2); err != nil {
+						stopdimensions = true
+					}
+					treeio.LogWarning(fmt.Errorf("Unsupported key %q in %q command, skipping", lit2, lit))
+				}
+				if err != nil {
+					stoptaxa = true
+				}
+			}
 		case TAXLABELS:
 			stoplabels := false
 			for !stoplabels {
@@ -222,6 +269,11 @@ func (p *Parser) parseTaxa() (map[string]bool, error) {
 			if err != nil {
 				stoptaxa = true
 			}
+		case OPENBRACK:
+			if tok, lit, err = p.consumeComment(tok, lit); err != nil {
+				stoptaxa = true
+			}
+
 		default:
 			err = p.parseUnsupportedCommand()
 			treeio.LogWarning(fmt.Errorf("Unsupported command %q in block TAXA, skipping", lit))
@@ -230,7 +282,7 @@ func (p *Parser) parseTaxa() (map[string]bool, error) {
 			}
 		}
 	}
-	return taxlabels, err
+	return ntax, taxlabels, err
 }
 
 // Parse TREES block
@@ -261,19 +313,30 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 			if tok2 != IDENT {
 				err = fmt.Errorf("Expecting a tree name after TREE, got %q", lit2)
 				stoptrees = true
+				break
 			}
 			tok3, lit3 := p.scanIgnoreWhitespace()
 			if tok3 != EQUAL {
 				err = fmt.Errorf("Expecting '=' after tree name, got %q", lit3)
 				stoptrees = true
+				break
 			}
-			// We remove whitespaces in the tree string if any...
 			tok4, lit4 := p.scanIgnoreWhitespace()
+			if tok4 == OPENBRACK {
+				if tok4, lit4, err = p.consumeComment(tok4, lit4); err != nil {
+					stoptrees = true
+					break
+				}
+				tok4, lit4 = p.scanIgnoreWhitespace()
+			}
 			tree := ""
+			// We remove whitespaces in the tree string if any,
+			// and keep comments in brackets as part of the newick string
 			for tok4 != ENDOFCOMMAND {
-				if tok4 != IDENT {
+				if tok4 != IDENT && tok4 != OPENBRACK && tok4 != CLOSEBRACK {
 					err = fmt.Errorf("Expecting a tree after 'TREE name =', got  %q", lit4)
 					stoptrees = true
+					break
 				}
 				tree += lit4
 				tok4, lit4 = p.scanIgnoreWhitespace()
@@ -281,9 +344,14 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 			if tok4 != ENDOFCOMMAND {
 				err = fmt.Errorf("Expecting ';' after 'TREE name = tree', got %q", lit4)
 				stoptrees = true
+				break
 			}
 			treenames = append(treenames, lit2)
 			treestrings = append(treestrings, tree)
+		case OPENBRACK:
+			if tok, lit, err = p.consumeComment(tok, lit); err != nil {
+				stoptrees = true
+			}
 		default:
 			err = p.parseUnsupportedCommand()
 			treeio.LogWarning(fmt.Errorf("Unsupported command %q in block TREES, skipping", lit))
@@ -477,6 +545,10 @@ func (p *Parser) parseData() (names []string, sequences map[string]string, nchar
 			if err != nil {
 				stopdata = true
 			}
+		case OPENBRACK:
+			if tok, lit, err = p.consumeComment(tok, lit); err != nil {
+				stopdata = true
+			}
 		default:
 			err = p.parseUnsupportedCommand()
 			treeio.LogWarning(fmt.Errorf("Unsupported command %q in block DATA, skipping", lit))
@@ -558,4 +630,21 @@ func addseq(sequences map[string]string, names *[]string, sequence string, name 
 	} else {
 		sequences[name] = seq + sequence
 	}
+}
+
+// Consumes comment inside brakets [comment] if the given current token is a [.
+// At the end returns the matching ] token and lit.
+// If the given token is not a [, then returns the input token and lit
+func (p *Parser) consumeComment(curtoken Token, curlit string) (outtoken Token, outlit string, err error) {
+	outtoken = curtoken
+	curlit = curlit
+	if curtoken == OPENBRACK {
+		for outtoken != CLOSEBRACK {
+			outtoken, outlit = p.scanIgnoreWhitespace()
+			if outtoken == EOF || outtoken == ILLEGAL {
+				err = fmt.Errorf("Unmatched bracket")
+			}
+		}
+	}
+	return
 }

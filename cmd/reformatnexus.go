@@ -31,8 +31,12 @@ var nexusCmd = &cobra.Command{
 
 			if !taxlabels {
 				buffer.WriteString("BEGIN TAXA;\n")
+				tips := t.Tree.Tips()
+				buffer.WriteString(" DIMENSIONS NTAX=")
+				buffer.WriteString(strconv.Itoa(len(tips)))
+				buffer.WriteString(";\n")
 				buffer.WriteString(" TAXLABELS")
-				for _, tip := range t.Tree.Tips() {
+				for _, tip := range tips {
 					buffer.WriteString(" " + tip.Name())
 				}
 				buffer.WriteString(";\n")

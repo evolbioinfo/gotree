@@ -614,6 +614,7 @@ EOF
 cat > expected <<EOF
 #NEXUS
 BEGIN TAXA;
+ DIMENSIONS NTAX=4;
  TAXLABELS fish frog snake mouse;
 END;
 BEGIN TREES;
@@ -632,6 +633,7 @@ echo "->gotree reformat newick 1"
 cat > nexus <<EOF
 #NEXUS
 BEGIN TAXA;
+      DIMENSIONS NTAX=4;
       TaxLabels fish frog snake mouse;
 END;
 
@@ -662,8 +664,47 @@ gotree reformat newick -i nexus -f nexus -o result
 diff expected result
 rm -f expected result nexus
 
-
 echo "->gotree reformat newick 2"
+cat > nexus <<EOF
+#NEXUS
+[NEXUS COMMENT]
+BEGIN TAXA;
+      DIMENSIONS NTAX=4;[NEXUS COMMENT]
+      [NEXUS COMMENT]
+      TaxLabels fish frog snake mouse;[NEXUS COMMENT]
+END;
+[NEXUS COMMENT]
+BEGIN CHARACTERS;
+      [NEXUS COMMENT]
+      Dimensions NChar=40;
+      [NEXUS COMMENT]
+      Format DataType=DNA;
+      Matrix
+        fish   ACATA GAGGG TACCT CTAAA
+        frog   ACATA GAGGG TACCT CTAAC
+        snake  ACATA GAGGG TACCT CTAAG
+        mouse  ACATA GAGGG TACCT CTAAT
+
+        fish   ACATA GAGGG TACCT CTAAG
+        frog   CCATA GAGGG TACCT CTAAG
+        snake  GCATA GAGGG TACCT CTAAG
+        mouse  TCATA GAGGG TACCT CTAAG
+;
+[NEXUS COMMENT]
+END;
+
+BEGIN TREES;
+      Tree best= [&R] (fish[COMMENT], (frog, (snake, mouse)));
+END;
+EOF
+cat > expected <<EOF
+(fish[COMMENT],(frog,(snake,mouse)));
+EOF
+gotree reformat newick -i nexus -f nexus -o result
+diff expected result
+rm -f expected result nexus
+
+echo "->gotree reformat newick 3"
 cat > nexus <<EOF
 #NEXUS
 BEGIN TAXA;
