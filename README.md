@@ -110,6 +110,9 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 *  prune:       Remove tips of the input tree that are not in the compared tree, or that are given on the command line
 *  randbrlen:   Assign a random length to edges of input trees
 *  randsupport: Assign a random support to edges of input trees
+*  reformat: Convert input file between nexus and newick formats
+    * newick
+    * nexus
 *  rename:      Rename tips of the input tree, given a map file
 *  reroot:      Reroot trees using an outgroup or at midpoint
     * midpoint
@@ -144,6 +147,24 @@ $ gotree generate yuletree -l 50 | gotree draw text -w 100
 ```[bash]
 $ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -o tree.svg
 $ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -r -o tree_radial.svg
+```
+
+* Reformating 10 input random trees into Nexus format:
+```[bash]
+$ gotree generate yuletree -n 4 -l 4 -s 10 | gotree clear lengths | gotree reformat nexus
+```
+Will output:
+```
+#NEXUS
+BEGIN TAXA;
+ TAXLABELS Tip2 Tip0 Tip3 Tip1;
+END;
+BEGIN TREES;
+  TREE tree0 = (Tip2,Tip0,(Tip3,Tip1));
+  TREE tree1 = (Tip2,Tip0,(Tip3,Tip1));
+  TREE tree2 = (Tip2,Tip0,(Tip3,Tip1));
+  TREE tree3 = ((Tip3,Tip2),Tip0,Tip1);
+END;
 ```
 
 * Unrooting a tree
