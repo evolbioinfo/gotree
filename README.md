@@ -45,8 +45,8 @@ $ gotree generate uniformtree -l 100 -n 10 | gotree stats
 This will generate 10 random unrooted uniform binary trees, each having 100 tips, and print statistics about them.
 
 ## Installation
-### Binaries
-You can download already compiled binaries for the latest release in the [release](https://github.com/fredericlemoine/gotree/releases) section.
+### Easy way: Binaries
+You can download ready to run binaries for the latest release in the [release](https://github.com/fredericlemoine/gotree/releases) section.
 Binaries are available for MacOS, Linux, and Windows (32 and 64 bits).
 
 Once downloaded, you can just run the executable without any other downloads.
