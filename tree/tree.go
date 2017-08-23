@@ -1302,3 +1302,36 @@ func (t *Tree) SubTree(n *Node) *Tree {
 	subtree.UpdateTipIndex()
 	return (subtree)
 }
+
+/*
+Merges Two rooted trees t and t2 in t by adding a new root node with two children
+Corresponding to the roots of the 2 trees.
+If one of the tree is not rooted, returns an error
+Tip set must be different between the two trees, otherwise returns an error
+it is advised not to use t2 after the merge, since it may conflict with t
+Edges connecting new root with old roots have length of 1.0
+*/
+func (t *Tree) Merge(t2 *Tree) error {
+	if !t.Rooted() || !t2.Rooted() {
+		return errors.New("One of the two tree (or both) is not rooted")
+	}
+
+	//Comparing tip names
+	if len(t.tipIndex) == 0 || len(t2.tipIndex) == 0 {
+		return errors.New("No tips in the index, tip name index is not initialized")
+	}
+	for k := range t.tipIndex {
+		_, ok := t2.tipIndex[k]
+		if ok {
+			return errors.New("Trees should not have common tip names")
+		}
+	}
+
+	// Now we add a new root
+	newroot := t.NewNode()
+	t.ConnectNodes(newroot, t.Root())
+	t.ConnectNodes(newroot, t2.Root())
+	t.SetRoot(newroot)
+	t.UpdateTipIndex()
+	return nil
+}
