@@ -23,6 +23,8 @@ var inputname string
 var mapfile string
 var revert bool
 var transferdist bool
+var deepestedge bool
+var edgeformattext bool
 var compareTips bool
 var tipfile string
 var cutoff float64
