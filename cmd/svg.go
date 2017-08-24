@@ -39,6 +39,7 @@ var svgCmd = &cobra.Command{
 			}
 			f := openWriteFile(fname)
 			if svgradial {
+				t.Tree.ReinitIndexes()
 				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else if svgcircular {
