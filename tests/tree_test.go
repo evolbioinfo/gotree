@@ -123,3 +123,41 @@ func TestBipartitionTree(t *testing.T) {
 		t.Error(fmt.Sprintf("Number of tips on the rightSide of the internal edge should be 4, but is %d", internal.NumTips()))
 	}
 }
+
+// We merge two trees, and compare all bipartitions to the expected tree
+func TestMerge(t *testing.T) {
+	treeString := "(Tip0,(Tip3,(Tip2,Tip1)0.2)0.9);"
+	treeString2 := "(Tip0_2,(Tip3_2,(Tip2_2,Tip1_2)0.2)0.9);"
+	expected := "((Tip0,(Tip3,(Tip2,Tip1)0.2)0.9),(Tip0_2,(Tip3_2,(Tip2_2,Tip1_2)0.2)0.9));"
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	tr2, err2 := newick.NewParser(strings.NewReader(treeString2)).Parse()
+	if err2 != nil {
+		t.Error(err2)
+	}
+	tr3, err3 := newick.NewParser(strings.NewReader(expected)).Parse()
+	if err3 != nil {
+		t.Error(err3)
+	}
+	tr.ReinitIndexes()
+	tr2.ReinitIndexes()
+	tr3.ReinitIndexes()
+
+	compchan := make(chan tree.Trees)
+	err4 := tr.Merge(tr2)
+	if err4 != nil {
+		t.Error(err4)
+	}
+
+	stats, err := tree.Compare(tr, compchan, false, true, 1)
+	compchan <- tree.Trees{tr3, 0, nil}
+	st := <-stats
+	if st.Err != nil {
+		t.Error(st.Err)
+	}
+	if !st.Sametree {
+		t.Error(fmt.Sprintf("Merged tree %s does not correspond to the expected tree %s", tr3.Newick(), expected))
+	}
+}

@@ -106,6 +106,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * uniformtree
     * yuletree
 *  matrix:      Print (patristic) distance matrix associated to the input tree
+*  merge:       Merges two rooted trees
 *  minbrlen:    Set a minimum branch length to all branches with length < cutoff
 *  prune:       Remove tips of the input tree that are not in the compared tree, or that are given on the command line
 *  randbrlen:   Assign a random length to edges of input trees

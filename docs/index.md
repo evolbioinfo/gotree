@@ -68,6 +68,7 @@ Command                                                            | Subcommand 
 --                                                                 | uniformtree       | Randomly generates uniform trees
 --                                                                 | yuletree          | Randomly generates Yule-Harding trees
 [matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
+[merge](commands/merge.md) ([api](api/merge.md))                   |                   | Merges two rooted trees
 [minbrlen](commands/minbrlen.md) ([api](api/minbrlen.md))          |                   | Sets a minimum branch length to all branches with length < cutoff
 [prune](commands/prune.md) ([api](api/prune.md))                   |                   | Removes tips of the input tree that are not in the compared tree, or that are given on the command line
 [randbrlen](commands/randbrlen.md)                                 |                   | Assigns a random length to edges of input trees
