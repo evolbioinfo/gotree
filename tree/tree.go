@@ -675,7 +675,7 @@ func (t *Tree) Reroot(n *Node) error {
 		return errors.New("The node is not part of the tree")
 	}
 	t.root = n
-	err := t.reorderEdges(n, nil)
+	err := t.ReorderEdges(n, nil, nil)
 	return err
 }
 
@@ -685,13 +685,17 @@ func (t *Tree) Reroot(n *Node) error {
 // with respect to the given root node
 // Important even for unrooted trees
 // Useful mainly after a reroot
-func (t *Tree) reorderEdges(n *Node, prev *Node) error {
+// Updates "reversed" edge slice, edges that have been reversed
+func (t *Tree) ReorderEdges(n *Node, prev *Node, reversed *[]*Edge) error {
 	for _, next := range n.br {
 		if next.right != prev && next.left != prev {
 			if next.right == n {
 				next.right, next.left = next.left, next.right
+				if reversed != nil {
+					(*reversed) = append((*reversed), next)
+				}
 			}
-			t.reorderEdges(next.right, n)
+			t.ReorderEdges(next.right, n, reversed)
 		}
 	}
 	return nil
