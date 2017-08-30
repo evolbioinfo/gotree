@@ -44,5 +44,5 @@ gotree reformat nexus -i input.nw -f newick -o output.nexus
 
 * Reformat input phyloxml format into newick
 ```
-gotree reformat newick -i input.xml -f phyloxml -o output.nexus
+gotree reformat newick -i input.xml -f phyloxml -o output.nw
 ```
