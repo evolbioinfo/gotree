@@ -2,9 +2,10 @@
 
 ## API
 
-### prune
+### reformat
 
 Parsing nexus trees and output them as newick
+
 ```go
 package main
 
@@ -31,5 +32,40 @@ func main() {
 			fmt.Println(tree.Newick())
 		})
 	}
+}
+```
+
+Parsing phyloxml trees and output them as newick
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/fredericlemoine/gotree/io/phyloxml"
+	"github.com/fredericlemoine/gotree/tree"
+)
+
+func main() {
+	var f *os.File
+	var err error
+	var xml *phyloxml.PhyloXML
+	if f, err = os.Open("bcl_2.xml"); err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	p := phyloxml.NewParser(f)
+	xml, err = p.Parse()
+	if err != nil {
+		panic(err)
+	}
+	xml.IterateTrees(func(t *tree.Tree, err error) {
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(t.Newick())
+	})
 }
 ```

@@ -74,8 +74,9 @@ Command                                                            | Subcommand 
 [randbrlen](commands/randbrlen.md)                                 |                   | Assigns a random length to edges of input trees
 [randsupport](commands/randsupport.md)                             |                   | Assigns a random support to edges of input trees
 [reformat](commands/reformat.md) ([api](api/reformat.md))          |                   | Reformats input file
---                                                                 | newick            | Reformats input file (nexus or newick) into newick
---                                                                 | nexus             | Reformats input file (nexus or newick) into nexus
+--                                                                 | newick            | Reformats input file (nexus, newick, phyloxml) into newick
+--                                                                 | nexus             | Reformats input file (nexus, newick, phyloxml) into nexus
+--                                                                 | phyloxml          | Reformats input file (nexus, newick, phyloxml) into phyloxml
 [rename](commands/rename.md) ([api](api/rename.md))                |                   | Renames tips of the input tree, given a map file
 [reroot](commands/reroot.md) ([api](api/reroot.md))                |                   | Reroots trees using an outgroup or at midpoint
 --                                                                 | midpoint          | Reroots trees at midpoint position

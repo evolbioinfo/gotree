@@ -20,9 +20,10 @@ Usage:
 Available Commands:
   newick      Reformats an input tree file into Newick format
   nexus       Reformats an input tree file into Nexus format
+  phyloxml    Reformats an input tree file into PhyloXML format
 
 Flags:
-  -f, --format string   Input format (newick, nexus) (default "newick")
+  -f, --format string   Input format (newick, nexus, phyloxml) (default "newick")
   -h, --help            help for reformat
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Output file (default "stdout")
@@ -36,7 +37,12 @@ Flags:
 gotree reformat newick -i input.nexus -f nexus -o output.nw
 ```
 
-* Reformat input nexick format into nexus
+* Reformat input newick format into nexus
 ```
 gotree reformat nexus -i input.nw -f newick -o output.nexus
+```
+
+* Reformat input phyloxml format into newick
+```
+gotree reformat newick -i input.nw -f phyloxml -o output.nexus
 ```
