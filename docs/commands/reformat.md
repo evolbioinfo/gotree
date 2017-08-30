@@ -6,8 +6,8 @@
 This command reformats an input tree file into different formats.
 
 So far, formats can be :
-- Input formats: Newick, Nexus
-- Output formats: Newick, Nexus.
+- Input formats: Newick, Nexus, PhyloXML
+- Output formats: Newick, Nexus, PhyloXML.
 
 
 #### Usage
