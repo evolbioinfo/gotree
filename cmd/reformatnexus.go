@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"bytes"
-	"strconv"
-
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/io/nexus"
 	"github.com/spf13/cobra"
 )
 
@@ -17,42 +15,15 @@ var nexusCmd = &cobra.Command{
 - Input formats: Newick, Nexus,
 - Output format: Nexus.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		taxlabels := false
 		f := openWriteFile(outtreefile)
+		defer f.Close()
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
-		var buffer bytes.Buffer
-		buffer.WriteString("#NEXUS\n")
-
-		for t := range treechan {
-			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
-			}
-
-			if !taxlabels {
-				buffer.WriteString("BEGIN TAXA;\n")
-				tips := t.Tree.Tips()
-				buffer.WriteString(" DIMENSIONS NTAX=")
-				buffer.WriteString(strconv.Itoa(len(tips)))
-				buffer.WriteString(";\n")
-				buffer.WriteString(" TAXLABELS")
-				for _, tip := range tips {
-					buffer.WriteString(" " + tip.Name())
-				}
-				buffer.WriteString(";\n")
-				buffer.WriteString("END;\n")
-				buffer.WriteString("BEGIN TREES;\n")
-				taxlabels = true
-			}
-			buffer.WriteString("  TREE tree")
-			buffer.WriteString(strconv.Itoa(t.Id))
-			buffer.WriteString(" = ")
-			buffer.WriteString(t.Tree.Newick())
-			buffer.WriteString("\n")
+		nex, err := nexus.WriteNexus(treechan)
+		if err != nil {
+			io.ExitWithMessage(err)
 		}
-		buffer.WriteString("END;\n")
-		f.WriteString(buffer.String())
-		f.Close()
+		f.WriteString(nex)
 	},
 }
 

@@ -1,6 +1,9 @@
 package nexus
 
 import (
+	"bytes"
+	"strconv"
+
 	"github.com/fredericlemoine/goalign/align"
 	"github.com/fredericlemoine/gotree/tree"
 )
@@ -61,4 +64,39 @@ func (n *Nexus) FirstTree() *tree.Tree {
 // If no tree is present, then returns nil
 func (n *Nexus) NTrees() int {
 	return len(n.trees)
+}
+
+// Generates a Nexus string from a tree channel.
+func WriteNexus(tchan <-chan tree.Trees) (string, error) {
+	var buffer bytes.Buffer
+	buffer.WriteString("#NEXUS\n")
+	taxlabels := false
+	for t := range tchan {
+		if t.Err != nil {
+			return "", t.Err
+		}
+
+		if !taxlabels {
+			buffer.WriteString("BEGIN TAXA;\n")
+			tips := t.Tree.Tips()
+			buffer.WriteString(" DIMENSIONS NTAX=")
+			buffer.WriteString(strconv.Itoa(len(tips)))
+			buffer.WriteString(";\n")
+			buffer.WriteString(" TAXLABELS")
+			for _, tip := range tips {
+				buffer.WriteString(" " + tip.Name())
+			}
+			buffer.WriteString(";\n")
+			buffer.WriteString("END;\n")
+			buffer.WriteString("BEGIN TREES;\n")
+			taxlabels = true
+		}
+		buffer.WriteString("  TREE tree")
+		buffer.WriteString(strconv.Itoa(t.Id))
+		buffer.WriteString(" = ")
+		buffer.WriteString(t.Tree.Newick())
+		buffer.WriteString("\n")
+	}
+	buffer.WriteString("END;\n")
+	return buffer.String(), nil
 }
