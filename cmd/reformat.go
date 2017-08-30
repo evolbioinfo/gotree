@@ -26,6 +26,8 @@ So far, it can be :
 			treeformat = utils.FORMAT_NEWICK
 		case "nexus":
 			treeformat = utils.FORMAT_NEXUS
+		case "phyloxml":
+			treeformat = utils.FORMAT_PHYLOXML
 		default:
 			io.ExitWithMessage(fmt.Errorf("Tree input format is not supported : %q", reformatinputformat))
 		}
@@ -34,7 +36,7 @@ So far, it can be :
 
 func init() {
 	RootCmd.AddCommand(reformatCmd)
-	reformatCmd.PersistentFlags().StringVarP(&reformatinputformat, "format", "f", "newick", "Input format (newick, nexus)")
+	reformatCmd.PersistentFlags().StringVarP(&reformatinputformat, "format", "f", "newick", "Input format (newick, nexus, phyloxml)")
 	reformatCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	reformatCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
 

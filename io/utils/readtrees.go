@@ -7,12 +7,14 @@ import (
 
 	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/io/nexus"
+	"github.com/fredericlemoine/gotree/io/phyloxml"
 	"github.com/fredericlemoine/gotree/tree"
 )
 
 const (
 	FORMAT_NEWICK = iota
 	FORMAT_NEXUS
+	FORMAT_PHYLOXML
 )
 
 func ReadTree(inputfile string, format int) (*tree.Tree, error) {
@@ -53,6 +55,18 @@ func ReadTreeReader(reader *bufio.Reader, format int) (*tree.Tree, error) {
 				return nil, fmt.Errorf("No tree in the input Nexus file")
 			}
 		}
+	case FORMAT_PHYLOXML:
+		if p, err3 := phyloxml.NewParser(reader).Parse(); err3 != nil {
+			return nil, err3
+		} else {
+			reftree, err = p.FirstTree()
+			if err != nil {
+				return nil, err
+			}
+			if reftree == nil {
+				return nil, fmt.Errorf("No tree in the input PhyloXML file")
+			}
+		}
 	default:
 		return nil, fmt.Errorf("Unsupported tree format: %q", format)
 	}
@@ -77,6 +91,13 @@ func ReadMultiTrees(reader *bufio.Reader, format int) <-chan tree.Trees {
 		switch format {
 		case FORMAT_NEWICK:
 			line, e := ReadUntilSemiColon(reader)
+			if e != nil {
+				compTrees <- tree.Trees{
+					nil,
+					id,
+					e,
+				}
+			}
 			for e == nil {
 				parser := newick.NewParser(strings.NewReader(line))
 				if compTree, err = parser.Parse(); err != nil {
@@ -109,6 +130,23 @@ func ReadMultiTrees(reader *bufio.Reader, format int) <-chan tree.Trees {
 						t,
 						id,
 						nil,
+					}
+					id++
+				})
+			}
+		case FORMAT_PHYLOXML:
+			if p, err2 := phyloxml.NewParser(reader).Parse(); err2 != nil {
+				compTrees <- tree.Trees{
+					nil,
+					id,
+					err2,
+				}
+			} else {
+				p.IterateTrees(func(t *tree.Tree, err error) {
+					compTrees <- tree.Trees{
+						t,
+						id,
+						err,
 					}
 					id++
 				})
