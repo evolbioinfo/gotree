@@ -22,7 +22,7 @@ For example:
 	Run: func(cmd *cobra.Command, args []string) {
 		/* Dividing trees */
 		f := openWriteFile(outtreefile)
-		f.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tsumbrlen\tmeansupport\tmediansupport\trooted\n")
+		f.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tsumbrlen\tmeansupport\tmediansupport\trooted\tnbcherries\n")
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -34,15 +34,16 @@ For example:
 			f.WriteString(fmt.Sprintf("\t%d", len(t.Tree.Nodes())))
 			f.WriteString(fmt.Sprintf("\t%d", len(t.Tree.Tips())))
 			f.WriteString(fmt.Sprintf("\t%d", len(t.Tree.Edges())))
-			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.MeanBrLength()))
+			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.MeanBranchLength()))
 			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.SumBranchLengths()))
 			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.MeanSupport()))
 			f.WriteString(fmt.Sprintf("\t%.8f", t.Tree.MedianSupport()))
 			if t.Tree.Rooted() {
 				f.WriteString(fmt.Sprintf("\trooted\n"))
 			} else {
-				f.WriteString(fmt.Sprintf("\tunrooted\n"))
+				f.WriteString(fmt.Sprintf("\tunrooted"))
 			}
+			f.WriteString(fmt.Sprintf("\t%d\n", t.Tree.NbCherries()))
 		}
 		f.Close()
 	},

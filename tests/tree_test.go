@@ -161,3 +161,17 @@ func TestMerge(t *testing.T) {
 		t.Error(fmt.Sprintf("Merged tree %s does not correspond to the expected tree %s", tr3.Newick(), expected))
 	}
 }
+
+// Test counting the Number of cherries
+func TestNbCherries(t *testing.T) {
+	treeString := "(1,2,((3,4),(5,6)));"
+	expected := 3
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	found := tr.NbCherries()
+	if found != expected {
+		t.Error(fmt.Sprintf("%d cherries are found instead of %d", found, expected))
+	}
+}

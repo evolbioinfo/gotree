@@ -400,17 +400,6 @@ func (t *Tree) SortedTips() []string {
 	return names
 }
 
-// if UpdateTipIndex has been called before ok
-// otherwise returns an error
-func (t *Tree) NbTips() (int, error) {
-	if len(t.tipIndex) == 0 {
-		return 0, errors.New("No tips in the index, tip name index is not initialized")
-	}
-
-	return len(t.tipIndex), nil
-
-}
-
 // Returns the bitset index of the tree in the Tree
 // Returns an error if the node is not a tip
 func (t *Tree) tipIndexNode(n *Node) (uint, error) {
@@ -1079,17 +1068,6 @@ func (t *Tree) RemoveEdges(edges ...*Edge) {
 	}
 }
 
-func (t *Tree) SumBranchLengths() float64 {
-	sumlen := 0.0
-	for _, e := range t.Edges() {
-		if e.Length() == NIL_LENGTH {
-			return math.NaN()
-		}
-		sumlen += e.Length()
-	}
-	return sumlen
-}
-
 func (t *Tree) UnRoot() {
 	if !t.Rooted() {
 		return
@@ -1168,74 +1146,6 @@ func (t *Tree) Rename(namemap map[string]string) error {
 	}
 	t.UpdateBitSet()
 	return nil
-}
-
-func (t *Tree) MeanBrLength() float64 {
-	mean := 0.0
-	edges := t.Edges()
-	for _, e := range edges {
-		if e.Length() == NIL_LENGTH {
-			return math.NaN()
-		}
-		mean += e.Length()
-	}
-	return mean / float64(len(edges))
-}
-
-func (t *Tree) SumBrLength() float64 {
-	sum := 0.0
-	edges := t.Edges()
-	for _, e := range edges {
-		if e.Length() == NIL_LENGTH {
-			return math.NaN()
-		}
-		sum += e.Length()
-	}
-	return sum
-}
-
-func (t *Tree) MeanSupport() float64 {
-	mean := 0.0
-	edges := t.Edges()
-	i := 0
-	for _, e := range edges {
-		if !e.Right().Tip() {
-			if e.Support() == NIL_SUPPORT {
-				return math.NaN()
-			}
-			mean += e.Support()
-			i++
-		}
-	}
-
-	return mean / float64(i)
-}
-
-func (t *Tree) MedianSupport() float64 {
-	edges := t.Edges()
-	tips := t.Tips()
-	supports := make([]float64, len(edges)-len(tips))
-	if len(supports) == 0 {
-		return math.NaN()
-	}
-	i := 0
-	for _, e := range edges {
-		if !e.Right().Tip() {
-			if e.Support() == NIL_SUPPORT {
-				return math.NaN()
-			}
-			supports[i] = e.Support()
-			i++
-		}
-	}
-	sort.Float64s(supports)
-
-	middle := len(supports) / 2
-	result := supports[middle]
-	if len(supports)%2 == 0 {
-		result = (result + supports[middle-1]) / 2
-	}
-	return result
 }
 
 // Copy attributes of the node into a new node
