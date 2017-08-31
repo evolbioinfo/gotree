@@ -228,9 +228,10 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 	}
 
 	for edge_id3, e3 = range *edges { // for all the edges of ref_tree
+		e3numtips, _ := e3.NumTipsRight()
 		// at this point we can calculate in all cases (internal branch or not) the Hamming distance at [i][edge_id],
 		(*hamming)[edge_id3][edge_id] = // card of union minus card of intersection
-			uint16(e3.NumTips()) + // #taxa in the cluster i of T_ref
+			uint16(e3numtips) + // #taxa in the cluster i of T_ref
 				(*c_matrix)[edge_id3][edge_id] - // #taxa in cluster edge_id of T_boot BUT NOT in cluster i of T_ref
 				(*i_matrix)[edge_id3][edge_id] // #taxa in the intersection of the two clusters
 

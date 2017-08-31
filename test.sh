@@ -438,8 +438,8 @@ rm -f expected result clade
 
 echo "->gotree stats"
 cat > expected <<EOF
-tree	nodes	tips	edges	meanbrlen	sumbrlen	meansupport	mediansupport	rooted	nbcherries
-0	18	10	17	0.10486138	1.78264354	NaN	NaN	unrooted	3
+tree	nodes	tips	edges	meanbrlen	sumbrlen	meansupport	mediansupport	rooted	nbcherries	colless
+0	18	10	17	0.10486138	1.78264354	NaN	NaN	unrooted	3	7
 EOF
 gotree generate yuletree -s 10 | gotree stats > result
 diff expected result

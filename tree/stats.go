@@ -6,6 +6,8 @@ import (
 	"sort"
 )
 
+const MaxInt = int(^uint(0) >> 1)
+
 // if UpdateTipIndex has been called before ok
 // otherwise returns an error
 func (t *Tree) NbTips() (int, error) {
@@ -99,5 +101,51 @@ func (t *Tree) NbCherries() (nbcherries int) {
 			nbcherries++
 		}
 	}
+	return
+}
+
+// This functions computes the colless index of a rooted tree
+// As Sum over nodes v of |S(left(V))-S(right(V))|.
+// With Sleft(V) : Size of the left sublcade of V and Sright(V) size the
+// right subclade of V.
+// If the tree is unrooted, then it takes as starting point the deepest edge of the tree.
+// If multifurcations : then the index of node V will be (Smax(V)-Smin(V))
+// With Smax(V) : Size of the largest subclade of V and Smin(V) size the
+// smallest subclade of V.
+func (t *Tree) CollessIndex() (colless int) {
+	colless = 0
+	if !t.Rooted() {
+		var edge *Edge
+		var lefttips int
+		var righttips int
+		edge = t.DeepestEdge()
+		leftindex, lefttips := collessIndexRecur(edge.Left(), edge.Right())
+		rightindex, righttips := collessIndexRecur(edge.Right(), edge.Left())
+		colless += (leftindex + rightindex)
+		colless += max(lefttips, righttips) - min(lefttips, righttips)
+	} else {
+		colless, _ = collessIndexRecur(t.Root(), nil)
+	}
+	return
+}
+
+func collessIndexRecur(n *Node, prev *Node) (colless, tips int) {
+	if n.Tip() {
+		return 0, 1
+	}
+	mintips := MaxInt
+	maxtips := 0
+	colless = 0
+	tips = 0
+	for _, c := range n.Neigh() {
+		if c != prev {
+			childindex, childtips := collessIndexRecur(c, n)
+			mintips = min(mintips, childtips)
+			maxtips = max(maxtips, childtips)
+			tips += childtips
+			colless += childindex
+		}
+	}
+	colless += (maxtips - mintips)
 	return
 }

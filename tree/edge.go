@@ -199,10 +199,29 @@ func (e *Edge) TipPresent(id uint) bool {
 	return e.bitset.Test(id)
 }
 
-// Number of tips on one side of the bipartition
+// Number of tips on the right side of the bipartition
 // Used by "TopoDepth" function for example
-func (e *Edge) NumTips() uint {
-	return e.bitset.Count()
+func (e *Edge) NumTipsRight() (int, error) {
+	if e.bitset == nil {
+		return -1, errors.New("Cannot count right tips, Bitset is nil")
+	}
+	if e.bitset.None() {
+		return -1, errors.New("Cannot count right tips, Bitset is 000...0")
+	}
+
+	return int(e.bitset.Count()), nil
+}
+
+// Number of tips on the right side of the bipartition
+// Used by "TopoDepth" function for example
+func (e *Edge) NumTipsLeft() (int, error) {
+	if e.bitset == nil {
+		return -1, errors.New("Cannot count left tips, Bitset is nil")
+	}
+	if e.bitset.None() {
+		return -1, errors.New("Cannot count left tips, Bitset is 000...0")
+	}
+	return int(e.bitset.Len() - e.bitset.Count()), nil
 }
 
 // Return the given edge in the array of edges comparing bitsets fields

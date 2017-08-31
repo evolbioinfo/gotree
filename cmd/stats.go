@@ -22,7 +22,7 @@ For example:
 	Run: func(cmd *cobra.Command, args []string) {
 		/* Dividing trees */
 		f := openWriteFile(outtreefile)
-		f.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tsumbrlen\tmeansupport\tmediansupport\trooted\tnbcherries\n")
+		f.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tsumbrlen\tmeansupport\tmediansupport\trooted\tnbcherries\tcolless\n")
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -43,7 +43,8 @@ For example:
 			} else {
 				f.WriteString(fmt.Sprintf("\tunrooted"))
 			}
-			f.WriteString(fmt.Sprintf("\t%d\n", t.Tree.NbCherries()))
+			f.WriteString(fmt.Sprintf("\t%d", t.Tree.NbCherries()))
+			f.WriteString(fmt.Sprintf("\t%d\n", t.Tree.CollessIndex()))
 		}
 		f.Close()
 	},

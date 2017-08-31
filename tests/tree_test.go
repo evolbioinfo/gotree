@@ -119,8 +119,8 @@ func TestBipartitionTree(t *testing.T) {
 		t.Error(fmt.Sprintf("Tree should have 1 internal Edge but have %d", nbInternal))
 	}
 
-	if internal.NumTips() != 4 {
-		t.Error(fmt.Sprintf("Number of tips on the rightSide of the internal edge should be 4, but is %d", internal.NumTips()))
+	if n, _ := internal.NumTipsRight(); n != 4 {
+		t.Error(fmt.Sprintf("Number of tips on the rightSide of the internal edge should be 4, but is %d", n))
 	}
 }
 
@@ -173,5 +173,61 @@ func TestNbCherries(t *testing.T) {
 	found := tr.NbCherries()
 	if found != expected {
 		t.Error(fmt.Sprintf("%d cherries are found instead of %d", found, expected))
+	}
+}
+
+// Test counting the Colless Index
+func TestColless(t *testing.T) {
+	treeString := "(1,2,((3,4),(5,6)));"
+	expected := 2
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	cidx := tr.CollessIndex()
+	if cidx != expected {
+		t.Error(fmt.Sprintf("%d cherries are found instead of %d", cidx, expected))
+	}
+}
+
+// Test counting the Colless Index
+func TestColless2(t *testing.T) {
+	treeString := "(((1,2),3),((4,5),6));"
+	expected := 2
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	cidx := tr.CollessIndex()
+	if cidx != expected {
+		t.Error(fmt.Sprintf("%d cherries are found instead of %d", cidx, expected))
+	}
+}
+
+// Test counting the Colless Index
+func TestColless3(t *testing.T) {
+	treeString := "(((1,2),(3,4)),((5,6),(7,8)));"
+	expected := 0
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	cidx := tr.CollessIndex()
+	if cidx != expected {
+		t.Error(fmt.Sprintf("%d cherries are found instead of %d", cidx, expected))
+	}
+}
+
+// Test counting the Colless Index
+func TestColless4(t *testing.T) {
+	treeString := "((1,2),(3,4),((5,6),(7,8)));"
+	expected := 0
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	cidx := tr.CollessIndex()
+	if cidx != expected {
+		t.Error(fmt.Sprintf("%d cherries are found instead of %d", cidx, expected))
 	}
 }

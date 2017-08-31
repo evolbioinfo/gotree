@@ -93,7 +93,7 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 					if !e1.Right().Tip() {
 						e2 := edges2[min_dist_edges[e1.Id()]]
 						dist := min_dist[e1.Id()]
-						depth := e1.NumTips()
+						depth, _ := e1.NumTipsRight()
 						if dist > uint16(len(tips))/2 {
 							dist = uint16(len(tips)) - dist
 						}

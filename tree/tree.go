@@ -1249,3 +1249,38 @@ func (t *Tree) Merge(t2 *Tree) error {
 	t.UpdateTipIndex()
 	return nil
 }
+
+// Returns the deepest edge of the tree (considered unrooted)
+// in terms of number of tips on the light side of it.
+func (t *Tree) DeepestEdge() (maxedge *Edge) {
+	// We choose the deepest edge
+	for i, e := range t.Edges() {
+		e.SetId(i)
+	}
+	numtips := len(t.Tips())
+	maxedge, _, _ = t.deepestEdgeRecur(t.Root(), nil, nil, numtips)
+	return
+}
+
+func (t *Tree) deepestEdgeRecur(node, prev *Node, edge *Edge, numtips int) (maxedge *Edge, maxdepth, curtips int) {
+	if node.Tip() {
+		return edge, 1, 1
+	}
+	curtips = 0
+	maxdepth = 0
+	for i, c := range node.Neigh() {
+		if c != prev {
+			e, d, t := t.deepestEdgeRecur(c, node, node.Edges()[i], numtips)
+			if d > maxdepth {
+				maxdepth = d
+				maxedge = e
+			}
+			curtips += t
+		}
+	}
+	if min(numtips-curtips, curtips) > maxdepth {
+		maxdepth = min(numtips-curtips, curtips)
+		maxedge = edge
+	}
+	return
+}
