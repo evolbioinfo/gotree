@@ -149,3 +149,35 @@ func collessIndexRecur(n *Node, prev *Node) (colless, tips int) {
 	colless += (maxtips - mintips)
 	return
 }
+
+// This functions computes the Sackin index of a rooted tree
+// As the sum of all tip depths.
+// If the tree is unrooted, then it takes as starting point the deepest
+// edge of the tree.
+// No problems with multifurcations.
+func (t *Tree) SackinIndex() (sackin int) {
+	sackin = 0
+	if !t.Rooted() {
+		edge := t.DeepestEdge()
+		leftSackin := sackinIndexRecur(edge.Left(), edge.Right(), 1)
+		rightSackin := sackinIndexRecur(edge.Right(), edge.Left(), 1)
+		sackin = leftSackin + rightSackin
+	} else {
+		sackin = sackinIndexRecur(t.Root(), nil, 0)
+	}
+	return
+}
+
+// Returns the sum of the depths of all tips down the current node
+func sackinIndexRecur(n *Node, prev *Node, depth int) (sackin int) {
+	if n.Tip() {
+		return depth
+	}
+	sackin = 0
+	for _, c := range n.Neigh() {
+		if c != prev {
+			sackin += sackinIndexRecur(c, n, depth+1)
+		}
+	}
+	return
+}

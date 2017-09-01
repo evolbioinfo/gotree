@@ -231,3 +231,72 @@ func TestColless4(t *testing.T) {
 		t.Error(fmt.Sprintf("%d cherries are found instead of %d", cidx, expected))
 	}
 }
+
+// Test counting the Sackin Index on balanced rooted and unrooted trees
+func TestSackin1(t *testing.T) {
+	// rooted, depth 7: 128 tips : Sackin should be 7*128=896
+	tr, err := tree.RandomBalancedBinaryTree(7, true)
+	if err != nil {
+		t.Error(err)
+	}
+	expected := 7 * 128
+	sidx := tr.SackinIndex()
+	if sidx != expected {
+		t.Error(fmt.Sprintf("Sackin index found : %d instead of %d expected", sidx, expected))
+	}
+
+	// unrooted, depth 7: 128 tips : Sackin should be 7*128=896
+	tr, err = tree.RandomBalancedBinaryTree(7, false)
+	if err != nil {
+		t.Error(err)
+	}
+	expected = 7 * 128
+	sidx = tr.SackinIndex()
+	if sidx != expected {
+		t.Error(fmt.Sprintf("Sackin index found : %d instead of %d expected", sidx, expected))
+	}
+
+	// rooted caterpillar, 128 tips : Sackin should be sum(1:127)+127=8255
+	tr, err = tree.RandomCaterpillarBinaryTree(128, true)
+	if err != nil {
+		t.Error(err)
+	}
+	expected = 8255
+	sidx = tr.SackinIndex()
+	if sidx != expected {
+		t.Error(fmt.Sprintf("Sackin index found : %d instead of %d expected", sidx, expected))
+	}
+
+	// unrooted caterpillar, 128 tips : Sackin should be (sum(2:64)+64)*2=4286
+	tr, err = tree.RandomCaterpillarBinaryTree(128, false)
+	if err != nil {
+		t.Error(err)
+	}
+	expected = 4286
+	sidx = tr.SackinIndex()
+	if sidx != expected {
+		t.Error(fmt.Sprintf("Sackin index found : %d instead of %d expected", sidx, expected))
+	}
+
+	treeString := "(((1,2),(3,4)),5);"
+	expected = 13
+	tr, err = newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	sidx = tr.SackinIndex()
+	if sidx != expected {
+		t.Error(fmt.Sprintf("Sackin index found : %d instead of %d expected", sidx, expected))
+	}
+
+	treeString = "((1,2),(3,4),5);"
+	expected = 12
+	tr, err = newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	sidx = tr.SackinIndex()
+	if sidx != expected {
+		t.Error(fmt.Sprintf("Sackin index found : %d instead of %d expected", sidx, expected))
+	}
+}

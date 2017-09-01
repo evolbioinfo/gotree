@@ -25,7 +25,7 @@ func caterpilarTree(nbtrees int, nbtips int, output string, seed int64, rooted b
 	}
 
 	for i := 0; i < nbtrees; i++ {
-		t, err = tree.RandomCaterpilarBinaryTree(nbtips, rooted)
+		t, err = tree.RandomCaterpillarBinaryTree(nbtips, rooted)
 		if err != nil {
 			return err
 		}

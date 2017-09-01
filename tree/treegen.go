@@ -178,7 +178,7 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 //nbtips : Number of tips of the random binary tree to create
 //rooted: if true, generates a rooted tree
 //branch length: follow an exponential distribution with param lambda=1/0.1
-func RandomCaterpilarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
+func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	t := NewTree()
 	if nbtips < 2 {
 		return nil, errors.New("Cannot create an unrooted random binary tree with less than 2 tips")
