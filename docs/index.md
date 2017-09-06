@@ -70,7 +70,7 @@ Command                                                            | Subcommand 
 [matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
 [merge](commands/merge.md) ([api](api/merge.md))                   |                   | Merges two rooted trees
 [minbrlen](commands/minbrlen.md) ([api](api/minbrlen.md))          |                   | Sets a minimum branch length to all branches with length < cutoff
-[prune](commands/prune.md) ([api](api/prune.md))                   |                   | Removes tips of the input tree that are not in the compared tree, or that are given on the command line
+[prune](commands/prune.md) ([api](api/prune.md))                   |                   | Removes tips of input trees
 [randbrlen](commands/randbrlen.md)                                 |                   | Assigns a random length to edges of input trees
 [randsupport](commands/randsupport.md)                             |                   | Assigns a random support to edges of input trees
 [reformat](commands/reformat.md) ([api](api/reformat.md))          |                   | Reformats input file
