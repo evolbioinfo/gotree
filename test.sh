@@ -389,6 +389,27 @@ gotree generate yuletree -s 10 | gotree rename -m mapfile > result
 diff expected result
 rm -f expected result mapfile
 
+echo "->gotree rename auto"
+cat > mapfile <<EOF
+Tip4	T0001
+Tip7	T0002
+Tip0	T0004
+Tip9	T0006
+Tip3	T0007
+Tip1	T0010
+Tip2	T0003
+Tip8	T0005
+Tip6	T0008
+Tip5	T0009
+EOF
+
+cat > expected <<EOF
+((T0001:0.020616211789029896,(T0002:0.09740195047110385,T0003:0.015450672710905129):0.12939642466438622):0.0912341925030609,T0004:0.12959932895259058,((T0005:0.027845992087631298,(T0006:0.13492605122032592,T0007:0.10309294031874587):0.005132906169455565):0.09604804621401375,((T0008:0.3779897840448691,T0009:0.1120177846434196):0.029087690784364996,T0010:0.239082088939295):0.15075207292513051):0.022969404523534506);
+EOF
+gotree generate yuletree -s 10 | gotree rename -a -m mapfile2 -l 5 > result
+diff expected result
+diff <(sort mapfile) <(sort mapfile2)
+rm -f expected result mapfile mapfile2
 
 echo "->gotree reroot outgroup"
 cat > expected <<EOF
