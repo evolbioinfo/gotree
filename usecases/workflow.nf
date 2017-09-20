@@ -21,7 +21,7 @@ process downloadAlignment{
 	val dataurl
 
 	output:
-	file "primates.phy" into truealign, truealigncopy
+	file "primates.phy" into truealign, truealign2, truealigncopy
 
 	shell:
 	'''
@@ -43,54 +43,10 @@ process inferTrueTree{
 	template 'phyml.sh'
 }
 
-process simulAlign {
-	input:
-	file tree from truetree
-	val seed
-
-	output:
-	file "align.phy" into simualign
-
-	shell:
-	'''
-	#!/usr/bin/env bash
-	seq-gen -l 50 -mLG -z !{seed} !{tree}  > align.phy
-	'''
-}
-
-process reformatPhylip {
-	input:
-	file align from simualign
-
-	output:
-	file "align_clean.phy" into simualignphylip
-
-	shell:
-	'''
-	#!/usr/bin/env bash
-	goalign reformat phylip -p --input-strict -i !{align} > align_clean.phy
-	'''
-}
-
-simualignphylip.into{refalign1; refalign2}
-
-process inferReferenceTree{
-	input:
-	file align from refalign1
-	val seed
-
-	output:
-	file "reftree.nw" into reftree
-
-	shell:
-	outfile="reftree.nw"
-	template 'phyml.sh'
-}
-
 
 process seqBoots {
 	input:
-	file align from refalign2
+	file align from truealign2
 	val nboot
 	val seed
 
@@ -143,7 +99,7 @@ process consensus {
 /**********************************/
 process supports {
 	input:
-	file ref from reftree
+	file ref from truetree
 	file boot from boottrees2
 
 	output:
@@ -302,26 +258,27 @@ process drawTree {
 	'''
 }
 
-process uploadiTOL{
-	input:
-	file tree from treestodrawitol
-	file itolconfig
-
-	output:
-	file "*.txt" into iTOLurl
-	file "*.svg" into iTOLimage
-
-	shell:
-	'''
-	#!/usr/bin/env bash
-	# Upload the tree
-	gotree upload itol --name "consensustree" -i !{tree} > !{tree}_url.txt
-	# We get the iTOL id
-	ID=$(basename $(cat !{tree}_url.txt ))
-	# We Download the image with options defined in data/itol_image_config.txt
-	gotree download itol -c !{itolconfig} -f svg -o !{tree}_itol.svg -i $ID
-	'''
-}
+//process uploadiTOL{
+//	input:
+//	file tree from treestodrawitol
+//	file itolconfig
+//
+//	output:
+//	file "*.txt" into iTOLurl
+//	file "*.svg" into iTOLimage
+//
+//	shell:
+//	'''
+//	#!/usr/bin/env bash
+//	# Upload the tree
+//	gotree upload itol --name "consensustree" -i !{tree} > !{tree}_url.txt
+//	# We get the iTOL id
+//	ID=$(basename $(cat !{tree}_url.txt ))
+//	# We Download the image with options defined in data/itol_image_config.txt
+//	gotree download itol -c !{itolconfig} -f svg -o !{tree}_itol.svg -i $ID
+//	'''
+//}
+//
 
 /*********************************************/
 /*                File  COPY                 */
@@ -333,13 +290,13 @@ treeimages.subscribe{
 	f -> f.copyTo(outpath.resolve(f.name))
 }
 
-iTOLurl.subscribe{
-	f -> f.copyTo(outpath.resolve(f.name))
-}
+//iTOLurl.subscribe{
+//	f -> f.copyTo(outpath.resolve(f.name))
+//}
 
-iTOLimage.subscribe{
-	f -> f.copyTo(outpath.resolve(f.name))
-}
+//iTOLimage.subscribe{
+//	f -> f.copyTo(outpath.resolve(f.name))
+//}
 
 comparehist.subscribe{
 	f -> f.copyTo(outpath.resolve(f.name))
