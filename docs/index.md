@@ -82,6 +82,7 @@ Command                                                            | Subcommand 
 --                                                                 | midpoint          | Reroots trees at midpoint position
 --                                                                 | outgroup          | Reroots trees using a given outgroup
 [resolve](commands/resolve.md) ([api](api/resolve.md))             |                   | Resolves multifurcations by adding 0 length branches
+[sample](commands/sample.md)                                       |                   | Samples trees from a set of input trees
 [shuffletips](commands/shuffletips.md) ([api](api/shuffletips.md)) |                   | Shuffles tip names of an input tree
 [subtree](commands/subtree.md) ([api](api/subtree.md))             |                   | Extracts a subtree starting at a given node
 [stats](commands/stats.md) ([api](api/stats.md))                   |                   | Prints statistics about the tree, its edges, its nodes, if it is rooted, and its tips
