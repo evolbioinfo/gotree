@@ -93,9 +93,6 @@ func (layout *cytoscapeLayout) DrawTree(t *tree.Tree) error {
 	return err
 }
 
-/*
-Recursive function that draws the tree. Returns the yposition of the current node
-*/
 func (layout *cytoscapeLayout) drawNodes(t *tree.Tree) {
 	layout.writer.WriteString("    nodes: [\n")
 	for i, n := range t.Nodes() {
