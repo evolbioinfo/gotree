@@ -119,6 +119,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * midpoint
     * outgroup
 *  resolve:     Resolve multifurcations by adding 0 length branches
+*  sample:      Takes a sample (with or without replacement) from the set of input trees
 *  shuffletips: Shuffle tip names of an input tree
 *  subtree: extract a subtree
 *  stats:       Print statistics about the tree, its edges, its nodes, if it is rooted, and its tips
