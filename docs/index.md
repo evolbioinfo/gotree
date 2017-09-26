@@ -62,6 +62,7 @@ Command                                                            | Subcommand 
 --                                                                 | text              | Draws tree(s) in text/ascii format
 --                                                                 | png               | Draws tree(s) in png format
 --                                                                 | svg               | Draws tree(s) in svg format
+--                                                                 | cyjs              | Draws tree(s) in a html file, using cytoscape js
 [generate](commands/generate.md) ([api](api/generate.md))          |                   | Generates random trees, branch lengths are simply drawn from an expontential(0.1) law
 --                                                                 | balancedtree      | Randomly generates perfectly balanced trees
 --                                                                 | caterpillartree   | Randomly generates perfectly caterpillar trees

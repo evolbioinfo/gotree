@@ -43,3 +43,42 @@ func main() {
 	l.DrawTree(reftree)
 }
 ```
+
+Rendering a tree using cytoscape js
+```go
+package main
+
+import (
+	"bufio"
+	"os"
+
+	"github.com/fredericlemoine/gotree/draw"
+	"github.com/fredericlemoine/gotree/io/newick"
+	"github.com/fredericlemoine/gotree/tree"
+)
+
+func main() {
+	var l draw.TreeLayout
+	var reftree *tree.Tree
+	var f, outfile *os.File
+	var err error
+
+	// Parsing single tree newick file
+	if f, err = os.Open("ref.nw"); err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	reftree, err = newick.NewParser(f).Parse()
+	if err != nil {
+		panic(err)
+	}
+
+	outfile, err = os.Create("tree.html")
+	defer outfile.Close()
+	w := bufio.NewWriter(outfile)
+	l = draw.NewCytoscapeLayout(w, true)
+	l.DrawTree(reftree)
+	w.Flush()
+}
+```

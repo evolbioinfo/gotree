@@ -100,6 +100,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * text: Display tree(s) in ASCII text format
     * png : Draw tree(s) in png format, with normal, radial/unrooted or circular layout
     * svg : Draw tree(s) in svg format, with normal, radial/unrooted or circular layout
+	* cyjs: Draw tree(s) in a html file, using cytoscape js
 *  generate:    Generate random trees, branch lengths are simply drawn from an expontential(1) law
     * balancedtree
     * caterpillartree
