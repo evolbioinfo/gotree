@@ -1,5 +1,5 @@
 params.dataurl="http://evolution.gs.washington.edu/book/primates.dna"
-params.nboot = 100
+params.nboot = 300
 params.seed=2000
 params.outpath="results"
 params.itolconfig= "data/itol_image_config.txt"
@@ -90,7 +90,7 @@ process consensus {
 	shell:
 	'''
 	#!/usr/bin/env bash
-	gotree compute consensus -f 0.5 -i !{boot} -o consensus.nw
+	gotree compute consensus -f 0.6 -i !{boot} -o consensus.nw
 	'''
 }
 
