@@ -76,7 +76,7 @@ and for each internal edge ec of the compared tree, this command will print in t
 			for _, e1 := range edges1 {
 				if !e1.Right().Tip() {
 					for _, e2 := range edges2 {
-						if !e2.Right().Tip() {
+						if !e2.Right().Tip() || compareTips {
 							dist := hamming[e1.Id()][e2.Id()]
 							if dist > uint16(len(tips))/2 {
 								dist = uint16(len(tips)) - dist
@@ -112,4 +112,5 @@ and for each internal edge ec of the compared tree, this command will print in t
 
 func init() {
 	compareCmd.AddCommand(compareDistancesCmd)
+	compareDistancesCmd.Flags().BoolVarP(&compareTips, "tips", "l", false, "Include compared tree tips in the computation")
 }
