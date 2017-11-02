@@ -22,10 +22,14 @@ func (b by) Swap(i, j int) {
 Sorts "toSort" array according to "byValues" Array.
 Only "toSort" array is modified.  "byValues" array is not modified.
 */
-func SortIntBy(toSort []int, byValues []int) {
+func SortIntBy(toSort []int, byValues []int, decreasing bool) {
 	valuescopy := make([]int, len(byValues))
 	copy(valuescopy, byValues)
-	sort.Sort(by{Indices: toSort, Values: valuescopy})
+	if decreasing {
+		sort.Sort(sort.Reverse(by{Indices: toSort, Values: valuescopy}))
+	} else {
+		sort.Sort(by{Indices: toSort, Values: valuescopy})
+	}
 }
 
 /*
@@ -38,13 +42,13 @@ for _,ord := range output {
     input[ord]
 }
 */
-func OrderInt(values []int) []int {
+func OrderInt(values []int, decreasing bool) []int {
 	// init initial order indices
 	indices := make([]int, len(values))
 	for i, _ := range indices {
 		indices[i] = i
 	}
 	// Sort indices by values
-	SortIntBy(indices, values)
+	SortIntBy(indices, values, decreasing)
 	return indices
 }
