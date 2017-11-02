@@ -108,8 +108,9 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	// We compute value for each bootstrap tree
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
+		curcpu := cpu
 		go func() {
-			if err := supporter.ComputeValue(reftree, cpu, edges, boottrees, valuesChan, speciesChannel); err != nil {
+			if err := supporter.ComputeValue(reftree, curcpu, edges, boottrees, valuesChan, speciesChannel); err != nil {
 				io.LogError(err)
 				computeerr = err
 			}
@@ -167,6 +168,7 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 				io.LogError(err)
 				return err
 			}
+
 			support := float64(valuesBoot[i]) / float64(supporter.Progress())
 			if supporter.NormalizeByExpected() {
 				support = float64(1) - support/supporter.ExpectedRandValues(d)
