@@ -1,6 +1,7 @@
 package support
 
 import (
+	"container/list"
 	"errors"
 	"fmt"
 	"math"
@@ -12,11 +13,14 @@ import (
 )
 
 type BoosterSupporter struct {
-	currentTree         int
-	mutex               *sync.RWMutex
-	stop                bool
-	silent              bool
-	computeMovedSpecies bool
+	currentTree                    int
+	mutex                          *sync.RWMutex
+	stop                           bool
+	silent                         bool
+	computeMovedSpecies            bool
+	computeTransferPerBranches     bool // All  transfered taxa per branches are computed
+	computeHighTransferPerBranches bool // Only highest transfered taxa per branches are computed
+
 	/* Cutoff for considering a branch : ok if norm distance to current
 	bootstrap tree < cutoff (ex=0.05) => allows to compute a minimum depth also:
 	norm_dist = distance / (p-1)
@@ -24,9 +28,13 @@ type BoosterSupporter struct {
 	p=(1/norm_dist)+1
 	*/
 	movedSpeciesCutoff float64
+	// If false, then we do not normalize by the expected value: 1-avg/expected
+	normalizeByExpected bool
 }
 
-func NewBoosterSupporter(silent bool, computeMovedSpecies bool, movedSpeciesCutoff float64) *BoosterSupporter {
+// computeTransferPerBranches and computeHighTransferPerBranches are mutually expclusive
+// computeTransferPerBranches has priority over computeHighTransferPerBranches
+func NewBoosterSupporter(silent, computeMovedSpecies, computeTransferPerBranches, computeHighTransferPerBranches bool, movedSpeciesCutoff float64, normalizeByExpected bool) *BoosterSupporter {
 	if movedSpeciesCutoff < 0 {
 		movedSpeciesCutoff = 1.0
 	}
@@ -35,12 +43,15 @@ func NewBoosterSupporter(silent bool, computeMovedSpecies bool, movedSpeciesCuto
 	}
 
 	return &BoosterSupporter{
-		currentTree:         0,
-		mutex:               &sync.RWMutex{},
-		stop:                false,
-		silent:              silent,
-		computeMovedSpecies: computeMovedSpecies,
-		movedSpeciesCutoff:  movedSpeciesCutoff,
+		currentTree:                    0,
+		mutex:                          &sync.RWMutex{},
+		stop:                           false,
+		silent:                         silent,
+		computeMovedSpecies:            computeMovedSpecies,
+		movedSpeciesCutoff:             movedSpeciesCutoff,
+		normalizeByExpected:            normalizeByExpected,
+		computeTransferPerBranches:     computeTransferPerBranches,
+		computeHighTransferPerBranches: computeHighTransferPerBranches,
 	}
 }
 
@@ -49,7 +60,7 @@ func (supporter *BoosterSupporter) ExpectedRandValues(depth int) float64 {
 }
 
 func (supporter *BoosterSupporter) NormalizeByExpected() bool {
-	return true
+	return supporter.normalizeByExpected
 }
 
 func (supporter *BoosterSupporter) NewBootTreeComputed() {
@@ -65,6 +76,14 @@ func (supporter *BoosterSupporter) Progress() int {
 }
 func (supporter *BoosterSupporter) PrintMovingTaxa() bool {
 	return supporter.computeMovedSpecies
+}
+
+func (supporter *BoosterSupporter) PrintTaxPerBranches() bool {
+	return supporter.computeTransferPerBranches
+}
+
+func (supporter *BoosterSupporter) PrintHighTaxPerBranches() bool {
+	return supporter.computeHighTransferPerBranches
 }
 
 func (supporter *BoosterSupporter) Cancel() {
@@ -253,7 +272,8 @@ func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*t
 // and send it to the result channel
 // At the end, returns the number of treated trees
 func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
-	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
+	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved,
+	taxPerBranchChannel chan<- []*list.List) error {
 	tips := refTree.Tips()
 	var min_dist []uint16 = make([]uint16, len(edges))
 	var min_dist_edge []int = make([]int, len(edges))
@@ -261,6 +281,12 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 	var c_matrix [][]uint16 = make([][]uint16, len(edges))
 	var hamming [][]uint16 = make([][]uint16, len(edges))
 	var movedSpecies []int = make([]int, len(tips))
+	// List of moved species per reference branches
+	// It is initialized at each new bootstrap tree
+	// It is to the taxperbranch channel reciever
+	// to clear all lists
+	var taxaTransferedPerBranch []*list.List
+
 	vals := make([]int, len(edges))
 	// Number of branches that have a normalized similarity (1- (min_dist/(n-1)) to
 	// bootstrap trees > 0.8
@@ -277,13 +303,14 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 			if err == nil {
 				nb_branches_close = 0
 				if !supporter.silent {
-					fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\n", cpu, treeV.Id)
+					fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\r", cpu, treeV.Id)
 				}
 				bootEdges := treeV.Tree.Edges()
-
+				taxaTransferedPerBranch = make([]*list.List, len(edges))
 				for i, _ := range edges {
 					min_dist[i] = uint16(len(tips))
 					min_dist_edge[i] = -1
+					taxaTransferedPerBranch[i] = list.New()
 					if len(bootEdges) > len(i_matrix[i]) {
 						i_matrix[i] = make([]uint16, len(bootEdges))
 						c_matrix[i] = make([]uint16, len(bootEdges))
@@ -303,7 +330,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 						continue
 					}
 					vals[i] = int(min_dist[i])
-					if supporter.computeMovedSpecies {
+					if supporter.computeMovedSpecies || supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
 						td, err := e.TopoDepth()
 						if err != nil {
 							io.LogError(err)
@@ -312,17 +339,24 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 						be := bootEdges[min_dist_edge[i]]
 						norm := float64(vals[i]) / (float64(td) - 1.0)
 						mindepth := int(math.Ceil(1.0/supporter.movedSpeciesCutoff + 1.0))
-						if norm <= supporter.movedSpeciesCutoff && td >= mindepth {
-							if sm, er := speciesToMove(e, be, vals[i]); er != nil {
-								io.LogError(er)
-								return err
-							} else {
+						if sm, er := speciesToMove(e, be, vals[i]); er != nil {
+							io.LogError(er)
+							return err
+						} else {
+							if supporter.computeMovedSpecies && norm <= supporter.movedSpeciesCutoff && td >= mindepth {
 								for _, sp := range sm {
 									movedSpecies[sp]++
 								}
 								nb_branches_close++
 							}
+							if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
+								for _, sp := range sm {
+									// The taxon id 'sp' moves around branch i in that bootstrap tree
+									taxaTransferedPerBranch[i].PushBack(sp)
+								}
+							}
 						}
+
 					}
 					valChan <- bootval{
 						vals[i],
@@ -340,6 +374,9 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 						movedSpecies[sp] = 0
 					}
 				}
+				if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
+					taxPerBranchChannel <- taxaTransferedPerBranch
+				}
 				supporter.NewBootTreeComputed()
 				if supporter.stop {
 					break
@@ -350,8 +387,8 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 	return err
 }
 
-func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os.File, silent bool, computeMovedSpecies bool, movedSpeciedCutoff float64, cpus int) error {
-	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, movedSpeciedCutoff)
+func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os.File, silent, computeMovedSpecies, computeTransferPerBranches, computeHighTransferPerBranches bool, movedSpeciedCutoff float64, normalizedByExpected bool, cpus int) error {
+	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, computeTransferPerBranches, computeHighTransferPerBranches, movedSpeciedCutoff, normalizedByExpected)
 	return ComputeSupport(reftree, boottrees, logfile, cpus, supporter)
 }
 

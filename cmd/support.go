@@ -11,6 +11,14 @@ var supportIntree string
 var supportBoottrees string
 var supportOutFile string
 var supportLogFile string
+var movedtaxa bool
+var taxperbranches bool     // If we should compute all avg tax transfers per branches
+var hightaxperbranches bool // If we should compute all avg tax transfers per branches
+
+// For booster computation : output tree with raw avg distances as supports
+// in the form: branchid|avg_distance|depth
+var rawSupportOutputFile string
+var rawSupportOut *os.File
 var supportOut *os.File
 var supportLog *os.File
 var supportSilent bool
@@ -43,6 +51,16 @@ The supports implemented are :
 		}
 		if err != nil {
 			io.ExitWithMessage(err)
+		}
+		if rawSupportOutputFile != "none" {
+			if rawSupportOutputFile != "stdout" {
+				rawSupportOut, err = os.Create(rawSupportOutputFile)
+			} else {
+				rawSupportOut = os.Stdout
+			}
+			if err != nil {
+				io.ExitWithMessage(err)
+			}
 		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {

@@ -1,12 +1,14 @@
 package support
 
 import (
+	"container/list"
 	"fmt"
 	"os"
 	"runtime"
 	"sync"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/sort"
 	"github.com/fredericlemoine/gotree/tree"
 )
 
@@ -25,7 +27,8 @@ type Supporter interface {
 	Init(maxdepth int, nbtips int)
 	ExpectedRandValues(depth int) float64
 	ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
-		bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) error
+		bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved,
+		taxPerBranchChannel chan<- []*list.List) error
 	// Returns the number of bootstrap trees that have been computed
 	Progress() int
 	// Increments the number of trees processed
@@ -37,6 +40,8 @@ type Supporter interface {
 	Canceled() bool
 	// Print moving taxa
 	PrintMovingTaxa() bool
+	PrintTaxPerBranches() bool
+	PrintHighTaxPerBranches() bool
 
 	// If true, the support is 1-avg_value/ExpectedRandValues()
 	// If false, the support is avg
@@ -74,15 +79,19 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	var edges []*tree.Edge             // Edges of the reference tree
 	var valuesBoot []int               // Sum of number of bootValues per edge over boot trees
 	var speciesMovedCount []float64    // Number of times each species has been moved (for booster mainly)
+	var taxPerBranches [][]int         // Number of times (bs tree) each species has been moved around each branch (for booster mainly)
 
 	var wg sync.WaitGroup  // For waiting end of step computation
 	var wg2 sync.WaitGroup // For waiting end of final counting
 
-	var valuesChan chan bootval          // Channel of values computed for a given edge
-	var speciesChannel chan speciesmoved // Channel of number of times each species has been moved. Used only for booster support
+	var valuesChan chan bootval               // Channel of values computed for a given edge
+	var speciesChannel chan speciesmoved      // Channel of number of times each species has been moved. Used only for booster support
+	var taxPerBranchChannel chan []*list.List // Channel of Lists of moved species per reference branches compared to 1 bs tree
+
 	valuesChan = make(chan bootval, 100)
 
 	speciesChannel = make(chan speciesmoved, 100)
+	taxPerBranchChannel = make(chan []*list.List, 100)
 
 	if cpus > maxcpus {
 		cpus = maxcpus
@@ -96,13 +105,16 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 
 	valuesBoot = make([]int, len(edges))
 	speciesMovedCount = make([]float64, len(tips))
+	taxPerBranches = make([][]int, len(edges))
 
 	//Initialize supporter
 	supporter.Init(max_depth, len(tips))
 
 	// Assign an id to every edge
+	// And init taxPerBranches
 	for i, e := range edges {
 		e.SetId(i)
+		taxPerBranches[i] = make([]int, len(tips))
 	}
 
 	// We compute value for each bootstrap tree
@@ -110,7 +122,7 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 		wg.Add(1)
 		curcpu := cpu
 		go func() {
-			if err := supporter.ComputeValue(reftree, curcpu, edges, boottrees, valuesChan, speciesChannel); err != nil {
+			if err := supporter.ComputeValue(reftree, curcpu, edges, boottrees, valuesChan, speciesChannel, taxPerBranchChannel); err != nil {
 				io.LogError(err)
 				computeerr = err
 			}
@@ -126,10 +138,11 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 		}
 		close(valuesChan)
 		close(speciesChannel)
+		close(taxPerBranchChannel)
 	}()
 
 	// Now count Values from the output channels
-	wg2.Add(2)
+	wg2.Add(3)
 	go func() {
 		for val := range valuesChan {
 			valuesBoot[val.edgeid] += val.value
@@ -137,9 +150,23 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 		wg2.Done()
 	}()
 
+	// We gather all species moves numbers per bootstrap trees
 	go func() {
 		for val := range speciesChannel {
 			speciesMovedCount[val.taxid] += val.nbtimes
+		}
+		wg2.Done()
+	}()
+
+	// We gather all taxperbranches lists coming from all bootstrap trees
+	go func() {
+		for taxlists := range taxPerBranchChannel {
+			for i, l := range taxlists {
+				for e := l.Front(); e != nil; e = e.Next() {
+					taxPerBranches[i][e.Value.(uint)]++
+				}
+				l.Init()
+			}
 		}
 		wg2.Done()
 	}()
@@ -154,10 +181,19 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	names := reftree.SortedTips()
 
 	if supporter.PrintMovingTaxa() {
-		logfile.WriteString("Moving taxa\n")
+		logfile.WriteString("Taxon : tIndex\n")
 		for i, n := range speciesMovedCount {
-			logfile.WriteString(fmt.Sprintf("%s : %f\n", names[i], n))
+			logfile.WriteString(fmt.Sprintf("%s : %f\n", names[i], n*100.0/float64(supporter.Progress())))
 		}
+	}
+	if supporter.PrintTaxPerBranches() {
+		logfile.WriteString("Edge\tDepth\tAvgDist")
+		for sp := 0; sp < len(tips); sp++ {
+			logfile.WriteString("\t" + names[sp])
+		}
+		logfile.WriteString("\n")
+	} else if supporter.PrintHighTaxPerBranches() {
+		logfile.WriteString("Edge\tDepth\tAvgDist\tHighlyTransferedTaxa\n")
 	}
 
 	// Finally we compute support and write it in the tree
@@ -168,8 +204,32 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 				io.LogError(err)
 				return err
 			}
-
 			support := float64(valuesBoot[i]) / float64(supporter.Progress())
+			if supporter.PrintTaxPerBranches() {
+				logfile.WriteString(fmt.Sprintf("%d\t%d\t%.6f", i, d, support))
+				for sp := 0; sp < len(tips); sp++ {
+					logfile.WriteString(fmt.Sprintf("\t%.6f", float64(taxPerBranches[i][sp])/float64(supporter.Progress())))
+				}
+				logfile.WriteString("\n")
+			} else if supporter.PrintHighTaxPerBranches() {
+				logfile.WriteString(fmt.Sprintf("%d\t%d\t%.6f", i, d, support))
+				orderedtipsbytransferindex := sort.OrderInt(taxPerBranches[i], true)
+				prevtindex := 0
+				for ind, sp := range orderedtipsbytransferindex {
+					if taxPerBranches[i][sp] > 0.0 && (ind <= int(support+0.5) || taxPerBranches[i][sp] == prevtindex) {
+						if ind > 0 {
+							logfile.WriteString(";")
+						} else {
+							logfile.WriteString("\t")
+						}
+						logfile.WriteString(fmt.Sprintf("%s(%.6f)", names[sp], float64(taxPerBranches[i][sp])/float64(supporter.Progress())))
+						prevtindex = taxPerBranches[i][sp]
+					} else {
+						prevtindex = -1
+					}
+				}
+				logfile.WriteString("\n")
+			}
 			if supporter.NormalizeByExpected() {
 				support = float64(1) - support/supporter.ExpectedRandValues(d)
 			}

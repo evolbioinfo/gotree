@@ -29,7 +29,6 @@ var compareTips bool
 var tipfile string
 var cutoff float64
 var replace bool
-var movedtaxa bool
 var treeformat = utils.FORMAT_NEWICK
 
 var cfgFile string

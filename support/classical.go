@@ -1,6 +1,7 @@
 package support
 
 import (
+	"container/list"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -119,6 +120,13 @@ func (supporter *ClassicalSupporter) Progress() int {
 func (supporter *ClassicalSupporter) PrintMovingTaxa() bool {
 	return false
 }
+func (supporter *ClassicalSupporter) PrintTaxPerBranches() bool {
+	return false
+}
+
+func (supporter *ClassicalSupporter) PrintHighTaxPerBranches() bool {
+	return false
+}
 
 func (supporter *ClassicalSupporter) Cancel() {
 	supporter.stop = true
@@ -137,7 +145,8 @@ func (supporter *ClassicalSupporter) Init(maxdepth int, nbtips int) {
 // computes the transfer dist for each edges of the ref tree
 // and send it to the result channel
 func (supporter *ClassicalSupporter) ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
-	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved) error {
+	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved,
+	taxPerBranchChannel chan<- []*list.List) error {
 
 	edgeIndex := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
 	for i, e := range edges {
