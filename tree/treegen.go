@@ -8,11 +8,12 @@ import (
 	"strconv"
 )
 
-//Creates a Random uniform Binary tree by successively adding
-//new tips to a random edge of the tree.
-//nbtips : Number of tips of the random binary tree to create
-//rooted: if true, generates a rooted tree
-//branch length: follow an exponential distribution with param lambda=1/0.1
+// Creates a Random uniform Binary tree by successively adding
+// new tips to a random edge of the tree.
+//
+//	* nbtips : Number of tips of the random binary tree to create
+//	* rooted: if true, generates a rooted tree
+//	* branch length: follow an exponential distribution with param lambda=1/0.1
 func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	t := NewTree()
 	if nbtips < 2 {
@@ -66,12 +67,12 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	return t, err
 }
 
-//Creates a Random Balanced Binary tree. Does it recursively
+// Creates a Random Balanced Binary tree. Does it recursively
 // until the given depth is attained. Root is at depth 0.
 // So a depth "d" will generate a tree with 2^(d) tips.
-//depth : Depth of the balanced binary tree
-//rooted: if true, generates a rooted tree
-//branch length: follow an exponential distribution with param lambda=1/0.1
+//	* depth : Depth of the balanced binary tree
+//	* rooted: if true, generates a rooted tree
+//	* branch length: follow an exponential distribution with param lambda=1/0.1
 func RandomBalancedBinaryTree(depth int, rooted bool) (*Tree, error) {
 	t := NewTree()
 	if depth < 1 {
@@ -110,11 +111,11 @@ func randomBalancedBinaryTreeRecur(t *Tree, node *Node, curdepth int, targetdept
 	}
 }
 
-//Creates a Random Yule tree by successively adding new tips
-//to random terminal edges of the tree.
-//nbtips : Number of tips of the random binary tree to create
-//rooted: if true, generates a rooted tree
-//branch lengths: follow an exponential distribution with param lambda=1/0.1
+// Creates a Random Yule tree by successively adding new tips
+// to random terminal edges of the tree.
+//	* nbtips : Number of tips of the random binary tree to create
+//	* rooted: if true, generates a rooted tree (actually if false, unroots the given tree)
+//	* branch lengths: follow an exponential distribution with param lambda=1/0.1
 func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	t := NewTree()
 	if nbtips < 2 {
@@ -173,11 +174,11 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	return t, err
 }
 
-//Creates a Random Caterpilar tree by adding new tips to the last
-//added terminal edge of the tree.
-//nbtips : Number of tips of the random binary tree to create
-//rooted: if true, generates a rooted tree
-//branch length: follow an exponential distribution with param lambda=1/0.1
+// Creates a Random Caterpillar tree by adding new tips to the last
+// added terminal edge of the tree.
+//	* nbtips : Number of tips of the random binary tree to create
+//	* rooted: if true, generates a rooted tree
+//	* branch length: follows an exponential distribution with param lambda=1/0.1
 func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	t := NewTree()
 	if nbtips < 2 {
@@ -230,10 +231,11 @@ func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 }
 
 // Creates a Star tree with nbtips tips.
+//
 // Since there is only one possible labelled tree, no need
 // of randomness.
-// nbtips : Number of tips of the star tree.
-// Branch lengths are all set to 1.0
+//	* nbtips : Number of tips of the star tree.
+//	* Branch lengths are all set to 1.0
 func StarTree(nbtips int) (*Tree, error) {
 	t := NewTree()
 	if nbtips < 2 {
@@ -261,6 +263,7 @@ func StarTree(nbtips int) (*Tree, error) {
 // Creates a star tree using tipnames in argument
 // Since there is only one possible labelled tree, no need
 // of randomness.
+//
 // Branch lengths are all set to 1.0
 func StarTreeFromName(names ...string) (*Tree, error) {
 	if t, err := StarTree(len(names)); err != nil {
@@ -289,15 +292,13 @@ func StarTreeFromTree(t *Tree) (*Tree, error) {
 	}
 }
 
-/**
-Builds a tree whose only internal edge is the given edge e
-The two internal nodes are multifurcated
-\     /
--*---*-
-/     \
-alltips is the slice containing all tip names of the tree
-if nil, it will be recomputed
-*/
+// Builds a tree whose only internal edge is the given edge e
+// The two internal nodes are multifurcated
+// 	\     /
+// 	-*---*-
+// 	/     \
+// alltips is the slice containing all tip names of the tree.
+// if it is nil, it will be recomputed from the given tree.
 func EdgeTree(t *Tree, e *Edge, alltips []string) *Tree {
 	edgeTree := NewTree()
 	n := edgeTree.NewNode()
@@ -329,12 +330,12 @@ func EdgeTree(t *Tree, e *Edge, alltips []string) *Tree {
 	return edgeTree
 }
 
-/**
-Builds a single edge tree, given left taxa and right taxa
-\     /
--*---*-
-/     \
-*/
+// Builds a single edge tree, given left taxa and right taxa
+// 	\     /
+// 	-*---*-
+// 	/     \
+// Returns an error if size of lefTips is <=1 or size of rightTips w<= 1, or
+// if tip names are common between left and right tip sets.
 func BipartitionTree(leftTips []string, rightTips []string) (*Tree, error) {
 
 	if len(leftTips) <= 1 || len(rightTips) <= 1 {

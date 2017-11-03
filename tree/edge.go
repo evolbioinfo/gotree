@@ -10,6 +10,7 @@ import (
 	"github.com/fredericlemoine/gotree/io"
 )
 
+// Structure of an edge
 type Edge struct {
 	left, right *Node   // Left and right nodes
 	length      float64 // length of branch
@@ -22,6 +23,7 @@ type Edge struct {
 	id     int            // this field is used at discretion of the user to store information
 }
 
+// Constant for uninitialized values
 const (
 	NIL_SUPPORT = -1.0
 	NIL_LENGTH  = -1.0
@@ -32,29 +34,41 @@ const (
 /* Edge functions */
 /******************/
 
+// Sets left node (parent)
 func (e *Edge) setLeft(left *Node) {
 	e.left = left
 }
+
+// Sets right node (child)
 func (e *Edge) setRight(right *Node) {
 	e.right = right
 }
 
+// Sets the pvalue of this edge (if not null, pvalue
+// is stored/parsed as "/pvalue" in the bootstrap value
+// field.
 func (e *Edge) SetPValue(pval float64) {
 	e.pvalue = pval
 }
 
+// Sets the length of the branch
 func (e *Edge) SetLength(length float64) {
 	e.length = length
 }
 
+// Sets the branch support
 func (e *Edge) SetSupport(support float64) {
 	e.support = support
 }
 
+// returns the length of the branch
 func (e *Edge) Length() float64 {
 	return e.length
 }
 
+// Returns the length as a string representing the
+// right precision float (not 0.010000000 but
+// 0.01 for example)
 func (e *Edge) LengthString() string {
 	length := "N/A"
 	if e.Length() != NIL_LENGTH {
@@ -63,10 +77,14 @@ func (e *Edge) LengthString() string {
 	return length
 }
 
+// Returns the support of that branch
 func (e *Edge) Support() float64 {
 	return e.support
 }
 
+// Returns the support as a string representing the
+// right precision float (not 0.90000000 but
+// 0.9 for example)
 func (e *Edge) SupportString() string {
 	support := "N/A"
 	if e.Support() != NIL_SUPPORT {
@@ -75,22 +93,33 @@ func (e *Edge) SupportString() string {
 	return support
 }
 
+// Returns the Pvalue of that branch
 func (e *Edge) PValue() float64 {
 	return e.pvalue
 }
 
+// Returns the node at the right side of the edge (child)
 func (e *Edge) Right() *Node {
 	return e.right
 }
 
+// Returns the node at the left side of the edge (parent)
 func (e *Edge) Left() *Node {
 	return e.left
 }
 
+// Returns the BitSet of that edge. It may be nil if not initialized.
+//
+// the ith bit corresponds position of tip i around the branch (left:0/right:1).
+//
+// i is the index of the tip in the sorted tip name array
 func (e *Edge) Bitset() *bitset.BitSet {
 	return e.bitset
 }
 
+// Returns the Id of the branch.
+//
+// Returns an error if not initialized.
 func (e *Edge) Id() int {
 	if e.id == NIL_ID {
 		io.ExitWithMessage(errors.New("Id has not been set"))
@@ -98,17 +127,18 @@ func (e *Edge) Id() int {
 	return e.id
 }
 
+// Sets the id of the branch
 func (e *Edge) SetId(id int) {
 	e.id = id
 }
 
-/*
-If rooted, the output clade name is the name of the
-descendent node.
-
-if not rooted, then the clade name is the name of the node on
-the lightest side
-*/
+// Returns the name associated to this Edge.
+//
+// If rooted, the output clade name is the name of the
+// descendent node.
+//
+// Else, the clade name is the name of the node on the
+// lightest side. In that case bitsets need to be initialized.
 func (e *Edge) Name(rooted bool) (nodename string) {
 	//If rooted, the clade name is the name of the
 	// descendent node
@@ -120,8 +150,10 @@ func (e *Edge) Name(rooted bool) (nodename string) {
 	return
 }
 
-// Returns the size (number of tips) of the smallest subtree
-// between the two subtrees connected to this edge
+// Returns the size (number of tips) of the light side
+// (smallest number of tips) of the given branch.
+//
+// Bitsets must be initialized otherwise returns an error.
 func (e *Edge) TopoDepth() (int, error) {
 	if e.bitset == nil {
 		return -1, errors.New("Cannot compute topodepth, Bitset is nil")
@@ -146,12 +178,12 @@ func (e *Edge) DumpBitSet() string {
 
 /* Returns a string containing informations about the edge:
 Tab delimited:
-1 - length
-2 - support
-3 - istip?
-4 - depth
-5 - topo depth
-6 - name of node if any
+	1 - length
+	2 - support
+	3 - istip?
+	4 - depth
+	5 - topo depth
+	6 - name of node if any
 */
 func (e *Edge) ToStatsString() string {
 	var err error
@@ -187,20 +219,25 @@ func (e *Edge) ToStatsString() string {
 }
 
 // Returns true if this edge defines the same biparition of the tips
-// than the edge in argument
+// than the edge in argument.
+//
+// Bitsets must be initialized
 func (e *Edge) SameBipartition(e2 *Edge) bool {
 	return e.bitset.EqualOrComplement(e2.bitset)
 }
 
 // Tests wether the tip with index id in the bitset
-// is Set or not
+// is Set or not.
+//
 // The index corresponds to tree.Tipindex(tipname)
 func (e *Edge) TipPresent(id uint) bool {
 	return e.bitset.Test(id)
 }
 
 // Number of tips on the right side of the bipartition
-// Used by "TopoDepth" function for example
+// Used by "TopoDepth" function for example.
+//
+// Bitsets must be initialized, otherwise returns an error.
 func (e *Edge) NumTipsRight() (int, error) {
 	if e.bitset == nil {
 		return -1, errors.New("Cannot count right tips, Bitset is nil")
@@ -212,8 +249,10 @@ func (e *Edge) NumTipsRight() (int, error) {
 	return int(e.bitset.Count()), nil
 }
 
-// Number of tips on the right side of the bipartition
-// Used by "TopoDepth" function for example
+// Number of tips on the left side of the bipartition
+// Used by "TopoDepth" function for example.
+//
+// Bitsets must be initialized, otherwise returns an error.
 func (e *Edge) NumTipsLeft() (int, error) {
 	if e.bitset == nil {
 		return -1, errors.New("Cannot count left tips, Bitset is nil")
@@ -225,7 +264,9 @@ func (e *Edge) NumTipsLeft() (int, error) {
 }
 
 // Return the given edge in the array of edges comparing bitsets fields
-// Return nil if not found
+// Return nil if not found.
+//
+// Bitsets must be initialized otherwise returns an error.
 func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {
 	if e.bitset == nil {
 		return nil, errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
@@ -252,11 +293,15 @@ func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {
 	return nil, nil
 }
 
-// Returns the average difference and the max difference in support between the current edge and its neighbors
-// The neighbors are defined by the branches with length of the path separating the branches < d
-// cutoff: Cutoff to consider hx=true or hy=true
-// hx=true if exists a neighbor branch with suppt > cutoff
-// hy=true if the current branch has suppt > cutoff */
+// Returns the average difference and the max difference in support between
+// the current edge and its neighbors.
+//
+// The neighbors are defined by the branches located in a area defined
+// by number of branches separating them (<d).
+//
+//	* cutoff: Cutoff to consider hx=true or hy=true
+//	* hx=true if exists a neighbor branch with suppt > cutoff
+//	* hy=true if the current branch has suppt > cutoff */
 // Returns (avg diff, min diff, max diff, hx, hy)
 func (e *Edge) Locality(maxdist int, cutoff float64) (float64, float64, float64, bool, bool) {
 	neighbors := e.NeigborEdges(maxdist)
@@ -290,7 +335,9 @@ func (e *Edge) Locality(maxdist int, cutoff float64) (float64, float64, float64,
 }
 
 // Returns the neighbors of the given edge.
-// Neighbors are defined as branches separated of given branch by a path whose length < maxdist
+//
+// The neighbors are defined by the branches located in a area defined by
+// number of branches separating them (<d).
 func (e *Edge) NeigborEdges(maxdist int) []*Edge {
 	edges := make([]*Edge, 0, 0)
 

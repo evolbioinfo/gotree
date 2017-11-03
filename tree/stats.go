@@ -8,7 +8,9 @@ import (
 
 const MaxInt = int(^uint(0) >> 1)
 
-// if UpdateTipIndex has been called before ok
+// Returns the number if tips of the tree
+//
+// If UpdateTipIndex has been called before ok
 // otherwise returns an error
 func (t *Tree) NbTips() (int, error) {
 	if len(t.tipIndex) == 0 {
@@ -19,6 +21,7 @@ func (t *Tree) NbTips() (int, error) {
 
 }
 
+// Returns the sum of branch lengths
 func (t *Tree) SumBranchLengths() float64 {
 	sumlen := 0.0
 	for _, e := range t.Edges() {
@@ -30,6 +33,7 @@ func (t *Tree) SumBranchLengths() float64 {
 	return sumlen
 }
 
+// Returns the average branch lengths
 func (t *Tree) MeanBranchLength() float64 {
 	mean := 0.0
 	edges := t.Edges()
@@ -42,6 +46,7 @@ func (t *Tree) MeanBranchLength() float64 {
 	return mean / float64(len(edges))
 }
 
+// Returns the average branch support
 func (t *Tree) MeanSupport() float64 {
 	mean := 0.0
 	edges := t.Edges()
@@ -59,6 +64,7 @@ func (t *Tree) MeanSupport() float64 {
 	return mean / float64(i)
 }
 
+// Returns the median branch support
 func (t *Tree) MedianSupport() float64 {
 	edges := t.Edges()
 	tips := t.Tips()
@@ -86,6 +92,7 @@ func (t *Tree) MedianSupport() float64 {
 	return result
 }
 
+// Returns the number of cherries in the tree
 func (t *Tree) NbCherries() (nbcherries int) {
 	nbcherries = 0
 	for _, n := range t.Nodes() {
@@ -104,14 +111,21 @@ func (t *Tree) NbCherries() (nbcherries int) {
 	return
 }
 
-// This functions computes the colless index of a rooted tree
-// As Sum over nodes v of |S(left(V))-S(right(V))|.
-// With Sleft(V) : Size of the left sublcade of V and Sright(V) size the
-// right subclade of V.
-// If the tree is unrooted, then it takes as starting point the deepest edge of the tree.
-// If multifurcations : then the index of node V will be (Smax(V)-Smin(V))
-// With Smax(V) : Size of the largest subclade of V and Smin(V) size the
-// smallest subclade of V.
+// Returns the colless index of the tree.
+//
+// It computes the colless index of a rooted tree
+// as the Sum over nodes v of |S(left(V))-S(right(V))|.
+// With Sleft(V)=Size of the left sublcade of V and
+// Sright(V)=size of the right subclade of V.
+//
+// If the tree is unrooted, then it takes as starting point the deepest
+// edge of the tree (not the classical definition of Colless index which
+// is computed only for rooted trees).
+//
+// If there are multifurcations, then the index of node V will be
+// (Smax(V)-Smin(V)), with Smax(V)=Size of the largest subclade of V
+// and Smin(V) size the smallest subclade of V (not the classical
+// definition of Colless index which is computed only for binary trees).
 func (t *Tree) CollessIndex() (colless int) {
 	colless = 0
 	if !t.Rooted() {
@@ -150,10 +164,15 @@ func collessIndexRecur(n *Node, prev *Node) (colless, tips int) {
 	return
 }
 
+// Computes the Sackin index of the tree
+//
 // This functions computes the Sackin index of a rooted tree
-// As the sum of all tip depths.
+// as the sum of all tip depths.
+//
 // If the tree is unrooted, then it takes as starting point the deepest
-// edge of the tree.
+// edge of the tree  (not the classical definition of Sackin index which
+// is computed only for rooted trees).
+//
 // No problems with multifurcations.
 func (t *Tree) SackinIndex() (sackin int) {
 	sackin = 0

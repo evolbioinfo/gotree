@@ -9,22 +9,24 @@ import (
 	//"os"
 )
 
-/* Given a set of tip names
-returns the node that is the common ancestor of them
-and the edges that connects this node to the subtree
-=> Considers the tree as unrooted
-       e2---1
- ----a|
-|      e1---2
-|     ---3
- ----|
-|     ---4
-|     ---5
- ----|
-      ---6
-LeastCommonAncestorUnrooted(1,2) returns a,e1,e2,true
-returned boolean value is true if the group is monophyletic
-*/
+// Given a set of tip names, this function
+// returns the node that is the common ancestor of them
+// and the edges that connects this node to the subtree.
+//
+// It considers the tree as unrooted
+// 	       e2---1
+// 	 ----a|
+// 	|      e1---2
+// 	|     ---3
+// 	 ----|
+// 	|     ---4
+// 	|     ---5
+// 	 ----|
+// 	      ---6
+// LeastCommonAncestorUnrooted(1,2) returns a,e1,e2,true
+//
+// The returned boolean value telling if the group is monophyletic
+// (i.e. contains all tips descending from LCA).
 func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string) (*Node, []*Edge, bool, error) {
 	if nodeindex == nil {
 		nodeindex = NewNodeIndex(t)
@@ -74,12 +76,14 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 	return ancestor, goodedges, diff == 0, nil
 }
 
-/* Given a set of tip names
-returns the node that is the common ancestor of them
-and the edges that connects this node to the subtree
-=> Considers the tree as Rooted
-returned boolean value is true if the group is monophyletic
-*/
+// Given a set of tip names, this function returns
+// the node that is the common ancestor of them
+// and the edges that connect this LCA node to the subtree.
+//
+// It considers the tree as Rooted.
+//
+// The returned boolean value tell if the group is monophyletic or not
+// (i.e. contains all tips descending from LCA).
 func (t *Tree) LeastCommonAncestorRooted(nodeindex *nodeIndex, tips ...string) (*Node, []*Edge, bool, error) {
 	if nodeindex == nil {
 		nodeindex = NewNodeIndex(t)
@@ -110,7 +114,7 @@ func (t *Tree) LeastCommonAncestorRooted(nodeindex *nodeIndex, tips ...string) (
 	return ancestor, goodedges, diff == 0, nil
 }
 
-/* Returns for a given node ... */
+// recursive function for getting the least common ancestor.
 func (t *Tree) LeastCommonAncestorRecur(current *Node, prev *Node, tipIndex map[string]*Node) (*Node, []*Edge, int, int, bool, error) {
 	common := 0
 	edges := make([]*Edge, 0, 3)
@@ -165,28 +169,34 @@ func (t *Tree) LeastCommonAncestorRecur(current *Node, prev *Node, tipIndex map[
 	}
 }
 
-/*
-This function adds a bipartition at the given node and the given edges
-Immagine a star tree with central node n,
-     1
-     |
-     |
-6----n-----2
-    /|\
-   / | \
- e5 e4  e3
-if we call AddBipartition(n,{e3,e4,e5}) we end with:
-     1
-     |
-     |
-6----n-----2
-     |
-     |
-     n2
-    /|\
-   / | \
- e5 e4  e3
-*/
+// This function adds a branch/bipartition between the given node n
+// and the given edges. To do so, it creates a new node between n and the edges,
+// and connects it with a new edge.
+//
+// Imagine a star tree with central node n,
+//	      1
+//	      |
+//	      |
+//	 6----n-----2
+//	     /|\
+//	    / | \
+//	  e5 e4  e3
+// if we call AddBipartition(n,{e3,e4,e5}), at the end we have:
+//	      1
+//	      |
+//	      |
+//	 6----n-----2
+//	      |
+//	      |
+//	      n2
+//	     /|\
+//	    / | \
+//	  e5 e4  e3
+//
+// Useful for building consensus tree.
+//
+// If the edges are not initially directly connected to n, then returns an error. If ony one edge is given,
+// returns an error (no need to add a new edge).
 func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) (*Edge, error) {
 	n2 := t.NewNode()
 	// Number of edges in direction n->e->other
@@ -239,18 +249,16 @@ func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) (
 	return e, nil
 }
 
-/*
-Builds the consensus of trees given in the input channel.
-If the cutoff is 0.5 : The majority rule consensus is computed
-If tht cutoff is 1   : The strict consensus is computed
-In the output consensus tree:
-1) Branch supports are computed as the proportion of trees in which the bipartition is present
-2) Branch lengths are computed as the average length of the same branch over all the trees where it is present
-There can be errors if:
-* The cutoff <0.5 or >1
-* The tip names are different in the different trees
-* Incompatible bipartition are generated to build the consensus (It should not happen since cutoff should be >=0.5)
-*/
+// Builds the consensus of trees given in the input channel.
+//	* If the cutoff is 0.5 : The majority rule consensus is computed;
+//	* If tht cutoff is 1   : The strict consensus is computed
+// In the output consensus tree:
+//	1) Branch supports are computed as the proportion of trees in which the bipartitions are present
+//	2) Branch lengths are computed as the average length of the same branch over all the trees where it is present
+// There can be errors if:
+//	* The cutoff <0.5 or >1
+//	* The tip names are different in the different trees
+//	* Incompatible bipartition are generated to build the consensus (It should not happen since cutoff should be >=0.5)
 func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 	if cutoff < 0.5 || cutoff > 1 {
 		return nil, errors.New("Min frequency for bipartition must be >=0.5 and <=1")
@@ -356,14 +364,15 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 	return startree, nil
 }
 
-/*
-This function first unroot the input tree and reroot it using the outgroup in argument
-if the outgroup is not monophyletic, it will take all the descendant of the LCA.
-An error is triggered if the LCA is multifurcated, and several branches are possible
-for the placement of the root.
-If the outgroup includes a tip that is not present in the tree,
-this tip will not be taken into account for the reroot.
-*/
+// This function first unroots the input tree and reroots it using the outgroup in argument.
+//
+// If the outgroup is not monophyletic, it will take all the descendant of the LCA.
+//
+// An error is returned if the LCA is multifurcated, and several branches are possible
+// for the placement of the root.
+//
+// If the outgroup includes a tip that is not present in the tree,
+// this tip will not be taken into account for the rerooting.
 func (t *Tree) RerootOutGroup(tips ...string) error {
 	t.UnRoot()
 
@@ -424,6 +433,10 @@ func (t *Tree) RerootOutGroup(tips ...string) error {
 	return nil
 }
 
+// This function reroots the tree at the midpoint position.
+// To do so, it first gets the 2 farthest tips of the tree,
+// and takes the middle of the path between these tips as the
+// new root position.
 func (t *Tree) RerootMidPoint() error {
 	// We first unroot the tree
 	t.UnRoot()
@@ -503,10 +516,15 @@ func (t *Tree) RerootMidPoint() error {
 	return nil
 }
 
-// Take as argument the node from which we want to get the farthest
-// tip (longest possible path)
+// Computes the path of maximum length between the given node
+// and any other node.
+//
+// It takes as argument the node from which we want to get the farthest
+// tip (longest possible path).
+//
 // It returns the path (slice of edges), and the sum of branch lengths
-// of this path
+// of this path.
+//
 // Returns an error if a branch has no length
 func MaxLengthPath(cur *Node, prev *Node) ([]*Edge, float64, error) {
 	var potentialedges []*Edge
@@ -530,10 +548,10 @@ func MaxLengthPath(cur *Node, prev *Node) ([]*Edge, float64, error) {
 	return potentialedges, curlength, nil
 }
 
-/*
-Computes and returns the distance (sum of branch lengths)
-between all pairs of tips in the tree
-*/
+// This function computes and returns the distance (sum of branch lengths)
+// between all pairs of tips in the tree (patristic distance).
+//
+// Computes patristic distance matrix.
 func (t *Tree) ToDistanceMatrix() [][]float64 {
 	// All tips of the tree
 	tips := t.Tips()
@@ -573,14 +591,16 @@ type BipartitionStats struct {
 	Err      error // Wether an error occured or not in the computation
 }
 
-/* This function compares bipartitions of a reference tree with a set of trees given in the input channel.
-If tips is true, then comparison includes external branches. If comparetreeidentical is true, does not compute
-the exact number of common and specific branches, but just put sametree=true or sametree=false in the stat channel.
-This function returns almost immediately because computation is done in several go routines in background.
-The function returns a Channel which will contain bipartition statistics computed so far. This channel is closed at the end of the computations,
-so you can iterate over this channel in order to wait for the end of computations.
-It First Initializes bitsets of the reference tree
-*/
+// This function compares bipartitions of a reference tree with a set of trees given in the input channel.
+//
+// If tips is true, then comparison includes external branches. If comparetreeidentical is true, does not compute
+// the exact number of common and specific branches, but just put sametree=true or sametree=false in the stat channel.
+//
+// This function returns almost immediately because computation is done in several go routines in background.
+// However it returns a Channel that will contain bipartition statistics computed so far. This channel is closed at the end of the computations,
+// so on the calling functin, you can iterate over this channel in order to wait for the end of computations.
+//
+// It First Initializes bitsets of the reference tree
 func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical bool, cpus int) (<-chan BipartitionStats, error) {
 	var edges []*Edge
 	stats := make(chan BipartitionStats)

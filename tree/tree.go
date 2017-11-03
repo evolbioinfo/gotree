@@ -17,6 +17,7 @@ import (
 	"github.com/fredericlemoine/gotree/io"
 )
 
+// Tree structure having a root and a tip index, that maps tip names to their index
 type Tree struct {
 	root     *Node           // root node: If the tree is unrooted the root node should have 3 children
 	tipIndex map[string]uint // Map between tip name and bitset index
@@ -29,6 +30,7 @@ type Trees struct {
 	Err  error
 }
 
+// Initialize a new empty Tree
 func NewTree() *Tree {
 	return &Tree{
 		root:     nil,
@@ -36,6 +38,7 @@ func NewTree() *Tree {
 	}
 }
 
+// Initialize a new empty Node
 func (t *Tree) NewNode() *Node {
 	return &Node{
 		name:    "",
@@ -47,7 +50,7 @@ func (t *Tree) NewNode() *Node {
 	}
 }
 
-// put at nil the node and all its branches
+// Set to nil the node and all its branches
 func (t *Tree) delNode(n *Node) {
 	for i, _ := range n.neigh {
 		n.neigh[i] = nil
@@ -62,6 +65,7 @@ func (t *Tree) delNode(n *Node) {
 	n.br = nil
 }
 
+// Initialize a new empty Edge
 func (t *Tree) NewEdge() *Edge {
 	return &Edge{
 		length:  NIL_LENGTH,
@@ -74,14 +78,21 @@ func (t *Tree) NewEdge() *Edge {
 /* Tree functions */
 /******************/
 
+// Set a root for the tree. This does not check that the
+// node is part of the tree. It may be useful to call
+//	t.ReinitIndexes()
+// After setting a new root, to update branch bitsets.
 func (t *Tree) SetRoot(r *Node) {
 	t.root = r
 }
 
+// Returns the current root of the tree
 func (t *Tree) Root() *Node {
 	return t.root
 }
 
+// Returns true if the tree is rooted (i.e. root node
+// has 2 neighbors), and false otherwise.
 func (t *Tree) Rooted() bool {
 	return t.root.Nneigh() == 2
 }
@@ -96,6 +107,7 @@ func (t *Tree) Edges() []*Edge {
 	return edges
 }
 
+// Recursive function to list all edges of the tree
 func (t *Tree) edgesRecur(edge *Edge, edges *[]*Edge) {
 	if len(edge.right.neigh) > 1 {
 		for _, child := range edge.right.br {
@@ -119,6 +131,7 @@ func (t *Tree) InternalEdges() []*Edge {
 	return edges
 }
 
+// recursive function that lists all internal edges of the tree
 func (t *Tree) internalEdgesRecur(edge *Edge, edges *[]*Edge) {
 	if len(edge.right.neigh) > 1 {
 		for _, child := range edge.right.br {
@@ -130,7 +143,7 @@ func (t *Tree) internalEdgesRecur(edge *Edge, edges *[]*Edge) {
 	}
 }
 
-// Returns all the tip edges of the tree (do it recursively)
+// Returns all the external edges (tip) of the tree (do it recursively)
 func (t *Tree) TipEdges() []*Edge {
 	edges := make([]*Edge, 0, 2000)
 	for _, e := range t.Root().br {
@@ -142,6 +155,7 @@ func (t *Tree) TipEdges() []*Edge {
 	return edges
 }
 
+// recursive function that lists all external edges (tips) of the tree
 func (t *Tree) tipEdgesRecur(edge *Edge, edges *[]*Edge) {
 	if len(edge.right.neigh) > 1 {
 		for _, child := range edge.right.br {
@@ -162,6 +176,7 @@ func (t *Tree) Nodes() []*Node {
 	return nodes
 }
 
+// recursive function that lists all nodes of the tree
 func (t *Tree) nodesRecur(nodes *[]*Node, cur *Node, prev *Node) {
 	if cur == nil {
 		cur = t.Root()
@@ -181,6 +196,7 @@ func (t *Tree) Tips() []*Node {
 	return tips
 }
 
+// recursive function that lists all tips of the tree
 func (t *Tree) tipsRecur(tips *[]*Node, cur *Node, prev *Node) {
 	if cur == nil {
 		cur = t.Root()
@@ -195,10 +211,9 @@ func (t *Tree) tipsRecur(tips *[]*Node, cur *Node, prev *Node) {
 	}
 }
 
-/*
- Returns the list of nodes having a name matching the given regexp
- May return an error if the regexp is malformed. In this case, returns an empty (not nil) slice of nodes.
-*/
+// Returns the list of nodes having a name matching the given regexp
+// May return an error if the regexp is malformed.
+// In this case, returns an empty (not nil) slice of nodes.
 func (t *Tree) SelectNodes(re string) ([]*Node, error) {
 	nodes := make([]*Node, 0)
 	if r, err := regexp.Compile(re); err == nil {
@@ -213,7 +228,11 @@ func (t *Tree) SelectNodes(re string) ([]*Node, error) {
 	}
 }
 
-// Removes a set of tips from the tree, from tip names
+// Removes a set of tips from the tree, given their names
+//
+// if revert is true, then keeps only tips with the given names
+//
+// Removed tips
 func (t *Tree) RemoveTips(revert bool, names ...string) error {
 	namemap := make(map[string]bool)
 
@@ -237,7 +256,16 @@ func (t *Tree) RemoveTips(revert bool, names ...string) error {
 	return nil
 }
 
-// Remove one tip from the tree
+// Removes one tip from the tree. The internal node may be removed, example:
+//	          t1
+//	         /
+//	 n0--n2--
+//	         \
+//	          t2
+// If we remove t2, then n2 must be removed. In that case, we remove n2 and
+// connect n0 to t1 with a branch having :
+//	* length=length(n0--n2)+length(n2--t1)
+//	* support=max(support(n0--n2),support(n2--t1))
 func (t *Tree) removeTip(tip *Node) error {
 	if len(tip.neigh) != 1 {
 		return errors.New("Cannot remove node, it is not a tip")
@@ -252,10 +280,11 @@ func (t *Tree) removeTip(tip *Node) error {
 	tip.br[0].right = nil
 	tip.br = nil
 
-	// Then 2 solutions :
+	// Then 3 solutions :
 	// 1 - Internal node is now terminal : it means it was the root of a rooted tree : we delete it and new root is its child
 	// 2 - Internal node is now a bifurcation : we do not want to keep it thus we will delete it and connect the two neighbors
 	// 3 - Internal node still has a degree > 2 : We do not do anything => the node should remain
+
 	// Case 1
 	if len(internal.neigh) == 1 {
 		if t.Root() != internal {
@@ -294,7 +323,7 @@ func (t *Tree) removeTip(tip *Node) error {
 		// 3) n1<---internal--->n2 : internal is the root of an unrooted tree so:
 		//        1 - we connect the two nodes from n1 to n2 if n1 is not a tip or n2 to n1 otherwise
 		//        2 - we choose a new root (n1 if n1->n2, n2 otherwise)
-		// 4) n1--->internal<---n2 : Error
+		// 4) n1--->internal<---n2 : Error : A node cannot have 2 parents
 		if dir1 && dir2 { // 1)
 			e = t.ConnectNodes(n1, n2)
 		} else if !dir1 && !dir2 { // 2)
@@ -337,10 +366,13 @@ func (t *Tree) removeTip(tip *Node) error {
 	//return errors.New("Unknown problem: The internal node remaining after removing the tip has a unexpected number of neighbors")
 }
 
+// Returns a newick string representation of this tree
+// It calls t.Newick()
 func (t *Tree) String() string {
 	return t.Newick()
 }
 
+// Returns a newick string representation of this tree
 func (t *Tree) Newick() string {
 	var buffer bytes.Buffer
 	t.root.Newick(nil, &buffer)
@@ -355,6 +387,7 @@ func (t *Tree) Newick() string {
 	return buffer.String()
 }
 
+// returns a Nexus string representation of this tree
 func (t *Tree) Nexus() string {
 	newick := t.Newick()
 	var buffer bytes.Buffer
@@ -378,8 +411,9 @@ func (t *Tree) Nexus() string {
 	return buffer.String()
 }
 
-// Updates the tipindex which maps tip names
-// To index in the bitsets
+// Updates the tipindex which maps tip names to
+// their index in the bitsets.
+//
 // Bitset indexes correspond to the position
 // of the tip in the alphabetically ordered tip
 // name list
@@ -461,6 +495,7 @@ func (t *Tree) allTipNamesRecur(names *[]string, n *Node, parent *Node) {
 	}
 }
 
+// Connects the two nodes in argument by an edge that is returned.
 func (t *Tree) ConnectNodes(parent *Node, child *Node) *Edge {
 	newedge := t.NewEdge()
 	newedge.setLeft(parent)
@@ -482,6 +517,7 @@ func (t *Tree) RerootFirst() error {
 	return errors.New("No nodes with 3 neighors have been found for rerooting")
 }
 
+// Clears all bitsets associated to all edges
 func (t *Tree) ClearBitSets() error {
 	length := uint(len(t.tipIndex))
 	if length == 0 {
@@ -491,13 +527,11 @@ func (t *Tree) ClearBitSets() error {
 	return nil
 }
 
-/*
-This Function initializes or reinitializes
-memory consuming structures:
-- bitset indexes
-- Tipindex
-- And computes node depths
-*/
+// This Function initializes or reinitializes
+// memory consuming structures:
+//	* bitset indexes
+//	* Tipindex
+//	* And computes node depths
 func (t *Tree) ReinitIndexes() {
 	t.UpdateTipIndex()
 	t.ClearBitSets()
@@ -539,7 +573,6 @@ func (t *Tree) UpdateBitSet() error {
 }
 
 // Recursively clears and sets the bitsets of the descending edges
-//
 func (t *Tree) fillRightBitSet(currentEdge *Edge, rightEdges *[]*Edge) error {
 	if currentEdge.bitset == nil {
 		return errors.New("BitSets has not been initialized with tree.clearBitSetsRecur(nil, nil, uint(len(tree.tipIndex)))")
@@ -572,15 +605,16 @@ func (t *Tree) fillRightBitSet(currentEdge *Edge, rightEdges *[]*Edge) error {
 	return nil
 }
 
-// This function compares 2 trees and output
-// the number of edges in common
-// If the trees have different sets of tip names, returns an error
+// This function compares 2 trees and returns the number of edges in common
+// If the trees have different sets of tip names, returns an error.
+//
 // It assumes that functions
-// 	tree.UpdateTipIndex()
+//	tree.UpdateTipIndex()
 //	tree.ClearBitSets()
 //	tree.UpdateBitSet()
-// If tipedges is false: does not take into account tip edges
 // Have been called before, otherwise will output an error
+//
+// If tipedges is false: does not take into account tip edges
 func (t *Tree) CommonEdges(t2 *Tree, tipEdges bool) (tree1 int, common int, err error) {
 
 	err = t.CompareTipIndexes(t2)
@@ -597,16 +631,20 @@ func (t *Tree) CommonEdges(t2 *Tree, tipEdges bool) (tree1 int, common int, err 
 	return tree1, common, nil
 }
 
-// This function compares 2 trees and output
-// the number of edges in common
-// It does not check if the trees have different sets of tip names, but just compare the bitsets
-// If applied on two tree with the same number of tips with different names, it will give results anyway
+// This function compares 2 trees and returns the number of edges in common.
+//
+// It does not check if the trees have different sets of tip names,
+// but just compare the bitsets. If called on two trees with the same
+// number of tips with different names, it will give meaningless
+// results.
+//
 // It assumes that functions
 // 	tree.UpdateTipIndex()
 //	tree.ClearBitSets()
 //	tree.UpdateBitSet()
-// If tipedges is false: does not take into account tip edges
 // Have been called before, otherwise will output an error
+//
+// If tipedges is false: does not take into account tip edges
 func CommonEdges(edges1 []*Edge, edges2 []*Edge, tipEdges bool) (tree1 int, common int, err error) {
 	var e, e2 *Edge
 	for _, e = range edges1 {
@@ -625,8 +663,9 @@ func CommonEdges(edges1 []*Edge, edges2 []*Edge, tipEdges bool) (tree1 int, comm
 }
 
 // This function compares the tip name indexes of 2 trees
-// If the tipindexes have the same size (!=0) and have the same set of tip names,
-// The returns nil, otherwise returns an error
+//
+// If the tipindexes have the same size (!=0) and have the
+// same set of tip names, then returns nil, otherwise returns an error
 func (t *Tree) CompareTipIndexes(t2 *Tree) error {
 	if len(t.tipIndex) == 0 ||
 		len(t2.tipIndex) == 0 ||
@@ -650,9 +689,11 @@ func (t *Tree) CompareTipIndexes(t2 *Tree) error {
 	return nil
 }
 
-// This function takes a node and reroot the tree on that node
-// It reorients edges left-edge-right : see ReorderEdges
-// The node must be one of the tree nodes, otherwise it returns an error
+// This function takes a node and reroots the tree on that node.
+//
+// It reorients edges left-edge-right : see ReorderEdges()
+//
+// The node must be part of the tree, otherwise it returns an error
 func (t *Tree) Reroot(n *Node) error {
 	intree := false
 	for _, n2 := range t.Nodes() {
@@ -668,13 +709,13 @@ func (t *Tree) Reroot(n *Node) error {
 	return err
 }
 
-// This function reorders the edges of a tree
-// in order to always have left-edge-right
-// with left node being parent of right node
-// with respect to the given root node
-// Important even for unrooted trees
-// Useful mainly after a reroot
-// Updates "reversed" edge slice, edges that have been reversed
+// This function reorders the edges of a tree in order to always have
+// left-edge-right with left node being parent of right node with respect
+// to the given root node.
+//
+// Important even for unrooted trees. Useful mainly after a reroot.
+//
+// It updates "reversed" edge slice, edges that have been reversed
 func (t *Tree) ReorderEdges(n *Node, prev *Node, reversed *[]*Edge) error {
 	for _, next := range n.br {
 		if next.right != prev && next.left != prev {
@@ -690,9 +731,18 @@ func (t *Tree) ReorderEdges(n *Node, prev *Node, reversed *[]*Edge) error {
 	return nil
 }
 
-// This function graft the Node n at the middle of the Edge e
-// It divides the branch lenght by 2
-// It returns the added edges and the added nodes
+// This function grafts the Tip n at the middle of the Edge e.
+//
+// Example:
+//	* Before
+//		*--e--*
+//	* After
+//		*--e1--newnode--e2--*
+//		          |
+//		          n
+//
+// To do so, it divides the branch lenght by 2,and returns the 2 new
+// edges and the new internal node.
 func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) (*Edge, *Edge, *Node, error) {
 	newnode := t.NewNode()
 	newedge := t.NewEdge()
@@ -738,6 +788,11 @@ func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) (*Edge, *Edge, *Node, error) {
 	return newedge, newedge2, newnode, nil
 }
 
+// Computes detphs of all nodes. Depth of internal node n is defined as
+// the length of the path from n to the closest tip. Depth of tip nodes
+// is 0.
+//
+// Depth is then accessible by n.Depth() for any node n.
 func (t *Tree) ComputeDepths() {
 	if t.Rooted() {
 		t.computeDepthRecurRooted(t.Root(), nil)
@@ -746,6 +801,7 @@ func (t *Tree) ComputeDepths() {
 	}
 }
 
+// Recursive function to compute depths for a rooted tree
 func (t *Tree) computeDepthRecurRooted(n *Node, prev *Node) int {
 	if n.Tip() {
 		n.depth = 0
@@ -765,6 +821,7 @@ func (t *Tree) computeDepthRecurRooted(n *Node, prev *Node) int {
 	}
 }
 
+// Recursive function to compute depths for an unrooted tree
 func (t *Tree) computeDepthUnRooted() {
 	nodes := t.Tips()
 	currentlevel := 0
@@ -791,7 +848,10 @@ func (t *Tree) computeDepthUnRooted() {
 }
 
 // This function shuffles the tips of the tree
-// and recompute tipindex and bitsets
+// and recompute tipindex and bitsets.
+//
+// The tree have the same topology, but tip names
+// are reassigned randomly.
 func (t *Tree) ShuffleTips() {
 	tips := t.Tips()
 	names := t.AllTipNames()
@@ -833,7 +893,7 @@ func (t *Tree) CollapseLowSupport(support float64) {
 }
 
 // Collapses (removes) the branches having their depth d
-// (# taxa on the lightest side of the bipartition)
+// (# taxa on the lightest side of the bipartition) such that
 // mindepththreshold<=d<=maxdepththreshold
 func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int) error {
 	edges := t.Edges()
@@ -851,10 +911,20 @@ func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int) error
 	return nil
 }
 
-// Resolves multifurcating nodes (>3 neighbors)
-// If any node has more than 3 neighbors :
-// Resolve neighbors randomly by adding 0 length
-// branches until it has 3 neighbors
+// Resolves multifurcating nodes (>3 neighbors).
+//
+// If any node has more than 3 neighbors, then
+// neighbors are resolved randomly by adding 0 length
+// branches until 3 neighbors are remaining.
+//
+// This function does not update bitsets on edges.
+//
+// If needed, the calling function must do it with:
+//	err := t.ClearBitSets()
+//	if err != nil {
+//		return err
+//	}
+//	t.UpdateBitSet()
 func (t *Tree) Resolve() {
 	root := t.Root()
 
@@ -862,17 +932,18 @@ func (t *Tree) Resolve() {
 }
 
 // Recursive function to resolve
-// multifurcating nodes (see Resolve)
+// multifurcating nodes (see Resolve).
+//
 // Post order: We first resolve neighbors,
-// and then resolve the current node
+// and then resolve the current node.
+//
 // This function does not update bitsets on edges:
 // The calling function must do it with:
-// err := t.ClearBitSets()
-// if err != nil {
-// 	return err
-// }
-// t.UpdateBitSet()
-
+//	err := t.ClearBitSets()
+//	if err != nil {
+//		return err
+//	}
+//	t.UpdateBitSet()
 func (t *Tree) resolveRecur(current, previous *Node) {
 	// Resolve neighbors
 	for _, n := range current.Neigh() {
@@ -929,15 +1000,18 @@ func (t *Tree) resolveRecur(current, previous *Node) {
 	}
 }
 
-// Remove Edges for which the left node has a unique child:
-// Example:   t1          t1
-//           /	         /
-// n0--n1--n2   => n0--n2
-//           \	         \
-//            t2          t2
+// Removes Edges for which the left node has a unique child:
+//
+// Example:
+//	           t1           t1
+//	           /	       /
+//	 n0--n1--n2   => n0--n2
+//	           \	       \
+//	            t2          t2
 // Will remove edge n1-n2 and keep node n2 informations (name, etc.)
 // It adds n1-n2 length to n0-n1 (if any) and keeps n0-n1 support (if any)
 // Useful for cleaning ncbi taxonomy for example.
+//
 // Not necessary for trees imported from newick files because
 // the parser would complain about such trees
 func (t *Tree) RemoveSingleNodes() {
@@ -946,16 +1020,18 @@ func (t *Tree) RemoveSingleNodes() {
 	t.removeSingleNodesRecur(root, nil, nil)
 }
 
-// Remove recursively Edges for which the left node has a unique child
-// Post order: We first remove in subtrees,
-// and then look at the current node
-// This function does not update bitsets on edges:
-// The calling function must do it with:
-// err := t.ClearBitSets()
-// if err != nil {
-// 	return err
-// }
-// t.UpdateBitSet()
+// Removes recursively Edges for which the left node has a unique child.
+//
+// Post order: We first remove in subtrees, and then look at the
+// current node.
+//
+// This function does not update bitsets on edges, the calling function
+// must do it with:
+//	err := t.ClearBitSets()
+//	if err != nil {
+//		return err
+//	}
+//	t.UpdateBitSet()
 func (t *Tree) removeSingleNodesRecur(current, previous *Node, e *Edge) error {
 	// Resolve neighbors
 	// Temporary slice of node neighbors (the real neighbor slice will be updated
@@ -1031,9 +1107,11 @@ func (t *Tree) ClearComments() {
 	}
 }
 
-// Removes branches from the tree if they are not tip edges
-// And if they do not connects the root of a rooted tree
-// Merges the 2 nodes and creates multifurcations
+// Removes the given branches from the tree if they are not
+// tip edges and if they do not connect to the root of a rooted tree.
+//
+// Merges the 2 nodes and creates multifurcations.
+//
 // At the end, bitsets should not need to be updated
 func (t *Tree) RemoveEdges(edges ...*Edge) {
 	for _, e := range edges {
@@ -1068,6 +1146,8 @@ func (t *Tree) RemoveEdges(edges ...*Edge) {
 	}
 }
 
+// Unroots a rooted tree by removing the bifurcating root, and
+// rerooting to one of the non tip direct children of the previous root.
 func (t *Tree) UnRoot() {
 	if !t.Rooted() {
 		return
@@ -1104,15 +1184,15 @@ func (t *Tree) UnRoot() {
 	t.delNode(root)
 }
 
-/*
-Annotates internal branches of a tree with given data
-Takes a map with
-- key: name of internal branch
--  value: names of taxa
-=> It will take the lca of taxa and annotate it
-=> Output tree won't have bootstrap support at the branches anymore
-=> Considers the tree as rooted (even if multifurcation at root)!
-*/
+// Annotates internal branches of a tree with given data using the
+// given map with:
+//	* key: name of internal branch
+//	* value: names of taxa
+// It will take the lca of all given taxa and annotate it.
+//
+// The output tree won't have bootstrap support at the given branches anymore.
+//
+// It considers the tree as rooted (even if multifurcation at root).
 func (t *Tree) Annotate(names map[string][]string) error {
 	nodeindex := NewNodeIndex(t)
 
@@ -1148,7 +1228,8 @@ func (t *Tree) Rename(namemap map[string]string) error {
 	return nil
 }
 
-// Copy attributes of the node into a new node
+// Clone the given node, copy attributes of the given
+// node into a new node
 func (t *Tree) CopyNode(n *Node) *Node {
 	out := t.NewNode()
 	out.name = n.name
@@ -1161,7 +1242,11 @@ func (t *Tree) CopyNode(n *Node) *Node {
 	return out
 }
 
-// Copy attributes of the given edge to the other given edge
+// Copy attributes of the given edge to the other given edge:
+//	* Length
+//	* Support
+//	* id
+//	* bitset (if not nil)
 func (t *Tree) CopyEdge(e *Edge, copy *Edge) {
 	copy.length = e.length
 	copy.support = e.support
@@ -1199,11 +1284,10 @@ func (t *Tree) copyTreeRecur(copytree *Tree, copynode, node *Node, edge *Edge) {
 	}
 }
 
-/*
-Assumes that the tree is rooted.
-Otherwise, will take the pseudo root
-implied by the initial newick file
-*/
+// Assumes that the tree is rooted.
+//
+// Otherwise, will consider the pseudo root
+// defined by the initial newick file
 func (t *Tree) SubTree(n *Node) *Tree {
 	subtree := NewTree()
 	root := t.CopyNode(n)
@@ -1217,14 +1301,17 @@ func (t *Tree) SubTree(n *Node) *Tree {
 	return (subtree)
 }
 
-/*
-Merges Two rooted trees t and t2 in t by adding a new root node with two children
-Corresponding to the roots of the 2 trees.
-If one of the tree is not rooted, returns an error
-Tip set must be different between the two trees, otherwise returns an error
-it is advised not to use t2 after the merge, since it may conflict with t
-Edges connecting new root with old roots have length of 1.0
-*/
+// Merges Two rooted trees t and t2 in t by adding a new root node with two children
+// Corresponding to the roots of the 2 trees.
+//
+// If one of the tree is not rooted, returns an error.
+//
+// Tip set must be different between the two trees, otherwise returns an error.
+//
+// it is advised not to use t2 after the merge, since it may conflict with t.
+//
+// Edges connecting the new root with old roots have length of 1.0, but can be modified
+// afterwards.
 func (t *Tree) Merge(t2 *Tree) error {
 	if !t.Rooted() || !t2.Rooted() {
 		return errors.New("One of the two tree (or both) is not rooted")
@@ -1252,6 +1339,8 @@ func (t *Tree) Merge(t2 *Tree) error {
 
 // Returns the deepest edge of the tree (considered unrooted)
 // in terms of number of tips on the light side of it.
+//
+// It does not use bitsets, thus they may be uninitialized.
 func (t *Tree) DeepestEdge() (maxedge *Edge) {
 	// We choose the deepest edge
 	for i, e := range t.Edges() {

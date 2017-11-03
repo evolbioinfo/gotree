@@ -1,5 +1,8 @@
 package tree
 
+// Structure of a node index.
+// Basically a hashmap that stores as keys node names,
+// and values node of the trees.
 type NodeIndex interface {
 	GetNode(name string) (*Node, bool)
 }
@@ -8,6 +11,7 @@ type nodeIndex struct {
 	index map[string]*Node
 }
 
+// Computes a node index for a given tree.
 func NewNodeIndex(t *Tree) *nodeIndex {
 
 	nodeindex := &nodeIndex{
