@@ -310,7 +310,6 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 				for i, _ := range edges {
 					min_dist[i] = uint16(len(tips))
 					min_dist_edge[i] = -1
-					taxaTransferedPerBranch[i] = list.New()
 					if len(bootEdges) > len(i_matrix[i]) {
 						i_matrix[i] = make([]uint16, len(bootEdges))
 						c_matrix[i] = make([]uint16, len(bootEdges))
@@ -327,6 +326,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 
 				for i, e := range edges {
 					if e.Right().Tip() {
+						taxaTransferedPerBranch[i] = list.New()
 						continue
 					}
 					vals[i] = int(min_dist[i])
@@ -341,19 +341,19 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 						mindepth := int(math.Ceil(1.0/supporter.movedSpeciesCutoff + 1.0))
 						if sm, er := speciesToMove(e, be, vals[i]); er != nil {
 							io.LogError(er)
-							return err
+							return er
 						} else {
 							if supporter.computeMovedSpecies && norm <= supporter.movedSpeciesCutoff && td >= mindepth {
-								for _, sp := range sm {
-									movedSpecies[sp]++
+								for e := sm.Front(); e != nil; e = e.Next() {
+									movedSpecies[e.Value.(uint)]++
 								}
 								nb_branches_close++
 							}
 							if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
-								for _, sp := range sm {
-									// The taxon id 'sp' moves around branch i in that bootstrap tree
-									taxaTransferedPerBranch[i].PushBack(sp)
-								}
+								// The list of taxons that move around branch i in that bootstrap tree
+								taxaTransferedPerBranch[i] = sm
+							} else {
+								sm.Init() // Clear List
 							}
 						}
 
@@ -395,30 +395,32 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os.File, 
 // Returns the list of species to move to go from one branch to the other
 // Its length should correspond to given dist
 // If not, exit with an error
-func speciesToMove(e, be *tree.Edge, dist int) ([]uint, error) {
+func speciesToMove(e, be *tree.Edge, dist int) (*list.List, error) {
 	var i uint
-	diff := make([]uint, 0, 100)
-	equ := make([]uint, 0, 100)
+	diff := list.New()
+	equ := list.New()
 
 	for i = 0; i < e.Bitset().Len(); i++ {
 		if e.Bitset().Test(i) != be.Bitset().Test(i) {
-			diff = append(diff, i)
+			diff.PushBack(i)
 		} else {
-			equ = append(equ, i)
+			equ.PushBack(i)
 		}
 	}
-	if len(diff) < len(equ) {
-		if len(diff) != dist {
-			er := errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", len(diff), dist))
+	if diff.Len() < equ.Len() {
+		if diff.Len() != dist {
+			er := errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", diff.Len(), dist))
 			io.LogError(er)
 			return nil, er
 		}
+		equ.Init()
 		return diff, nil
 	}
-	if len(equ) != dist {
-		er := errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", len(equ), dist))
+	if equ.Len() != dist {
+		er := errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", equ.Len(), dist))
 		io.LogError(er)
 		return nil, er
 	}
+	diff.Init()
 	return equ, nil
 }
