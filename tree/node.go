@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-
-	"github.com/fredericlemoine/gotree/io"
 )
 
 // Node structure
