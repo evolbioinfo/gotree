@@ -1347,22 +1347,26 @@ func (t *Tree) DeepestEdge() (maxedge *Edge) {
 		e.SetId(i)
 	}
 	numtips := len(t.Tips())
-	maxedge, _, _ = t.deepestEdgeRecur(t.Root(), nil, nil, numtips)
+	maxedge, _, _, _, _ = t.deepestEdgeRecur(t.Root(), nil, nil, numtips)
 	return
 }
 
-func (t *Tree) deepestEdgeRecur(node, prev *Node, edge *Edge, numtips int) (maxedge *Edge, maxdepth, curtips int) {
+func (t *Tree) deepestEdgeRecur(node, prev *Node, edge *Edge, numtips int) (maxedge *Edge, lefttips, righttips, maxdepth, curtips int) {
 	if node.Tip() {
-		return edge, 1, 1
+		return edge, 1, curtips - 1, 1, 1
 	}
 	curtips = 0
 	maxdepth = 0
+	lefttips = 0  // Nb tips on the left of current max depth branch
+	righttips = 0 // Nb tips on the right of current max depth branch
 	for i, c := range node.Neigh() {
 		if c != prev {
-			e, d, t := t.deepestEdgeRecur(c, node, node.Edges()[i], numtips)
+			e, l, r, d, t := t.deepestEdgeRecur(c, node, node.Edges()[i], numtips)
 			if d > maxdepth {
 				maxdepth = d
 				maxedge = e
+				lefttips = l
+				righttips = r
 			}
 			curtips += t
 		}
@@ -1370,6 +1374,31 @@ func (t *Tree) deepestEdgeRecur(node, prev *Node, edge *Edge, numtips int) (maxe
 	if min(numtips-curtips, curtips) > maxdepth {
 		maxdepth = min(numtips-curtips, curtips)
 		maxedge = edge
+		lefttips = numtips - curtips
+		righttips = curtips
+	}
+	return
+}
+
+// Returns the deepest node of the tree (considered unrooted).
+//
+// We define the deepest node as the heavy side of the deepest
+// edge (See tree.DeepestEdge())
+//
+// It does not use bitsets, thus they may be uninitialized.
+func (t *Tree) DeepestNode() (maxnode *Node) {
+	// We choose the deepest edge
+	for i, e := range t.Edges() {
+		e.SetId(i)
+	}
+	var maxedge *Edge
+	var lefttips, righttips int
+	numtips := len(t.Tips())
+	maxedge, lefttips, righttips, _, _ = t.deepestEdgeRecur(t.Root(), nil, nil, numtips)
+	if lefttips > righttips {
+		maxnode = maxedge.Left()
+	} else {
+		maxnode = maxedge.Right()
 	}
 	return
 }
