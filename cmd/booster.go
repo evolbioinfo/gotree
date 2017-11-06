@@ -7,7 +7,6 @@ import (
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/support"
-	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -32,11 +31,11 @@ var boosterCmd = &cobra.Command{
 		// If rawSupportOutputFile is set, then we print the raw support tree first
 		if rawSupportOutputFile != "none" {
 			reformated := refTree.Clone()
-			reformatAvgDistance(reformated)
+			support.ReformatAvgDistance(reformated)
 			rawSupportOut.WriteString(reformated.Newick() + "\n")
 		}
 		// We normalize the supports and print them
-		normalizeTransferDistancesByDepth(refTree)
+		support.NormalizeTransferDistancesByDepth(refTree)
 		supportOut.WriteString(refTree.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 	},
@@ -60,34 +59,4 @@ func writeLogBooster() {
 	supportLog.WriteString(fmt.Sprintf("Output tree : %s\n", supportOutFile))
 	supportLog.WriteString(fmt.Sprintf("Seed        : %d\n", seed))
 	supportLog.WriteString(fmt.Sprintf("CPUs        : %d\n", rootCpus))
-}
-
-/*
-This finction writes on the child node name the string: "branch_id|avg_dist|depth"
-and removes support information from each branch
-*/
-func reformatAvgDistance(t *tree.Tree) {
-	for i, e := range t.Edges() {
-		if e.Support() != tree.NIL_SUPPORT {
-			td, _ := e.TopoDepth()
-			e.Right().SetName(fmt.Sprintf("%d|%s|%d", i, e.SupportString(), td))
-			e.SetSupport(tree.NIL_SUPPORT)
-		}
-	}
-}
-
-/*
-This function takes all branch support values (that are considered as average
-transfer distances over bootstrap trees), normalizes them by the depth and
-convert them to similarity, i.e:
-    1-avg_dist/(depth-1)
-*/
-func normalizeTransferDistancesByDepth(t *tree.Tree) {
-	for _, e := range t.Edges() {
-		avgdist := e.Support()
-		if avgdist != tree.NIL_SUPPORT {
-			td, _ := e.TopoDepth()
-			e.SetSupport(float64(1) - avgdist/float64(td-1))
-		}
-	}
 }

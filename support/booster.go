@@ -424,3 +424,29 @@ func speciesToMove(e, be *tree.Edge, dist int) (*list.List, error) {
 	diff.Init()
 	return equ, nil
 }
+
+// This function writes on the child node name the string: "branch_id|avg_dist|depth"
+// and removes support information from each branch
+func ReformatAvgDistance(t *tree.Tree) {
+	for i, e := range t.Edges() {
+		if e.Support() != tree.NIL_SUPPORT {
+			td, _ := e.TopoDepth()
+			e.Right().SetName(fmt.Sprintf("%d|%s|%d", i, e.SupportString(), td))
+			e.SetSupport(tree.NIL_SUPPORT)
+		}
+	}
+}
+
+// This function takes all branch support values (that are considered as average
+// transfer distances over bootstrap trees), normalizes them by the depth and
+// convert them to similarity, i.e:
+//     1-avg_dist/(depth-1)
+func NormalizeTransferDistancesByDepth(t *tree.Tree) {
+	for _, e := range t.Edges() {
+		avgdist := e.Support()
+		if avgdist != tree.NIL_SUPPORT {
+			td, _ := e.TopoDepth()
+			e.SetSupport(float64(1) - avgdist/float64(td-1))
+		}
+	}
+}
