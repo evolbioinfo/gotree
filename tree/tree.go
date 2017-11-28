@@ -1403,13 +1403,13 @@ func (t *Tree) DeepestNode() (maxnode *Node) {
 	return
 }
 
-// Scale branch supports by a given factor
+// Scale branch supports by a given factor. Precision 10^-6.
 //
 // Does not do anything for branches with a support of NIL_SUPPORT
 func (t *Tree) ScaleSupports(factor float64) {
 	for _, e := range t.Edges() {
 		if s := e.Support(); s != NIL_SUPPORT {
-			e.SetSupport(s * factor)
+			e.SetSupport(float64(int(1000000*(s*factor))) / 1000000)
 		}
 	}
 }
