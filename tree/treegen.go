@@ -22,7 +22,7 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	if nbtips < 3 && rooted {
 		return nil, errors.New("Cannot create a rooted random binary tree with less than 3 tips")
 	}
-
+	lambda := 1.0 / 0.1
 	edges := make([]*Edge, 0, 2000)
 	for i := 1; i < nbtips; i++ {
 		n := t.NewNode()
@@ -33,24 +33,24 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
 			edges = append(edges, e)
-			e.SetLength(gostats.Exp(1 / 0.1))
+			e.SetLength(gostats.Exp(lambda))
 			if rooted {
 				n2.SetName("")
 				n3 := t.NewNode()
 				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
 				edges = append(edges, e2)
-				e2.SetLength(gostats.Exp(1 / 0.1))
+				e2.SetLength(gostats.Exp(lambda))
 			}
 			t.SetRoot(n2)
 		default:
 			// Where to insert the new tip
 			i_edge := rand.Intn(len(edges))
 			e := edges[i_edge]
-			e.SetLength(gostats.Exp(1 / 0.1))
 			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
-			newedge.SetLength(gostats.Exp(1 / 0.1))
-			newedge2.SetLength(gostats.Exp(1 / 0.1))
+			e.SetLength(gostats.Exp(lambda))
+			newedge.SetLength(gostats.Exp(lambda))
+			newedge2.SetLength(gostats.Exp(lambda))
 
 			edges = append(edges, newedge)
 			edges = append(edges, newedge2)
@@ -95,10 +95,11 @@ func randomBalancedBinaryTreeRecur(t *Tree, node *Node, curdepth int, targetdept
 	child1 := t.NewNode()
 	child2 := t.NewNode()
 
+	lambda := 1.0 / 0.1
 	e1 := t.ConnectNodes(node, child1)
 	e2 := t.ConnectNodes(node, child2)
-	e1.SetLength(gostats.Exp(1 / 0.1))
-	e2.SetLength(gostats.Exp(1 / 0.1))
+	e1.SetLength(gostats.Exp(lambda))
+	e2.SetLength(gostats.Exp(lambda))
 
 	if curdepth < targetdepth {
 		randomBalancedBinaryTreeRecur(t, child1, curdepth+1, targetdepth, id)
@@ -124,7 +125,7 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	if nbtips < 3 && rooted {
 		return nil, errors.New("Cannot create a rooted random binary tree with less than 3 tips")
 	}
-
+	lambda := 1.0 / 0.1
 	edges := make([]*Edge, 0, 2000)
 	tips := make([]*Node, 0, 2000)
 	for i := 1; i < nbtips; i++ {
@@ -136,7 +137,7 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
 			edges = append(edges, e)
-			e.SetLength(gostats.Exp(1 / 0.1))
+			e.SetLength(gostats.Exp(lambda))
 			if !rooted {
 				tips = append(tips, n2)
 			} else {
@@ -145,7 +146,7 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
 				edges = append(edges, e2)
-				e2.SetLength(gostats.Exp(1 / 0.1))
+				e2.SetLength(gostats.Exp(lambda))
 				tips = append(tips, n3)
 			}
 			t.SetRoot(n2)
@@ -154,10 +155,10 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			i_tip := rand.Intn(len(tips))
 			ntemp := tips[i_tip]
 			e := ntemp.br[0]
-			e.SetLength(gostats.Exp(1 / 0.1))
 			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
-			newedge.SetLength(gostats.Exp(1 / 0.1))
-			newedge2.SetLength(gostats.Exp(1 / 0.1))
+			e.SetLength(gostats.Exp(lambda))
+			newedge.SetLength(gostats.Exp(lambda))
+			newedge2.SetLength(gostats.Exp(lambda))
 			edges = append(edges, newedge)
 			edges = append(edges, newedge2)
 			if err != nil {
@@ -189,7 +190,7 @@ func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	}
 
 	var lasttip *Node = nil
-
+	lambda := 1.0 / 0.1
 	for i := 1; i < nbtips; i++ {
 		n := t.NewNode()
 		n.SetName("Tip" + strconv.Itoa(i))
@@ -198,7 +199,7 @@ func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			n2 := t.NewNode()
 			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
-			e.SetLength(gostats.Exp(1 / 0.1))
+			e.SetLength(gostats.Exp(lambda))
 			if !rooted {
 				lasttip = n2
 			} else {
@@ -206,16 +207,16 @@ func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 				n3 := t.NewNode()
 				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
-				e2.SetLength(gostats.Exp(1 / 0.1))
+				e2.SetLength(gostats.Exp(lambda))
 				lasttip = n3
 			}
 			t.SetRoot(n2)
 		default:
 			e := lasttip.br[0]
-			e.SetLength(gostats.Exp(1 / 0.1))
 			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
-			newedge.SetLength(gostats.Exp(1 / 0.1))
-			newedge2.SetLength(gostats.Exp(1 / 0.1))
+			e.SetLength(gostats.Exp(lambda))
+			newedge.SetLength(gostats.Exp(lambda))
+			newedge2.SetLength(gostats.Exp(lambda))
 			if err != nil {
 				return nil, err
 			}
