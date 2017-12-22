@@ -74,13 +74,17 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 
 ### List of commands
 *  annotate:    Annotate internal nodes of a tree with given data
-*  clear:       Clear lengths or supports from input trees
-    * lengths
-    * supports
+*  brlen:       Modify branch lengths
+    * clear       Clear lengths from input trees
+    * multiply    Multiply lengths from input trees by a given factor
+	* setmin      Set a min branch length to all branches with length < cutoff
+	* setrand     Assign a random length to edges of input trees
 *  collapse:    Collapse branches of input trees
     * depth
     * length
     * support
+*  comment:     Modify branch/node comments
+    * clear:    Remove node/tip comments
 *  compare:     Compare full trees, edges, or tips
     * edges: Individually compare edges of the reference tree to a compared tree
     * tips: Compare the set of tips of the reference tree to a compared tree
@@ -108,10 +112,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * yuletree
 *  matrix:      Print (patristic) distance matrix associated to the input tree
 *  merge:       Merges two rooted trees
-*  minbrlen:    Set a minimum branch length to all branches with length < cutoff
 *  prune:       Remove tips of the input tree that are not in the compared tree, or that are given on the command line
-*  randbrlen:   Assign a random length to edges of input trees
-*  randsupport: Assign a random support to edges of input trees
 *  reformat: Convert input file between nexus and newick formats
     * newick
     * nexus
@@ -123,6 +124,9 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 *  sample:      Takes a sample (with or without replacement) from the set of input trees
 *  shuffletips: Shuffle tip names of an input tree
 *  subtree: extract a subtree
+*  support: Modify branch supports
+    * clear       Clear supports from input trees
+    * setrand     Assign a random support to edges of input trees
 *  stats:       Print statistics about the tree, its edges, its nodes, if it is rooted, and its tips
     * edges
     * nodes
