@@ -34,5 +34,5 @@ gotre clear comments -i t.nw :
 }
 
 func init() {
-	commentsCmd.AddCommand(clearcommentsCmd)
+	commentCmd.AddCommand(clearcommentsCmd)
 }
