@@ -12,7 +12,7 @@ var setlengthmean float64
 
 // randbrlenCmd represents the randbrlen command
 var randbrlenCmd = &cobra.Command{
-	Use:   "randbrlen",
+	Use:   "setrand",
 	Short: "Assign a random length to edges of input trees",
 	Long: `Assign a random length to edges of input trees.
 
@@ -42,7 +42,7 @@ Length follows an exponential distribution of parameter lambda=1/0.1
 }
 
 func init() {
-	RootCmd.AddCommand(randbrlenCmd)
+	brlenCmd.AddCommand(randbrlenCmd)
 
 	randbrlenCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	randbrlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")

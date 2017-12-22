@@ -10,7 +10,7 @@ import (
 
 // randsupportCmd represents the randbrlen command
 var randsupportCmd = &cobra.Command{
-	Use:   "randsupport",
+	Use:   "setrand",
 	Short: "Assign a random support to edges of input trees",
 	Long: `Assign a random support to edges of input trees.
 
@@ -41,7 +41,7 @@ Support follows a uniform distribution in [0,1].
 }
 
 func init() {
-	RootCmd.AddCommand(randsupportCmd)
+	supportCmd.AddCommand(randsupportCmd)
 
 	randsupportCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	randsupportCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")

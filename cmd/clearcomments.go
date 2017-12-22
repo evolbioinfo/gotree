@@ -6,8 +6,8 @@ import (
 )
 
 // commentsCmd represents the comments command
-var commentsCmd = &cobra.Command{
-	Use:   "comments",
+var clearcommentsCmd = &cobra.Command{
+	Use:   "clear",
 	Short: "Removes node/tip comments",
 	Long: `Removes node/tip comments from all nodes/tips of the tree
 
@@ -34,5 +34,5 @@ gotre clear comments -i t.nw :
 }
 
 func init() {
-	clearCmd.AddCommand(commentsCmd)
+	commentsCmd.AddCommand(clearcommentsCmd)
 }

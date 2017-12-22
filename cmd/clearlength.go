@@ -7,7 +7,7 @@ import (
 
 // clearlengthCmd represents the clearlength command
 var clearlengthCmd = &cobra.Command{
-	Use:   "lengths",
+	Use:   "clear",
 	Short: "Clear lengths from input trees",
 	Long:  `Clear lengths from input trees.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -26,5 +26,5 @@ var clearlengthCmd = &cobra.Command{
 }
 
 func init() {
-	clearCmd.AddCommand(clearlengthCmd)
+	brlenCmd.AddCommand(clearlengthCmd)
 }

@@ -7,7 +7,7 @@ import (
 
 // minbrlenCmd represents the minbrlen command
 var minbrlenCmd = &cobra.Command{
-	Use:   "minbrlen",
+	Use:   "setmin",
 	Short: "Set a min branch length to all branches with length < cutoff",
 	Long: `Set a min branch length to all branches with length < cutoff
 
@@ -38,7 +38,7 @@ gotree minbrlen -i tree.nw -o out.nw -l 0.001
 }
 
 func init() {
-	RootCmd.AddCommand(minbrlenCmd)
+	brlenCmd.AddCommand(minbrlenCmd)
 	minbrlenCmd.Flags().Float64VarP(&cutoff, "length", "l", 0.0, "Min Length cutoff")
 	minbrlenCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	minbrlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Length corrected tree output file")

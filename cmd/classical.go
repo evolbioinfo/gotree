@@ -51,7 +51,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	supportCmd.AddCommand(classicalCmd)
+	computesupportCmd.AddCommand(classicalCmd)
 }
 
 func writeLogClassical() {

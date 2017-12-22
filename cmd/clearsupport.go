@@ -7,7 +7,7 @@ import (
 
 // clearsupportCmd represents the clearsupport command
 var clearsupportCmd = &cobra.Command{
-	Use:   "supports",
+	Use:   "clear",
 	Short: "Clear supports from input trees",
 	Long:  `Clear supports from input trees.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -26,5 +26,5 @@ var clearsupportCmd = &cobra.Command{
 }
 
 func init() {
-	clearCmd.AddCommand(clearsupportCmd)
+	supportCmd.AddCommand(clearsupportCmd)
 }
