@@ -71,15 +71,15 @@ gotree generate yuletree -s 10 -n 10 | gotree support setrand | gotree support c
 diff result expected
 rm -f expected result
 
-# gotree clear comments
-echo "->gotree clear comments"
+# gotree comment clear
+echo "->gotree comment clear"
 cat > input <<EOF
 (t1[c1],t2[c2],(t3[c3],t4[c4])[c5]);
 EOF
 cat > expected <<EOF
 (t1,t2,(t3,t4));
 EOF
-gotree comments clear -i input > result
+gotree comment clear -i input > result
 diff result expected
 rm -f expected result input
 
