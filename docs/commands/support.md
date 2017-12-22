@@ -52,7 +52,7 @@ Global Flags:
 
 1. Removing branch supports from a set of 10 trees
 ```
-gotree generate yuletree -s 10 -n 10 | gotree clear lengths | gotree randsupport -s 10
+gotree generate yuletree -s 10 -n 10 | gotree brlen clear | gotree support setrand -s 10
 ```
 
 Should give: 
@@ -70,7 +70,7 @@ Should give:
 ```
 
 ```
-gotree generate yuletree -s 10 -n 10 | gotree clear lengths | gotree randsupport -s 10 | gotree clear supports
+gotree generate yuletree -s 10 -n 10 | gotree brlen clear | gotree support setrand -s 10 | gotree support clear
 ```
 
 Should produce:
@@ -91,7 +91,7 @@ Should produce:
 2. Assigning random supports to a random tree and highlight branches with support > 0.5
 ```
 gotree generate yuletree -s 10 -o outtree1.nw
-gotree randsupport -i outtree.nw -s 12 -o outtree2.nw
+gotree support setrand -i outtree.nw -s 12 -o outtree2.nw
 gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/randsupport_1.svg
 gotree draw svg -w 200 -H 200  -i outtree2.nw --with-branch-support --support-cutoff 0.5 -o commands/randsupport_2.svg
 ```

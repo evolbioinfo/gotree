@@ -100,7 +100,7 @@ should output:
 ```
 
 ```
-gotree generate yuletree -s 10 -n 10 | gotree clear lengths
+gotree generate yuletree -s 10 -n 10 | gotree brlen clear
 ```
 
 should output :
@@ -120,7 +120,7 @@ should output :
 2. Assign random lengths to a random tree
 ```
 gotree generate yuletree -s 10 -o outtree1.nw
-gotree randbrlen -i outtree.nw -s 13 -o outtree2.nw
+gotree brlen setrand -i outtree.nw -s 13 -o outtree2.nw
 gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/randbrlen_1.svg
 gotree draw svg -w 200 -H 200  -i outtree2.nw -o commands/randbrlen_2.svg
 ```
@@ -135,7 +135,7 @@ Initial random Tree               | Random lengths
 ```
 gotree generate yuletree -s 10 -l 100 -o outtree.nw
 gotree draw svg -r -w 200 -H 200 --no-tip-labels -i outtree.nw -o commands/minbrlen_1.svg
-gotree minbrlen -i outtree.nw -l 0.1 | gotree draw svg -r -w 200 -H 200 --no-tip-labels -o commands/minbrlen_2.svg
+gotree brlen setmin -i outtree.nw -l 0.1 | gotree draw svg -r -w 200 -H 200 --no-tip-labels -o commands/minbrlen_2.svg
 ```
 
 Random Tree                          | Min brlen tree

@@ -37,7 +37,7 @@ Global Flags:
 
 * Removing node comments from an input tree
 ```
-echo "(t1[c1],t2[c2],(t3[c3],t4[c4])[c5]);" | gotree clear comments
+echo "(t1[c1],t2[c2],(t3[c3],t4[c4])[c5]);" | gotree comment clear
 ```
 
 Should print:
