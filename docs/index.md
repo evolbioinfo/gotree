@@ -36,14 +36,17 @@ Here is the list of all commands, with the link to the full description, and a l
 Command                                                            | Subcommand        |        Description
 -------------------------------------------------------------------|-------------------|-------------------------------------------------------------------------------------------------
 [annotate](commands/annotate.md) ([api](api/annotate.md))          |                   | Annotates internal nodes of a tree with given data
-[clear](commands/clear.md) ([api](api/clear.md))                   |                   | Clears lengths or supports from input trees
---                                                                 | lengths           | Clears lengths from input trees
---                                                                 | supports          | Clears supports from input trees
---                                                                 | comments          | Clears comments from input tree nodes
+[brlen](commands/brlen.md) ([api](api/brlen.md))                   |                   | Modifies branch lengths
+--                                                                 | clear             | Clear lengths from input trees
+--                                                                 | multiply          | Multiplies lengths from input trees by a given factor
+--                                                                 | setmin            | Sets a min branch length to all branches with length < cutoff
+--                                                                 | setrand           | Assigns a random length to edges of input trees
 [collapse](commands/collapse.md) ([api](api/collapse.md))          |                   | Collapses/Removes branches of input trees
 --                                                                 | depth             | Collapses/Removes branches of input trees having a given depth
 --                                                                 | length            | Collapses/Removes short branches of input trees
 --                                                                 | support           | Collapses/Removes lowly supported branches of input trees 
+[comment](commands/comment.md) ([api](api/comment.md))             |                   | Modifies branch/node comments
+--                                                                 | clear             | Clears branch/node comments from input trees
 [compare](commands/compare.md) ([api](api/compare.md))             |                   | Compares full trees, edges, or tips
 --                                                                 | edges             | Individually compares edges of the reference tree to a compared tree
 --                                                                 | tips              | Compares the set of tips of the reference tree to a compared tree
@@ -70,10 +73,7 @@ Command                                                            | Subcommand 
 --                                                                 | yuletree          | Randomly generates Yule-Harding trees
 [matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
 [merge](commands/merge.md) ([api](api/merge.md))                   |                   | Merges two rooted trees
-[minbrlen](commands/minbrlen.md) ([api](api/minbrlen.md))          |                   | Sets a minimum branch length to all branches with length < cutoff
 [prune](commands/prune.md) ([api](api/prune.md))                   |                   | Removes tips of input trees
-[randbrlen](commands/randbrlen.md)                                 |                   | Assigns a random length to edges of input trees
-[randsupport](commands/randsupport.md)                             |                   | Assigns a random support to edges of input trees
 [reformat](commands/reformat.md) ([api](api/reformat.md))          |                   | Reformats input file
 --                                                                 | newick            | Reformats input file (nexus, newick, phyloxml) into newick
 --                                                                 | nexus             | Reformats input file (nexus, newick, phyloxml) into nexus
@@ -86,6 +86,9 @@ Command                                                            | Subcommand 
 [sample](commands/sample.md)                                       |                   | Samples trees from a set of input trees
 [shuffletips](commands/shuffletips.md) ([api](api/shuffletips.md)) |                   | Shuffles tip names of an input tree
 [subtree](commands/subtree.md) ([api](api/subtree.md))             |                   | Extracts a subtree starting at a given node
+[support](commands/support.md) ([api](api/support.md))             |                   | Modifies branch supports
+--                                                                 | clear             | Clears branch supports from input trees
+--                                                                 | setrand           | Assigns a random support to edges of input trees
 [stats](commands/stats.md) ([api](api/stats.md))                   |                   | Prints statistics about the tree, its edges, its nodes, if it is rooted, and its tips
 --                                                                 | edges             | Prints informations about all the edges
 --                                                                 | nodes             | Prints informations about all the nodes
