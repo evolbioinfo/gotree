@@ -4,6 +4,7 @@ go:
   - 1.6.4
   - 1.7.4
   - 1.8
+  - 1.9.2
 
 install:
   - go get -u github.com/fredericlemoine/bitset
