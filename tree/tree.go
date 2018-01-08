@@ -1413,3 +1413,14 @@ func (t *Tree) ScaleSupports(factor float64) {
 		}
 	}
 }
+
+// Scale branch lengths by a given factor.
+//
+// Does not do anything for branches with a length of NIL_LENGTH
+func (t *Tree) ScaleLengths(factor float64) {
+	for _, e := range t.Edges() {
+		if s := e.Length(); s != NIL_LENGTH {
+			e.SetLength(e.Length() * factor)
+		}
+	}
+}

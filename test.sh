@@ -35,8 +35,8 @@ gotree generate yuletree -s 10 -n 10 | gotree brlen clear > result
 diff result expected
 rm -f expected result
 
-# gotree brlen multiply
-echo "->gotree brlen multiply"
+# gotree brlen scale
+echo "->gotree brlen scale"
 cat > input.tree <<EOF
 ((Tip4:1,(Tip7:1,Tip2:1):1):1,Tip0:1,((Tip8:1,(Tip9:1,Tip3:1):1):1,((Tip6:1,Tip5:1):1,Tip1:1):1):1);
 (Tip5,Tip0,((Tip6,(Tip7,Tip4)),(Tip2,((Tip8,(Tip9,Tip3)),Tip1))));
@@ -47,10 +47,26 @@ cat > expected <<EOF
 (Tip5,Tip0,((Tip6,(Tip7,Tip4)),(Tip2,((Tip8,(Tip9,Tip3)),Tip1))));
 (Tip6:1.5,Tip0:1.5,((((Tip5:1.5,Tip4:1.5):1.5,((Tip9:1.5,Tip8:1.5),Tip3:1.5):1.5):1.5,(Tip7:1.5,Tip2:1.5):1.5):1.5,Tip1:1.5):1.5);
 EOF
-gotree brlen multiply -i input.tree -f 3.0 > result
+gotree brlen scale -i input.tree -f 3.0 > result
 diff result expected
 rm -f expected result input.tree
 
+# gotree support scale
+echo "->gotree support scale"
+cat > input.tree <<EOF
+((a,b)99,(c,d)50,(e,f)0,g);
+EOF
+cat > expected.1 <<EOF
+((a,b)0.99,(c,d)0.5,(e,f)0,g);
+EOF
+cat > expected.2 <<EOF
+((a,b)198,(c,d)100,(e,f)0,g);
+EOF
+gotree support scale -i input.tree -f 0.01 > result.1
+gotree support scale -i input.tree -f 2 > result.2
+diff result.1 expected.1
+diff result.2 expected.2
+rm -f expected.1 expected.2 result.1 result.2 input.tree
 
 
 # gotree support clear

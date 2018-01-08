@@ -4,16 +4,15 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/tree"
 )
 
-var multiplylengthfactor float64
+var scalelengthfactor float64
 
 // clearlengthCmd represents the clearlength command
-var multiplylengthCmd = &cobra.Command{
-	Use:   "multiply",
-	Short: "Multiply lengths from input trees by a given factor",
-	Long:  `Multiply lengths from input trees by a given factor.`,
+var scalelengthCmd = &cobra.Command{
+	Use:   "scale",
+	Short: "Scale lengths from input trees by a given factor",
+	Long:  `Scale lengths from input trees by a given factor.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
 		treefile, treechan := readTrees(intreefile)
@@ -22,11 +21,7 @@ var multiplylengthCmd = &cobra.Command{
 			if tr.Err != nil {
 				io.ExitWithMessage(tr.Err)
 			}
-			for _, e := range tr.Tree.Edges() {
-				if e.Length() != tree.NIL_LENGTH {
-					e.SetLength(e.Length() * multiplylengthfactor)
-				}
-			}
+			tr.Tree.ScaleLengths(scalelengthfactor)
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 		f.Close()
@@ -34,6 +29,6 @@ var multiplylengthCmd = &cobra.Command{
 }
 
 func init() {
-	brlenCmd.AddCommand(multiplylengthCmd)
-	multiplylengthCmd.Flags().Float64VarP(&multiplylengthfactor, "factor", "f", 1.0, "Branch length multiplication factor")
+	brlenCmd.AddCommand(scalelengthCmd)
+	scalelengthCmd.Flags().Float64VarP(&scalelengthfactor, "factor", "f", 1.0, "Branch length scaling factor")
 }

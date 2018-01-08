@@ -34,6 +34,20 @@ Global Flags:
   -o, --output string   Cleared tree output file (default "stdout")
 ```
 
+scale subcommand
+```
+Usage:
+  gotree support scale [flags]
+
+Flags:
+  -f, --factor float   Branch support scaling factor (default 1)
+  -h, --help           help for scale
+
+Global Flags:
+  -i, --input string    Input tree (default "stdin")
+  -o, --output string   Scaled tree output file (default "stdout")
+```
+
 setrand subcommand
 ```
 Usage:
@@ -99,3 +113,15 @@ gotree draw svg -w 200 -H 200  -i outtree2.nw --with-branch-support --support-cu
 Initial random Tree                 | Random Supports
 ------------------------------------|---------------------------------------
 ![Random Tree 1](randsupport_1.svg) | ![Random Supports](randsupport_2.svg)
+
+3. Scaling branch supports by a factor 0.01 (/100 to /1)
+
+```
+echo "((a,b)100,c,d);" | gotree support scale -f 0.01
+```
+
+Should produce:
+```
+((a,b)1,c,d);
+```
+

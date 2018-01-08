@@ -35,18 +35,18 @@ Global Flags:
   -o, --output string   Cleared tree output file (default "stdout")
 ```
 
-multiply subcommand
+scale subcommand
 ```
 Usage:
-  gotree brlen multiply [flags]
+  gotree brlen scale [flags]
 
 Flags:
-  -f, --factor float   Branch length multiplication factor (default 1)
-  -h, --help           help for multiply
+  -f, --factor float   Branch length scaling factor (default 1)
+  -h, --help           help for scale
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")
-  -o, --output string   Cleared tree output file (default "stdout")
+  -o, --output string   Scaled tree output file (default "stdout")
 ```
 
 setmin subcommand
@@ -143,9 +143,9 @@ Random Tree                          | Min brlen tree
 ![Random Tree](minbrlen_1.svg)       | ![Min brlen tree](minbrlen_2.svg) 
 
 
-4. Multiplying branch lengths by 3.0
+4. Scaling branch lengths by a factor 3.0
 
 ```
 gotree generate yuletree -s 10 -l 100 -o outtree.nw
-gotree brlen multiply -f 3.0 -i outtree.nw
+gotree brlen scale -f 3.0 -i outtree.nw
 ```
