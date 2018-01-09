@@ -57,14 +57,17 @@ In order to compile gotree, you must first [download](https://golang.org/dl/) an
 Then you just have to type :
 ```
 go get github.com/fredericlemoine/gotree/
+go get -u github.com/golang/dep/cmd/dep
 ```
 This will download GoTree sources from github, and all its dependencies.
 
 You can then build it with:
 ```
 cd $GOPATH/src/github.com/fredericlemoine/gotree/
+dep ensure
 make
 ```
+
 The `gotree` executable should be located in the `$GOPATH/bin` folder.
 
 ## Usage
