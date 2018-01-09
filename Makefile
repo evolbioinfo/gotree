@@ -1,3 +1,4 @@
+DEP_EXECUTABLE := dep
 GO_EXECUTABLE := go
 VERSION := $(shell git describe --abbrev=10 --dirty --always --tags)
 DIST_DIRS := find * -type d -exec
@@ -5,7 +6,10 @@ VERSION_PACKAGE := github.com/fredericlemoine/gotree/cmd.Version
 NAME := gotree
 PACKAGE:=github.com/fredericlemoine/gotree
 
-all: build test install testcommands
+all: dep build test install testcommands
+
+dep:
+	${DEP_EXECUTABLE} ensure
 
 build:
 	${GO_EXECUTABLE} build -o ${NAME} -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}

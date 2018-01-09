@@ -1,10 +1,11 @@
 package nexus_test
 
 import (
-	"github.com/fredericlemoine/gotree/io/nexus"
-	"github.com/fredericlemoine/gotree/tree"
 	"strings"
 	"testing"
+
+	"github.com/fredericlemoine/gotree/io/nexus"
+	"github.com/fredericlemoine/gotree/tree"
 )
 
 // Ensure the parser can parse strings into Statement ASTs.
