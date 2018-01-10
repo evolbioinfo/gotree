@@ -366,12 +366,19 @@ gotree generate yuletree -s 10 -l 5 | gotree matrix > result
 diff expected result
 rm -f expected result
 
-
-echo "->gotree brlen setmin"
+echo "->gotree brlen setmin 1"
 cat > expected <<EOF
 ((Tip4:1,(Tip7:1,Tip2:1):1):1,Tip0:1,((Tip8:1,(Tip9:1,Tip3:1):1):1,((Tip6:1,Tip5:1):1,Tip1:1):1):1);
 EOF
 gotree generate yuletree -s 10 -l 10 | gotree brlen setmin  -l 1 > result
+diff expected result
+rm -f expected result
+
+echo "->gotree brlen setmin 10"
+cat > expected <<EOF
+((Tip4:10,(Tip7:10,Tip2:10):10):10,Tip0:10,((Tip8:10,(Tip9:10,Tip3:10):10):10,((Tip6:10,Tip5:10):10,Tip1:10):10):10);
+EOF
+gotree generate yuletree -s 10 -l 10 | gotree brlen clear | gotree brlen setmin  -l 10 > result
 diff expected result
 rm -f expected result
 
