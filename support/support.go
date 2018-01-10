@@ -181,7 +181,7 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	names := reftree.SortedTips()
 
 	if supporter.PrintMovingTaxa() {
-		logfile.WriteString("Taxon : tIndex\n")
+		logfile.WriteString("Taxon : Instability\n")
 		for i, n := range speciesMovedCount {
 			logfile.WriteString(fmt.Sprintf("%s : %f\n", names[i], n*100.0/float64(supporter.Progress())))
 		}
