@@ -24,8 +24,8 @@ type Phylogeny struct {
 type Clade struct {
 	XMLName      xml.Name `xml:"clade"`
 	Clades       []Clade  `xml:"clade"`
-	BranchLength float64  `xml:"branch_length"`
-	Confidence   float64  `xml:"confidence"`
+	BranchLength *float64 `xml:"branch_length"`
+	Confidence   *float64 `xml:"confidence"`
 	Name         string   `xml:"name"`
 	Tax          Taxonomy `xml:"taxonomy"`
 }
@@ -88,9 +88,13 @@ func cladeToTree(c *Clade, t *tree.Tree, parent *tree.Node) (err error) {
 		t.SetRoot(newNode)
 	} else {
 		e := t.ConnectNodes(parent, newNode)
-		e.SetLength(c.BranchLength)
+		if c.BranchLength != nil {
+			e.SetLength(*(c.BranchLength))
+		}
 		if len(c.Clades) > 0 {
-			e.SetSupport(c.Confidence)
+			if c.Confidence != nil {
+				e.SetSupport(*(c.Confidence))
+			}
 		}
 	}
 	if c.Name != "" {
@@ -158,7 +162,9 @@ func writeClade(n *tree.Node, prev *tree.Node, e *tree.Edge, buf *bytes.Buffer, 
 		buf.WriteString(fmt.Sprintf("%s<name>%s</name>\n", tab, n.Name()))
 	}
 	if prev != nil && e != nil {
-		buf.WriteString(fmt.Sprintf("%s<branch_length>%s</branch_length>\n", tab, e.LengthString()))
+		if e.Length() != tree.NIL_LENGTH {
+			buf.WriteString(fmt.Sprintf("%s<branch_length>%s</branch_length>\n", tab, e.LengthString()))
+		}
 		if !n.Tip() && e.Support() != tree.NIL_SUPPORT {
 			buf.WriteString(fmt.Sprintf("%s<confidence type=\"bootstrap\">%s</confidence>\n", tab, e.SupportString()))
 		}
