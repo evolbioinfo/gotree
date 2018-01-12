@@ -56,6 +56,15 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 	return
 }
 
+// scanIgnoreWhitespace scans the next non-whitespace and end of line token.
+func (p *Parser) scanIgnoreWhitespaceAndEOL() (tok Token, lit string) {
+	tok, lit = p.scan()
+	for tok == WS || tok == ENDOFLINE {
+		tok, lit = p.scan()
+	}
+	return
+}
+
 // Parses Nexus content from the reader
 func (p *Parser) Parse() (*Nexus, error) {
 	var nchar, ntax, taxantax int64
@@ -327,7 +336,7 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 					stoptrees = true
 					break
 				}
-				tok4, lit4 = p.scanIgnoreWhitespace()
+				tok4, lit4 = p.scanIgnoreWhitespaceAndEOL()
 			}
 			tree := ""
 			// We remove whitespaces in the tree string if any,
