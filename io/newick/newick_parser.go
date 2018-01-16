@@ -129,20 +129,16 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 			(*level)--
 			return tok, nil
 		case OPENBRACK:
+			var comment string
 			//if prevTok == OPENPAR || prevTok == NEWSIBLING || prevTok == -1 {
 			if newNode == nil {
 				return -1, errors.New("Newick Error: Comment should not be located here: " + lit)
 			}
-			tok, lit = p.scanIgnoreWhitespace()
-			if tok != IDENT && tok != NUMERIC {
-				return -1, errors.New("Newick Error: There should be a comment after [")
+			if comment, err = p.consumeComment(tok, lit); err != nil {
+				return -1, err
 			}
 			// Add comment to node
-			newNode.AddComment(lit)
-			tok, lit = p.scanIgnoreWhitespace()
-			if tok != CLOSEBRACK {
-				return -1, errors.New("Newick Error: There should be a ] after a comment")
-			}
+			newNode.AddComment(comment)
 			prevTok = CLOSEBRACK
 		case CLOSEBRACK:
 			// Error here should not have
@@ -241,4 +237,25 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 			return tok, nil
 		}
 	}
+}
+
+// Consumes comment inside brakets [comment] if the given current token is a [.
+// At the end returns the matching ] token and lit.
+// If the given token is not a [, then returns an error
+func (p *Parser) consumeComment(curtoken Token, curlit string) (comment string, err error) {
+	if curtoken == OPENBRACK {
+		commenttoken, commentlit := p.scanIgnoreWhitespace()
+		for commenttoken != CLOSEBRACK {
+			if commenttoken == EOF || commenttoken == ILLEGAL {
+				err = fmt.Errorf("Unmatched bracket")
+				return
+			} else {
+				comment += commentlit
+			}
+			commenttoken, commentlit = p.scanIgnoreWhitespace()
+		}
+	} else {
+		err = fmt.Errorf("A comment must start with [")
+	}
+	return
 }
