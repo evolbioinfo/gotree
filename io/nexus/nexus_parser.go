@@ -19,6 +19,7 @@ type Parser struct {
 		lit string // last read literal
 		n   int    // buffer size (max=1)
 	}
+	translationTable map[string]string // For taxa name translation
 }
 
 // NewParser returns a new instance of Parser.
@@ -187,6 +188,12 @@ func (p *Parser) Parse() (*Nexus, error) {
 			if err != nil {
 				return nil, err
 			}
+			// We translate taxa labels if needed
+			if p.translationTable != nil {
+				if err2 := t.Rename(p.translationTable); err2 != nil {
+					return nil, err2
+				}
+			}
 			// We check that tax labels are the same as tree taxa
 			if taxlabels != nil {
 				tips := t.Tips()
@@ -316,6 +323,12 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 				err = fmt.Errorf("End token without ;")
 			}
 			stoptrees = true
+		case TRANSLATE:
+			// TRANSLATE BLOCK
+			if p.translationTable, err = p.parseTranslationTable(); err != nil {
+				stoptrees = true
+				break
+			}
 		case TREE:
 			// A new tree is seen
 			tok2, lit2 := p.scanIgnoreWhitespace()
@@ -342,7 +355,7 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 			// We remove whitespaces in the tree string if any,
 			// and keep comments in brackets as part of the newick string
 			for tok4 != ENDOFCOMMAND {
-				if tok4 != IDENT && tok4 != OPENBRACK && tok4 != CLOSEBRACK {
+				if tok4 != IDENT && tok4 != OPENBRACK && tok4 != CLOSEBRACK && tok4 != COMMA {
 					err = fmt.Errorf("Expecting a tree after 'TREE name =', got  %q", lit4)
 					stoptrees = true
 					break
@@ -367,6 +380,50 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 			if err != nil {
 				stoptrees = true
 			}
+		}
+	}
+	return
+}
+
+// Parse TREES block
+func (p *Parser) parseTranslationTable() (translationTable map[string]string, err error) {
+	translationTable = make(map[string]string)
+	stop := false
+	for !stop {
+		tok, key := p.scanIgnoreWhitespace()
+		switch tok {
+		case IDENT, NUMERIC:
+			if tok2, value := p.scanIgnoreWhitespace(); tok2 != IDENT && tok2 != NUMERIC {
+				err = fmt.Errorf("TRANSLATE block: Expecting value name here, and found '%q'", key)
+				stop = true
+			} else {
+				if tok3, end := p.scanIgnoreWhitespace(); tok3 != COMMA && tok3 != ENDOFCOMMAND && tok3 != ENDOFLINE {
+					err = fmt.Errorf("TRANSLATE block: Expecting , or ; after key value, and found '%q'", end)
+					stop = true
+				} else {
+					translationTable[key] = value
+					stop = (end == ";")
+				}
+			}
+		case ENDOFLINE:
+			continue
+		case COMMA:
+			continue
+		case ILLEGAL:
+			err = fmt.Errorf("found illegal token %q", key)
+			stop = true
+		case EOF:
+			err = fmt.Errorf("End of file within a TRANSLATE block (no END;)")
+			stop = true
+		case ENDOFCOMMAND:
+			stop = true
+		case OPENBRACK:
+			if tok, key, err = p.consumeComment(tok, key); err != nil {
+				stop = true
+			}
+		default:
+			err = fmt.Errorf("Unsupported token %q in TRANSLATE command, skipping", key)
+			stop = true
 		}
 	}
 	return

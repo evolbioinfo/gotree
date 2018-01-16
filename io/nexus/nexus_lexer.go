@@ -72,6 +72,8 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 		return ENDOFCOMMAND, string(ch)
 	case '=':
 		return EQUAL, string(ch)
+	case ',':
+		return COMMA, string(ch)
 	}
 
 	s.unread()
@@ -136,6 +138,8 @@ func (s *Scanner) scanIdent() (tok Token, lit string) {
 			return TREES, buf.String()
 		case "TREE":
 			return TREE, buf.String()
+		case "TRANSLATE":
+			return TRANSLATE, buf.String()
 		case "DIMENSIONS":
 			return DIMENSIONS, buf.String()
 		case "NTAX":

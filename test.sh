@@ -765,6 +765,25 @@ gotree reformat newick -i nexus -f nexus -o result
 diff expected result
 rm -f expected result nexus
 
+echo "->gotree reformat nexus->newick with translate"
+cat > nexus <<EOF
+#NEXUS
+[NEXUS COMMENT]
+BEGIN TREES;
+      translate 1 fish
+      , 2 frog
+      , 3 snake,
+      4 mouse;
+      Tree best= [&R] (1[COMMENT], (2, (3, 4)));
+END;
+EOF
+cat > expected <<EOF
+(fish[COMMENT],(frog,(snake,mouse)));
+EOF
+gotree reformat newick -i nexus -f nexus -o result
+diff expected result
+rm -f expected result nexus
+
 echo "->gotree reformat newick 3"
 cat > nexus <<EOF
 #NEXUS

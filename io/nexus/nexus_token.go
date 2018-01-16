@@ -12,8 +12,9 @@ const (
 	NUMERIC      // Any numerical value
 	OPENBRACK    // [ : For comment
 	CLOSEBRACK   // ] : For comment
-	ENDOFCOMMAND // ; End of command
+	ENDOFCOMMAND // ; : End of command
 	ENDOFLINE    // \r \n
+	COMMA        // , : separator for tables (translation command for ex)
 
 	// Keywords
 	NEXUS     // #NEXUS : Start of nexus file
@@ -24,6 +25,7 @@ const (
 	TAXLABELS // Begin taxa : list of  taxlabels
 	TREES     // Begin trees -> Definition of trees
 	TREE      // A specific tree in the BEGIN TREES section
+	TRANSLATE // Command that defines a translation table for taxa names
 
 	DIMENSIONS // Dimensions
 	NTAX       // Dimensions : Number of taxa
@@ -43,7 +45,7 @@ func isWhitespace(ch rune) bool {
 }
 
 func isIdent(ch rune) bool {
-	return ch != '[' && ch != ']' && ch != ';' && ch != '=' && ch != '\r' && ch != '\n' && !isWhitespace(ch)
+	return ch != '[' && ch != ']' && ch != ';' && ch != '=' && ch != '\r' && ch != '\n' && ch != ',' && !isWhitespace(ch)
 }
 
 func isEndOfLine(ch rune) bool {
