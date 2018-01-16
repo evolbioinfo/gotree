@@ -275,7 +275,7 @@ func (p *Parser) parseTaxa() (int64, map[string]bool, error) {
 				switch tok2 {
 				case ENDOFCOMMAND:
 					stoplabels = true
-				case IDENT:
+				case IDENT, NUMERIC:
 					taxlabels[lit2] = true
 				default:
 					err = fmt.Errorf("Unknown token %q in taxlabel list", lit2)
@@ -332,7 +332,7 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 		case TREE:
 			// A new tree is seen
 			tok2, lit2 := p.scanIgnoreWhitespace()
-			if tok2 != IDENT {
+			if tok2 != IDENT && tok2 != NUMERIC {
 				err = fmt.Errorf("Expecting a tree name after TREE, got %q", lit2)
 				stoptrees = true
 				break
@@ -355,7 +355,7 @@ func (p *Parser) parseTrees() (treenames, treestrings []string, err error) {
 			// We remove whitespaces in the tree string if any,
 			// and keep comments in brackets as part of the newick string
 			for tok4 != ENDOFCOMMAND {
-				if tok4 != IDENT && tok4 != OPENBRACK && tok4 != CLOSEBRACK && tok4 != COMMA {
+				if tok4 != IDENT && tok4 != OPENBRACK && tok4 != CLOSEBRACK && tok4 != COMMA && tok4 != EQUAL && tok4 != NUMERIC {
 					err = fmt.Errorf("Expecting a tree after 'TREE name =', got  %q", lit4)
 					stoptrees = true
 					break
