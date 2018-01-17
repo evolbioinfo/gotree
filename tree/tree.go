@@ -1099,11 +1099,23 @@ func (t *Tree) ClearLengths() {
 	}
 }
 
-// Clears comments associated to all nodes and tips of the tree
+// Clears comments associated to all nodes, tips and edges of the tree
 func (t *Tree) ClearComments() {
+	t.ClearNodeComments()
+	t.ClearEdgeComments()
+}
+
+func (t *Tree) ClearNodeComments() {
 	nodes := t.Nodes()
 	for _, n := range nodes {
 		n.ClearComments()
+	}
+}
+
+func (t *Tree) ClearEdgeComments() {
+	edges := t.Edges()
+	for _, e := range edges {
+		e.ClearComments()
 	}
 }
 

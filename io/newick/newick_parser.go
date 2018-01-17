@@ -137,8 +137,17 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 			if comment, err = p.consumeComment(tok, lit); err != nil {
 				return -1, err
 			}
-			// Add comment to node
-			newNode.AddComment(comment)
+			// Add comment to edge if comment located after branch length
+			if prevTok == STARTLEN {
+				if ed, err2 := newNode.ParentEdge(); err2 != nil {
+					return -1, err
+				} else {
+					ed.AddComment(comment)
+				}
+			} else {
+				// Else we add comment to node
+				newNode.AddComment(comment)
+			}
 			prevTok = CLOSEBRACK
 		case CLOSEBRACK:
 			// Error here should not have
@@ -168,7 +177,7 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 					return -1, errors.New("Newick Error: Cannot assign length to nil node :" + lit)
 				}
 			}
-			prevTok = tok
+			prevTok = STARTLEN
 		case NEWSIBLING:
 			newNode = nil
 			prevTok = NEWSIBLING

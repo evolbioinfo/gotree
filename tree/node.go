@@ -227,6 +227,13 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 					newick.WriteString(":")
 					newick.WriteString(strconv.FormatFloat(n.br[i].length, 'f', -1, 64))
 				}
+				if len(n.br[i].comment) != 0 {
+					for _, c := range n.br[i].comment {
+						newick.WriteString("[")
+						newick.WriteString(c)
+						newick.WriteString("]")
+					}
+				}
 				nbchild++
 			}
 		}

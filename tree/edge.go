@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math"
@@ -12,10 +13,11 @@ import (
 
 // Structure of an edge
 type Edge struct {
-	left, right *Node   // Left and right nodes
-	length      float64 // length of branch
-	support     float64 // -1 if no support
-	pvalue      float64 // -1 if no pvalue
+	left, right *Node    // Left and right nodes
+	length      float64  // length of branch
+	comment     []string // Comment if any in the newick file
+	support     float64  // -1 if no support
+	pvalue      float64  // -1 if no pvalue
 	// a Bit at index i in the bitset corresponds to the position of the tip i
 	//left:0/right:1 .
 	// i is the index of the tip in the sorted tip name array
@@ -178,12 +180,14 @@ func (e *Edge) DumpBitSet() string {
 
 /* Returns a string containing informations about the edge:
 Tab delimited:
+
 	1 - length
 	2 - support
 	3 - istip?
 	4 - depth
 	5 - topo depth
 	6 - name of node if any
+        7 - comments associated to the edge
 */
 func (e *Edge) ToStatsString() string {
 	var err error
@@ -212,9 +216,9 @@ func (e *Edge) ToStatsString() string {
 		name = e.Right().Name()
 	}
 
-	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s",
+	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s\t%s",
 		length, support, e.Right().Tip(),
-		depth, topodepth, name)
+		depth, topodepth, name, e.CommentsString())
 
 }
 
@@ -359,4 +363,35 @@ func neigborEdgesRecur(cur *Node, curEdge *Edge, prev *Node, e *[]*Edge, maxdist
 			}
 		}
 	}
+}
+
+// Adds a comment to the edge. It will be coded by a list of []
+// In the Newick format.
+func (e *Edge) AddComment(comment string) {
+	e.comment = append(e.comment, comment)
+}
+
+// Returns the list of comments associated to the edge.
+func (e *Edge) Comments() []string {
+	return e.comment
+}
+
+// Returns the string of comma separated comments
+// surounded by [].
+func (e *Edge) CommentsString() string {
+	var buf bytes.Buffer
+	buf.WriteRune('[')
+	for i, c := range e.comment {
+		if i > 0 {
+			buf.WriteRune(',')
+		}
+		buf.WriteString(c)
+	}
+	buf.WriteRune(']')
+	return buf.String()
+}
+
+// Removes all comments associated to the node
+func (e *Edge) ClearComments() {
+	e.comment = e.comment[:0]
 }
