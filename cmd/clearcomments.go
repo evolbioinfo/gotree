@@ -36,10 +36,10 @@ If both or none are given, will remove every comments.
 			if t.Err != nil {
 				io.ExitWithMessage(t.Err)
 			}
-			if edgecomments {
+			if nodecomments {
 				t.Tree.ClearNodeComments()
 			}
-			if nodecomments {
+			if edgecomments {
 				t.Tree.ClearEdgeComments()
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
