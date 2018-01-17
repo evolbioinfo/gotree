@@ -1,4 +1,4 @@
-# Gotree: toolkit and api for phylogenetic tree manipulation
+g# Gotree: toolkit and api for phylogenetic tree manipulation
 ## Github repository
 [Gotree github repository](https://github.com/fredericlemoine/gotree).
 ## Introduction
