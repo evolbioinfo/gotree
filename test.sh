@@ -99,6 +99,41 @@ gotree comment clear -i input > result
 diff result expected
 rm -f expected result input
 
+# gotree comment clear nodes+edges
+echo "->gotree comment clear (nodes+edges)"
+cat > input <<EOF
+(t1[n1]:1[e1],t2[n2]:1[e2],(t3[n3]:1[e3],t4[n4]:1[e4])[n5]:1[e5]);
+EOF
+cat > expected <<EOF
+(t1:1,t2:1,(t3:1,t4:1):1);
+EOF
+gotree comment clear -i input > result
+diff result expected
+rm -f expected result input
+
+# gotree comment clear nodes only
+echo "->gotree comment clear (nodes)"
+cat > input <<EOF
+(t1[n1]:1[e1],t2[n2]:1[e2],(t3[n3]:1[e3],t4[n4]:1[e4])[n5]:1[e5]);
+EOF
+cat > expected <<EOF
+(t1:1[e1],t2:1[e2],(t3:1[e3],t4:1[e4]):1[e5]);
+EOF
+gotree comment clear --nodes-only -i input > result
+diff result expected
+rm -f expected result input
+
+# gotree comment clear edges only
+echo "->gotree comment clear (edges)"
+cat > input <<EOF
+(t1[n1]:1[e1],t2[n2]:1[e2],(t3[n3]:1[e3],t4[n4]:1[e4])[n5]:1[e5]);
+EOF
+cat > expected <<EOF
+(t1[n1]:1,t2[n2]:1,(t3[n3]:1,t4[n4]:1)[n5]:1);
+EOF
+gotree comment clear --edges-only -i input > result
+diff result expected
+rm -f expected result input
 
 # gotree collapse length
 echo "->gotree collapse length"
@@ -509,24 +544,24 @@ rm -f expected result
 
 echo "->gotree stats edges"
 cat > expected <<EOF
-tree	brid	length	support	terminal	depth	topodepth	rightname
-0	0	0.1824683850061218	N/A	false	1	3	
-0	1	0.020616211789029896	N/A	true	0	1	Tip4
-0	2	0.25879284932877245	N/A	false	1	2	
-0	3	0.09740195047110385	N/A	true	0	1	Tip7
-0	4	0.015450672710905129	N/A	true	0	1	Tip2
-0	5	0.25919865790518115	N/A	true	0	1	Tip0
-0	6	0.04593880904706901	N/A	false	1	4	
-0	7	0.1920960924280275	N/A	false	1	3	
-0	8	0.027845992087631298	N/A	true	0	1	Tip8
-0	9	0.01026581233891113	N/A	false	1	2	
-0	10	0.13492605122032592	N/A	true	0	1	Tip9
-0	11	0.10309294031874587	N/A	true	0	1	Tip3
-0	12	0.30150414585026103	N/A	false	1	3	
-0	13	0.05817538156872999	N/A	false	1	2	
-0	14	0.3779897840448691	N/A	true	0	1	Tip6
-0	15	0.1120177846434196	N/A	true	0	1	Tip5
-0	16	0.239082088939295	N/A	true	0	1	Tip1
+tree	brid	length	support	terminal	depth	topodepth	rightname	comments
+0	0	0.1824683850061218	N/A	false	1	3		[]
+0	1	0.020616211789029896	N/A	true	0	1	Tip4	[]
+0	2	0.25879284932877245	N/A	false	1	2		[]
+0	3	0.09740195047110385	N/A	true	0	1	Tip7	[]
+0	4	0.015450672710905129	N/A	true	0	1	Tip2	[]
+0	5	0.25919865790518115	N/A	true	0	1	Tip0	[]
+0	6	0.04593880904706901	N/A	false	1	4		[]
+0	7	0.1920960924280275	N/A	false	1	3		[]
+0	8	0.027845992087631298	N/A	true	0	1	Tip8	[]
+0	9	0.01026581233891113	N/A	false	1	2		[]
+0	10	0.13492605122032592	N/A	true	0	1	Tip9	[]
+0	11	0.10309294031874587	N/A	true	0	1	Tip3	[]
+0	12	0.30150414585026103	N/A	false	1	3		[]
+0	13	0.05817538156872999	N/A	false	1	2		[]
+0	14	0.3779897840448691	N/A	true	0	1	Tip6	[]
+0	15	0.1120177846434196	N/A	true	0	1	Tip5	[]
+0	16	0.239082088939295	N/A	true	0	1	Tip1	[]
 EOF
 gotree generate yuletree -s 10 | gotree stats edges > result
 diff expected result

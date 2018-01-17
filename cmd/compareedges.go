@@ -79,7 +79,7 @@ If the compared tree file contains several trees, it will take the first one onl
 						break
 					}
 				}
-				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(), found)
+				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(false), found)
 
 				if transferdist {
 					var movedtaxabuf bytes.Buffer

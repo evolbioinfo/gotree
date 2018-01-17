@@ -50,7 +50,7 @@ gotree stats edges -i t.nw
 			for i, e := range t.Tree.Edges() {
 				f.WriteString(
 					fmt.Sprintf("%d\t%d\t%s",
-						t.Id, i, e.ToStatsString()))
+						t.Id, i, e.ToStatsString(true)))
 				f.WriteString("\n")
 			}
 		}

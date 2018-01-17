@@ -189,7 +189,7 @@ Tab delimited:
 	6 - name of node if any
         7 - comments associated to the edge
 */
-func (e *Edge) ToStatsString() string {
+func (e *Edge) ToStatsString(withedgecomments bool) string {
 	var err error
 	length := e.LengthString()
 	support := e.SupportString()
@@ -216,9 +216,14 @@ func (e *Edge) ToStatsString() string {
 		name = e.Right().Name()
 	}
 
-	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s\t%s",
+	comment := ""
+	if withedgecomments {
+		comment = "\t" + e.CommentsString()
+	}
+
+	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s%s",
 		length, support, e.Right().Tip(),
-		depth, topodepth, name, e.CommentsString())
+		depth, topodepth, name, comment)
 
 }
 
