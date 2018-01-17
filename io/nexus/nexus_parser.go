@@ -273,6 +273,7 @@ func (p *Parser) parseTaxa() (int64, map[string]bool, error) {
 			for !stoplabels {
 				tok2, lit2 := p.scanIgnoreWhitespace()
 				switch tok2 {
+				case ENDOFLINE:
 				case ENDOFCOMMAND:
 					stoplabels = true
 				case IDENT, NUMERIC:
