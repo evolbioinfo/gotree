@@ -3,7 +3,7 @@ package tests
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"testing"
 
 	"github.com/fredericlemoine/gotree/hashmap"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestQuartets(t *testing.T) {
-	var treefile *os.File
+	var treefile io.Closer
 	var treereader *bufio.Reader
 	var err error
 	var quartet *tree.Tree
@@ -191,7 +191,7 @@ func TestIndexQuartets2(t *testing.T) {
 Test with real data
 */
 func TestIndexQuartets3(t *testing.T) {
-	var treefile *os.File
+	var treefile io.Closer
 	var treereader *bufio.Reader
 	var err error
 	var quartet *tree.Tree

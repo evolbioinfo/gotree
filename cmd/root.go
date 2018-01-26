@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	goio "io"
 	"os"
 	"runtime"
 	"strconv"
@@ -100,9 +101,9 @@ func Readln(r *bufio.Reader) (string, error) {
 }
 
 /*File in output must be closed by calling function */
-func readTrees(infile string) (*os.File, <-chan tree.Trees) {
+func readTrees(infile string) (goio.Closer, <-chan tree.Trees) {
 	// Read Tree
-	var treefile *os.File
+	var treefile goio.Closer
 	var treereader *bufio.Reader
 	var err error
 	var treeChannel <-chan tree.Trees

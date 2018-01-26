@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"bufio"
-	"os"
+	goio "io"
 
 	"github.com/fredericlemoine/goalign/align"
 	"github.com/fredericlemoine/goalign/io/fasta"
@@ -32,7 +32,7 @@ Works on multifurcated trees, by taking the most frequent state(s).
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var align align.Alignment
-		var fi *os.File
+		var fi goio.Closer
 		var r *bufio.Reader
 		var err error
 

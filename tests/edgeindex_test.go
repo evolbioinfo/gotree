@@ -3,7 +3,7 @@ package tests
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"strings"
 	"testing"
 
@@ -36,7 +36,7 @@ func TestEdgeIndex(t *testing.T) {
 }
 
 func TestEdgeIndex2(t *testing.T) {
-	var treefile *os.File
+	var treefile io.Closer
 	var treereader *bufio.Reader
 	var err error
 	var trees <-chan tree.Trees

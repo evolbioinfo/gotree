@@ -2,7 +2,7 @@ package tests
 
 import (
 	"bufio"
-	"os"
+	"io"
 	"testing"
 
 	"github.com/fredericlemoine/gotree/io/newick"
@@ -16,7 +16,7 @@ import (
  consensus (from phylip consense)
 */
 func TestMajorityConsensus(t *testing.T) {
-	var treefile, treefile2 *os.File
+	var treefile, treefile2 io.Closer
 	var treereader, treereader2 *bufio.Reader
 	var trees <-chan tree.Trees
 	var err error
@@ -72,7 +72,7 @@ func TestMajorityConsensus(t *testing.T) {
  consensus (from phylip consense)
 */
 func TestStrictConsensus(t *testing.T) {
-	var treefile, treefile2 *os.File
+	var treefile, treefile2 io.Closer
 	var treereader, treereader2 *bufio.Reader
 	var trees <-chan tree.Trees
 	var err error

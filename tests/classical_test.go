@@ -3,7 +3,7 @@ package tests
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"testing"
 
 	"github.com/fredericlemoine/gotree/io/newick"
@@ -14,7 +14,7 @@ import (
 
 func TestClassicalSupport_1(t *testing.T) {
 	var reftree *tree.Tree
-	var treefile, reftreefile *os.File
+	var treefile, reftreefile io.Closer
 	var treereader, reftreereader *bufio.Reader
 	var err error
 	var trees <-chan tree.Trees
@@ -54,7 +54,7 @@ func TestClassicalSupport_1(t *testing.T) {
 
 func TestClassicalSupport_2(t *testing.T) {
 	var reftree *tree.Tree
-	var treefile, reftreefile *os.File
+	var treefile, reftreefile io.Closer
 	var treereader, reftreereader *bufio.Reader
 	var err error
 	var trees <-chan tree.Trees
@@ -94,7 +94,7 @@ func TestClassicalSupport_2(t *testing.T) {
 
 func TestClassicalSupport_3(t *testing.T) {
 	var reftree *tree.Tree
-	var treefile, reftreefile *os.File
+	var treefile, reftreefile io.Closer
 	var treereader, reftreereader *bufio.Reader
 	var err error
 	var trees <-chan tree.Trees
@@ -133,7 +133,7 @@ func TestClassicalSupport_3(t *testing.T) {
 
 func TestClassicalSupport_4(t *testing.T) {
 	var reftree *tree.Tree
-	var treefile, reftreefile *os.File
+	var treefile, reftreefile io.Closer
 	var treereader, reftreereader *bufio.Reader
 	var err error
 	var trees <-chan tree.Trees

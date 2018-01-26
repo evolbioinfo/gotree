@@ -2,7 +2,7 @@ package tests
 
 import (
 	"bufio"
-	"os"
+	"io"
 	"sync"
 	"testing"
 
@@ -15,7 +15,7 @@ import (
 func BenchmarkEdgeIndex(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
-		var treefile *os.File
+		var treefile io.Closer
 		var treereader *bufio.Reader
 		var intrees <-chan tree.Trees
 
