@@ -4,7 +4,7 @@
 
 ### upload
 
-#### Upload a tree tp [iTOL](http://itol.embl.de/)
+#### Upload a tree to [iTOL](http://itol.embl.de/)
 
 	
 ```go
@@ -20,7 +20,6 @@ import (
 )
 
 func main() {
-	// args: All annotation files to add to the upload
 	var reftree *tree.Tree
 	var err error
 
