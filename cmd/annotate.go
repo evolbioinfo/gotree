@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/io/fileutils"
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/fredericlemoine/gotree/tree"
 
@@ -133,7 +133,7 @@ func readAnnotateNameMap(annotateInputMap string) (map[string][]string, error) {
 	} else {
 		reader = bufio.NewReader(mapfile)
 	}
-	line, e := utils.Readln(reader)
+	line, e := fileutils.Readln(reader)
 	nl := 1
 	for e == nil {
 		cols := strings.Split(line, ":")
@@ -155,7 +155,7 @@ func readAnnotateNameMap(annotateInputMap string) (map[string][]string, error) {
 
 		outmap[cols[0]] = cols2
 
-		line, e = utils.Readln(reader)
+		line, e = fileutils.Readln(reader)
 		nl++
 	}
 

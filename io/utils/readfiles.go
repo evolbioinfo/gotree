@@ -2,11 +2,15 @@ package utils
 
 import (
 	"bufio"
+	"bytes"
 	"compress/gzip"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/fredericlemoine/gotree/download"
 )
 
 func OpenFile(inputfile string) (*os.File, error) {
@@ -23,7 +27,13 @@ func OpenFile(inputfile string) (*os.File, error) {
 	return infile, nil
 }
 
-/* Returns the opened file and a buffered reader (gzip or not) for the file */
+// Returns the opened file and a buffered reader (gzip or not) for the file
+//
+// The file may be a remote file:
+//     * http://
+//     * itol://<itol id>
+//
+// Or a local file
 func GetReader(inputfile string) (io.Closer, *bufio.Reader, error) {
 	var reader *bufio.Reader
 
@@ -36,6 +46,14 @@ func GetReader(inputfile string) (io.Closer, *bufio.Reader, error) {
 			return nil, nil, err
 		}
 		f = res.Body
+	} else if isItol(inputfile) {
+		var b []byte
+		dl := download.NewItolImageDownloader(make(map[string]string))
+		itolid := strings.TrimPrefix(inputfile, "itol://")
+		if b, err = dl.Download(itolid, download.TXTFORMAT_NEWICK); err != nil {
+			return nil, nil, err
+		}
+		f = ioutil.NopCloser(bytes.NewReader(b))
 	} else {
 		if f, err = OpenFile(inputfile); err != nil {
 			return nil, nil, err
@@ -57,4 +75,8 @@ func GetReader(inputfile string) (io.Closer, *bufio.Reader, error) {
 func isHttpFile(file string) bool {
 	return strings.HasPrefix(file, "http://") ||
 		strings.HasPrefix(file, "https://")
+}
+
+func isItol(file string) bool {
+	return strings.HasPrefix(file, "itol://")
 }

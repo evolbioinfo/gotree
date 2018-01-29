@@ -1,11 +1,14 @@
 package download
 
 const (
-	IMGFORMAT_SVG     = 0
-	IMGFORMAT_PNG     = 1
-	IMGFORMAT_EPS     = 2
-	IMGFORMAT_PDF     = 3
-	IMGFORMAT_UNKNOWN = 4
+	IMGFORMAT_SVG = iota
+	IMGFORMAT_PNG
+	IMGFORMAT_EPS
+	IMGFORMAT_PDF
+	TXTFORMAT_NEWICK
+	TXTFORMAT_NEXUS
+	TXTFORMAT_PHYLOXML
+	FORMAT_UNKNOWN
 )
 
 func Format(format string) int {
@@ -18,8 +21,14 @@ func Format(format string) int {
 		return IMGFORMAT_EPS
 	case "pdf":
 		return IMGFORMAT_PDF
+	case "newick":
+		return TXTFORMAT_NEWICK
+	case "nexus":
+		return TXTFORMAT_NEXUS
+	case "phyloxml":
+		return TXTFORMAT_PHYLOXML
 	default:
-		return IMGFORMAT_UNKNOWN
+		return FORMAT_UNKNOWN
 	}
 }
 
@@ -33,6 +42,12 @@ func StrFormat(format int) string {
 		return "eps"
 	case IMGFORMAT_PDF:
 		return "pdf"
+	case TXTFORMAT_NEWICK:
+		return "newick"
+	case TXTFORMAT_NEXUS:
+		return "nexus"
+	case TXTFORMAT_PHYLOXML:
+		return "phyloxml"
 	default:
 		return "unknown"
 	}

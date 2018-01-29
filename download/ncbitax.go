@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	gtio "github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/io/fileutils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/jlaffaye/ftp"
 )
@@ -138,7 +138,7 @@ Special characters are replaces with "_" ->  '(', ')', '[', ']', ':', ',', ' ', 
 */
 func (d *NcbiTreeDownloader) parseNcbiNames(reader io.Reader) (map[string]string, error) {
 	r := bufio.NewReader(reader)
-	l, err := utils.Readln(r)
+	l, err := fileutils.Readln(r)
 	namemap := make(map[string]string)
 	re := regexp.MustCompile("[\\[\\]\\(\\)\\:\\,\\s\\;]")
 	for err == nil {
@@ -150,7 +150,7 @@ func (d *NcbiTreeDownloader) parseNcbiNames(reader io.Reader) (map[string]string
 			clean := re.ReplaceAllString(name, "_")
 			namemap[tax] = clean
 		}
-		l, err = utils.Readln(r)
+		l, err = fileutils.Readln(r)
 	}
 	return namemap, nil
 }
@@ -158,7 +158,7 @@ func (d *NcbiTreeDownloader) parseNcbiNames(reader io.Reader) (map[string]string
 // Build a gotree.tree.Tree
 func (d *NcbiTreeDownloader) parseNcbiTree(reader io.Reader) (*tree.Tree, error) {
 	r := bufio.NewReader(reader)
-	l, err := utils.Readln(r)
+	l, err := fileutils.Readln(r)
 	t := tree.NewTree()
 	var root *tree.Node
 	nodes := make(map[string]*tree.Node)
@@ -190,7 +190,7 @@ func (d *NcbiTreeDownloader) parseNcbiTree(reader io.Reader) (*tree.Tree, error)
 			t.ConnectNodes(n2, n1)
 		}
 
-		l, err = utils.Readln(r)
+		l, err = fileutils.Readln(r)
 	}
 	if root == nil {
 		return nil, errors.New("No root found in the NCBI Taxonomy")

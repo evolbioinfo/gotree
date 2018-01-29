@@ -17,8 +17,8 @@ var dloutput string
 // dlitolCmd represents the dlitol command
 var dlitolCmd = &cobra.Command{
 	Use:   "itol",
-	Short: "Download a tree image from iTOL",
-	Long: `Download a tree image from iTOL
+	Short: "Download a tree image/file from iTOL",
+	Long: `Download a tree image/file from iTOL
 
 Option -c allows to give a configuration file having tab separated key value pairs, 
 as defined here:
@@ -32,7 +32,7 @@ http://itol.embl.de/help.cgi#bExOpt
 			io.ExitWithMessage(errors.New("Tree id must be specified"))
 		}
 		format := download.Format(dlformat)
-		if format == download.IMGFORMAT_UNKNOWN {
+		if format == download.FORMAT_UNKNOWN {
 			io.ExitWithMessage(errors.New("Unkown format: " + dlformat))
 		}
 		var config map[string]string
@@ -59,6 +59,6 @@ func init() {
 	downloadCmd.AddCommand(dlitolCmd)
 	dlitolCmd.PersistentFlags().StringVarP(&dlconfig, "config", "c", "", "Itol image config file")
 	dlitolCmd.PersistentFlags().StringVarP(&dltreeid, "tree-id", "i", "", "Tree id to download")
-	dlitolCmd.PersistentFlags().StringVarP(&dlformat, "format", "f", "pdf", "Image format (png, pdf, eps, svg)")
+	dlitolCmd.PersistentFlags().StringVarP(&dlformat, "format", "f", "pdf", "Image format (png, pdf, eps, svg, newick, nexus, phyloxml)")
 	dlitolCmd.PersistentFlags().StringVarP(&dloutput, "output", "o", "", "Image output file")
 }

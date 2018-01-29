@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fredericlemoine/gotree/io/fileutils"
 	"github.com/fredericlemoine/gotree/io/newick"
 	"github.com/fredericlemoine/gotree/io/nexus"
 	"github.com/fredericlemoine/gotree/io/phyloxml"
@@ -90,7 +91,7 @@ func ReadMultiTrees(reader *bufio.Reader, format int) <-chan tree.Trees {
 
 		switch format {
 		case FORMAT_NEWICK:
-			line, e := ReadUntilSemiColon(reader)
+			line, e := fileutils.ReadUntilSemiColon(reader)
 			if e != nil {
 				compTrees <- tree.Trees{
 					nil,
@@ -115,7 +116,7 @@ func ReadMultiTrees(reader *bufio.Reader, format int) <-chan tree.Trees {
 					}
 				}
 				id++
-				line, e = ReadUntilSemiColon(reader)
+				line, e = fileutils.ReadUntilSemiColon(reader)
 			}
 		case FORMAT_NEXUS:
 			if n, err := nexus.NewParser(reader).Parse(); err != nil {

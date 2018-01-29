@@ -4,7 +4,7 @@
 
 ### download
 
-#### Download itol
+#### Download from [iTOL](http://itol.embl.de/) (SVG)
 Downloading a tree image from iTOL
 ```go
 package main
@@ -41,6 +41,36 @@ func main() {
 	ioutil.WriteFile(dloutput, b, 0644)
 }
 ```
+
+#### Download from [iTOL](http://itol.embl.de/) (Newick format)
+Downloading a tree image from iTOL
+```go
+package main
+
+import (
+	"io/ioutil"
+
+	"github.com/fredericlemoine/gotree/download"
+	"github.com/fredericlemoine/gotree/io"
+)
+
+func main() {
+	var dl *download.ItolImageDownloader
+	var dltreeid string = "<itol tree id>"
+	var dloutput string = "tree.nhx"
+	var b []byte
+	var err error
+
+	dl = download.NewItolImageDownloader(make(map[string]string))
+	b, err = dl.Download(dltreeid, download.TXTFORMAT_NEWICK)
+	if err != nil {
+		io.ExitWithMessage(err)
+	}
+	ioutil.WriteFile(dloutput, b, 0644)
+}
+```
+
+
 #### Download and convert NCBI taxonomy
 
 ```go

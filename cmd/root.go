@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/io/fileutils"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
@@ -165,7 +166,7 @@ func readMapFile(file string, revert bool) (map[string]string, error) {
 	} else {
 		reader = bufio.NewReader(mapfile)
 	}
-	line, e := utils.Readln(reader)
+	line, e := fileutils.Readln(reader)
 	nl := 1
 	for e == nil {
 		cols := strings.Split(line, "\t")
@@ -177,7 +178,7 @@ func readMapFile(file string, revert bool) (map[string]string, error) {
 		} else {
 			outmap[cols[0]] = cols[1]
 		}
-		line, e = utils.Readln(reader)
+		line, e = fileutils.Readln(reader)
 		nl++
 	}
 

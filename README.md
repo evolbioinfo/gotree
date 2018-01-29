@@ -3,9 +3,16 @@
 
 GoTree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
 
-The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wiki/Newick_format) format, through several basic commands. Each command may print result (a tree for example) in the standard output, and thus can be piped to the standard input of the next gotree command.
+The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wiki/Newick_format), Nexus and PhyloXML formats, through several basic commands. Each command may print result (a tree for example) in the standard output, and thus can be piped to the standard input of the next gotree command.
 
-See also [Goalign](https://github.com/fredericlemoine/goalign) for handling multiple alignments.
+Input files may be local or remote files:
+
+- If file name is of the form "http://<url>", the file is download from the given URL.
+- If file name is of the form "itol://<ID>", the tree having the given ID is downloaded from [iTOL](http://itol.embl.de/) using the iTOL api.
+- Otherwise, the file is considered local.
+
+
+To manipulate multiple alignemnt, See also [Goalign](https://github.com/fredericlemoine/goalign).
 
 **Examples:**
 
