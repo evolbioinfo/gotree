@@ -20,6 +20,7 @@ Length follows an exponential distribution of parameter lambda=1/0.1
 (Mean=0.1)
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		RootCmd.PersistentPreRun(cmd, args)
 		rand.Seed(seed)
 	},
 	Run: func(cmd *cobra.Command, args []string) {

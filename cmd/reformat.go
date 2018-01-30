@@ -1,15 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/spf13/cobra"
 )
-
-var reformatinputformat string
 
 // reformatCmd represents the reformat command
 var reformatCmd = &cobra.Command{
@@ -20,23 +13,11 @@ var reformatCmd = &cobra.Command{
 So far, it can be :
 - Input formats: Newick, Nexus
 - Output formats: Newick, Nexus.`,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		switch strings.ToLower(reformatinputformat) {
-		case "newick":
-			treeformat = utils.FORMAT_NEWICK
-		case "nexus":
-			treeformat = utils.FORMAT_NEXUS
-		case "phyloxml":
-			treeformat = utils.FORMAT_PHYLOXML
-		default:
-			io.ExitWithMessage(fmt.Errorf("Tree input format is not supported : %q", reformatinputformat))
-		}
-	},
 }
 
 func init() {
 	RootCmd.AddCommand(reformatCmd)
-	reformatCmd.PersistentFlags().StringVarP(&reformatinputformat, "format", "f", "newick", "Input format (newick, nexus, phyloxml)")
+	reformatCmd.PersistentFlags().StringVarP(&rootInputFormat, "input-format", "f", "newick", "Input tree format (newick, nexus, or phyloxml), alias to --format")
 	reformatCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	reformatCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
 

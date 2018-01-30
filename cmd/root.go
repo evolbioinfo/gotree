@@ -35,6 +35,7 @@ var treeformat = utils.FORMAT_NEWICK
 
 var cfgFile string
 var rootCpus int
+var rootInputFormat string
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -47,6 +48,18 @@ Different usages are implemented:
 - Transforming trees (renaming tips, pruning/removing tips)
 - Comparing trees (computing bootstrap supports, counting common edges)
 `,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		switch rootInputFormat {
+		case "newick":
+			treeformat = utils.FORMAT_NEWICK
+		case "nexus":
+			treeformat = utils.FORMAT_NEXUS
+		case "phyloxml":
+			treeformat = utils.FORMAT_PHYLOXML
+		default:
+			treeformat = utils.FORMAT_NEWICK
+		}
+	},
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -62,10 +75,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	maxcpus := runtime.NumCPU()
 	RootCmd.PersistentFlags().IntVarP(&rootCpus, "threads", "t", 1, "Number of threads (Max="+strconv.Itoa(maxcpus)+")")
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports Persistent Flags, which, if defined here,
-	// will be global for your application.
+	RootCmd.PersistentFlags().StringVar(&rootInputFormat, "format", "newick", "Input tree format (newick, nexus, or phyloxml)")
 }
 
 // initConfig reads in config file and ENV variables if set.

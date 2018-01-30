@@ -35,6 +35,7 @@ The supports implemented are :
 
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		RootCmd.PersistentPreRun(cmd, args)
 		var err error
 		if supportOutFile != "stdout" {
 			supportOut, err = os.Create(supportOutFile)

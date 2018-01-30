@@ -18,6 +18,7 @@ Support follows a uniform distribution in [0,1].
 
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		RootCmd.PersistentPreRun(cmd, args)
 		rand.Seed(seed)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
