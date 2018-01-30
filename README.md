@@ -7,10 +7,14 @@ The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wi
 
 Input files may be local or remote files:
 
-- If file name is of the form "http://<url>", the file is download from the given URL.
-- If file name is of the form "itol://<ID>", the tree having the given ID is downloaded from [iTOL](http://itol.embl.de/) using the iTOL api.
+- If file name is of the form `http://<URL>`, the file is download from the given URL.
+- If file name is of the form `itol://<ID>`, the tree having the given ID is downloaded from [iTOL](http://itol.embl.de/) using the iTOL api.
 - Otherwise, the file is considered local.
 
+Gzipped input files (`.gz` extension) are supported.
+
+
+**Note**:
 
 To manipulate multiple alignemnt, See also [Goalign](https://github.com/fredericlemoine/goalign).
 
