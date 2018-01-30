@@ -9,6 +9,7 @@ Input files may be local or remote files:
 
 - If file name is of the form `http://<URL>`, the file is download from the given URL.
 - If file name is of the form `itol://<ID>`, the tree having the given ID is downloaded from [iTOL](http://itol.embl.de/) using the iTOL api.
+- If file name is of the form `treebase://<ID>`, the tree having the given ID is downloaded from [TreeBase](https://treebase.org).
 - Otherwise, the file is considered local.
 
 Gzipped input files (`.gz` extension) are supported.
