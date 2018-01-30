@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -54,6 +56,18 @@ func GetReader(inputfile string) (io.Closer, *bufio.Reader, error) {
 			return nil, nil, err
 		}
 		f = ioutil.NopCloser(bytes.NewReader(b))
+	} else if isTreeBase(inputfile) {
+		var res *http.Response
+		treebaseid := strings.TrimPrefix(inputfile, "treebase://")
+		url := fmt.Sprintf("https://treebase.org/treebase-web/tree_for_phylowidget/TB2:%s", treebaseid)
+		if res, err = http.Get(url); err != nil {
+			return nil, nil, err
+		}
+		if res.Header.Get("Content-Type") != "text/plain" {
+			return nil, nil, errors.New("Error while querying Tree Base, may be wrong ID")
+		}
+
+		f = res.Body
 	} else {
 		if f, err = OpenFile(inputfile); err != nil {
 			return nil, nil, err
@@ -79,4 +93,8 @@ func isHttpFile(file string) bool {
 
 func isItol(file string) bool {
 	return strings.HasPrefix(file, "itol://")
+}
+
+func isTreeBase(file string) bool {
+	return strings.HasPrefix(file, "treebase://")
 }
