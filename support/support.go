@@ -206,12 +206,16 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 			}
 			support := float64(valuesBoot[i]) / float64(supporter.Progress())
 			if supporter.PrintTaxPerBranches() {
+				// for each branch and each taxon, we write in the log file the rate of transfer
+				// (number of trees in which it moves / total number of trees)
 				logfile.WriteString(fmt.Sprintf("%d\t%d\t%.6f", i, d, support))
 				for sp := 0; sp < len(tips); sp++ {
 					logfile.WriteString(fmt.Sprintf("\t%.6f", float64(taxPerBranches[i][sp])/float64(supporter.Progress())))
 				}
 				logfile.WriteString("\n")
 			} else if supporter.PrintHighTaxPerBranches() {
+				// For each branch, we write in the log file the most highly transfered taxa.
+				// It is defined as the x taxa that are the most transfered, with x = ceil(average transfer distance of that branch).
 				logfile.WriteString(fmt.Sprintf("%d\t%d\t%.6f", i, d, support))
 				orderedtipsbytransferindex := sort.OrderInt(taxPerBranches[i], true)
 				prevtindex := 0
