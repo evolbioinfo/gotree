@@ -1,4 +1,4 @@
-g# Gotree: toolkit and api for phylogenetic tree manipulation
+# Gotree: toolkit and api for phylogenetic tree manipulation
 ## Github repository
 [Gotree github repository](https://github.com/fredericlemoine/gotree).
 ## Introduction
@@ -44,6 +44,7 @@ Command                                                            | Subcommand 
 [collapse](commands/collapse.md) ([api](api/collapse.md))          |                   | Collapses/Removes branches of input trees
 --                                                                 | depth             | Collapses/Removes branches of input trees having a given depth
 --                                                                 | length            | Collapses/Removes short branches of input trees
+--                                                                 | single            | Collapses/Removes branches that connect single internal nodes (linear paths)
 --                                                                 | support           | Collapses/Removes lowly supported branches of input trees 
 [comment](commands/comment.md) ([api](api/comment.md))             |                   | Modifies branch/node comments
 --                                                                 | clear             | Clears branch/node comments from input trees
