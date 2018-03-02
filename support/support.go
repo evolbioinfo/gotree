@@ -78,8 +78,10 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	var tips []*tree.Node              // Tip nodes of the ref tree
 	var edges []*tree.Edge             // Edges of the reference tree
 	var valuesBoot []int               // Sum of number of bootValues per edge over boot trees
-	var speciesMovedCount []float64    // Number of times each species has been moved (for booster mainly)
-	var taxPerBranches [][]int         // Number of times (bs tree) each species has been moved around each branch (for booster mainly)
+	var numDiffTrees []int             // Number of trees for wich the given branch is not exactly found
+
+	var speciesMovedCount []float64 // Number of times each species has been moved (for booster mainly)
+	var taxPerBranches [][]int      // Number of times (bs tree) each species has been moved around each branch (for booster mainly)
 
 	var wg sync.WaitGroup  // For waiting end of step computation
 	var wg2 sync.WaitGroup // For waiting end of final counting
@@ -104,6 +106,7 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	}
 
 	valuesBoot = make([]int, len(edges))
+	numDiffTrees = make([]int, len(edges))
 	speciesMovedCount = make([]float64, len(tips))
 	taxPerBranches = make([][]int, len(edges))
 
@@ -146,6 +149,10 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 	go func() {
 		for val := range valuesChan {
 			valuesBoot[val.edgeid] += val.value
+			// meaningful only for booster
+			if val.value > 0 {
+				numDiffTrees[val.edgeid]++
+			}
 		}
 		wg2.Done()
 	}()
@@ -187,13 +194,13 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 		}
 	}
 	if supporter.PrintTaxPerBranches() {
-		logfile.WriteString("Edge\tDepth\tAvgDist")
+		logfile.WriteString("Edge\tDepth\tAvgDist\tFBP")
 		for sp := 0; sp < len(tips); sp++ {
 			logfile.WriteString("\t" + names[sp])
 		}
 		logfile.WriteString("\n")
 	} else if supporter.PrintHighTaxPerBranches() {
-		logfile.WriteString("Edge\tDepth\tAvgDist\tHighlyTransferedTaxa\n")
+		logfile.WriteString("Edge\tDepth\tAvgDist\tFBP\t\tHighlyTransferedTaxa\n")
 	}
 
 	// Finally we compute support and write it in the tree
@@ -205,22 +212,25 @@ func ComputeSupport(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os
 				return err
 			}
 			support := float64(valuesBoot[i]) / float64(supporter.Progress())
+			fbp := float64(supporter.Progress()-numDiffTrees[i]) / float64(supporter.Progress())
 			if supporter.PrintTaxPerBranches() {
 				// for each branch and each taxon, we write in the log file the rate of transfer
 				// (number of trees in which it moves / total number of trees)
-				logfile.WriteString(fmt.Sprintf("%d\t%d\t%.6f", i, d, support))
+				logfile.WriteString(fmt.Sprintf("%d\t%d\t%.6f\t%.6f", i, d, support, fbp))
 				for sp := 0; sp < len(tips); sp++ {
 					logfile.WriteString(fmt.Sprintf("\t%.6f", float64(taxPerBranches[i][sp])/float64(supporter.Progress())))
 				}
 				logfile.WriteString("\n")
 			} else if supporter.PrintHighTaxPerBranches() {
 				// For each branch, we write in the log file the most highly transfered taxa.
-				// It is defined as the x taxa that are the most transfered, with x = ceil(average transfer distance of that branch).
-				logfile.WriteString(fmt.Sprintf("%d\t%d\t%.6f", i, d, support))
+				// It is defined as the "numtax" taxa that are the most transfered, with
+				// numtax = ceil(average transfer distance of that branch over the not-equal-branch bootstrap trees).
+				logfile.WriteString(fmt.Sprintf("%d\t%d\t%.6f\t%.6f", i, d, support, fbp))
 				orderedtipsbytransferindex := sort.OrderInt(taxPerBranches[i], true)
 				prevtindex := 0
+				numtax := int(float64(valuesBoot[i])/float64(numDiffTrees[i]) + 0.5) // number of instable taxa to output
 				for ind, sp := range orderedtipsbytransferindex {
-					if taxPerBranches[i][sp] > 0.0 && (ind <= int(support+0.5) || taxPerBranches[i][sp] == prevtindex) {
+					if taxPerBranches[i][sp] > 0.0 && (ind <= numtax || taxPerBranches[i][sp] == prevtindex) {
 						if ind > 0 {
 							logfile.WriteString(";")
 						} else {

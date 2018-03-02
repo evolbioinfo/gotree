@@ -303,7 +303,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 			if err == nil {
 				nb_branches_close = 0
 				if !supporter.silent {
-					fmt.Fprintf(os.Stderr, "CPU : %d - Bootstrap tree %d\r", cpu, treeV.Id)
+					fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, treeV.Id)
 				}
 				bootEdges := treeV.Tree.Edges()
 				taxaTransferedPerBranch = make([]*list.List, len(edges))
