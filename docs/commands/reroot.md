@@ -55,6 +55,21 @@ gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/reroot_1.svg
 gotree draw svg -w 200 -H 200  -i outtree2.nw --with-branch-support --support-cutoff 0.5 -o commands/reroot_2.svg
 ```
 
+
+* Reroot a random tree using an outgroup in commandline, and remove the outgroup
+
+```
+gotree generate yuletree -s 10 -o outtree1.nw
+gotree reroot outgroup --remove-outgroup -i outtree1.nw -o outtree2.nw Tip2 Tip4 Tip7
+gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/reroot_5.svg
+gotree draw svg -w 200 -H 200  -i outtree2.nw --with-branch-support --support-cutoff 0.5 -o commands/reroot_6.svg
+```
+
+Initial random Tree            | Rerooted Tree without the outgroup
+-------------------------------|---------------------------------------
+![Random Tree 1](reroot_5.svg) | ![Rerooted](reroot_6.svg)
+
+
 * Reroot a random tree at midpoint
 
 ```
