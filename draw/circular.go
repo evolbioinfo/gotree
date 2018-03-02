@@ -8,13 +8,14 @@ import (
 )
 
 type circularLayout struct {
-	drawer                TreeDrawer
-	hasBranchLengths      bool
-	hasTipLabels          bool
-	hasInternalNodeLabels bool
-	hasSupport            bool
-	supportCutoff         float64
-	cache                 *layoutCache
+	drawer                 TreeDrawer
+	hasBranchLengths       bool
+	hasTipLabels           bool
+	hasInternalNodeLabels  bool
+	hasInternalNodeSymbols bool
+	hasSupport             bool
+	supportCutoff          float64
+	cache                  *layoutCache
 }
 
 /*
@@ -30,6 +31,7 @@ func NewCircularLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInte
 		withBranchLengths,
 		withTipLabels,
 		withInternalNodeLabel,
+		false,
 		withSupportCircles,
 		0.7,
 		newLayoutCache(),
@@ -38,6 +40,10 @@ func NewCircularLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInte
 
 func (layout *circularLayout) SetSupportCutoff(c float64) {
 	layout.supportCutoff = c
+}
+
+func (layout *circularLayout) SetDisplayInternalNodes(s bool) {
+	layout.hasInternalNodeSymbols = s
 }
 
 /*
@@ -155,6 +161,11 @@ func (layout *circularLayout) drawTree() {
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, max, max, p.brAngle)
+		}
+	}
+	if layout.hasInternalNodeSymbols {
+		for _, p := range layout.cache.nodePoints {
+			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset, max, max)
 		}
 	}
 	for _, l := range layout.cache.branchPaths {

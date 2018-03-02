@@ -5,13 +5,14 @@ import (
 )
 
 type normalLayout struct {
-	drawer                TreeDrawer
-	hasBranchLengths      bool
-	hasTipLabels          bool
-	hasInternalNodeLabels bool
-	hasSupport            bool
-	supportCutoff         float64
-	cache                 *layoutCache
+	drawer                 TreeDrawer
+	hasBranchLengths       bool
+	hasTipLabels           bool
+	hasInternalNodeLabels  bool
+	hasInternalNodeSymbols bool
+	hasSupport             bool
+	supportCutoff          float64
+	cache                  *layoutCache
 }
 
 func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel, withSupportCircles bool) TreeLayout {
@@ -20,6 +21,7 @@ func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 		withBranchLengths,
 		withTipLabels,
 		withInternalNodeLabel,
+		false,
 		withSupportCircles,
 		0.7,
 		newLayoutCache(),
@@ -28,6 +30,9 @@ func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 
 func (layout *normalLayout) SetSupportCutoff(c float64) {
 	layout.supportCutoff = c
+}
+func (layout *normalLayout) SetDisplayInternalNodes(s bool) {
+	layout.hasInternalNodeSymbols = s
 }
 
 /*
@@ -131,6 +136,11 @@ func (layout *normalLayout) drawTree(maxLength float64, ntips int) {
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawName(p.x, p.y, p.name, maxLength, float64(ntips), 0.0)
+		}
+	}
+	if layout.hasInternalNodeSymbols {
+		for _, p := range layout.cache.nodePoints {
+			layout.drawer.DrawCircle(p.x, p.y, maxLength, float64(ntips))
 		}
 	}
 	for _, l := range layout.cache.horizontalPaths {

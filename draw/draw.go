@@ -41,4 +41,5 @@ Generic struct that represents tree layout:
 type TreeLayout interface {
 	DrawTree(t *tree.Tree) error
 	SetSupportCutoff(float64)
+	SetDisplayInternalNodes(bool)
 }

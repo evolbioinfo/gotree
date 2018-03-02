@@ -50,6 +50,7 @@ var pngCmd = &cobra.Command{
 				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
+			l.SetDisplayInternalNodes(drawInternalNodeSymbols)
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
 			f.Close()

@@ -21,6 +21,9 @@ func (layout *cytoscapeLayout) SetSupportCutoff(c float64) {
 	layout.supportCutoff = c
 }
 
+func (layout *cytoscapeLayout) SetDisplayInternalNodes(s bool) {
+}
+
 /*
 Draw the tree on the specific drawer. Does not close the file. The caller must do it.
 */

@@ -42,6 +42,7 @@ var svgCmd = &cobra.Command{
 				t.Tree.ReinitIndexes()
 				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
+				l.SetDisplayInternalNodes(drawInternalNodeSymbols)
 			} else if svgcircular {
 				d = draw.NewSvgTreeDrawer(f, min(svgwidth, svgheight), min(svgwidth, svgheight), 30, 30, 30, 30)
 				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
@@ -49,6 +50,7 @@ var svgCmd = &cobra.Command{
 				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
+			l.SetDisplayInternalNodes(drawInternalNodeSymbols)
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
 			f.Close()

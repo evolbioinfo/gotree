@@ -12,6 +12,7 @@ type radialLayout struct {
 	hasBranchLengths      bool
 	hasTipLabels          bool
 	hasInternalNodeLabels bool
+	hasInternalNodeSymbol bool
 	hasSupport            bool
 	supportCutoff         float64
 	cache                 *layoutCache
@@ -24,6 +25,7 @@ func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 		withBranchLengths,
 		withTipLabels,
 		withInternalNodeLabels,
+		false,
 		withSuppportCircles,
 		0.7,
 		newLayoutCache(),
@@ -32,6 +34,10 @@ func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 
 func (layout *radialLayout) SetSupportCutoff(c float64) {
 	layout.supportCutoff = c
+}
+
+func (layout *radialLayout) SetDisplayInternalNodes(s bool) {
+	layout.hasInternalNodeSymbol = s
 }
 
 /*
@@ -130,6 +136,12 @@ func (layout *radialLayout) drawTree() {
 			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
 		}
 	}
+	if layout.hasInternalNodeSymbol {
+		for _, p := range layout.cache.nodePoints {
+			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset, xmax+xoffset, ymax+yoffset)
+		}
+	}
+
 	for _, l := range layout.cache.branchPaths {
 		middlex := (l.p1.x + l.p2.x + 2*xoffset) / 2.0
 		middley := (l.p1.y + l.p2.y + 2*yoffset) / 2.0
