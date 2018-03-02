@@ -37,3 +37,40 @@ func TestCollapse(t *testing.T) {
 		t.Error(fmt.Sprintf("The sum of branch lengths after collapse is not 14.127 (%f)", sumlen))
 	}
 }
+
+var treestring2 string = "(A:1,(B:1):1,C:1);"
+
+func TestCollapseSingle(t *testing.T) {
+	tree, err2 := newick.NewParser(strings.NewReader(treestring2)).Parse()
+	if err2 != nil {
+		t.Error(err2)
+	}
+	nbranches := len(tree.Edges())
+	nnodes := len(tree.Nodes())
+	sumlen := tree.SumBranchLengths()
+	if nbranches != 4 {
+		t.Error(fmt.Sprintf("The number of edges before collapse is not 4 (%d)", nbranches))
+	}
+	if sumlen != 4.0 {
+		t.Error(fmt.Sprintf("The sum of branch lengths before collapse is not 4.0  (%f)", sumlen))
+	}
+	if nnodes != 5 {
+		t.Error(fmt.Sprintf("The number of nodes before collapse is not 5  (%d)", nnodes))
+	}
+
+	tree.RemoveSingleNodes()
+	nbranches = len(tree.Edges())
+	sumlen = tree.SumBranchLengths()
+	nnodes = len(tree.Nodes())
+
+	if nbranches != 3 {
+		t.Error(fmt.Sprintf("The number of edges after collapse is not 3 (%d)", nbranches))
+	}
+
+	if sumlen != 4.0 {
+		t.Error(fmt.Sprintf("The sum of branch lengths after collapse is not 3.0 (%f)", sumlen))
+	}
+	if nnodes != 4 {
+		t.Error(fmt.Sprintf("The number of nodes after collapse is not 4  (%d)", nnodes))
+	}
+}

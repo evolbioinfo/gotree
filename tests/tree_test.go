@@ -300,3 +300,12 @@ func TestSackin1(t *testing.T) {
 		t.Error(fmt.Sprintf("Sackin index found : %d instead of %d expected", sidx, expected))
 	}
 }
+
+// Test counting the Sackin Index on balanced rooted and unrooted trees
+func TestDelete(t *testing.T) {
+	tr, err := tree.RandomYuleBinaryTree(701, true)
+	if err != nil {
+		t.Error(err)
+	}
+	tr.Delete()
+}

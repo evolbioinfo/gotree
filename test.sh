@@ -164,6 +164,17 @@ gotree generate yuletree -s 10 | gotree collapse depth -m 2 -M 2 | gotree brlen 
 diff result expected
 rm -f expected result
 
+# gotree collapse single
+echo "->gotree collapse single"
+cat > test_input <<EOF
+((((A,B)),((C))),(D,(E)));
+EOF
+cat > expected <<EOF
+(((A,B),C),(D,E));
+EOF
+gotree collapse single -i test_input > result
+diff result expected
+rm -f expected result test_input
 
 # gotree compare trees
 echo "->gotree compare trees"

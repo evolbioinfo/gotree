@@ -29,6 +29,8 @@ If the outgroup includes a tip that is not present in the tree,
 this tip will not be taken into account for the reroot. A warning
 will be issued.
 
+If the option -r|--remove-outgroup is given, then the outgroup is
+removed after reroot.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var tips []string
@@ -48,7 +50,7 @@ will be issued.
 			if t.Err != nil {
 				io.ExitWithMessage(t.Err)
 			}
-			err := t.Tree.RerootOutGroup(tips...)
+			err := t.Tree.RerootOutGroup(removeoutgroup, tips...)
 			if err != nil {
 				io.ExitWithMessage(err)
 			}
@@ -63,4 +65,5 @@ will be issued.
 func init() {
 	rerootCmd.AddCommand(outgroupCmd)
 	outgroupCmd.PersistentFlags().StringVarP(&tipfile, "tip-file", "l", "none", "File containing names of tips of the outgroup")
+	outgroupCmd.PersistentFlags().BoolVarP(&removeoutgroup, "remove-outgroup", "r", false, "Removes the outgroup after reroot")
 }

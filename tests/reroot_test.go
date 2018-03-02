@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"github.com/fredericlemoine/gotree/tree"
 	"testing"
 )
@@ -24,7 +25,7 @@ func TestRootOutgroup(t *testing.T) {
 	tips := tr.Tips()
 
 	for _, tip := range tips {
-		err = clone.RerootOutGroup(tip.Name())
+		err = clone.RerootOutGroup(false, tip.Name())
 		found := false
 		for _, n := range clone.Root().Neigh() {
 			if n.Tip() && n.Name() == tip.Name() {
@@ -44,6 +45,79 @@ func TestRootOutgroup(t *testing.T) {
 			_, ok := index.Value(e2)
 			if !ok {
 				t.Error("An edge of the original tree is not found in the rerooted tree")
+			}
+		}
+	}
+}
+
+/*
+Generates a 1000 tip ROOTED random tree, then reroot it at each tip
+and compare all bipartitions of the rerooted tree with the original tree
+*/
+func TestReRootOutgroupRemove(t *testing.T) {
+	tr, err := tree.RandomYuleBinaryTree(1000, true)
+	tr.ReinitIndexes()
+	edges := tr.Edges()
+	tips := tr.Tips()
+	nodes := tr.Nodes()
+
+	for _, tip := range tips {
+		clone := tr.Clone()
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = clone.RerootOutGroup(true, tip.Name())
+
+		if !clone.Rooted() {
+			t.Error("Output tree should be rooted")
+		}
+		if len(clone.Edges()) != len(edges)-2 {
+			t.Error(fmt.Sprintf("Rerooted tree should have %d edges and has %d", len(edges)-1, len(clone.Edges())))
+		}
+		if len(clone.Nodes()) != len(nodes)-2 {
+			t.Error(fmt.Sprintf("Rerooted tree should have %d nodes and has %d", len(nodes)-1, len(clone.Nodes())))
+		}
+
+		for _, t2 := range clone.Tips() {
+			if t2.Name() == tip.Name() {
+				t.Error(fmt.Sprintf("Outgroup Tip %s should not be present in the rerooted tree ", t2.Name()))
+			}
+		}
+	}
+}
+
+/*
+Generates a 1000 tip UNROOTED random tree, then reroot it at each tip
+and compare all bipartitions of the rerooted tree with the original tree
+*/
+func TestReRootOutgroupRemoveUnRooted(t *testing.T) {
+	tr, err := tree.RandomYuleBinaryTree(1000, false)
+	tr.ReinitIndexes()
+	edges := tr.Edges()
+	tips := tr.Tips()
+	nodes := tr.Nodes()
+
+	for _, tip := range tips {
+		clone := tr.Clone()
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = clone.RerootOutGroup(true, tip.Name())
+
+		if !clone.Rooted() {
+			t.Error("Output tree should be rooted")
+		}
+		if len(clone.Edges()) != len(edges)-1 {
+			t.Error(fmt.Sprintf("Rerooted tree should have %d edges and has %d", len(edges)-1, len(clone.Edges())))
+		}
+		if len(clone.Nodes()) != len(nodes)-1 {
+			t.Error(fmt.Sprintf("Rerooted tree should have %d nodes and has %d", len(nodes)-1, len(clone.Nodes())))
+		}
+		for _, t2 := range clone.Tips() {
+			if t2.Name() == tip.Name() {
+				t.Error(fmt.Sprintf("Outgroup Tip %s should not be present in the rerooted tree ", t2.Name()))
 			}
 		}
 	}

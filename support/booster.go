@@ -383,6 +383,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 				}
 			}
 		}
+		treeV.Tree.Delete()
 	}
 	return err
 }

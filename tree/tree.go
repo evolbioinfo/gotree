@@ -60,6 +60,21 @@ func (t *Tree) delNode(n *Node) {
 	for i, e := range n.br {
 		e.left = nil
 		e.right = nil
+		e.bitset = nil
+		n.br[i] = nil
+	}
+	n.br = nil
+}
+
+// Set to nil the node but do not touch
+// branches
+func (t *Tree) unconnectNode(n *Node) {
+	for i, _ := range n.neigh {
+		n.neigh[i] = nil
+	}
+	n.neigh = nil
+
+	for i, _ := range n.br {
 		n.br[i] = nil
 	}
 	n.br = nil
@@ -275,10 +290,7 @@ func (t *Tree) removeTip(tip *Node) error {
 	if err := internal.delNeighbor(tip); err != nil {
 		return err
 	}
-	tip.neigh = nil
-	tip.br[0].left = nil
-	tip.br[0].right = nil
-	tip.br = nil
+	t.delNode(tip)
 
 	// Then 3 solutions :
 	// 1 - Internal node is now terminal : it means it was the root of a rooted tree : we delete it and new root is its child
@@ -695,6 +707,9 @@ func (t *Tree) CompareTipIndexes(t2 *Tree) error {
 //
 // The node must be part of the tree, otherwise it returns an error
 func (t *Tree) Reroot(n *Node) error {
+	if n.Nneigh() < 2 {
+		return errors.New("Cannot reroot on a tip node")
+	}
 	intree := false
 	for _, n2 := range t.Nodes() {
 		if n2 == n {
@@ -1011,9 +1026,6 @@ func (t *Tree) resolveRecur(current, previous *Node) {
 // Will remove edge n1-n2 and keep node n2 informations (name, etc.)
 // It adds n1-n2 length to n0-n1 (if any) and keeps n0-n1 support (if any)
 // Useful for cleaning ncbi taxonomy for example.
-//
-// Not necessary for trees imported from newick files because
-// the parser would complain about such trees
 func (t *Tree) RemoveSingleNodes() {
 	root := t.Root()
 
@@ -1048,8 +1060,11 @@ func (t *Tree) removeSingleNodesRecur(current, previous *Node, e *Edge) error {
 	if len(current.Neigh()) == 2 && current != t.Root() {
 		// Remove the edge from left and right node
 		length := e.Length()
+		support := e.Support()
 		current.delNeighbor(previous)
 		previous.delNeighbor(current)
+		e.left = nil
+		e.right = nil
 		// Connect the edges of children if current to parent node (previous)
 		for _, child := range current.Neigh() {
 			if child != previous {
@@ -1060,6 +1075,7 @@ func (t *Tree) removeSingleNodesRecur(current, previous *Node, e *Edge) error {
 				child.neigh[idx] = previous
 				if child.br[idx].left == current {
 					child.br[idx].left = previous
+					child.br[idx].support = math.Max(child.br[idx].support, support)
 				} else {
 					return errors.New("Problem in edge orientation")
 				}
@@ -1069,7 +1085,7 @@ func (t *Tree) removeSingleNodesRecur(current, previous *Node, e *Edge) error {
 				}
 			}
 		}
-
+		t.unconnectNode(current)
 	}
 	return nil
 }
@@ -1155,6 +1171,7 @@ func (t *Tree) RemoveEdges(edges ...*Edge) {
 				e.Left().addChild(child, child.br[idx])
 			}
 		}
+		t.unconnectNode(e.Right())
 	}
 }
 
@@ -1252,6 +1269,13 @@ func (t *Tree) CopyNode(n *Node) *Node {
 		out.comment[i] = c
 	}
 	return out
+}
+
+func (t *Tree) Delete() {
+	t.tipIndex = nil
+	for _, n := range t.Nodes() {
+		t.delNode(n)
+	}
 }
 
 // Copy attributes of the given edge to the other given edge:

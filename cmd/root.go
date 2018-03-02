@@ -19,6 +19,7 @@ import (
 )
 
 // Variables used in lots of commands
+var inalignfile string
 var intreefile, intree2file, outtreefile string
 var seed int64
 var inputname string
@@ -36,6 +37,7 @@ var treeformat = utils.FORMAT_NEWICK
 var cfgFile string
 var rootCpus int
 var rootInputFormat string
+var removeoutgroup bool
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{

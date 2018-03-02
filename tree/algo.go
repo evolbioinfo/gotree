@@ -373,7 +373,9 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 //
 // If the outgroup includes a tip that is not present in the tree,
 // this tip will not be taken into account for the rerooting.
-func (t *Tree) RerootOutGroup(tips ...string) error {
+//
+// If removeoutgroup is true, then the outgrouped is removed from the rerooted tree.
+func (t *Tree) RerootOutGroup(removeoutgroup bool, tips ...string) error {
 	t.UnRoot()
 
 	n, edges, _, err := t.LeastCommonAncestorUnrooted(nil, tips...)
@@ -407,26 +409,50 @@ func (t *Tree) RerootOutGroup(tips ...string) error {
 		}
 	}
 
-	root := t.NewNode()
-	length := rootedge.Length()
-	support := rootedge.Support()
+	var root *Node
+	// Here we will remove outgroup nodes
+	if removeoutgroup {
+		// We get the new root as the node on the
+		// other side of the edge
+		root = rootedge.Left()
+		if root == n {
+			root = rootedge.Right()
+		}
+		root.delNeighbor(n)
+		n.delNeighbor(root)
+		// We retrieve all nodes of the
+		// subtree we want to remove
+		nodes := make([]*Node, 0, len(tips))
+		t.nodesRecur(&nodes, n, nil)
+		for _, no := range nodes {
+			t.delNode(no)
+		}
+	} else {
+		// Else we add a new root at the middle of the edge
+		// connecting the outgroup to the other subtree
+		root = t.NewNode()
+		length := rootedge.Length()
+		support := rootedge.Support()
 
-	lnode := rootedge.Left()
-	rnode := rootedge.Right()
-	lnode.delNeighbor(rnode)
-	rnode.delNeighbor(lnode)
+		lnode := rootedge.Left()
+		rnode := rootedge.Right()
+		lnode.delNeighbor(rnode)
+		rnode.delNeighbor(lnode)
 
-	ne := t.ConnectNodes(root, lnode)
-	ne2 := t.ConnectNodes(root, rnode)
+		ne := t.ConnectNodes(root, lnode)
+		ne2 := t.ConnectNodes(root, rnode)
 
-	if length > 0 {
-		ne.SetLength(length / 2.0)
-		ne2.SetLength(length / 2.0)
-		ne.SetSupport(support)
-		ne2.SetSupport(support)
+		if length > 0 {
+			ne.SetLength(length / 2.0)
+			ne2.SetLength(length / 2.0)
+			ne.SetSupport(support)
+			ne2.SetSupport(support)
+		}
 	}
-
 	t.Reroot(root)
+	if removeoutgroup {
+		t.UpdateTipIndex()
+	}
 	t.ClearBitSets()
 	t.UpdateBitSet()
 	t.ComputeDepths()
