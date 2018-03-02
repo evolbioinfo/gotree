@@ -130,8 +130,8 @@ Original tree                       |             Collapsed tree
 3. Removing internal nodes/branches that form linear paths
 
 ```
-echo "((((A,B)n1)n2,((C)n3)n4)n5,(D,(E)n6)n7)root;" | gotree draw svg -w 200 -H 200 --with-node-symbols --no-tip-labels > commands/collapse_single.svg
-echo "((((A,B)n1)n2,((C)n3)n4)n5,(D,(E)n6)n7)root;" | gotree collapse single | gotree draw svg -w 200 -H 200 --with-node-symbols --no-tip-labels > commands/collapse_single_out.svg
+echo "((((A,B)),((C))),(D,(E)));" | gotree draw svg -w 200 -H 200 --with-node-symbols --no-tip-labels > commands/collapse_single.svg
+echo "((((A,B)),((C))),(D,(E)));" | gotree collapse single | gotree draw svg -w 200 -H 200 --with-node-symbols --no-tip-labels > commands/collapse_single_out.svg
 ```
 
 Original tree                       |             Collapsed tree
