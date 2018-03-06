@@ -4,9 +4,17 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math/rand"
 	"sort"
+	"strings"
 
 	"github.com/fredericlemoine/gotree/tree"
+)
+
+const (
+	ALGO_DELTRAN = iota
+	ALGO_ACCTRAN
+	ALGO_DOWNPASS
 )
 
 // Will annotate the tree nodes with ancestral characters
@@ -14,7 +22,14 @@ import (
 // Characters will be located in the comment field of each node
 // at the first index
 // tipCharacters: mapping between tipnames and character state
-func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string) error {
+// Algo: One of ALGO_DELTRAN, ALGO_ACCTRAN, and ALGO_DOWNPASS : returns an error otherwise
+// If ALGO_DOWNPASS, just executes UPPASS then DOWNPASS,
+// If ALGO_DELTRAN, then executes UPPASS, DOWNPASS, then DELTRAN,
+// If ALGO_ACCTRAN, then executes UPPASS and ACCTRAN
+// Returns a map with the states of all nodes. If a node has a name, key is its name, if a node has no name,
+// the key will be its id in the deep first traversal of the tree.
+// if randomResolve is true, then in the second pass, each ambiguities will be resolved randomly
+func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, randomResolve bool) (map[string]string, error) {
 	var err error
 	var nodes []*tree.Node = t.Nodes()
 	var states []AncestralState = make([]AncestralState, len(nodes))
@@ -36,17 +51,30 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string) error {
 		states[i] = make(AncestralState, len(alphabet))
 	}
 
-	err = parsimonyPostOrder(t.Root(), nil, tipCharacters, states, stateIndices)
+	err = parsimonyUPPASS(t.Root(), nil, tipCharacters, states, stateIndices)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	parsimonyPreOrder(t.Root(), nil, states, stateIndices)
+
+	switch algo {
+	case ALGO_DOWNPASS:
+		parsimonyDOWNPASS(t.Root(), nil, states, stateIndices, randomResolve)
+	case ALGO_DELTRAN:
+		parsimonyDOWNPASS(t.Root(), nil, states, stateIndices, false)
+		parsimonyDELTRAN(t.Root(), nil, states, stateIndices, randomResolve)
+	case ALGO_ACCTRAN:
+		parsimonyACCTRAN(t.Root(), nil, states, stateIndices, randomResolve)
+	default:
+		return nil, fmt.Errorf("Parsimony algorithm %d unkown", algo)
+	}
+
+	nametostates := buildInternalNamesToStatesMap(t, states, alphabet)
 	assignStatesToTree(t, states, alphabet)
-	return nil
+	return nametostates, nil
 }
 
 // First step of the parsimony computatation: From tips to root
-func parsimonyPostOrder(cur, prev *tree.Node, tipCharacters map[string]string, states []AncestralState, stateIndices map[string]int) error {
+func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, states []AncestralState, stateIndices map[string]int) error {
 	// If it is a tip, we initialize the ancestral state using the current
 	// state in the alignment. If no such tip name exists in the mapping file,
 	// then returns an error
@@ -64,7 +92,7 @@ func parsimonyPostOrder(cur, prev *tree.Node, tipCharacters map[string]string, s
 	} else {
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				if err := parsimonyPostOrder(child, cur, tipCharacters, states, stateIndices); err != nil {
+				if err := parsimonyUPPASS(child, cur, tipCharacters, states, stateIndices); err != nil {
 					return err
 				}
 			}
@@ -97,8 +125,8 @@ func parsimonyPostOrder(cur, prev *tree.Node, tipCharacters map[string]string, s
 	return nil
 }
 
-// Second step of the parsimony computatation: From root to tips
-func parsimonyPreOrder(cur, prev *tree.Node, states []AncestralState, stateIndices map[string]int) {
+// Second step of the parsimony computation: From root to tips
+func parsimonyDOWNPASS(cur, prev *tree.Node, states []AncestralState, stateIndices map[string]int, randomResolve bool) {
 	// If it is not a tip and not the root
 	if !cur.Tip() {
 		if prev != nil {
@@ -114,13 +142,9 @@ func parsimonyPreOrder(cur, prev *tree.Node, states []AncestralState, stateIndic
 			}
 			// Now we set to 0 all character states that are not the max, and to 1 the states that are the max
 			maxall := 0.0
-			nbmaxall := 0
 			for _, c := range state {
 				if c > maxall {
 					maxall = c
-					nbmaxall = 1
-				} else if c == maxall {
-					nbmaxall++
 				}
 			}
 			for k, c := range state {
@@ -131,10 +155,131 @@ func parsimonyPreOrder(cur, prev *tree.Node, states []AncestralState, stateIndic
 				}
 			}
 		}
+		// We randomly resolve ambiguities
+		// Even for the root (outside if statement)
+		if randomResolve {
+			randomlyResolveNodeStates(cur, states)
+		}
 
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyPreOrder(child, cur, states, stateIndices)
+				parsimonyDOWNPASS(child, cur, states, stateIndices, randomResolve)
+			}
+		}
+	}
+}
+
+// Third step of the parsimony computation for resolving ambiguities
+func parsimonyDELTRAN(cur, prev *tree.Node, states []AncestralState, stateIndices map[string]int, randomResolve bool) {
+	// If it is not a tip
+	if !cur.Tip() {
+		// If it is not the root
+		if prev != nil {
+			state := make(AncestralState, len(stateIndices))
+			// Compute the intersection with Parent
+			nullIntersection := true
+			for k, c := range states[cur.Id()] {
+				state[k] += c
+			}
+			for k, c := range states[prev.Id()] {
+				state[k] += c
+				if state[k] > 1 {
+					nullIntersection = false
+				}
+			}
+
+			// If non null intersection, then current node's state is the intersection
+			if !nullIntersection {
+				for k, c := range state {
+					if c > 1 {
+						states[cur.Id()][k] = 1
+					} else {
+						states[cur.Id()][k] = 0
+					}
+				}
+			}
+		}
+		// We resolve ambiguities if randomResolve
+		// Even for the root (outside if statement)
+		if randomResolve {
+			randomlyResolveNodeStates(cur, states)
+		}
+
+		// We go down in the tree
+		for _, child := range cur.Neigh() {
+			if child != prev {
+				parsimonyDELTRAN(child, cur, states, stateIndices, randomResolve)
+			}
+		}
+	}
+}
+
+// Second step of the parsimony computation (instead of DOWNPASS) for resolving ambiguities
+func parsimonyACCTRAN(cur, prev *tree.Node, states []AncestralState, stateIndices map[string]int, randomResolve bool) {
+	// If it is not a tip
+	if !cur.Tip() {
+		// We resolve the root ambiguities if randomResolve
+		if randomResolve {
+			randomlyResolveNodeStates(cur, states)
+		}
+
+		// We Analyze each direct child
+		for _, child := range cur.Neigh() {
+			if child != prev {
+				state := make(AncestralState, len(stateIndices))
+				// Compute the intersection with Parent
+				nullIntersection := true
+				for k, c := range states[child.Id()] {
+					state[k] += c
+				}
+				for k, c := range states[cur.Id()] {
+					state[k] += c
+					if state[k] > 1 {
+						nullIntersection = false
+					}
+				}
+
+				// If non null intersection, then child node's state is the intersection
+				if !nullIntersection {
+					for k, c := range state {
+						if c > 1 {
+							states[child.Id()][k] = 1
+						} else {
+							states[child.Id()][k] = 0
+						}
+					}
+				}
+			}
+		}
+		// We go down in the tree
+		for _, child := range cur.Neigh() {
+			if child != prev {
+				parsimonyACCTRAN(child, cur, states, stateIndices, randomResolve)
+			}
+		}
+	}
+}
+
+func randomlyResolveNodeStates(node *tree.Node, states []AncestralState) {
+	numstates := 0
+	for _, c := range states[node.Id()] {
+		if c >= 1 {
+			numstates++
+		}
+	}
+	if numstates > 1 {
+		curstate := 0
+		randstate := rand.Intn(numstates)
+		for k, c := range states[node.Id()] {
+			if c >= 1 {
+				if curstate == randstate {
+					states[node.Id()][k] = 1
+				} else {
+					states[node.Id()][k] = 0
+				}
+				curstate++
+			} else {
+				states[node.Id()][k] = 0
 			}
 		}
 	}
@@ -163,4 +308,36 @@ func assignStatesToTree(t *tree.Tree, states []AncestralState, alphabet []string
 		n.ClearComments()
 		n.AddComment(buffer.String())
 	}
+}
+
+// Returns a map with keys: Internal nodes identifier (id or name if any), and value: list of possible states, comma separated
+func buildInternalNamesToStatesMap(t *tree.Tree, states []AncestralState, alphabet []string) map[string]string {
+	outmap := make(map[string]string)
+	st := make([]string, 0, 10)
+
+	for _, n := range t.Nodes() {
+		if !n.Tip() {
+			nb := 0
+			st = st[:0]
+			for i, c := range states[n.Id()] {
+				if c > 0 {
+					st = append(st, alphabet[i])
+					nb++
+				}
+			}
+			// If no state has a count> 0 : All are possible
+			// *
+			if nb == 0 {
+				st = append(st, "*")
+			}
+
+			id := fmt.Sprintf("%d", n.Id())
+			if n.Name() != "" {
+				id = n.Name()
+			}
+			sort.Strings(st)
+			outmap[id] = strings.Join(st, ",")
+		}
+	}
+	return outmap
 }

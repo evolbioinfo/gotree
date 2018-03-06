@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"bufio"
+	"fmt"
 	goio "io"
+	"strings"
 
 	"github.com/fredericlemoine/goalign/align"
 	"github.com/fredericlemoine/goalign/io/fasta"
@@ -35,6 +37,18 @@ Works on multifurcated trees, by taking the most frequent state(s).
 		var fi goio.Closer
 		var r *bufio.Reader
 		var err error
+		var algo int
+
+		switch strings.ToLower(parsimonyAlgo) {
+		case "acctran":
+			algo = asr.ALGO_ACCTRAN
+		case "deltran":
+			algo = asr.ALGO_DELTRAN
+		case "downpass":
+			algo = asr.ALGO_DOWNPASS
+		default:
+			io.ExitWithMessage(fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo))
+		}
 
 		// Reading the alignment
 		fi, r, err = utils.GetReader(asralign)
@@ -61,7 +75,7 @@ Works on multifurcated trees, by taking the most frequent state(s).
 		// Computing parsimony ASR and writing each trees
 		f := openWriteFile(outtreefile)
 		for t := range treechan {
-			err = asr.ParsimonyAsr(t.Tree, align)
+			err = asr.ParsimonyAsr(t.Tree, align, algo)
 			if err != nil {
 				io.ExitWithMessage(err)
 			}
@@ -78,4 +92,5 @@ func init() {
 	asrCmd.PersistentFlags().BoolVar(&asrinputstrict, "input-strict", false, "Strict phylip input format (only used with -p)")
 	asrCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	asrCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
+	asrCmd.PersistentFlags().StringVar(&parsimonyAlgo, "algo", "acctran", "Parsimony algorithm for resolving ambiguities: acctran, deltran, or downpass")
 }

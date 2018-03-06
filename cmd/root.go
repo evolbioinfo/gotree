@@ -21,6 +21,7 @@ import (
 // Variables used in lots of commands
 var inalignfile string
 var intreefile, intree2file, outtreefile string
+var outresfile string
 var seed int64
 var inputname string
 var mapfile string
@@ -28,6 +29,7 @@ var revert bool
 var transferdist bool
 var deepestedge bool
 var edgeformattext bool
+var parsimonyAlgo string
 var compareTips bool
 var tipfile string
 var cutoff float64

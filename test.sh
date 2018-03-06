@@ -866,3 +866,51 @@ gotree reformat newick -i nexus -f nexus -o result
 diff expected result
 rm -f expected result nexus
 
+echo "->gotree acr"
+cat > tmp_states.txt <<EOF
+1,A
+2,A
+3,B
+4,B
+5,A
+6,B
+7,B
+8,A
+9,A
+10,A
+11,A
+EOF
+cat > tmp_tree.txt <<EOF
+(1,(2,((3,(4,5)),(6,((7,8),((9,10),11))))));
+EOF
+cat > expected <<EOF
+(1[A],(2[A],((3[B],(4[B],5[A])[B])[B],(6[B],((7[B],8[A])[A],((9[A],10[A])[A],11[A])[A])[A])[B])[B])[A])[A];
+EOF
+gotree acr -i tmp_tree.txt --states tmp_states.txt --algo acctran -o result
+diff expected result
+rm -f expected result tmp_tree.txt tmp_states.txt
+
+echo "->gotree asr"
+cat > tmp_states.txt <<EOF
+11 2
+1 AA
+2 AA
+3 CC
+4 CC
+5 AA
+6 CC
+7 CC
+8 AA
+9 AA
+10 AA
+11 AA
+EOF
+cat > tmp_tree.txt <<EOF
+(1,(2,((3,(4,5)),(6,((7,8),((9,10),11))))));
+EOF
+cat > expected <<EOF
+(1[AA],(2[AA],((3[CC],(4[CC],5[AA])[CC])[CC],(6[CC],((7[CC],8[AA])[AA],((9[AA],10[AA])[AA],11[AA])[AA])[AA])[CC])[CC])[AA])[AA];
+EOF
+gotree asr -i tmp_tree.txt -p -a tmp_states.txt --algo acctran -o result
+diff expected result
+rm -f expected result tmp_tree.txt tmp_states.txt

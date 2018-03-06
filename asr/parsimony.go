@@ -10,11 +10,17 @@ import (
 	"github.com/fredericlemoine/gotree/tree"
 )
 
+const (
+	ALGO_DELTRAN = iota
+	ALGO_ACCTRAN
+	ALGO_DOWNPASS
+)
+
 // Will annotate the tree nodes with ancestral sequences
 // Computed using parsimony
 // Sequences will be located in the comment field of each node
 // at the first index
-func ParsimonyAsr(t *tree.Tree, a align.Alignment) error {
+func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int) error {
 	var err error
 	var nodes []*tree.Node = t.Nodes()
 	var seqs []*AncestralSequence = make([]*AncestralSequence, len(nodes))
@@ -33,17 +39,27 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment) error {
 		}
 	}
 
-	err = parsimonyPostOrder(t.Root(), nil, a, seqs, charToIndex)
+	err = parsimonyUPPASS(t.Root(), nil, a, seqs, charToIndex)
 	if err != nil {
 		return err
 	}
-	parsimonyPreOrder(t.Root(), nil, a, seqs, charToIndex)
+	if (algo == ALGO_DOWNPASS) || (algo == ALGO_DELTRAN) {
+		parsimonyDOWNPASS(t.Root(), nil, a, seqs, charToIndex)
+		if algo == ALGO_DELTRAN {
+			parsimonyDELTRAN(t.Root(), nil, a, seqs, charToIndex)
+		}
+	} else if algo == ALGO_ACCTRAN {
+		parsimonyACCTRAN(t.Root(), nil, a, seqs, charToIndex)
+	} else {
+		return fmt.Errorf("Parsimony algorithm %d unkown", algo)
+	}
+
 	assignSequencesToTree(t, seqs, a.AlphabetCharacters())
 	return nil
 }
 
 // First step of the parsimony computatation: From tips to root
-func parsimonyPostOrder(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) error {
+func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) error {
 	// If it is a tip, we initialize the ancestral sequences using the current
 	// Sequence in the alignment. If no such sequence exists in the alignment,
 	// then returns an error
@@ -63,7 +79,7 @@ func parsimonyPostOrder(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestr
 	} else {
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				if err := parsimonyPostOrder(child, cur, a, seqs, charToIndex); err != nil {
+				if err := parsimonyUPPASS(child, cur, a, seqs, charToIndex); err != nil {
 					return err
 				}
 			}
@@ -101,7 +117,7 @@ func parsimonyPostOrder(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestr
 }
 
 // Second step of the parsimony computatation: From root to tips
-func parsimonyPreOrder(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) {
+func parsimonyDOWNPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) {
 	// If it is not a tip and not the root
 	if !cur.Tip() {
 		if prev != nil {
@@ -140,11 +156,95 @@ func parsimonyPreOrder(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestra
 		}
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyPreOrder(child, cur, a, seqs, charToIndex)
+				parsimonyDOWNPASS(child, cur, a, seqs, charToIndex)
 			}
 		}
 	}
 }
+
+// Third step of the parsimony computation for resolving ambiguities
+func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) {
+	// If it is not a tip
+	if !cur.Tip() {
+		// If it is not the root
+		if prev != nil {
+			for j, ances := range seqs[cur.Id()].seq {
+				state := AncestralState{make([]float64, len(charToIndex))}
+				// Compute the intersection with Parent
+				nullIntersection := true
+				for k, c := range ances.counts {
+					state.counts[k] += c
+				}
+				for k, c := range seqs[prev.Id()].seq[j].counts {
+					state.counts[k] += c
+					if state.counts[k] > 1 {
+						nullIntersection = false
+					}
+				}
+
+				// If non null intersection, then current node's state is the intersection
+				if !nullIntersection {
+					for k, c := range state.counts {
+						if c > 1 {
+							ances.counts[k] = 1
+						} else {
+							ances.counts[k] = 0
+						}
+					}
+				}
+			}
+		}
+		// We go down in the tree
+		for _, child := range cur.Neigh() {
+			if child != prev {
+				parsimonyDELTRAN(child, cur, a, seqs, charToIndex)
+			}
+		}
+	}
+}
+
+// Second step of the parsimony computation (instead of DOWNPASS) for resolving ambiguities
+func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) {
+	// If it is not a tip
+	if !cur.Tip() {
+		// We Analyze each direct child
+		for _, child := range cur.Neigh() {
+			if child != prev {
+				for j, ances := range seqs[cur.Id()].seq {
+					state := AncestralState{make([]float64, len(charToIndex))}
+					// Compute the intersection with Parent
+					nullIntersection := true
+					for k, c := range seqs[child.Id()].seq[j].counts {
+						state.counts[k] += c
+					}
+					for k, c := range ances.counts {
+						state.counts[k] += c
+						if state.counts[k] > 1 {
+							nullIntersection = false
+						}
+					}
+					// If non null intersection, then child node's state is the intersection
+					if !nullIntersection {
+						for k, c := range state.counts {
+							if c > 1 {
+								seqs[child.Id()].seq[j].counts[k] = 1
+							} else {
+								seqs[child.Id()].seq[j].counts[k] = 0
+							}
+						}
+					}
+				}
+			}
+		}
+		// We go down in the tree
+		for _, child := range cur.Neigh() {
+			if child != prev {
+				parsimonyACCTRAN(child, cur, a, seqs, charToIndex)
+			}
+		}
+	}
+}
+
 func assignSequencesToTree(t *tree.Tree, seqs []*AncestralSequence, alphabet []rune) {
 	var buffer bytes.Buffer
 	var subbuffer bytes.Buffer

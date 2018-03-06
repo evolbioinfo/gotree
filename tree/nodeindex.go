@@ -11,6 +11,7 @@ type nodeIndex struct {
 	index map[string]*Node
 }
 
+// Only Tips
 // Computes a node index for a given tree.
 func NewNodeIndex(t *Tree) *nodeIndex {
 
@@ -25,6 +26,21 @@ func NewNodeIndex(t *Tree) *nodeIndex {
 		if len(n.neigh) == 1 {
 			nodeindex.index[n.Name()] = n
 		}
+	}
+
+	return nodeindex
+}
+
+// Tips + internal nodes
+func NewAllNodeIndex(t *Tree) *nodeIndex {
+	nodeindex := &nodeIndex{
+		index: make(map[string]*Node, 0),
+	}
+
+	nodes := t.Nodes()
+
+	for _, n := range nodes {
+		nodeindex.index[n.Name()] = n
 	}
 
 	return nodeindex
