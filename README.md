@@ -63,6 +63,24 @@ Binaries are available for MacOS, Linux, and Windows (32 and 64 bits).
 
 Once downloaded, you can just run the executable without any other downloads.
 
+### Docker
+Gotree Docker image is accessible from [docker hub](https://hub.docker.com/r/evolbioinfo/gotree/). You may use it as following:
+
+```[bash]
+# Display gotree help
+docker run -v $PWD:$PWD -w $PWD -i -t evolbioinfo/gotree:v0.2.8b -h
+```
+
+### Singularity
+Gotree [Docker image](https://hub.docker.com/r/evolbioinfo/gotree/) is usable from singularity . You may use it as following:
+
+```[bash]
+# Pull image from docker hub
+singularity pull docker://evolbioinfo/gotree:v0.2.8b
+# Display gotree help
+./gotree-v0.2.8b.simg -h
+```
+
 ### From sources
 In order to compile gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system.
 
