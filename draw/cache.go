@@ -18,7 +18,8 @@ type layoutPoint struct {
 	x       float64
 	y       float64
 	brAngle float64 // Angle of the incoming branch
-	name    string
+	name    string  // node name
+	comment string  // node comment
 }
 
 type layoutLine struct {

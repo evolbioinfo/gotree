@@ -10,6 +10,7 @@ type normalLayout struct {
 	hasTipLabels           bool
 	hasInternalNodeLabels  bool
 	hasInternalNodeSymbols bool
+	hasNodeComments        bool
 	hasSupport             bool
 	supportCutoff          float64
 	cache                  *layoutCache
@@ -22,6 +23,7 @@ func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 		withTipLabels,
 		withInternalNodeLabel,
 		false,
+		false,
 		withSupportCircles,
 		0.7,
 		newLayoutCache(),
@@ -31,8 +33,13 @@ func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 func (layout *normalLayout) SetSupportCutoff(c float64) {
 	layout.supportCutoff = c
 }
+
 func (layout *normalLayout) SetDisplayInternalNodes(s bool) {
 	layout.hasInternalNodeSymbols = s
+}
+
+func (layout *normalLayout) SetDisplayNodeComments(s bool) {
+	layout.hasNodeComments = s
 }
 
 /*
@@ -60,7 +67,7 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, support
 		ypos = float64(*curtip)
 		nbchild = 1.0
 		if layout.hasTipLabels {
-			node := &layoutPoint{distToRoot, ypos, 0.0, n.Name()}
+			node := &layoutPoint{distToRoot, ypos, 0.0, n.Name(), n.CommentsString()}
 			layout.cache.tipLabelPoints = append(layout.cache.tipLabelPoints, node)
 		}
 		*curtip++
@@ -89,7 +96,7 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, support
 		line := &layoutVLine{distToRoot, minpos, maxpos, tree.NIL_SUPPORT}
 		layout.cache.verticalPaths = append(layout.cache.verticalPaths, line)
 
-		inode := &layoutPoint{distToRoot, ypos, 0.0, n.Name()}
+		inode := &layoutPoint{distToRoot, ypos, 0.0, n.Name(), n.CommentsString()}
 		layout.cache.nodePoints = append(layout.cache.nodePoints, inode)
 	}
 
@@ -130,14 +137,23 @@ func (layout *normalLayout) drawTree(maxLength float64, ntips int) {
 	}
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
-			layout.drawer.DrawName(p.x, p.y, p.name, maxLength, float64(ntips), 0.0)
+			if layout.hasNodeComments {
+				layout.drawer.DrawName(p.x, p.y, p.name+p.comment, maxLength, float64(ntips), 0.0)
+			} else {
+				layout.drawer.DrawName(p.x, p.y, p.name, maxLength, float64(ntips), 0.0)
+			}
 		}
 	}
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawName(p.x, p.y, p.name, maxLength, float64(ntips), 0.0)
 		}
+	} else if layout.hasNodeComments {
+		for _, p := range layout.cache.nodePoints {
+			layout.drawer.DrawName(p.x, p.y, p.comment, maxLength, float64(ntips), 0.0)
+		}
 	}
+
 	if layout.hasInternalNodeSymbols {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawCircle(p.x, p.y, maxLength, float64(ntips))

@@ -13,6 +13,7 @@ type circularLayout struct {
 	hasTipLabels           bool
 	hasInternalNodeLabels  bool
 	hasInternalNodeSymbols bool
+	hasNodeComments        bool
 	hasSupport             bool
 	supportCutoff          float64
 	cache                  *layoutCache
@@ -32,6 +33,7 @@ func NewCircularLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInte
 		withTipLabels,
 		withInternalNodeLabel,
 		false,
+		false,
 		withSupportCircles,
 		0.7,
 		newLayoutCache(),
@@ -44,6 +46,10 @@ func (layout *circularLayout) SetSupportCutoff(c float64) {
 
 func (layout *circularLayout) SetDisplayInternalNodes(s bool) {
 	layout.hasInternalNodeSymbols = s
+}
+
+func (layout *circularLayout) SetDisplayNodeComments(s bool) {
+	layout.hasNodeComments = s
 }
 
 /*
@@ -70,7 +76,7 @@ func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, suppo
 		angle = float64(*curtip)*2*math.Pi/float64(nbtips) + math.Pi/2
 		x3 := distToRoot * math.Cos(angle)
 		y3 := distToRoot * math.Sin(angle)
-		node := &layoutPoint{x3, y3, angle, n.Name()}
+		node := &layoutPoint{x3, y3, angle, n.Name(), n.CommentsString()}
 		layout.cache.tipLabelPoints = append(layout.cache.tipLabelPoints, node)
 		*curtip++
 	} else {
@@ -96,16 +102,16 @@ func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, suppo
 
 		x4 := distToRoot * math.Cos(angle)
 		y4 := distToRoot * math.Sin(angle)
-		inode := &layoutPoint{x4, y4, angle, n.Name()}
+		inode := &layoutPoint{x4, y4, angle, n.Name(), n.CommentsString()}
 		layout.cache.nodePoints = append(layout.cache.nodePoints, inode)
-		curve := &layoutCurve{&layoutPoint{0, 0, 0.0, ""}, inode, distToRoot, minangle, maxangle}
+		curve := &layoutCurve{&layoutPoint{0, 0, 0.0, "", ""}, inode, distToRoot, minangle, maxangle}
 		layout.cache.curvePaths = append(layout.cache.curvePaths, curve)
 	}
 	x1 := prevDistToRoot * math.Cos(angle)
 	y1 := prevDistToRoot * math.Sin(angle)
 	x2 := distToRoot * math.Cos(angle)
 	y2 := distToRoot * math.Sin(angle)
-	line := &layoutLine{&layoutPoint{x1, y1, angle, ""}, &layoutPoint{x2, y2, angle, ""}, support}
+	line := &layoutLine{&layoutPoint{x1, y1, angle, "", ""}, &layoutPoint{x2, y2, angle, "", ""}, support}
 	layout.cache.branchPaths = append(layout.cache.branchPaths, line)
 	return angle
 }
@@ -155,14 +161,23 @@ func (layout *circularLayout) drawTree() {
 
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
-			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, max, max, p.brAngle)
+			if layout.hasNodeComments {
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, max, max, p.brAngle)
+			} else {
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, max, max, p.brAngle)
+			}
 		}
 	}
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, max, max, p.brAngle)
 		}
+	} else if layout.hasNodeComments {
+		for _, p := range layout.cache.nodePoints {
+			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.comment, max, max, p.brAngle)
+		}
 	}
+
 	if layout.hasInternalNodeSymbols {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset, max, max)

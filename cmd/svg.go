@@ -51,6 +51,7 @@ var svgCmd = &cobra.Command{
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
 			l.SetDisplayInternalNodes(drawInternalNodeSymbols)
+			l.SetDisplayNodeComments(drawNodeComment)
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
 			f.Close()

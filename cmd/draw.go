@@ -10,6 +10,7 @@ var drawInternalNodeLabels bool
 var drawSupport bool
 var drawSupportCutoff float64
 var drawInternalNodeSymbols bool
+var drawNodeComment bool
 
 // drawCmd represents the draw command
 var drawCmd = &cobra.Command{
@@ -29,4 +30,5 @@ func init() {
 	drawCmd.PersistentFlags().BoolVar(&drawInternalNodeSymbols, "with-node-symbols", false, "Draw the tree with internal node symbols")
 	drawCmd.PersistentFlags().BoolVar(&drawSupport, "with-branch-support", false, "Highlight highly supported branches")
 	drawCmd.PersistentFlags().Float64Var(&drawSupportCutoff, "support-cutoff", 0.7, "Cutoff for highlithing supported branches")
+	drawCmd.PersistentFlags().BoolVar(&drawNodeComment, "with-node-comments", false, "Draw the tree with internal node comments (if --with-node-labels is not set)")
 }

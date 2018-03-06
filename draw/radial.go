@@ -13,6 +13,7 @@ type radialLayout struct {
 	hasTipLabels          bool
 	hasInternalNodeLabels bool
 	hasInternalNodeSymbol bool
+	hasNodeComments       bool
 	hasSupport            bool
 	supportCutoff         float64
 	cache                 *layoutCache
@@ -26,6 +27,7 @@ func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 		withTipLabels,
 		withInternalNodeLabels,
 		false,
+		false,
 		withSuppportCircles,
 		0.7,
 		newLayoutCache(),
@@ -38,6 +40,9 @@ func (layout *radialLayout) SetSupportCutoff(c float64) {
 
 func (layout *radialLayout) SetDisplayInternalNodes(s bool) {
 	layout.hasInternalNodeSymbol = s
+}
+func (layout *radialLayout) SetDisplayNodeComments(s bool) {
+	layout.hasNodeComments = s
 }
 
 /*
@@ -60,7 +65,7 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 	directionX := math.Cos(branchAngle)
 	directionY := math.Sin(branchAngle)
 
-	nodePoint := &layoutPoint{xPosition + (length * directionX), yPosition + (length * directionY), branchAngle, node.Name()}
+	nodePoint := &layoutPoint{xPosition + (length * directionX), yPosition + (length * directionY), branchAngle, node.Name(), node.CommentsString()}
 
 	if !node.Tip() {
 		leafCounts := make([]int, 0)
@@ -128,14 +133,24 @@ func (layout *radialLayout) drawTree() {
 	}
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
-			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
+			if layout.hasNodeComments {
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, xmax+xoffset, ymax+yoffset, p.brAngle)
+			} else {
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
+			}
 		}
 	}
+
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
 		}
+	} else if layout.hasNodeComments {
+		for _, p := range layout.cache.nodePoints {
+			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.comment, xmax+xoffset, ymax+yoffset, p.brAngle)
+		}
 	}
+
 	if layout.hasInternalNodeSymbol {
 		for _, p := range layout.cache.nodePoints {
 			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset, xmax+xoffset, ymax+yoffset)
