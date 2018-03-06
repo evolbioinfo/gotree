@@ -195,6 +195,6 @@ func (ptd *pngTreeDrawer) initFonts() {
 		}
 		fontCache.Store(draw2d.FontData{Name: fontName}, font)
 	}
-	//draw2d.SetFontCache(fontCache)
+	draw2d.SetFontCache(fontCache)
 	ptd.gc.FontCache = fontCache
 }
