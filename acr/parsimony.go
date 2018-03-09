@@ -58,7 +58,8 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 
 	switch algo {
 	case ALGO_DOWNPASS:
-		parsimonyDOWNPASS(t.Root(), nil, states, stateIndices, randomResolve)
+		//parsimonyDOWNPASS(t.Root(), nil, states, stateIndices, randomResolve)
+
 	case ALGO_DELTRAN:
 		parsimonyDOWNPASS(t.Root(), nil, states, stateIndices, false)
 		parsimonyDELTRAN(t.Root(), nil, states, stateIndices, randomResolve)
@@ -97,9 +98,12 @@ func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, stat
 				}
 			}
 		}
-		// As we are manipulating trees with multifurcations
-		// For each character we count the number of children having it
-		// and then we take character(s) with the maximum number of children
+
+		// If intersection of states of children is emtpy:
+		// then State of cur node ==  Union of State of children if
+		// Else
+		// State of cur node ==  Intersection of States of children if
+		// works with trees having multifurcations
 		for _, child := range cur.Neigh() {
 			if child != prev {
 				for k, c := range states[child.Id()] {
@@ -107,15 +111,16 @@ func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, stat
 				}
 			}
 		}
-		// Now we set to 0 all character states that are not the max, and to 1 the states that are the max
-		max := 0.0
+		// Now we set to 0 all character states that are present
+		// in > 1. if none, then take all
+		min := -1.0
 		for _, c := range states[cur.Id()] {
-			if c > max {
-				max = c
+			if c > 1 && (c < min || min == -1) {
+				min = c
 			}
 		}
 		for k, c := range states[cur.Id()] {
-			if c == max {
+			if min == -1 || c > 1 {
 				states[cur.Id()][k] = 1
 			} else {
 				states[cur.Id()][k] = 0
@@ -140,11 +145,14 @@ func parsimonyDOWNPASS(cur, prev *tree.Node, states []AncestralState, stateIndic
 					state[k] += c
 				}
 			}
-			// Now we set to 0 all character states that are not the max, and to 1 the states that are the max
-			maxall := 0.0
+
+			// If intersection of states of children and parent is emtpy:
+			// then State of cur node ==  Union of intersection of nodes 2 by 2
+			// If state is still empty, then state of cur node is union of all states
+			min := -1.0
 			for _, c := range state {
-				if c > maxall {
-					maxall = c
+				if c > 1 && (c < min || min == -1) {
+					min = c
 				}
 			}
 			for k, c := range state {
