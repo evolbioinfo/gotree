@@ -112,8 +112,9 @@ func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, stat
 				nchild++
 			}
 		}
-		// Now we set to 0 all character states that are present
-		// in > 1. if none, then take all
+
+		// we take the state present in
+		// the largest number of children
 		max := 0.0
 		for _, c := range states[cur.Id()] {
 			if c > max {

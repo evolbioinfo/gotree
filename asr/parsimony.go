@@ -102,7 +102,9 @@ func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralS
 					nchild++
 				}
 			}
-			// Now we set to 0 all character states that are not the max, and to 1 the states that are the max
+
+			// we take the state present in
+			// the largest number of children
 			max := 0.0
 			for _, c := range ances.counts {
 				if c > max {
