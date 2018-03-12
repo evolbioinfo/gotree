@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math/rand"
 
 	"github.com/fredericlemoine/goalign/align"
 	"github.com/fredericlemoine/gotree/io"
@@ -20,7 +21,7 @@ const (
 // Computed using parsimony
 // Sequences will be located in the comment field of each node
 // at the first index
-func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int) error {
+func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool) error {
 	var err error
 	var nodes []*tree.Node = t.Nodes()
 	var seqs []*AncestralSequence = make([]*AncestralSequence, len(nodes))
@@ -43,14 +44,16 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int) error {
 	if err != nil {
 		return err
 	}
-	if (algo == ALGO_DOWNPASS) || (algo == ALGO_DELTRAN) {
-		parsimonyDOWNPASS(t.Root(), nil, a, seqs, charToIndex)
-		if algo == ALGO_DELTRAN {
-			parsimonyDELTRAN(t.Root(), nil, a, seqs, charToIndex)
-		}
-	} else if algo == ALGO_ACCTRAN {
-		parsimonyACCTRAN(t.Root(), nil, a, seqs, charToIndex)
-	} else {
+
+	switch algo {
+	case ALGO_DOWNPASS:
+		parsimonyDOWNPASS(t.Root(), nil, a, seqs, charToIndex, randomResolve)
+	case ALGO_DELTRAN:
+		parsimonyDOWNPASS(t.Root(), nil, a, seqs, charToIndex, false)
+		parsimonyDELTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve)
+	case ALGO_ACCTRAN:
+		parsimonyACCTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve)
+	default:
 		return fmt.Errorf("Parsimony algorithm %d unkown", algo)
 	}
 
@@ -89,12 +92,14 @@ func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralS
 		// and then we take character(s) with the maximum number of children
 		// And that for each site of the alignment
 		for j, ances := range seqs[cur.Id()].seq {
+			nchild := 0
 			for _, child := range cur.Neigh() {
 				if child != prev {
 					counts := seqs[child.Id()].seq[j].counts
 					for k, c := range counts {
 						ances.counts[k] += c
 					}
+					nchild++
 				}
 			}
 			// Now we set to 0 all character states that are not the max, and to 1 the states that are the max
@@ -105,9 +110,17 @@ func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralS
 				}
 			}
 			for k, c := range ances.counts {
-				if c == max {
+				if int(max) == nchild && c == max {
+					// We have a characters shared by all neighbors wo parent: Intersection ok
+					ances.counts[k] = 1
+				} else if int(max) == 1 && c > 0 {
+					// Else we have no intersection between any children: take union
+					ances.counts[k] = 1
+				} else if int(max) < nchild && c > 1 {
+					// Else we have a character shared by at least 2 children: OK
 					ances.counts[k] = 1
 				} else {
+					// Else we do not take it
 					ances.counts[k] = 0
 				}
 			}
@@ -117,7 +130,7 @@ func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralS
 }
 
 // Second step of the parsimony computatation: From root to tips
-func parsimonyDOWNPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) {
+func parsimonyDOWNPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int, randomResolve bool) {
 	// If it is not a tip and not the root
 	if !cur.Tip() {
 		if prev != nil {
@@ -128,42 +141,58 @@ func parsimonyDOWNPASS(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestra
 			for j, ances := range seqs[cur.Id()].seq {
 				state := AncestralState{make([]float64, len(charToIndex))}
 				// With Parent
+				nchild := 0
 				for _, child := range cur.Neigh() {
 					counts := seqs[child.Id()].seq[j].counts
 					for k, c := range counts {
 						state.counts[k] += c
 					}
+					nchild++
 				}
-				// Now we set to 0 all character states that are not the max, and to 1 the states that are the max
-				maxall := 0.0
-				nbmaxall := 0
+
+				// If intersection of states of children and parent is emtpy:
+				// then State of cur node ==  Union of intersection of nodes 2 by 2
+				// If state is still empty, then state of cur node is union of all states
+				max := 0.0
 				for _, c := range state.counts {
-					if c > maxall {
-						maxall = c
-						nbmaxall = 1
-					} else if c == maxall {
-						nbmaxall++
+					if c > max {
+						max = c
 					}
 				}
 				for k, c := range state.counts {
-					if c == maxall {
+					if int(max) == nchild && c == max {
+						// We have a characters shared by all neighbors and parent: Intersection ok
+						ances.counts[k] = 1
+					} else if int(max) == 1 && c > 0 {
+						// Else we have no intersection between any children: take union
+						ances.counts[k] = 1
+					} else if int(max) < nchild && c > 1 {
+						// Else we have a character shared by at least 2 children: OK
 						ances.counts[k] = 1
 					} else {
+						// Else we do not take it
 						ances.counts[k] = 0
 					}
 				}
 			}
 		}
+
+		// We randomly resolve ambiguities
+		// Even for the root (outside if statement)
+		if randomResolve {
+			randomlyResolveNodeStates(cur, seqs)
+		}
+
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyDOWNPASS(child, cur, a, seqs, charToIndex)
+				parsimonyDOWNPASS(child, cur, a, seqs, charToIndex, randomResolve)
 			}
 		}
 	}
 }
 
 // Third step of the parsimony computation for resolving ambiguities
-func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) {
+func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int, randomResolve bool) {
 	// If it is not a tip
 	if !cur.Tip() {
 		// If it is not the root
@@ -194,19 +223,31 @@ func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestral
 				}
 			}
 		}
+
+		// We resolve ambiguities if randomResolve
+		// Even for the root (outside if statement)
+		if randomResolve {
+			randomlyResolveNodeStates(cur, seqs)
+		}
+
 		// We go down in the tree
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyDELTRAN(child, cur, a, seqs, charToIndex)
+				parsimonyDELTRAN(child, cur, a, seqs, charToIndex, randomResolve)
 			}
 		}
 	}
 }
 
 // Second step of the parsimony computation (instead of DOWNPASS) for resolving ambiguities
-func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) {
+func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int, randomResolve bool) {
 	// If it is not a tip
 	if !cur.Tip() {
+		// We resolve ambiguities if randomResolve
+		if randomResolve {
+			randomlyResolveNodeStates(cur, seqs)
+		}
+
 		// We Analyze each direct child
 		for _, child := range cur.Neigh() {
 			if child != prev {
@@ -239,7 +280,35 @@ func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestral
 		// We go down in the tree
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyACCTRAN(child, cur, a, seqs, charToIndex)
+				parsimonyACCTRAN(child, cur, a, seqs, charToIndex, randomResolve)
+			}
+		}
+	}
+}
+
+// Randomly resolve all sequences states of the node that are ambiguous
+func randomlyResolveNodeStates(node *tree.Node, seqs []*AncestralSequence) {
+	for _, ances := range seqs[node.Id()].seq {
+		numstates := 0
+		for _, c := range ances.counts {
+			if c >= 1 {
+				numstates++
+			}
+		}
+		if numstates > 1 {
+			curstate := 0
+			randstate := rand.Intn(numstates)
+			for k, c := range ances.counts {
+				if c >= 1 {
+					if curstate == randstate {
+						ances.counts[k] = 1
+					} else {
+						ances.counts[k] = 0
+					}
+					curstate++
+				} else {
+					ances.counts[k] = 0
+				}
 			}
 		}
 	}

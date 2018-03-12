@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	goio "io"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/fredericlemoine/goalign/align"
 	"github.com/fredericlemoine/goalign/io/fasta"
@@ -18,6 +20,7 @@ import (
 var asralign string
 var asrphylip bool
 var asrinputstrict bool
+var asrrandomresolve bool // Resolve ambiguities randomly in the downpass/deltran/acctran algo
 
 // asrCmd represents the asr command
 var asrCmd = &cobra.Command{
@@ -25,12 +28,18 @@ var asrCmd = &cobra.Command{
 	Short: "Reconstructs most parsimonious ancestral sequences",
 	Long: `Reconstructs most parsimonious ancestral sequences.
 
-It does 2 tree straversal:
-1) One postorder
-2) One preorder
+Depending on the chosen algorithm, it will run:
+1) UP-PASS and
+2) Either
+   a) DOWN-PASS or
+   b) DOWN-PASS+DELTRAN or
+   c) ACCTRAN
 
-Works on multifurcated trees, by taking the most frequent state(s).
+Should work on multifurcated trees
 
+If --random-resolve is given then, during the last pass, each time 
+a node with several possible states still exists, one state is chosen 
+randomly before going deeper in the tree.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var align align.Alignment
@@ -38,6 +47,7 @@ Works on multifurcated trees, by taking the most frequent state(s).
 		var r *bufio.Reader
 		var err error
 		var algo int
+		rand.Seed(seed)
 
 		switch strings.ToLower(parsimonyAlgo) {
 		case "acctran":
@@ -75,7 +85,7 @@ Works on multifurcated trees, by taking the most frequent state(s).
 		// Computing parsimony ASR and writing each trees
 		f := openWriteFile(outtreefile)
 		for t := range treechan {
-			err = asr.ParsimonyAsr(t.Tree, align, algo)
+			err = asr.ParsimonyAsr(t.Tree, align, algo, asrrandomresolve)
 			if err != nil {
 				io.ExitWithMessage(err)
 			}
@@ -93,4 +103,6 @@ func init() {
 	asrCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	asrCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
 	asrCmd.PersistentFlags().StringVar(&parsimonyAlgo, "algo", "acctran", "Parsimony algorithm for resolving ambiguities: acctran, deltran, or downpass")
+	asrCmd.PersistentFlags().BoolVar(&asrrandomresolve, "random-resolve", false, "Random resolve states when several possibilities in: acctran, deltran, or downpass")
+	asrCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 }

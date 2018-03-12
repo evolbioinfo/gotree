@@ -32,7 +32,7 @@ Depending on the chosen algorithm, it will run:
    b) DOWN-PASS+DELTRAN or
    c) ACCTRAN
 
-It works on multifurcated trees, by taking the most frequent state(s).
+Should work on multifurcated trees.
 
 If --random-resolve is given then, during the last pass, each time 
 a node with several possible states still exists, one state is chosen 

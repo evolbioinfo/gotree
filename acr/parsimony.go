@@ -103,11 +103,13 @@ func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, stat
 		// Else
 		// State of cur node ==  Intersection of States of children if
 		// works with trees having multifurcations
+		nchild := 0
 		for _, child := range cur.Neigh() {
 			if child != prev {
 				for k, c := range states[child.Id()] {
 					states[cur.Id()][k] += c
 				}
+				nchild++
 			}
 		}
 		// Now we set to 0 all character states that are present
@@ -119,13 +121,13 @@ func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, stat
 			}
 		}
 		for k, c := range states[cur.Id()] {
-			if int(max) == (len(cur.Neigh())-1) && c == max {
+			if int(max) == nchild && c == max {
 				// We have a characters shared by all neighbors wo parent: Intersection ok
 				states[cur.Id()][k] = 1
-			} else if max == 1 && c > 0 {
+			} else if int(max) == 1 && c > 0 {
 				// Else we have no intersection between any children: take union
 				states[cur.Id()][k] = 1
-			} else if c > 1 {
+			} else if int(max) < nchild && c > 1 {
 				// Else we have a character shared by at least 2 children: OK
 				states[cur.Id()][k] = 1
 			} else {
@@ -147,10 +149,12 @@ func parsimonyDOWNPASS(cur, prev *tree.Node, states []AncestralState, stateIndic
 			// and then we take character(s) with the maximum number of children
 			state := make(AncestralState, len(stateIndices))
 			// With Parent
+			nchild := 0
 			for _, child := range cur.Neigh() {
 				for k, c := range states[child.Id()] {
 					state[k] += c
 				}
+				nchild++
 			}
 
 			// If intersection of states of children and parent is emtpy:
@@ -163,13 +167,13 @@ func parsimonyDOWNPASS(cur, prev *tree.Node, states []AncestralState, stateIndic
 				}
 			}
 			for k, c := range state {
-				if int(max) == len(cur.Neigh()) && c == max {
+				if int(max) == nchild && c == max {
 					// We have a characters shared by all neighbors and parent: Intersection ok
 					states[cur.Id()][k] = 1
-				} else if max == 1 && c > 0 {
+				} else if int(max) == 1 && c > 0 {
 					// Else we have no intersection between any children: take union
 					states[cur.Id()][k] = 1
-				} else if c > 1 {
+				} else if int(max) < nchild && c > 1 {
 					// Else we have a character shared by at least 2 children: OK
 					states[cur.Id()][k] = 1
 				} else {
