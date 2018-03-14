@@ -32,7 +32,8 @@ const (
 func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, randomResolve bool) (map[string]string, error) {
 	var err error
 	var nodes []*tree.Node = t.Nodes()
-	var states []AncestralState = make([]AncestralState, len(nodes))
+	var states []AncestralState = make([]AncestralState, len(nodes))   // Downside states of each node
+	var upstates []AncestralState = make([]AncestralState, len(nodes)) // Upside states of each  node
 	// Initialize indices of characters
 	alphabet := make([]string, 0, 10)
 	sort.Strings(alphabet)
@@ -49,6 +50,7 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 	for i, n := range nodes {
 		n.SetId(i)
 		states[i] = make(AncestralState, len(alphabet))
+		upstates[i] = make(AncestralState, len(alphabet))
 	}
 
 	err = parsimonyUPPASS(t.Root(), nil, tipCharacters, states, stateIndices)
@@ -58,9 +60,9 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 
 	switch algo {
 	case ALGO_DOWNPASS:
-		parsimonyDOWNPASS(t.Root(), nil, states, stateIndices, randomResolve)
+		parsimonyDOWNPASS(t.Root(), nil, states, upstates, stateIndices, randomResolve)
 	case ALGO_DELTRAN:
-		parsimonyDOWNPASS(t.Root(), nil, states, stateIndices, false)
+		parsimonyDOWNPASS(t.Root(), nil, states, upstates, stateIndices, false)
 		parsimonyDELTRAN(t.Root(), nil, states, stateIndices, randomResolve)
 	case ALGO_ACCTRAN:
 		parsimonyACCTRAN(t.Root(), nil, states, stateIndices, randomResolve)
@@ -112,76 +114,66 @@ func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, stat
 				nchild++
 			}
 		}
-
-		// we take the state present in
-		// the largest number of children
-		max := 0.0
-		for _, c := range states[cur.Id()] {
-			if c > max {
-				max = c
-			}
-		}
-		for k, c := range states[cur.Id()] {
-			if int(max) == nchild && c == max {
-				// We have a characters shared by all neighbors wo parent: Intersection ok
-				states[cur.Id()][k] = 1
-			} else if int(max) == 1 && c > 0 {
-				// Else we have no intersection between any children: take union
-				states[cur.Id()][k] = 1
-			} else if int(max) < nchild && c > 1 {
-				// Else we have a character shared by at least 2 children: OK
-				states[cur.Id()][k] = 1
-			} else {
-				// Else we do not take it
-				states[cur.Id()][k] = 0
-			}
-		}
+		computeParsimony(states[cur.Id()], states[cur.Id()], nchild)
 	}
 	return nil
 }
 
 // Second step of the parsimony computation: From root to tips
-func parsimonyDOWNPASS(cur, prev *tree.Node, states []AncestralState, stateIndices map[string]int, randomResolve bool) {
+func parsimonyDOWNPASS(cur, prev *tree.Node,
+	states []AncestralState, upstates []AncestralState,
+	stateIndices map[string]int, randomResolve bool) {
 	// If it is not a tip and not the root
 	if !cur.Tip() {
+		// We compute the up state for each children of
+		// the current node (may be the root)
+		// i.e. the parsimony from the upside of the tree
+		for _, child := range cur.Neigh() {
+			if child != prev {
+				state := make(AncestralState, len(stateIndices))
+				nchild := 0
+				// already computed up state of the current node
+				if prev != nil { // Not the root
+					nchild++
+					for k, c := range upstates[cur.Id()] {
+						state[k] += c
+					}
+				}
+				// already computed down states of children of current node
+				// except current child _child_
+				for _, child2 := range cur.Neigh() {
+					if child2 != prev && child2 != child {
+						for k, c := range states[child2.Id()] {
+							state[k] += c
+						}
+						nchild++
+					}
+				}
+				// Compute the up state now
+				computeParsimony(state, upstates[child.Id()], nchild)
+			}
+		}
+
+		// Not the root
 		if prev != nil {
 			// As we are manipulating trees with multifurcations
 			// For each character we count the number of children having it
 			// and then we take character(s) with the maximum number of children
 			state := make(AncestralState, len(stateIndices))
-			// With Parent
-			nchild := 0
+			// With Parent (upstate of cur node)
+			nchild := 1
+			for k, c := range upstates[cur.Id()] {
+				state[k] += c
+			}
 			for _, child := range cur.Neigh() {
-				for k, c := range states[child.Id()] {
-					state[k] += c
+				if child != prev {
+					for k, c := range states[child.Id()] {
+						state[k] += c
+					}
 				}
 				nchild++
 			}
-
-			// If intersection of states of children and parent is emtpy:
-			// then State of cur node ==  Union of intersection of nodes 2 by 2
-			// If state is still empty, then state of cur node is union of all states
-			max := 0.0
-			for _, c := range state {
-				if c > max {
-					max = c
-				}
-			}
-			for k, c := range state {
-				if int(max) == nchild && c == max {
-					// We have a characters shared by all neighbors and parent: Intersection ok
-					states[cur.Id()][k] = 1
-				} else if int(max) == 1 && c > 0 {
-					// Else we have no intersection between any children: take union
-					states[cur.Id()][k] = 1
-				} else if int(max) < nchild && c > 1 {
-					// Else we have a character shared by at least 2 children: OK
-					states[cur.Id()][k] = 1
-				} else {
-					// Else we do not take it
-					states[cur.Id()][k] = 0
-				}
-			}
+			computeParsimony(state, states[cur.Id()], nchild)
 		}
 		// We randomly resolve ambiguities
 		// Even for the root (outside if statement)
@@ -191,8 +183,37 @@ func parsimonyDOWNPASS(cur, prev *tree.Node, states []AncestralState, stateIndic
 
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyDOWNPASS(child, cur, states, stateIndices, randomResolve)
+				parsimonyDOWNPASS(child, cur, states, upstates, stateIndices, randomResolve)
 			}
+		}
+	}
+}
+
+// Will set the most parsimonious states in the "currentStates" slice
+// using the neighbor states "neighborStates", and the number of neighbors
+func computeParsimony(neighborStates AncestralState, currentStates AncestralState, nchild int) {
+	// If intersection of states of children and parent is emtpy:
+	// then State of cur node ==  Union of intersection of nodes 2 by 2
+	// If state is still empty, then state of cur node is union of all states
+	max := 0.0
+	for _, c := range neighborStates {
+		if c > max {
+			max = c
+		}
+	}
+	for k, c := range neighborStates {
+		if int(max) == nchild && c == max {
+			// We have a characters shared by all neighbors and parent: Intersection ok
+			currentStates[k] = 1
+		} else if int(max) == 1 && c > 0 {
+			// Else we have no intersection between any children: take union
+			currentStates[k] = 1
+		} else if int(max) < nchild && c > 1 {
+			// Else we have a character shared by at least 2 children: OK
+			currentStates[k] = 1
+		} else {
+			// Else we do not take it
+			currentStates[k] = 0
 		}
 	}
 }

@@ -37,6 +37,8 @@ func TestACRDELTRANParsimony(t *testing.T) {
 		"t9": "B", "t10": "A", "t12": "A", "t13": "A", "t15": "A",
 	}
 	states := make([]AncestralState, 21)
+	upstates := make([]AncestralState, 21)
+
 	alphabet := []string{"A", "B"}
 	stateIndices := AncestralStateIndices(alphabet)
 	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
@@ -48,6 +50,7 @@ func TestACRDELTRANParsimony(t *testing.T) {
 	for i, n := range tr.Nodes() {
 		n.SetId(i)
 		states[i] = make(AncestralState, 2)
+		upstates[i] = make(AncestralState, 2)
 	}
 
 	// Test UPPASS
@@ -78,24 +81,24 @@ func TestACRDELTRANParsimony(t *testing.T) {
 	testCheckStates(t, 2, ni, "t21", states, stateIndices, "A")
 
 	// Test DOWNPASS
-	parsimonyDOWNPASS(tr.Root(), nil, states, stateIndices, false)
+	parsimonyDOWNPASS(tr.Root(), nil, states, upstates, stateIndices, false)
 	testCheckStates(t, 2, ni, "t1", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t2", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t3", states, stateIndices, "B")
 	testCheckStates(t, 2, ni, "t4", states, stateIndices, "B")
 	testCheckStates(t, 2, ni, "t5", states, stateIndices, "A")
-	testCheckStates(t, 2, ni, "t6", states, stateIndices, "B")
-	testCheckStates(t, 2, ni, "t7", states, stateIndices, "B")
+	testCheckStates(t, 2, ni, "t6", states, stateIndices, "A", "B")
+	testCheckStates(t, 2, ni, "t7", states, stateIndices, "A", "B")
 	testCheckStates(t, 2, ni, "t8", states, stateIndices, "B")
 	testCheckStates(t, 2, ni, "t9", states, stateIndices, "B")
 	testCheckStates(t, 2, ni, "t10", states, stateIndices, "A")
-	testCheckStates(t, 2, ni, "t11", states, stateIndices, "A")
+	testCheckStates(t, 2, ni, "t11", states, stateIndices, "A", "B")
 	testCheckStates(t, 2, ni, "t12", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t13", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t14", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t15", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t16", states, stateIndices, "A")
-	testCheckStates(t, 2, ni, "t17", states, stateIndices, "A")
+	testCheckStates(t, 2, ni, "t17", states, stateIndices, "A", "B")
 	testCheckStates(t, 2, ni, "t18", states, stateIndices, "A", "B")
 	testCheckStates(t, 2, ni, "t19", states, stateIndices, "A", "B")
 	testCheckStates(t, 2, ni, "t20", states, stateIndices, "A")
@@ -108,8 +111,8 @@ func TestACRDELTRANParsimony(t *testing.T) {
 	testCheckStates(t, 2, ni, "t3", states, stateIndices, "B")
 	testCheckStates(t, 2, ni, "t4", states, stateIndices, "B")
 	testCheckStates(t, 2, ni, "t5", states, stateIndices, "A")
-	testCheckStates(t, 2, ni, "t6", states, stateIndices, "B")
-	testCheckStates(t, 2, ni, "t7", states, stateIndices, "B")
+	testCheckStates(t, 2, ni, "t6", states, stateIndices, "A")
+	testCheckStates(t, 2, ni, "t7", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t8", states, stateIndices, "B")
 	testCheckStates(t, 2, ni, "t9", states, stateIndices, "B")
 	testCheckStates(t, 2, ni, "t10", states, stateIndices, "A")
@@ -257,8 +260,8 @@ func TestALLDELTRAN(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	testCheckMap(t, "t6", statemap, "B")
-	testCheckMap(t, "t7", statemap, "B")
+	testCheckMap(t, "t6", statemap, "A")
+	testCheckMap(t, "t7", statemap, "A")
 	testCheckMap(t, "t11", statemap, "A")
 	testCheckMap(t, "t14", statemap, "A")
 	testCheckMap(t, "t16", statemap, "A")
@@ -304,12 +307,12 @@ func TestALLDOWNPASS(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	testCheckMap(t, "t6", statemap, "B")
-	testCheckMap(t, "t7", statemap, "B")
-	testCheckMap(t, "t11", statemap, "A")
+	testCheckMap(t, "t6", statemap, "A", "B")
+	testCheckMap(t, "t7", statemap, "A", "B")
+	testCheckMap(t, "t11", statemap, "A", "B")
 	testCheckMap(t, "t14", statemap, "A")
 	testCheckMap(t, "t16", statemap, "A")
-	testCheckMap(t, "t17", statemap, "A")
+	testCheckMap(t, "t17", statemap, "A", "B")
 	testCheckMap(t, "t18", statemap, "A", "B")
 	testCheckMap(t, "t19", statemap, "A", "B")
 	testCheckMap(t, "t20", statemap, "A")
