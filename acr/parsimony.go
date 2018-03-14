@@ -36,7 +36,6 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 	var upstates []AncestralState = make([]AncestralState, len(nodes)) // Upside states of each  node
 	// Initialize indices of characters
 	alphabet := make([]string, 0, 10)
-	sort.Strings(alphabet)
 	seenState := make(map[string]bool)
 	for _, state := range tipCharacters {
 		if _, ok := seenState[state]; !ok {
@@ -44,6 +43,7 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 		}
 		seenState[state] = true
 	}
+	sort.Strings(alphabet)
 	stateIndices := AncestralStateIndices(alphabet)
 
 	// We initialize all ancestral states
@@ -170,8 +170,8 @@ func parsimonyDOWNPASS(cur, prev *tree.Node,
 					for k, c := range states[child.Id()] {
 						state[k] += c
 					}
+					nchild++
 				}
-				nchild++
 			}
 			computeParsimony(state, states[cur.Id()], nchild)
 		}

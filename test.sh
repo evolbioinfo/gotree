@@ -866,7 +866,7 @@ gotree reformat newick -i nexus -f nexus -o result
 diff expected result
 rm -f expected result nexus
 
-echo "->gotree acr"
+echo "->gotree acr acctran"
 cat > tmp_states.txt <<EOF
 1,A
 2,A
@@ -890,7 +890,56 @@ gotree acr -i tmp_tree.txt --states tmp_states.txt --algo acctran -o result
 diff expected result
 rm -f expected result tmp_tree.txt tmp_states.txt
 
-echo "->gotree asr"
+echo "->gotree acr downpass"
+cat > tmp_states.txt <<EOF
+t1,A
+t2,A
+t3,B
+t4,B
+t5,A
+t6,B
+t7,B
+t8,A
+t9,A
+t10,A
+t11,A
+EOF
+cat > tmp_tree.txt <<EOF
+(t1,(t2,((t3,(t4,t5)),(t6,((t7,t8),((t9,t10),t11))))));
+EOF
+cat > expected <<EOF
+(t1[A],(t2[A],((t3[B],(t4[B],t5[A])[A|B])[A|B],(t6[B],((t7[B],t8[A])[A|B],((t9[A],t10[A])[A],t11[A])[A])[A|B])[A|B])[A|B])[A])[A];
+EOF
+gotree acr -i tmp_tree.txt --states tmp_states.txt --algo downpass -o result
+diff expected result
+rm -f expected result tmp_tree.txt tmp_states.txt
+
+echo "->gotree acr deltran"
+cat > tmp_states.txt <<EOF
+t1,A
+t2,A
+t3,B
+t4,B
+t5,A
+t6,B
+t7,B
+t8,A
+t9,A
+t10,A
+t11,A
+EOF
+cat > tmp_tree.txt <<EOF
+(t1,(t2,((t3,(t4,t5)),(t6,((t7,t8),((t9,t10),t11))))));
+EOF
+cat > expected <<EOF
+(t1[A],(t2[A],((t3[B],(t4[B],t5[A])[A])[A],(t6[B],((t7[B],t8[A])[A],((t9[A],t10[A])[A],t11[A])[A])[A])[A])[A])[A])[A];
+EOF
+gotree acr -i tmp_tree.txt --states tmp_states.txt --algo deltran -o result
+diff expected result
+rm -f expected result tmp_tree.txt tmp_states.txt
+
+
+echo "->gotree asr acctran"
 cat > tmp_states.txt <<EOF
 11 2
 1 AA
@@ -912,5 +961,30 @@ cat > expected <<EOF
 (1[AA],(2[AA],((3[CC],(4[CC],5[AA])[CC])[CC],(6[CC],((7[CC],8[AA])[AA],((9[AA],10[AA])[AA],11[AA])[AA])[AA])[CC])[CC])[AA])[AA];
 EOF
 gotree asr -i tmp_tree.txt -p -a tmp_states.txt --algo acctran -o result
+diff expected result
+rm -f expected result tmp_tree.txt tmp_states.txt
+
+echo "->gotree asr downpass"
+cat > tmp_states.txt <<EOF
+11 4
+t1 AAAT
+t2 AAAT
+t3 CCCT
+t4 CCCT
+t5 AAAT
+t6 CCCT
+t7 CCCT
+t8 AAAT
+t9 AAAT
+t10 AAAT
+t11 AAAT
+EOF
+cat > tmp_tree.txt <<EOF
+(t1,(t2,((t3,(t4,t5)),(t6,((t7,t8),((t9,t10),t11))))));
+EOF
+cat > expected <<EOF
+(t1[AAAT],(t2[AAAT],((t3[CCCT],(t4[CCCT],t5[AAAT])[{AC}{AC}{AC}T])[{AC}{AC}{AC}T],(t6[CCCT],((t7[CCCT],t8[AAAT])[{AC}{AC}{AC}T],((t9[AAAT],t10[AAAT])[AAAT],t11[AAAT])[AAAT])[{AC}{AC}{AC}T])[{AC}{AC}{AC}T])[{AC}{AC}{AC}T])[AAAT])[AAAT];
+EOF
+gotree asr -i tmp_tree.txt -p -a tmp_states.txt --algo downpass -o result
 diff expected result
 rm -f expected result tmp_tree.txt tmp_states.txt
