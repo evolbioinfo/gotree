@@ -15,6 +15,7 @@ const (
 	ALGO_DELTRAN = iota
 	ALGO_ACCTRAN
 	ALGO_DOWNPASS
+	ALGO_NONE
 )
 
 // Will annotate the tree nodes with ancestral sequences

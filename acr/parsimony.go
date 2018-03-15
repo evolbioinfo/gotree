@@ -15,6 +15,7 @@ const (
 	ALGO_DELTRAN = iota
 	ALGO_ACCTRAN
 	ALGO_DOWNPASS
+	ALGO_NONE
 )
 
 // Will annotate the tree nodes with ancestral characters
@@ -66,6 +67,8 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 		parsimonyDELTRAN(t.Root(), nil, states, stateIndices, randomResolve)
 	case ALGO_ACCTRAN:
 		parsimonyACCTRAN(t.Root(), nil, states, stateIndices, randomResolve)
+	case ALGO_NONE:
+		// No pass after uppass
 	default:
 		return nil, fmt.Errorf("Parsimony algorithm %d unkown", algo)
 	}

@@ -31,6 +31,7 @@ Depending on the chosen algorithm, it will run:
    a) DOWN-PASS or
    b) DOWN-PASS+DELTRAN or
    c) ACCTRAN
+   d) NONE
 
 Should work on multifurcated trees.
 
@@ -52,6 +53,8 @@ randomly before going deeper in the tree.
 			algo = acr.ALGO_DELTRAN
 		case "downpass":
 			algo = acr.ALGO_DOWNPASS
+		case "none":
+			algo = acr.ALGO_NONE
 		default:
 			io.ExitWithMessage(fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo))
 		}
