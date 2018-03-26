@@ -390,10 +390,8 @@ func (t *Tree) RerootOutGroup(removeoutgroup bool, tips ...string) error {
 		if len(n.br)-len(edges) != 1 {
 			return errors.New("Reroot error: Several possible branches for root placement (multifurcated node)")
 		}
-		/**
-		We search the unique branch connecting "n" and that is not part of the outgroup
-		If there were several branches, there should have been an error above
-		*/
+		// We search the unique branch connecting "n" and that is not part of the outgroup
+		// If there were several branches, there should have been an error above
 		for _, e := range n.br {
 			found := false
 			for _, e2 := range edges {
@@ -402,6 +400,8 @@ func (t *Tree) RerootOutGroup(removeoutgroup bool, tips ...string) error {
 					break
 				}
 			}
+			// That branch (e) is not part of the ougroup
+			// => OK
 			if !found {
 				rootedge = e
 				break
@@ -423,7 +423,7 @@ func (t *Tree) RerootOutGroup(removeoutgroup bool, tips ...string) error {
 		// We retrieve all nodes of the
 		// subtree we want to remove
 		nodes := make([]*Node, 0, len(tips))
-		t.nodesRecur(&nodes, n, nil)
+		t.nodesRecur(&nodes, n, root)
 		for _, no := range nodes {
 			t.delNode(no)
 		}
@@ -449,7 +449,9 @@ func (t *Tree) RerootOutGroup(removeoutgroup bool, tips ...string) error {
 			ne2.SetSupport(support)
 		}
 	}
-	t.Reroot(root)
+	if err = t.reroot_nocheck(root); err != nil {
+		return err
+	}
 	if removeoutgroup {
 		t.UpdateTipIndex()
 	}

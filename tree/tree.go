@@ -724,6 +724,23 @@ func (t *Tree) Reroot(n *Node) error {
 	return err
 }
 
+// This function takes a node and reroots the tree on that node.
+//
+// It reorients edges left-edge-right : see ReorderEdges()
+//
+// It does not check wether the node is part of tree or not
+//
+// Returns an error If the given node is a tip or if it can
+// not reorder edges
+func (t *Tree) reroot_nocheck(n *Node) error {
+	if n.Nneigh() < 2 {
+		return errors.New("Cannot reroot on a tip node")
+	}
+	t.root = n
+	err := t.ReorderEdges(n, nil, nil)
+	return err
+}
+
 // This function reorders the edges of a tree in order to always have
 // left-edge-right with left node being parent of right node with respect
 // to the given root node.
