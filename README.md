@@ -153,6 +153,9 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 *  reroot:      Reroot trees using an outgroup or at midpoint
     * midpoint
     * outgroup
+* rotate: Reorders neighbors of internal nodes. Does not change the topology, but just traversal order
+	* rand: Randomly reorders neighbors of internal nodes 
+	* sort: Sort neighbors of internal nodes by ascending number of tips
 *  resolve:     Resolve multifurcations by adding 0 length branches
 *  sample:      Takes a sample (with or without replacement) from the set of input trees
 *  shuffletips: Shuffle tip names of an input tree
