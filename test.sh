@@ -988,3 +988,19 @@ EOF
 gotree asr -i tmp_tree.txt -p -a tmp_states.txt --algo downpass -o result
 diff expected result
 rm -f expected result tmp_tree.txt tmp_states.txt
+
+echo "->gotree rotate sort"
+cat > expected <<EOF
+(6,(1,2),(5,(3,4)));
+EOF
+echo "((1,2),((3,4),5),6);" | gotree rotate sort > result
+diff expected result
+rm -f expected result
+
+echo "->gotree rotate sort 2"
+cat > expected <<EOF
+((6,7),(8,(9,10)),(5,((3,4),(1,(2,8)))));
+EOF
+echo "(((9,10),8),(((1,(2,8)),(3,4)),5),(6,7));" | gotree rotate sort > result
+diff expected result
+rm -f expected result

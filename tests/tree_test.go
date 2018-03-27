@@ -309,3 +309,66 @@ func TestDelete(t *testing.T) {
 	}
 	tr.Delete()
 }
+
+// Generates a 1000 tip random tree, then rotate randomly its node neighbors
+//
+// Topology must be the same afterwards
+func TestRotateRandom(t *testing.T) {
+	tr, err := tree.RandomYuleBinaryTree(1000, true)
+	tr.ReinitIndexes()
+	clone := tr.Clone()
+	if err != nil {
+		t.Error(err)
+	}
+	edges := tr.Edges()
+	index := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
+	for i, e := range edges {
+		index.PutEdgeValue(e, i, e.Length())
+	}
+
+	clone.RotateInternalNodes()
+	edges2 := clone.Edges()
+	// Check wether the 2 trees have the same set of tip names
+	if err = tr.CompareTipIndexes(clone); err != nil {
+		t.Error(err)
+	}
+
+	for _, e2 := range edges2 {
+		_, ok := index.Value(e2)
+		if !ok {
+			t.Error("An edge of the original tree is not found in the rotated tree")
+		}
+	}
+}
+
+// Generates a 1000 tip random tree, then rotate its node neighbors to sort
+// them by number of tips
+//
+// Topology must be the same afterwards
+func TestRotateSort(t *testing.T) {
+	tr, err := tree.RandomYuleBinaryTree(1000, true)
+	tr.ReinitIndexes()
+	clone := tr.Clone()
+	if err != nil {
+		t.Error(err)
+	}
+	edges := tr.Edges()
+	index := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
+	for i, e := range edges {
+		index.PutEdgeValue(e, i, e.Length())
+	}
+
+	clone.SortNeighborsByTips()
+	edges2 := clone.Edges()
+	// Check wether the 2 trees have the same set of tip names
+	if err = tr.CompareTipIndexes(clone); err != nil {
+		t.Error(err)
+	}
+
+	for _, e2 := range edges2 {
+		_, ok := index.Value(e2)
+		if !ok {
+			t.Error("An edge of the original tree is not found in the sorted tree")
+		}
+	}
+}

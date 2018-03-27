@@ -898,6 +898,58 @@ func (t *Tree) ShuffleTips() {
 	t.UpdateBitSet()
 }
 
+// Randomly rotates neighbors of all internal nodes
+//
+// It does not change the topology, but just the way
+// the tree is traversed.
+func (t *Tree) RotateInternalNodes() {
+	for _, n := range t.Nodes() {
+		n.RotateNeighbors()
+	}
+}
+
+// Sort neighbors of all nodes by their number of tips
+//
+// May give better results for drawing.
+func (t *Tree) SortNeighborsByTips() {
+	t.sortNeighbors(t.Root(), nil)
+}
+
+// Sorts the neighbors of current node after having recursively
+// sorted the neigbors of its children
+func (t *Tree) sortNeighbors(cur, prev *Node) int {
+	// Number of tips at the end of each neighbor of cur
+	neighbors := make([]struct {
+		ntips int
+		neigh *Node
+		br    *Edge
+	}, len(cur.Neigh()))
+	total := 0
+	for i, c := range cur.Neigh() {
+		neighbors[i].neigh = c
+		neighbors[i].br = cur.Edges()[i]
+		if c != prev {
+			neighbors[i].ntips = t.sortNeighbors(c, cur)
+			total += neighbors[i].ntips
+		} else {
+			neighbors[i].ntips = 0
+		}
+	}
+	// we sort neighbor slice
+	sort.SliceStable(neighbors, func(i, j int) bool { return neighbors[i].ntips < neighbors[j].ntips })
+	//
+	for i, _ := range cur.Neigh() {
+		cur.neigh[i] = neighbors[i].neigh
+		cur.br[i] = neighbors[i].br
+	}
+
+	if cur.Tip() {
+		return 1
+	} else {
+		return total
+	}
+}
+
 // Collapses (removes) the branches having
 // length <= length threshold
 func (t *Tree) CollapseShortBranches(length float64) {

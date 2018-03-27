@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strconv"
 )
 
@@ -194,6 +195,18 @@ func (n *Node) NodeIndex(next *Node) (int, error) {
 		}
 	}
 	return -1, errors.New("The Node is not in the neighbors of node")
+}
+
+// Randomly rotates order of neighbor nodes and edges
+// of a given node.
+//
+// Topology is not changed, just the order of the tree traversal
+func (n *Node) RotateNeighbors() {
+	for i, _ := range n.neigh {
+		j := rand.Intn(i + 1)
+		n.neigh[i], n.neigh[j] = n.neigh[j], n.neigh[i]
+		n.br[i], n.br[j] = n.br[j], n.br[i]
+	}
 }
 
 // Recursive function that outputs newick representation
