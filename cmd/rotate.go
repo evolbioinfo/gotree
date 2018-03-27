@@ -32,5 +32,5 @@ gotree rotate sort -i t.nw
 func init() {
 	RootCmd.AddCommand(rotateCmd)
 	rotateCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
-	rotateCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Shuffled tree output file")
+	rotateCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Rotated tree output file")
 }

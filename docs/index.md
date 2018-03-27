@@ -83,6 +83,9 @@ Command                                                            | Subcommand 
 [reroot](commands/reroot.md) ([api](api/reroot.md))                |                   | Reroots trees using an outgroup or at midpoint
 --                                                                 | midpoint          | Reroots trees at midpoint position
 --                                                                 | outgroup          | Reroots trees using a given outgroup
+[rotate](commands/rotate.md) ([api](api/rotate.md))                |                   | Reorders neighbors of internal nodes. Does not change the topology, but just traversal order.
+--                                                                 | sort              | Sort neighbors of internal nodes by ascending number of tips
+--                                                                 | rand              | Randomly reorders neighbors of internal nodes 
 [resolve](commands/resolve.md) ([api](api/resolve.md))             |                   | Resolves multifurcations by adding 0 length branches
 [sample](commands/sample.md)                                       |                   | Samples trees from a set of input trees
 [shuffletips](commands/shuffletips.md) ([api](api/shuffletips.md)) |                   | Shuffles tip names of an input tree
