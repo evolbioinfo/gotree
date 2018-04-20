@@ -63,12 +63,12 @@ func (p *Parser) Parse() (*tree.Tree, error) {
 		return nil, fmt.Errorf("found %q, expected (", lit)
 	}
 	p.unscan()
-	tree := tree.NewTree()
+	newtree := tree.NewTree()
 
 	// Now we can parse recursively the tree
 	// Read a field.
 	level := 0
-	_, err := p.parseRecur(tree, nil, &level)
+	_, err := p.parseRecur(newtree, nil, &level)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,10 @@ func (p *Parser) Parse() (*tree.Tree, error) {
 	if tok != EOT {
 		return nil, fmt.Errorf("found %q, expected ;", lit)
 	}
-
+	/* Remove spaces before and after tip names */
+	for _, tip := range newtree.Tips() {
+		tip.SetName(strings.TrimSpace(tip.Name()))
+	}
 	//tree.UpdateTipIndex()
 	// err = tree.ClearBitSets()
 	// if err != nil {
@@ -90,7 +93,7 @@ func (p *Parser) Parse() (*tree.Tree, error) {
 	// may be too long to do each time
 	//tree.ComputeDepths()
 	// Return the successfully parsed statement.
-	return tree, nil
+	return newtree, nil
 }
 
 func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, error) {

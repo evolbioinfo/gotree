@@ -735,6 +735,23 @@ gotree reformat nexus -i newick -f newick -o result
 diff expected result
 rm -f expected result newick
 
+echo "->gotree reformat newick 0"
+cat > newick <<EOF
+(fish , (frog , (snake , mouse)));
+(fish , (snake , (frog , mouse)));
+(fish , (mouse , (snake , frog)));
+(mouse , (frog , (snake , fish)));
+EOF
+cat > expected <<EOF
+(fish,(frog,(snake,mouse)));
+(fish,(snake,(frog,mouse)));
+(fish,(mouse,(snake,frog)));
+(mouse,(frog,(snake,fish)));
+EOF
+gotree reformat newick -i newick -f newick -o result
+diff expected result
+rm -f expected result newick
+
 
 echo "->gotree reformat newick 1"
 cat > nexus <<EOF
