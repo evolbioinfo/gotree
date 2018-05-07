@@ -70,6 +70,7 @@ Command                                                            | Subcommand 
 [generate](commands/generate.md) ([api](api/generate.md))          |                   | Generates random trees, branch lengths are simply drawn from an expontential(0.1) law
 --                                                                 | balancedtree      | Randomly generates perfectly balanced trees
 --                                                                 | caterpillartree   | Randomly generates perfectly caterpillar trees
+--                                                                 | topologies        | Generates all possible tree topologies
 --                                                                 | uniformtree       | Randomly generates uniform trees
 --                                                                 | yuletree          | Randomly generates Yule-Harding trees
 [matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree

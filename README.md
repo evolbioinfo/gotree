@@ -141,6 +141,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 *  generate:    Generate random trees, branch lengths are simply drawn from an expontential(1) law
     * balancedtree
     * caterpillartree
+	* topologies: all possible topologies
     * uniformtree
     * yuletree
 *  matrix:      Print (patristic) distance matrix associated to the input tree

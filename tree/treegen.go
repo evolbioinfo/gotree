@@ -381,7 +381,7 @@ func BipartitionTree(leftTips []string, rightTips []string) (*Tree, error) {
 }
 
 // generate all possible topologies with nb tips rooted or not
-func AllTopologies(nbTips int, rooted bool) (trees []*Tree, err error) {
+func AllTopologies(nbTips int, rooted bool, tipNames ...string) (trees []*Tree, err error) {
 	trees = make([]*Tree, 0, 10)
 	t := NewTree()
 	if nbTips < 3 && !rooted {
@@ -390,33 +390,48 @@ func AllTopologies(nbTips int, rooted bool) (trees []*Tree, err error) {
 	if nbTips < 2 && rooted {
 		return nil, errors.New("Cannot create all rooted topologies with less than 2 tips")
 	}
+
+	if len(tipNames) > 0 && len(tipNames) != nbTips {
+		return nil, errors.New("Length of tip name array is different from desired number of tips")
+	}
 	// We add the first 2 or 3 nodes depending on
 	// if the tree is rooted or not
 	total := 1
 	n := t.NewNode()
 	n2 := t.NewNode()
-	n2.SetName(fmt.Sprintf("Tip%d", total))
+	if len(tipNames) > 0 {
+		n2.SetName(tipNames[total-1])
+	} else {
+		n2.SetName(fmt.Sprintf("Tip%d", total))
+	}
 	t.ConnectNodes(n, n2).SetLength(NIL_LENGTH)
 
 	if !rooted {
 		total++
 		n3 := t.NewNode()
-		n3.SetName(fmt.Sprintf("Tip%d", total))
+		if len(tipNames) > 0 {
+			n3.SetName(tipNames[total-1])
+		} else {
+			n3.SetName(fmt.Sprintf("Tip%d", total))
+		}
 		t.ConnectNodes(n, n3).SetLength(NIL_LENGTH)
 
 		total++
 		n4 := t.NewNode()
-		n4.SetName(fmt.Sprintf("Tip%d", total))
+		if len(tipNames) > 0 {
+			n4.SetName(tipNames[total-1])
+		} else {
+			n4.SetName(fmt.Sprintf("Tip%d", total))
+		}
 		t.ConnectNodes(n, n4).SetLength(NIL_LENGTH)
 	}
-
 	t.SetRoot(n)
-	err = allTopologies_recur(t, nbTips, total, &trees)
+	err = allTopologies_recur(t, nbTips, total, &trees, tipNames...)
 
 	return
 }
 
-func allTopologies_recur(t *Tree, nbTips, total int, trees *[]*Tree) (err error) {
+func allTopologies_recur(t *Tree, nbTips, total int, trees *[]*Tree, tipNames ...string) (err error) {
 	if total == nbTips {
 		(*trees) = append(*trees, t.Clone())
 	} else {
@@ -434,14 +449,20 @@ func allTopologies_recur(t *Tree, nbTips, total int, trees *[]*Tree) (err error)
 				return
 			}
 			n = t.NewNode()
-			n.SetName("Tip" + strconv.Itoa(total+1))
+
+			if len(tipNames) > 0 {
+				n.SetName(tipNames[total])
+			} else {
+				n.SetName(fmt.Sprintf("Tip%d", total+1))
+			}
+
 			if e1, e2, n1, err = t.GraftTipOnEdge(n, e); err != nil {
 				return
 			}
 			e1.SetLength(NIL_LENGTH)
 			e2.SetLength(NIL_LENGTH)
 			e.SetLength(NIL_LENGTH)
-			if err = allTopologies_recur(t, nbTips, total+1, trees); err != nil {
+			if err = allTopologies_recur(t, nbTips, total+1, trees, tipNames...); err != nil {
 				return
 			}
 			// We remove the last added edges and nodes

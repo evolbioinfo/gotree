@@ -6,6 +6,7 @@
 This command generates random trees according to different models:
 * `gotree generate balancedtree` : perfectly balanced binary tree
 * `gotree generate caterpillartree`: caterpillar tree
+* `gotree generate topologies`: all topologies
 * `gotree generate uniform tree` : uniform tree (edges are added randomly in the middle of any previous edge)
 * `gotree generate yuletree`: Yule-Harding model (edges are added randomly in the middle of any external edge). If `-r` is not specified, the tree is unrooted.
 
@@ -21,6 +22,7 @@ Usage:
 Available Commands:
   balancedtree    Generates a random balanced binary tree
   caterpillartree Generates a random caterpilar binary tree
+  topologies      Generates all possible tree topologies
   uniformtree     Generates a random uniform binary tree
   yuletree        Generates a random yule binary tree
 
@@ -60,3 +62,55 @@ gotree generate uniformtree -s 10 -l 1000 | gotree draw svg -r -w 200 -H 200 --n
 ```
 
 ![uniform](generate_4.svg)
+
+* Generate all 5 tips unrooted trees
+```
+gotree generate topologies -l 5
+```
+
+```
+((Tip5,(Tip4,Tip1)),Tip2,Tip3);
+(((Tip5,Tip4),Tip1),Tip2,Tip3);
+((Tip4,(Tip5,Tip1)),Tip2,Tip3);
+((Tip4,Tip1),(Tip5,Tip2),Tip3);
+((Tip4,Tip1),Tip2,(Tip5,Tip3));
+((Tip5,Tip1),(Tip4,Tip2),Tip3);
+(Tip1,(Tip5,(Tip4,Tip2)),Tip3);
+(Tip1,((Tip5,Tip4),Tip2),Tip3);
+(Tip1,(Tip4,(Tip5,Tip2)),Tip3);
+(Tip1,(Tip4,Tip2),(Tip5,Tip3));
+((Tip5,Tip1),Tip2,(Tip4,Tip3));
+(Tip1,(Tip5,Tip2),(Tip4,Tip3));
+(Tip1,Tip2,(Tip5,(Tip4,Tip3)));
+(Tip1,Tip2,((Tip5,Tip4),Tip3));
+(Tip1,Tip2,(Tip4,(Tip5,Tip3)));
+```
+
+* Generate all 5 tips unrooted trees with tip names taken from another tree
+
+input.nw
+```
+(A,(B,D),(C,E));
+```
+
+```
+gotree generate topologies -i input.nw
+```
+
+```
+((E,(C,A)),B,D);
+(((E,C),A),B,D);
+((C,(E,A)),B,D);
+((C,A),(E,B),D);
+((C,A),B,(E,D));
+((E,A),(C,B),D);
+(A,(E,(C,B)),D);
+(A,((E,C),B),D);
+(A,(C,(E,B)),D);
+(A,(C,B),(E,D));
+((E,A),B,(C,D));
+(A,(E,B),(C,D));
+(A,B,(E,(C,D)));
+(A,B,((E,C),D));
+(A,B,(C,(E,D)));
+```

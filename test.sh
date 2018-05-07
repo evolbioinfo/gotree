@@ -1021,3 +1021,25 @@ EOF
 echo "(((9,10),8),(((1,(2,8)),(3,4)),5),(6,7));" | gotree rotate sort > result
 diff expected result
 rm -f expected result
+
+#gotree generate all topologies
+cat > expected <<EOF
+(B,D,(E,(C,A)));
+(B,D,(A,(E,C)));
+(B,D,(C,(E,A)));
+(D,(C,A),(E,B));
+(B,(C,A),(E,D));
+(D,(E,A),(C,B));
+(A,D,(E,(C,B)));
+(A,D,(B,(E,C)));
+(A,D,(C,(E,B)));
+(A,(C,B),(E,D));
+(B,(E,A),(C,D));
+(A,(E,B),(C,D));
+(A,B,(E,(C,D)));
+(A,B,(D,(E,C)));
+(A,B,(C,(E,D)));
+EOF
+echo "(A,(B,D),(C,E));" | gotree generate topologies -i - | gotree rotate sort > result
+diff expected result
+rm -f expected result

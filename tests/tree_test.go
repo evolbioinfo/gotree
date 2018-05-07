@@ -372,3 +372,30 @@ func TestRotateSort(t *testing.T) {
 		}
 	}
 }
+
+// Generates a 1000 tip random tree, then rotate its node neighbors to sort
+// them by number of tips
+//
+// Topology must be the same afterwards
+func TestGenerateAllTopologie(t *testing.T) {
+	rooted := []int{1, 1, 3, 15, 105, 945, 10395}
+	unrooted := []int{1, 1, 1, 3, 15, 105, 945}
+	var topo []*tree.Tree
+	var err error
+	for i := 3; i <= 7; i++ {
+		//rooted topologies
+		if topo, err = tree.AllTopologies(i, true); err != nil {
+			t.Error(err)
+		}
+		if len(topo) != rooted[i-1] {
+			t.Error(fmt.Sprintf("Wrong number of rooted topologies for %d tips, is %d, must be %d", i, len(topo), rooted[i-1]))
+		}
+		//unrooted topologies
+		if topo, err = tree.AllTopologies(i, false); err != nil {
+			t.Error(err)
+		}
+		if len(topo) != unrooted[i-1] {
+			t.Error(fmt.Sprintf("Wrong number of unrooted topologies for %d tips, is %d, must be %d", i, len(topo), rooted[i-1]))
+		}
+	}
+}
