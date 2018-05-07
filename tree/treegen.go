@@ -2,10 +2,12 @@ package tree
 
 import (
 	"errors"
-	"github.com/fredericlemoine/gostats"
-	"github.com/fredericlemoine/gotree/io"
+	"fmt"
 	"math/rand"
 	"strconv"
+
+	"github.com/fredericlemoine/gostats"
+	"github.com/fredericlemoine/gotree/io"
 )
 
 // Creates a Random uniform Binary tree by successively adding
@@ -376,4 +378,86 @@ func BipartitionTree(leftTips []string, rightTips []string) (*Tree, error) {
 		etmp.SetLength(1.0)
 	}
 	return bipartitionTree, nil
+}
+
+// generate all possible topologies with nb tips rooted or not
+func AllTopologies(nbTips int, rooted bool) (trees []*Tree, err error) {
+	trees = make([]*Tree, 0, 10)
+	t := NewTree()
+	if nbTips < 3 && !rooted {
+		return nil, errors.New("Cannot create all non rooted topologies with less than 3 tips")
+	}
+	if nbTips < 2 && rooted {
+		return nil, errors.New("Cannot create all rooted topologies with less than 2 tips")
+	}
+	// We add the first 2 or 3 nodes depending on
+	// if the tree is rooted or not
+	total := 1
+	n := t.NewNode()
+	n2 := t.NewNode()
+	n2.SetName(fmt.Sprintf("Tip%d", total))
+	t.ConnectNodes(n, n2).SetLength(NIL_LENGTH)
+
+	if !rooted {
+		total++
+		n3 := t.NewNode()
+		n3.SetName(fmt.Sprintf("Tip%d", total))
+		t.ConnectNodes(n, n3).SetLength(NIL_LENGTH)
+
+		total++
+		n4 := t.NewNode()
+		n4.SetName(fmt.Sprintf("Tip%d", total))
+		t.ConnectNodes(n, n4).SetLength(NIL_LENGTH)
+	}
+
+	t.SetRoot(n)
+	err = allTopologies_recur(t, nbTips, total, &trees)
+
+	return
+}
+
+func allTopologies_recur(t *Tree, nbTips, total int, trees *[]*Tree) (err error) {
+	if total == nbTips {
+		(*trees) = append(*trees, t.Clone())
+	} else {
+		var e1, e2 *Edge
+		var n, n1 *Node
+		for _, e := range t.Edges() {
+			var e_l_ind, e_r_ind int
+			// backup index of edge in neighbors of l
+			left, right := e.Left(), e.Right()
+			if e_l_ind, err = left.EdgeIndex(e); err != nil {
+				return err
+			}
+			// backup index of edge in neighbors of r
+			if e_r_ind, err = right.EdgeIndex(e); err != nil {
+				return
+			}
+			n = t.NewNode()
+			n.SetName("Tip" + strconv.Itoa(total+1))
+			if e1, e2, n1, err = t.GraftTipOnEdge(n, e); err != nil {
+				return
+			}
+			e1.SetLength(NIL_LENGTH)
+			e2.SetLength(NIL_LENGTH)
+			e.SetLength(NIL_LENGTH)
+			if err = allTopologies_recur(t, nbTips, total+1, trees); err != nil {
+				return
+			}
+			// We remove the last added edges and nodes
+			e.left = left
+			e.right = right
+			left.br[e_l_ind] = e
+			right.br[e_r_ind] = e
+			left.neigh[e_l_ind] = right
+			right.neigh[e_r_ind] = left
+			e1.left = nil
+			e1.right = nil
+			e2.left = nil
+			e2.right = nil
+			t.unconnectNode(n)
+			t.unconnectNode(n1)
+		}
+	}
+	return nil
 }
