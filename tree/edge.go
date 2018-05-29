@@ -213,18 +213,18 @@ func (e *Edge) ToStatsString(withedgecomments bool) string {
 	}
 
 	rightname := e.Right().Name()
-	rightcomment := e.Right().CommentsString()
-	leftname := e.Left().Name()
-	leftComment := e.Left().CommentsString()
 
 	comment := ""
 	if withedgecomments {
-		comment = "\t" + e.CommentsString()
+		rightcomment := e.Right().CommentsString()
+		leftname := e.Left().Name()
+		leftcomment := e.Left().CommentsString()
+		comment = "\t" + e.CommentsString() + "\t" + leftname + "\t" + rightcomment + "\t" + leftcomment
 	}
 
-	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s%s\t%s\t%s\t%s",
+	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s%s",
 		length, support, e.Right().Tip(),
-		depth, topodepth, rightname, comment, leftname, rightcomment, leftComment)
+		depth, topodepth, rightname, comment)
 }
 
 // Returns true if this edge defines the same biparition of the tips
