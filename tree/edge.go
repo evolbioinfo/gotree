@@ -186,8 +186,11 @@ Tab delimited:
 	3 - istip?
 	4 - depth
 	5 - topo depth
-	6 - name of node if any
+	6 - name of right node if any
         7 - comments associated to the edge
+        8 - name of left node if any
+        9 - comment of right node if any
+       10 - comment of left node if any
 */
 func (e *Edge) ToStatsString(withedgecomments bool) string {
 	var err error
@@ -209,22 +212,19 @@ func (e *Edge) ToStatsString(withedgecomments bool) string {
 		io.ExitWithMessage(err)
 	}
 
-	name := ""
-	if e.PValue() != NIL_PVALUE {
-		name = fmt.Sprintf("%s/%s", strconv.FormatFloat(e.Support(), 'f', -1, 64), strconv.FormatFloat(e.PValue(), 'f', -1, 64))
-	} else {
-		name = e.Right().Name()
-	}
+	rightname := e.Right().Name()
+	rightcomment := e.Right().CommentsString()
+	leftname := e.Left().Name()
+	leftComment := e.Left().CommentsString()
 
 	comment := ""
 	if withedgecomments {
 		comment = "\t" + e.CommentsString()
 	}
 
-	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s%s",
+	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s%s\t%s\t%s\t%s",
 		length, support, e.Right().Tip(),
-		depth, topodepth, name, comment)
-
+		depth, topodepth, rightname, comment, leftname, rightcomment, leftComment)
 }
 
 // Returns true if this edge defines the same biparition of the tips

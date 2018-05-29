@@ -21,13 +21,18 @@ var edgesCmd = &cobra.Command{
 	Long: `Displays statistics on edges of input tree
 
 Statistics are displayed in text format (tab separated):
-1 - Id of edge
-2 - Length
-3 - Support
-4 - Terminal (true/false)
-5 - Depth (Shortest path to a tip)
-6 - Topo depth (Number of tips on the lightest side)
-7 - Name of the Right node
+ 0 - Tree id
+ 1 - Edge id
+ 2 - Length
+ 3 - Support
+ 4 - Terminal (true/false)
+ 5 - Depth (Shortest path to a tip)
+ 6 - Topo depth (Number of tips on the lightest side)
+ 7 - Name of the Right node
+ 8 - Comment of the edge if any
+ 9 - name of left node if any
+10 - comment of right node if any
+11 - comment of left node if any
 
 Example of usage:
 
@@ -36,7 +41,7 @@ gotree stats edges -i t.nw
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		f.WriteString("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tcomments")
+		f.WriteString("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tcomments\tleftname\trightcomment\tleftcomment")
 		f.WriteString("\n")
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()

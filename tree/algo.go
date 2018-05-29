@@ -34,7 +34,7 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 	tipindex := make(map[string]*Node, 0)
 	for _, name := range tips {
 		node, found := nodeindex.GetNode(name)
-		if found {
+		if found && node.Tip() {
 			tipindex[name] = node
 		} else {
 			io.LogWarning(errors.New(fmt.Sprintf("Tip not found in the tree : %s", name)))

@@ -16,6 +16,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var annotateComment bool
+
 // annotateCmd represents the annotate command
 var annotateCmd = &cobra.Command{
 	Use:   "annotate",
@@ -48,7 +50,7 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 				if t.Err != nil {
 					io.ExitWithMessage(t.Err)
 				}
-				t.Tree.Annotate(annotateNames)
+				t.Tree.Annotate(annotateNames, annotateComment)
 				f.WriteString(t.Tree.Newick() + "\n")
 			}
 		} else {
@@ -111,11 +113,16 @@ func init() {
 	annotateCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree(s) file")
 	annotateCmd.PersistentFlags().StringVarP(&intree2file, "compared", "c", "stdin", "Compared tree file")
 	annotateCmd.PersistentFlags().StringVarP(&mapfile, "map-file", "m", "none", "Name map input file")
+	annotateCmd.PersistentFlags().BoolVar(&annotateComment, "comment", false, "Annotations are stored in Newick comment fields")
 	annotateCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Resolved tree(s) output file")
 }
 
-func readAnnotateNameMap(annotateInputMap string) (map[string][]string, error) {
-	outmap := make(map[string][]string, 0)
+// returns the list of annotations
+// Each element of the slice is a list of strings
+// The first element of each list is the annotation
+// the other elements are the tip names
+func readAnnotateNameMap(annotateInputMap string) ([][]string, error) {
+	outmap := make([][]string, 0)
 	var mapfile *os.File
 	var err error
 	var reader *bufio.Reader
@@ -145,15 +152,11 @@ func readAnnotateNameMap(annotateInputMap string) (map[string][]string, error) {
 		}
 
 		cols2 := strings.Split(cols[1], ",")
-		if len(cols2) <= 1 {
+		if len(cols2) < 1 {
 			return outmap, errors.New(fmt.Sprintf("More than one taxon must be given for an ancestral node: node %s at line: %d", cols[0], nl))
 		}
-
-		if _, ok := outmap[cols[0]]; ok {
-			return outmap, errors.New(fmt.Sprintf("Internal node name already given: %s at line %d", cols[0], nl))
-		}
-
-		outmap[cols[0]] = cols2
+		cols2 = append([]string{cols[0]}, cols2...)
+		outmap = append(outmap, cols2)
 
 		line, e = fileutils.Readln(reader)
 		nl++
