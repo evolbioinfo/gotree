@@ -80,7 +80,7 @@ Command                                                            | Subcommand 
 --                                                                 | newick            | Reformats input file (nexus, newick, phyloxml) into newick
 --                                                                 | nexus             | Reformats input file (nexus, newick, phyloxml) into nexus
 --                                                                 | phyloxml          | Reformats input file (nexus, newick, phyloxml) into phyloxml
-[rename](commands/rename.md) ([api](api/rename.md))                |                   | Renames tips of the input tree
+[rename](commands/rename.md) ([api](api/rename.md))                |                   | Renames tips/nodes of the input tree
 [reroot](commands/reroot.md) ([api](api/reroot.md))                |                   | Reroots trees using an outgroup or at midpoint
 --                                                                 | midpoint          | Reroots trees at midpoint position
 --                                                                 | outgroup          | Reroots trees using a given outgroup

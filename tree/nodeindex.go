@@ -23,7 +23,7 @@ func NewNodeIndex(t *Tree) *nodeIndex {
 
 	for _, n := range nodes {
 		// tip
-		if len(n.neigh) == 1 {
+		if n.Name() != "" {
 			nodeindex.index[n.Name()] = n
 		}
 	}

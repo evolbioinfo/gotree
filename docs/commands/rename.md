@@ -3,34 +3,47 @@
 ## Commands
 
 ### rename
-This command renames tips of input trees. Several possibilities:
+This command renames tips and/or internal nodes of input trees. Several possibilities:
 
-* An existing map file is given (-m). The map file must be tab separated with the following columns:
-  1. Current name of the tip
-  2. Desired new name of the tip
+*  An existing map file is given (`-m`), and must be tab separated with columns:
+   1) Current name of the tip
+   2) Desired new name of the tip
+   
+  - If `--revert` is specified then it is the other way
+  - If a tip name does not appear in the map file, it will not be renamed. 
+  - If a name that does not exist appears in the map file, it will not throw an error.
 
-if `--revert` is given, then it is the other way.
-If a tip name does not appear in the map file, it will not be renamed. If a name that does not exist appears in the map file, it will not throw an error.
+* The `-a` option is given. In this case, tips and/or internal nodes are renamed using automatically generated identifiers of length 10 (or of length `--length`).
+  - Correspondance between old names and new generated names is written in the map file given with `-m`. 
+  - In this mode, `--revert` has no effect.
+  - `--length`  allows to customize length of generated id. Length is set to 5 if given length is less that 5.
+  - If several trees in input have different tip names, it does not matter, a new identifier is still generated for each new tip name.
 
-* The `-a` option is given. In this case, tips are renamed using automatically generated identifiers of length 10 (or of length `--length`).
-  * Correspondance between old names and new generated names is written in the map file given with `-m`. 
-  * In this mode, `--revert` has no effect.
-  * `--length`  allows to customize length of generated id. Length is set to 5 if given length is less that 5.
-  * If several trees in input have different tip names, it does not matter, a new identifier is still generated for each new tip name.
+
+Other informations:
+- In default mode, only tips are modified (`--tips=true` by default, to inactivate it you must specify `--tips=false`),
+- If `--internal` is specified, then internal nodes are renamed;
 
 #### Usage
 
 General command
 ```
+Usage:
   gotree rename [flags]
 
 Flags:
   -a, --auto            Renames automatically tips with auto generated id of length 10.
+  -h, --help            help for rename
   -i, --input string    Input tree (default "stdin")
-  -l, --length int      Length of automatically generated id. (default 10)
+      --internal        Internal nodes are taken into account
+  -l, --length int      Length of automatically generated id. Only with --auto (default 10)
   -m, --map string      Tip name map file (default "none")
   -o, --output string   Renamed tree output file (default "stdout")
   -r, --revert          Revert orientation of map file
+      --tips            Tips are taken into account (--tips=false to cancel) (default true)
+
+Global Flags:
+      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
 ```
 
 #### Examples
