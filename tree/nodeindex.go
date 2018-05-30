@@ -1,5 +1,7 @@
 package tree
 
+import "errors"
+
 // Structure of a node index.
 // Basically a hashmap that stores as keys node names,
 // and values node of the trees.
@@ -13,7 +15,7 @@ type nodeIndex struct {
 
 // Only Tips
 // Computes a node index for a given tree.
-func NewNodeIndex(t *Tree) *nodeIndex {
+func NewNodeIndex(t *Tree) (*nodeIndex, error) {
 
 	nodeindex := &nodeIndex{
 		index: make(map[string]*Node, 0),
@@ -24,11 +26,14 @@ func NewNodeIndex(t *Tree) *nodeIndex {
 	for _, n := range nodes {
 		// tip
 		if n.Name() != "" {
+			if _, ok := nodeindex.index[n.Name()]; ok {
+				return nil, errors.New("NewNodeIndex error: Tree contains several node with the same name: " + n.Name())
+			}
 			nodeindex.index[n.Name()] = n
 		}
 	}
 
-	return nodeindex
+	return nodeindex, nil
 }
 
 // Tips + internal nodes

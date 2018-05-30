@@ -16,6 +16,74 @@ gotree generate yuletree -s 10 | gotree brlen clear | gotree annotate -m mapfile
 diff result expected
 rm -f expected result mapfile
 
+# gotree annotate
+echo "->gotree annotate 2"
+cat > mapfile <<EOF
+ACGACTCATCTA:Tip6,Tip5,Tip1
+ACGACTCATCTA:internal1
+EOF
+cat > intree <<EOF
+((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1,((Tip6,Tip5),Tip1)));
+EOF
+cat > expected <<EOF
+((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))ACGACTCATCTA,((Tip6,Tip5),Tip1)ACGACTCATCTA));
+EOF
+gotree annotate -i intree -m mapfile > result
+diff result expected
+rm -f expected result intree mapfile
+
+# gotree annotate
+echo "->gotree annotate comment"
+cat > mapfile <<EOF
+internal1:Tip6,Tip5,Tip1
+EOF
+cat > expected <<EOF
+((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)[internal1]));
+EOF
+gotree generate yuletree -s 10 | gotree brlen clear | gotree annotate --comment -m mapfile > result
+diff result expected
+rm -f expected result mapfile
+
+# gotree annotate
+echo "->gotree annotate comment 2"
+cat > mapfile <<EOF
+ACGACTCATCTA:Tip6,Tip5,Tip1
+ACGACTCATCTA:internal1
+EOF
+cat > intree <<EOF
+((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1,((Tip6,Tip5),Tip1)));
+EOF
+cat > expected <<EOF
+((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1[ACGACTCATCTA],((Tip6,Tip5),Tip1)[ACGACTCATCTA]));
+EOF
+gotree annotate -i intree --comment -m mapfile > result
+diff result expected
+rm -f expected result intree mapfile
+
+# gotree annotate with tree
+echo "->gotree annotate with tree"
+cat > intree <<EOF
+((Tip4,(Tip7,Tip2)n1)n2,Tip0,((Tip8,(Tip9,Tip3)n3)n4,((Tip6,Tip1)n5,Tip5)n6)n7);
+EOF
+cat > expected <<EOF
+((Tip4,(Tip7,Tip2)n1_0_2)n2_0_3,Tip0,((Tip8,(Tip9,Tip3)n3_0_2)n4_0_3,((Tip6,Tip5)Tip6_1_2,Tip1)n6_0_3)n7_0_6);
+EOF
+gotree generate yuletree -s 10 | gotree brlen clear | gotree annotate -c intree > result
+diff result expected
+rm -f expected result intree
+
+# gotree annotate with tree
+echo "->gotree annotate with tree comments"
+cat > intree <<EOF
+((Tip4,(Tip7,Tip2)n1)n2,Tip0,((Tip8,(Tip9,Tip3)n3)n4,((Tip6,Tip1)n5,Tip5)n6)n7);
+EOF
+cat > expected <<EOF
+((Tip4,(Tip7,Tip2)[n1_0_2])[n2_0_3],Tip0,((Tip8,(Tip9,Tip3)[n3_0_2])[n4_0_3],((Tip6,Tip5)[Tip6_1_2],Tip1)[n6_0_3])[n7_0_6]);
+EOF
+gotree generate yuletree -s 10 | gotree brlen clear | gotree annotate --comment -c intree > result
+diff result expected
+rm -f expected result intree
+
 
 # gotree brlen clear
 echo "->gotree brlen clear"

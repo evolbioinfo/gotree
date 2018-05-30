@@ -168,7 +168,10 @@ func TestMaxLengthPath(t *testing.T) {
 	expmaxpath := []int{4, 4, 2, 4, 3}
 	expmaxtip := []string{"4", "4", "4", "1", "4"}
 
-	nodeindex := tree.NewNodeIndex(tr)
+	nodeindex, err2 := tree.NewNodeIndex(tr)
+	if err2 != nil {
+		t.Error(err2)
+	}
 
 	for i, name := range tipstr {
 		tip, ok := nodeindex.GetNode(name)

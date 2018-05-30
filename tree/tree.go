@@ -1300,7 +1300,10 @@ func (t *Tree) UnRoot() {
 //
 // It considers the tree as rooted (even if multifurcation at root).
 func (t *Tree) Annotate(names [][]string, comment bool) error {
-	nodeindex := NewNodeIndex(t)
+	nodeindex, err := NewNodeIndex(t)
+	if err != nil {
+		return err
+	}
 
 	for _, line := range names {
 		// Only one node (internal or tip): Then sets the name to this specific node is found on the tree
@@ -1334,7 +1337,10 @@ func (t *Tree) Annotate(names [][]string, comment bool) error {
 // If a node/tip in the tree does not have a name in the map: OK
 // After rename, tip index is updated, as well as bitsets of the edges
 func (t *Tree) Rename(namemap map[string]string) error {
-	nodeindex := NewNodeIndex(t)
+	nodeindex, err := NewNodeIndex(t)
+	if err != nil {
+		return err
+	}
 	for name, newname := range namemap {
 		node, ok := nodeindex.GetNode(name)
 		if ok {
@@ -1343,7 +1349,7 @@ func (t *Tree) Rename(namemap map[string]string) error {
 	}
 	// After we update bitsets if any, and node indexes
 	t.UpdateTipIndex()
-	err := t.ClearBitSets()
+	err = t.ClearBitSets()
 	if err != nil {
 		return err
 	}

@@ -28,8 +28,12 @@ import (
 // The returned boolean value telling if the group is monophyletic
 // (i.e. contains all tips descending from LCA).
 func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string) (*Node, []*Edge, bool, error) {
+	var err error
 	if nodeindex == nil {
-		nodeindex = NewNodeIndex(t)
+		nodeindex, err = NewNodeIndex(t)
+		if err != nil {
+			return nil, nil, false, err
+		}
 	}
 	tipindex := make(map[string]*Node, 0)
 	for _, name := range tips {
@@ -60,19 +64,11 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 		return nil, nil, false, errors.New("All tips of the tree given : Nothing to do")
 	}
 	// otherwise we take the only child of the tip as first root
-	ancestor, goodedges, _, diff, _, err := t.LeastCommonAncestorRecur(temproot.neigh[0], nil, tipindex)
+	ancestor, goodedges, _, diff, _, err2 := t.LeastCommonAncestorRecur(temproot.neigh[0], nil, tipindex)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, nil, false, err2
 	}
 
-	// fmt.Println("--")
-	// fmt.Println(com)
-	// fmt.Println(diff)
-	// fmt.Println(found)
-	// for _, s := range tips {
-	// 	fmt.Println(s)
-	// }
-	// fmt.Println("--")
 	return ancestor, goodedges, diff == 0, nil
 }
 
@@ -85,8 +81,11 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 // The returned boolean value tell if the group is monophyletic or not
 // (i.e. contains all tips descending from LCA).
 func (t *Tree) LeastCommonAncestorRooted(nodeindex *nodeIndex, tips ...string) (*Node, []*Edge, bool, error) {
+	var err error
 	if nodeindex == nil {
-		nodeindex = NewNodeIndex(t)
+		if nodeindex, err = NewNodeIndex(t); err != nil {
+			return nil, nil, false, err
+		}
 	}
 	tipindex := make(map[string]*Node, 0)
 	for _, name := range tips {
@@ -106,9 +105,9 @@ func (t *Tree) LeastCommonAncestorRooted(nodeindex *nodeIndex, tips ...string) (
 	var temproot *Node = t.Root()
 
 	// We take the only child of the tip as first root
-	ancestor, goodedges, _, diff, _, err := t.LeastCommonAncestorRecur(temproot, nil, tipindex)
-	if err != nil {
-		return nil, nil, false, err
+	ancestor, goodedges, _, diff, _, err2 := t.LeastCommonAncestorRecur(temproot, nil, tipindex)
+	if err2 != nil {
+		return nil, nil, false, err2
 	}
 
 	return ancestor, goodedges, diff == 0, nil
@@ -289,7 +288,9 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 				startree.UpdateTipIndex()
 				nbtips = len(alltips)
 				// We first build the node index
-				nodeindex = NewNodeIndex(startree)
+				if nodeindex, err = NewNodeIndex(startree); err != nil {
+					return nil, err
+				}
 			}
 		} else {
 			// Compare tip names between star tree and current tree

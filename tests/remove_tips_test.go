@@ -15,7 +15,10 @@ func TestRemoveTips(t *testing.T) {
 
 	toremove := []string{"Tip1", "Tip2", "Tip3"}
 
-	nodeindex := tree.NewNodeIndex(tr)
+	nodeindex, err2 := tree.NewNodeIndex(tr)
+	if err2 != nil {
+		t.Error(err2)
+	}
 	for _, tr := range toremove {
 		_, ok := nodeindex.GetNode(tr)
 		if !ok {
@@ -26,7 +29,10 @@ func TestRemoveTips(t *testing.T) {
 	if err = tr.RemoveTips(false, toremove...); err != nil {
 		t.Error(err)
 	}
-	nodeindex = tree.NewNodeIndex(tr)
+
+	if nodeindex, err2 = tree.NewNodeIndex(tr); err2 != nil {
+		t.Error(err2)
+	}
 	for _, tr := range toremove {
 		_, ok := nodeindex.GetNode(tr)
 		if ok {
@@ -37,7 +43,9 @@ func TestRemoveTips(t *testing.T) {
 	if err = t2.RemoveTips(true, toremove...); err != nil {
 		t.Error(err)
 	}
-	nodeindex = tree.NewNodeIndex(t2)
+	if nodeindex, err2 = tree.NewNodeIndex(t2); err2 != nil {
+		t.Error(err2)
+	}
 	for _, tr := range toremove {
 		_, ok := nodeindex.GetNode(tr)
 		if !ok {
