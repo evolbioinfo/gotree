@@ -1283,10 +1283,18 @@ func (t *Tree) UnRoot() {
 }
 
 // Annotates internal branches of a tree with given data using the
-// given map with:
-//	* key: name of internal branch
-//	* value: names of taxa
-// It will take the lca of all given taxa and annotate it.
+// given list of names:
+//	* each element is a slice of names whose first element is the new name to set
+//      * following names are internal node name or tip names defining an internal node (LCA)
+//
+// For a given element different possibilities:
+// 1) If < 2 names: an error is returned
+// 1) If 2 names [n1,n2]: we search for n2 in the tree (tip or internal node)
+//    and rename it as n1
+// 2) If > 2 names [n1,n2,...,ni]: We find the LCA of every tips whose name is in [n2,...,ni]
+//    and rename it as n1
+//
+// If comment is true, then we do not change the name, but the comment of the given nodes.
 //
 // The output tree won't have bootstrap support at the given branches anymore.
 //
@@ -1298,8 +1306,7 @@ func (t *Tree) Annotate(names [][]string, comment bool) error {
 		// Only one node (internal or tip): Then sets the name to this specific node is found on the tree
 		if len(line) < 2 {
 			return errors.New("Error in tree annotation: Wrongly formatted annotation slice")
-		}
-		if len(line) == 2 {
+		} else if len(line) == 2 {
 			if node, found := nodeindex.GetNode(line[1]); found {
 				if comment {
 					node.AddComment(line[0])
