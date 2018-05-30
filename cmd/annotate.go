@@ -24,14 +24,22 @@ var annotateCmd = &cobra.Command{
 	Short: "Annotates internal branches of a tree with given data",
 	Long: `Annotates internal branches of a tree with given data.
 
-Data for annotation may be (in order of priority):
-- A file with one line per internal node to annotate (-m), and with the following format:
-   <name of internal branch>:<name of taxon 1>,<name of taxon2>,...,<name of taxon n>
-   => It will take the lca of taxa and annotate it with the given name
-   => Output tree won't have bootstrap support at the branches anymore
+Annotations may be (in order of priority):
 - A tree with labels on internal nodes (-c). in that case, it will label each branch of 
    the input tree with label of the closest branch of the given compared tree (-c) in terms
-   of transfer distance. The labels are of the form: "label_distance_depth)";
+   of transfer distance. The labels are of the form: "label_distance_depth";
+- A file with one line per internal node to annotate (-m), and with the following format:
+   <name of internal branch/node n1>:<name of taxon n2>,<name of taxon n3>,...,<name of taxon ni>
+	=> If 0 name is given after ':' an error is returned
+	=> If 1 name 'n2' is given after ':' : we search for n2 in the tree (tip or internal node)
+       and rename it as n1
+    => If > 1 names '[n2,...,ni]' are given after ':' : We find the LCA of every tips whose name 
+	   is in '[n2,...,ni]' and rename it as n1.
+
+
+If --comment is specified, then we do not change the names, but the comments of the given nodes.
+Otherwise output tree won't have bootstrap support at the branches anymore
+
 If neither -c nor -m are given, gotree annotate will wait for a reference tree on stdin
 `,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -99,7 +107,11 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 						if dist > uint16(len(tips))/2 {
 							dist = uint16(len(tips)) - dist
 						}
-						e1.Right().SetName(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+						if annotateComment {
+							e1.Right().AddComment(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+						} else {
+							e1.Right().SetName(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+						}
 					}
 				}
 				f.WriteString(t.Tree.Newick() + "\n")
