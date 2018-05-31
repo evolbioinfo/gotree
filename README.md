@@ -17,7 +17,7 @@ Gzipped input files (`.gz` extension) are supported.
 
 **Note**:
 
-To manipulate multiple alignemnt, See also [Goalign](https://github.com/fredericlemoine/goalign).
+To manipulate multiple alignments, See also [Goalign](https://github.com/fredericlemoine/goalign).
 
 **Examples:**
 
