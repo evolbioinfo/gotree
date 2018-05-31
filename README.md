@@ -80,6 +80,12 @@ singularity pull docker://evolbioinfo/gotree:v0.2.8b
 # Display gotree help
 ./gotree-v0.2.8b.simg -h
 ```
+### Conda
+Gotree is also available on [bioconda](https://anaconda.org/bioconda/gotree). Just type:
+
+```
+conda install -c bioconda gotree
+```
 
 ### From sources
 In order to compile gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system.
