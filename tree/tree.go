@@ -1117,14 +1117,17 @@ func (t *Tree) removeSingleNodesRecur(current, previous *Node, e *Edge) error {
 	// Resolve neighbors
 	// Temporary slice of node neighbors (the real neighbor slice will be updated
 	// during traversal)
-	tmpslice := make([]*Node, len(current.Neigh()))
-	copy(tmpslice, current.Neigh())
-	for i, n := range tmpslice {
+	tmpnodes := make([]*Node, len(current.Neigh()))
+	tmpedges := make([]*Edge, len(current.Edges()))
+	copy(tmpnodes, current.Neigh())
+	copy(tmpedges, current.Edges())
+	for i, n := range tmpnodes {
 		if n != previous {
-			t.removeSingleNodesRecur(n, current, current.br[i])
+			t.removeSingleNodesRecur(n, current, tmpedges[i])
 		}
 	}
-	tmpslice = nil
+	tmpnodes = nil
+	tmpedges = nil
 	// Remove the current node if needed connect descendant node to parent
 	if len(current.Neigh()) == 2 && current != t.Root() {
 		// Remove the edge from left and right node
