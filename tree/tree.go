@@ -1378,16 +1378,17 @@ func (t *Tree) RenameAuto(internals, tips bool, length int, curid *int, namemap 
 					n.SetName(fmt.Sprintf("%d", i))
 				}
 			}
-			if _, ok := namemap[n.Name()]; !ok {
-				newname := fmt.Sprintf(fmt.Sprintf("%c%%0%dd", prefix, (length-1)), *curid)
+			newname, ok := namemap[n.Name()]
+			if !ok {
+				newname = fmt.Sprintf(fmt.Sprintf("%c%%0%dd", prefix, (length-1)), *curid)
 				if len(newname) != length {
 					return (fmt.Errorf("Id length %d does not allow to generate as much ids: %d (%s)",
 						length, curid, newname))
 				}
 				namemap[n.Name()] = newname
-				n.SetName(newname)
 				*curid++
 			}
+			n.SetName(newname)
 		}
 	}
 	// After we update bitsets if any, and node indexes

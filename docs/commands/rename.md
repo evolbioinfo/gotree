@@ -17,7 +17,7 @@ This command renames tips and/or internal nodes of input trees. Several possibil
   - Correspondance between old names and new generated names is written in the map file given with `-m`. 
   - In this mode, `--revert` has no effect.
   - `--length`  allows to customize length of generated id. Length is set to 5 if given length is less that 5.
-  - If several trees in input have different tip names, it does not matter, a new identifier is still generated for each new tip name.
+  - If several trees in input have different tip names, a new identifier is still generated for each tip name that has never been seen (already seen names are associated to the same new name).
 
 * The `-e` (`--regexp`) and `-b` (`--replace`) is given, then it will replace matching strings in tip/node names by string given by `-b`. It takes advantages of the golang regexp machinery, i.e. it is possible to specify capturing groups and refering to it in the replacement string, for instance: `gotree rename -i tree.nh --regexp 'Tip(\d+)' --replace 'Leaf$1' -m map.txt`  will replace all matches of `Tip(\d+)` with `Leaf$1`, $1 being the matched string inside the capturing group `()`.
 

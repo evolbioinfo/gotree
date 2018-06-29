@@ -565,6 +565,43 @@ diff expected result
 diff <(sort mapfile) <(sort mapfile2)
 rm -f expected result mapfile mapfile2
 
+echo "->gotree rename auto several trees"
+cat > mapfile <<EOF
+Tip4	T0001
+Tip2	T0003
+Tip8	T0005
+Tip9	T0006
+Tip1	T0010
+Tip11	T0012
+Tip14	T0014
+Tip0	T0004
+Tip3	T0007
+Tip5	T0009
+Tip12	T0011
+Tip10	T0013
+Tip13	T0015
+Tip15	T0016
+Tip7	T0002
+Tip6	T0008
+EOF
+
+cat > input <<EOF
+((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)));
+((Tip12,Tip11),Tip0,((Tip4,(Tip7,Tip2)),((Tip8,(Tip9,Tip3)),(((Tip10,Tip6),(Tip14,Tip5)),(Tip13,Tip1)))));
+((Tip12,Tip11),Tip0,((Tip4,(Tip7,(Tip15,Tip2))),((Tip8,(Tip9,Tip3)),(((Tip10,Tip6),(Tip14,Tip5)),(Tip13,Tip1)))));
+EOF
+
+cat > expected <<EOF
+((T0001,(T0002,T0003)),T0004,((T0005,(T0006,T0007)),((T0008,T0009),T0010)));
+((T0011,T0012),T0004,((T0001,(T0002,T0003)),((T0005,(T0006,T0007)),(((T0013,T0008),(T0014,T0009)),(T0015,T0010)))));
+((T0011,T0012),T0004,((T0001,(T0002,(T0016,T0003))),((T0005,(T0006,T0007)),(((T0013,T0008),(T0014,T0009)),(T0015,T0010)))));
+EOF
+gotree rename -i input -a -m mapfile2 -l 5  | gotree brlen clear > result
+diff expected result
+diff <(sort mapfile) <(sort mapfile2)
+rm -f expected result mapfile mapfile2 input
+
+
 echo "->gotree rename regexp"
 cat > mapfile <<EOF
 Tip4	Leaf4
