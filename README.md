@@ -156,7 +156,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 *  reformat: Convert input file between nexus and newick formats
     * newick
     * nexus
-*  rename:      Rename tips of the input tree, given a map file
+*  rename:      Rename tips of the input tree, given a map file, or a regexp, or automatically
 *  reroot:      Reroot trees using an outgroup or at midpoint
     * midpoint
     * outgroup
