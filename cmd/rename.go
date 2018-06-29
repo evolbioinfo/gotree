@@ -114,13 +114,11 @@ If --internal is specified, then internal nodes are renamed;
 				if err != nil {
 					io.ExitWithMessage(err)
 				}
-				writeNameMap(namemap, mapfile)
 			} else if setregex {
 				err = tr.Tree.RenameRegexp(renameInternalNodes, renameTips, renameRegex, renameReplaceBy, namemap)
 				if err != nil {
 					io.ExitWithMessage(err)
 				}
-				writeNameMap(namemap, mapfile)
 			} else {
 				err = tr.Tree.Rename(namemap)
 				if err != nil {
@@ -131,6 +129,9 @@ If --internal is specified, then internal nodes are renamed;
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 
+		if autorename || setregex {
+			writeNameMap(namemap, mapfile)
+		}
 		f.Close()
 	},
 }
