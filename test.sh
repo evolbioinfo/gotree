@@ -565,6 +565,29 @@ diff expected result
 diff <(sort mapfile) <(sort mapfile2)
 rm -f expected result mapfile mapfile2
 
+echo "->gotree rename regexp"
+cat > mapfile <<EOF
+Tip4	Leaf4
+Tip7	Leaf7
+Tip0	Leaf0
+Tip9	Leaf9
+Tip3	Leaf3
+Tip1	Leaf1
+Tip2	Leaf2
+Tip8	Leaf8
+Tip6	Leaf6
+Tip5	Leaf5
+EOF
+
+cat > expected <<EOF
+((Leaf4,(Leaf7,Leaf2)),Leaf0,((Leaf8,(Leaf9,Leaf3)),((Leaf6,Leaf5),Leaf1)));
+EOF
+gotree generate yuletree -s 10 | gotree rename --regexp 'Tip(\d+)' --replace 'Leaf$1' -m mapfile2  | gotree brlen clear > result
+diff expected result
+diff <(sort mapfile) <(sort mapfile2)
+rm -f expected result mapfile mapfile2
+
+
 echo "->gotree reroot outgroup"
 cat > expected <<EOF
 ((((Tip4,(Tip7,Tip2)),Tip0),((Tip6,Tip5),Tip1)),(Tip8,(Tip9,Tip3)));

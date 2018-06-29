@@ -19,10 +19,13 @@ This command renames tips and/or internal nodes of input trees. Several possibil
   - `--length`  allows to customize length of generated id. Length is set to 5 if given length is less that 5.
   - If several trees in input have different tip names, it does not matter, a new identifier is still generated for each new tip name.
 
+* The `-e` (`--regexp`) and `-b` (`--replace`) is given, then it will replace matching strings in tip/node names by string given by `-b`. It takes advantages of the golang regexp machinery, i.e. it is possible to specify capturing groups and refering to it in the replacement string, for instance: `gotree rename -i tree.nh --regexp 'Tip(\d+)' --replace 'Leaf$1' -m map.txt`  will replace all matches of `Tip(\d+)` with `Leaf$1`, $1 being the matched string inside the capturing group `()`.
+
 
 Other informations:
-- In default mode, only tips are modified (`--tips=true` by default, to inactivate it you must specify `--tips=false`),
+- In default mode, only tips are modified (`--tips=true` by default, to inactivate it you must specify `--tips=false`);
 - If `--internal` is specified, then internal nodes are renamed;
+- If after rename, several tips/nodes have the same name, subsequent commands may fail.
 
 #### Usage
 
@@ -32,15 +35,17 @@ Usage:
   gotree rename [flags]
 
 Flags:
-  -a, --auto            Renames automatically tips with auto generated id of length 10.
-  -h, --help            help for rename
-  -i, --input string    Input tree (default "stdin")
-      --internal        Internal nodes are taken into account
-  -l, --length int      Length of automatically generated id. Only with --auto (default 10)
-  -m, --map string      Tip name map file (default "none")
-  -o, --output string   Renamed tree output file (default "stdout")
-  -r, --revert          Revert orientation of map file
-      --tips            Tips are taken into account (--tips=false to cancel) (default true)
+  -a, --auto             Renames automatically tips with auto generated id of length 10.
+  -h, --help             help for rename
+  -i, --input string     Input tree (default "stdin")
+      --internal         Internal nodes are taken into account
+  -l, --length int       Length of automatically generated id. Only with --auto (default 10)
+  -m, --map string       Tip name map file (default "none")
+  -o, --output string    Renamed tree output file (default "stdout")
+  -e, --regexp string    Regexp to get matching tip/node names (default "none")
+  -b, --replace string   String replacement to the given regexp (default "none")
+  -r, --revert           Revert orientation of map file
+      --tips             Tips are taken into account (--tips=false to cancel) (default true)
 
 Global Flags:
       --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")

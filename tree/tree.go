@@ -7,6 +7,7 @@ package tree
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 	"regexp"
@@ -1348,6 +1349,74 @@ func (t *Tree) Rename(namemap map[string]string) error {
 		node, ok := nodeindex.GetNode(name)
 		if ok {
 			node.SetName(newname)
+		}
+	}
+	// After we update bitsets if any, and node indexes
+	t.UpdateTipIndex()
+	err = t.ClearBitSets()
+	if err != nil {
+		return err
+	}
+	t.UpdateBitSet()
+	return nil
+}
+
+// Renames automatically nodes/tips of the Tree, with names of the form T000001, N00001, etc.
+//
+// internals: Renames internal nodes
+// tips: Renames tips
+// length: length of the generated names
+// curid: index that is incremented, to keep track of the number of generated names
+// namemap: map that associates old names to new names
+func (t *Tree) RenameAuto(internals, tips bool, length int, curid *int, namemap map[string]string) error {
+	for i, n := range t.Nodes() {
+		if (tips && n.Tip()) || (internals && !n.Tip()) {
+			prefix := 'T'
+			if !n.Tip() {
+				prefix = 'N'
+				if n.Name() == "" {
+					n.SetName(fmt.Sprintf("%d", i))
+				}
+			}
+			if _, ok := namemap[n.Name()]; !ok {
+				newname := fmt.Sprintf(fmt.Sprintf("%c%%0%dd", prefix, (length-1)), *curid)
+				if len(newname) != length {
+					return (fmt.Errorf("Id length %d does not allow to generate as much ids: %d (%s)",
+						length, curid, newname))
+				}
+				namemap[n.Name()] = newname
+				n.SetName(newname)
+				*curid++
+			}
+		}
+	}
+	// After we update bitsets if any, and node indexes
+	t.UpdateTipIndex()
+	err := t.ClearBitSets()
+	if err != nil {
+		return err
+	}
+	t.UpdateBitSet()
+	return nil
+}
+
+// Renames nodes/tips of the Tree, given the regexp and a replaement string
+//
+// internals: Renames internal nodes
+// tips: Renames tips
+// regexp: the regexp to match node names
+// replace: Replacement string
+// namemap: map that associates old names to new names
+func (t *Tree) RenameRegexp(internals, tips bool, regex, replace string, namemap map[string]string) error {
+	r, err := regexp.Compile(regex)
+	if err != nil {
+		return err
+	}
+	for _, n := range t.Nodes() {
+		if (tips && n.Tip()) || (internals && !n.Tip()) {
+			newname := r.ReplaceAllString(n.Name(), replace)
+			namemap[n.Name()] = newname
+			n.SetName(newname)
 		}
 	}
 	// After we update bitsets if any, and node indexes
