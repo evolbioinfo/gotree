@@ -3,6 +3,7 @@ package tree
 import (
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/fredericlemoine/gotree/io"
@@ -379,9 +380,12 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 func (t *Tree) RerootOutGroup(removeoutgroup bool, tips ...string) error {
 	t.UnRoot()
 
-	n, edges, _, err := t.LeastCommonAncestorUnrooted(nil, tips...)
+	n, edges, monophyletic, err := t.LeastCommonAncestorUnrooted(nil, tips...)
 	if err != nil {
 		return err
+	}
+	if !monophyletic {
+		log.Println("Warning! The given outgroup is not Monophyloetic, and may result in inappropriate rerooting")
 	}
 	var rootedge *Edge
 
