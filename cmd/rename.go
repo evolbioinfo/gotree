@@ -78,15 +78,15 @@ If --internal is specified, then internal nodes are renamed;
 		if !(renameTips || renameInternalNodes) {
 			io.ExitWithMessage(errors.New("You should rename at least internal nodes (--internal) or tips (--tips)"))
 		}
-		if mapfile == "none" {
-			io.ExitWithMessage(errors.New("map file is not given"))
-		}
 		if setregex && !setreplace {
 			io.ExitWithMessage(errors.New("--replace must be given with --regexp"))
 		}
 
 		if !autorename && !setregex {
 			// Read map file
+			if mapfile == "none" {
+				io.ExitWithMessage(errors.New("map file is not given"))
+			}
 			namemap, err = readMapFile(mapfile, revert)
 			if err != nil {
 				io.ExitWithMessage(err)
@@ -129,7 +129,7 @@ If --internal is specified, then internal nodes are renamed;
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 
-		if autorename || setregex {
+		if (autorename || setregex) && mapfile != "none" {
 			writeNameMap(namemap, mapfile)
 		}
 		f.Close()
