@@ -66,5 +66,5 @@ func init() {
 	rerootCmd.AddCommand(outgroupCmd)
 	outgroupCmd.PersistentFlags().StringVarP(&tipfile, "tip-file", "l", "none", "File containing names of tips of the outgroup")
 	outgroupCmd.PersistentFlags().BoolVarP(&removeoutgroup, "remove-outgroup", "r", false, "Removes the outgroup after reroot")
-	outgroupCmd.PersistentFlags().BoolVar(&rerootstrict, "strict", false, "Enforce the outgroup to be monophyloetic (else throw an error)")
+	outgroupCmd.PersistentFlags().BoolVar(&rerootstrict, "strict", false, "Enforce the outgroup to be monophyletic (else throw an error)")
 }

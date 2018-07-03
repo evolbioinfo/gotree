@@ -5,8 +5,8 @@
 ### reroot
 
 This command reroots a tree in two ways:
-1. `gotree reroot outgroup` : Using an outgroup
-2. `gotree reroot midpoint`: At midpoint
+1. `gotree reroot outgroup` : Using an outgroup. If the outgroup is not monophyletic, 2 possibilities: 1) By default (`--strict=false`) it takes the lca of given tips to reroot the tree, and print a warning, 2) if `--strict` is given, it exits with an error.
+2. `gotree reroot midpoint`: At midpoint.
 
 #### Usage
 
