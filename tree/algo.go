@@ -368,7 +368,8 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 
 // This function first unroots the input tree and reroots it using the outgroup in argument.
 //
-// If the outgroup is not monophyletic, it will take all the descendant of the LCA.
+// If the outgroup is not monophyletic and strict is false, it will take all the descendant
+// of the LCA and print a warning. If strict is true, it returns an error.
 //
 // An error is returned if the LCA is multifurcated, and several branches are possible
 // for the placement of the root.
@@ -377,7 +378,7 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 // this tip will not be taken into account for the rerooting.
 //
 // If removeoutgroup is true, then the outgrouped is removed from the rerooted tree.
-func (t *Tree) RerootOutGroup(removeoutgroup bool, tips ...string) error {
+func (t *Tree) RerootOutGroup(removeoutgroup, strict bool, tips ...string) error {
 	t.UnRoot()
 
 	n, edges, monophyletic, err := t.LeastCommonAncestorUnrooted(nil, tips...)
@@ -385,6 +386,9 @@ func (t *Tree) RerootOutGroup(removeoutgroup bool, tips ...string) error {
 		return err
 	}
 	if !monophyletic {
+		if strict {
+			return errors.New("The given outgroup is not monophyletic, cannot reroot")
+		}
 		log.Println("Warning! The given outgroup is not Monophyloetic, and may result in inappropriate rerooting")
 	}
 	var rootedge *Edge

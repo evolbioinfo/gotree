@@ -25,7 +25,7 @@ func TestRootOutgroup(t *testing.T) {
 	tips := tr.Tips()
 
 	for _, tip := range tips {
-		err = clone.RerootOutGroup(false, tip.Name())
+		err = clone.RerootOutGroup(false, true, tip.Name())
 		found := false
 		for _, n := range clone.Root().Neigh() {
 			if n.Tip() && n.Name() == tip.Name() {
@@ -67,7 +67,7 @@ func TestReRootOutgroupRemove(t *testing.T) {
 			t.Error(err)
 		}
 
-		err = clone.RerootOutGroup(true, tip.Name())
+		err = clone.RerootOutGroup(true, true, tip.Name())
 
 		if !clone.Rooted() {
 			t.Error("Output tree should be rooted")
@@ -104,7 +104,7 @@ func TestReRootOutgroupRemoveUnRooted(t *testing.T) {
 			t.Error(err)
 		}
 
-		err = clone.RerootOutGroup(true, tip.Name())
+		err = clone.RerootOutGroup(true, true, tip.Name())
 
 		if !clone.Rooted() {
 			t.Error("Output tree should be rooted")

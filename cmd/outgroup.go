@@ -50,7 +50,7 @@ removed after reroot.
 			if t.Err != nil {
 				io.ExitWithMessage(t.Err)
 			}
-			err := t.Tree.RerootOutGroup(removeoutgroup, tips...)
+			err := t.Tree.RerootOutGroup(removeoutgroup, rerootstrict, tips...)
 			if err != nil {
 				io.ExitWithMessage(err)
 			}
@@ -66,4 +66,5 @@ func init() {
 	rerootCmd.AddCommand(outgroupCmd)
 	outgroupCmd.PersistentFlags().StringVarP(&tipfile, "tip-file", "l", "none", "File containing names of tips of the outgroup")
 	outgroupCmd.PersistentFlags().BoolVarP(&removeoutgroup, "remove-outgroup", "r", false, "Removes the outgroup after reroot")
+	outgroupCmd.PersistentFlags().BoolVar(&rerootstrict, "strict", false, "Enforce the outgroup to be monophyloetic (else throw an error)")
 }

@@ -40,6 +40,7 @@ var cfgFile string
 var rootCpus int
 var rootInputFormat string
 var removeoutgroup bool
+var rerootstrict bool
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
