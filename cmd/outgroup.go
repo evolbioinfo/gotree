@@ -29,6 +29,11 @@ If the outgroup includes a tip that is not present in the tree,
 this tip will not be taken into account for the reroot. A warning
 will be issued.
 
+By default (--strict=false), if the outgroup is not monophyletic it will
+take all the descendant of the LCA to reroot and print a warning.If the
+outgroup is not monophyletic and if --strict is given, it exits with an 
+error.
+
 If the option -r|--remove-outgroup is given, then the outgroup is
 removed after reroot.
 `,
