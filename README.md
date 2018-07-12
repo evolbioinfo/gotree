@@ -117,7 +117,7 @@ brew install bash-completion
 port install bash-completion
 # Linux /centos
 yum install bash-completion -y
-# Lunix /ubuntu
+# Linux /ubuntu
 apt-get install bash-completion
 ```
 
