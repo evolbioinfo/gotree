@@ -138,7 +138,7 @@ source '$HOME/.gotree/completion.bash.inc'
 
 ```
 # Once
-source <(kubectl completion zsh)
+source <(gotree completion zsh)
 # Permanently
 gotree completion zsh > "${fpath[1]}/_gotree"
 ```
