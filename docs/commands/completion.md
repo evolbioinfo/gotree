@@ -30,8 +30,8 @@ source <(gotree completion bash)
 mkdir ~/.gotree
 gotree completion bash > ~/.gotree/completion.bash.inc
 printf "
-# goalign shell completion
-source '$HOME/.goalign/completion.bash.inc'
+# gotree shell completion
+source '$HOME/.gotree/completion.bash.inc'
 " >> $HOME/.bashrc
 ```
 
