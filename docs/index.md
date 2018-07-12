@@ -52,6 +52,7 @@ Command                                                            | Subcommand 
 --                                                                 | edges             | Individually compares edges of the reference tree to a compared tree
 --                                                                 | tips              | Compares the set of tips of the reference tree to a compared tree
 --                                                                 | trees             | Compare 2 trees in terms of common and specific branches
+[completion](commands/compute.md)                                  |                   | Generates auto-completion commands for bash or zsh
 [compute](commands/compute.md) ([api](api/compute.md))             |                   | Computations such as consensus and supports
 --                                                                 | bipartitiontree   | Builds one tree with only one given bipartition
 --                                                                 | consensus         | Computes the consensus from a set of input trees
