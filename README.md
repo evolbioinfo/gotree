@@ -113,10 +113,15 @@ The `gotree` executable should be located in the `$GOPATH/bin` folder.
 ```
 # MacOS brew
 brew install bash-completion
-# MacOS port
-port install bash-completion
+
+# MacOS port (do not forget to change
+# the path to bash command in terminal
+# preferences to /opt/local/bin/bash -l)
+sudo port install bash-completion
+
 # Linux /centos
 yum install bash-completion -y
+
 # Linux /ubuntu
 apt-get install bash-completion
 ```

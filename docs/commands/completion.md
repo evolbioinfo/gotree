@@ -15,8 +15,12 @@ Usage:
 #### Bash
 * Install bash-completion:
 ```
-# MacOS
+# MacOS brew
 brew install bash-completion
+# MacOS port (do not forget to change
+# the path to bash command in terminal
+# preferences to /opt/local/bin/bash -l)
+sudo port install bash-completion
 # Linux
 yum install bash-completion -y
 apt-get install bash-completion
@@ -39,7 +43,7 @@ source '$HOME/.gotree/completion.bash.inc'
 
 ```
 # Once
-source <(kubectl completion zsh)
+source <(gotree completion zsh)
 # Permanently
 gotree completion zsh > "${fpath[1]}/_gotree"
 ```
