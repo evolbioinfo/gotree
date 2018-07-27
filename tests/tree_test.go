@@ -46,7 +46,7 @@ func TestRoundLengths(t *testing.T) {
 }
 
 func TestRoundSupports(t *testing.T) {
-	treeString := "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.00007888888888:0.3)0.00008666666666:0.4);"
+	treeString := "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.00007888888888:0.3)0.0008666666666:0.4);"
 	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
 	if err != nil {
 		t.Error(err)
