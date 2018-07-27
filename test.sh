@@ -1171,3 +1171,57 @@ EOF
 echo "(A,(B,D),(C,E));" | gotree generate topologies -i - | gotree rotate sort > result
 diff expected result
 rm -f expected result
+
+#gotree round supports
+echo "->gotree support round 3"
+cat > expected <<EOF
+(B,D,(E,(C,A)0.801)0.101);
+EOF
+cat > input <<EOF
+(B,D,(E,(C,A)0.8009999999)0.100999999999999999);
+EOF
+
+gotree support round -i input -o output -p 3 > result
+diff expected output
+rm -f expected output input
+
+
+#gotree round supports
+echo "->gotree support round 8"
+cat > expected <<EOF
+(B,D,(E,(C,A)0.80000001)0.10000001);
+EOF
+cat > input <<EOF
+(B,D,(E,(C,A)0.800000009999999)0.10000000999999999999999);
+EOF
+
+gotree support round -i input -o output -p 8 > result
+diff expected output
+rm -f expected output input
+
+#gotree round lengths
+echo "->gotree brlen round 3"
+cat > expected <<EOF
+(B,D,(E,(C,A):0.801):0.101);
+EOF
+cat > input <<EOF
+(B,D,(E,(C,A):0.8009999999):0.100999999999999999);
+EOF
+
+gotree brlen round -i input -o output -p 3 > result
+diff expected output
+rm -f expected output input
+
+
+#gotree round lengths
+echo "->gotree brlen round 8"
+cat > expected <<EOF
+(B,D,(E,(C,A):0.80000001):0.10000001);
+EOF
+cat > input <<EOF
+(B,D,(E,(C,A):0.800000009999999):0.10000000999999999999999);
+EOF
+
+gotree brlen round -i input -o output -p 8 > result
+diff expected output
+rm -f expected output input

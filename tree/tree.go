@@ -1623,6 +1623,22 @@ func (t *Tree) ScaleSupports(factor float64) {
 	}
 }
 
+// Rounds branch supports by a given precision. Precision is defined as 1/(power of 10)
+// Example: 6, means 10^-6
+//
+// Does not do anything for branches with a support of NIL_SUPPORT or if precision is <=0
+// If precision > 15, then 15 is taken
+func (t *Tree) RoundSupports(precision int) {
+	if precision > 15 {
+		precision = 15
+	}
+	for _, e := range t.Edges() {
+		if s := e.Support(); s != NIL_SUPPORT {
+			e.SetSupport(math.Round(math.Pow10(precision)*s) / math.Pow10(precision))
+		}
+	}
+}
+
 // Scale branch lengths by a given factor.
 //
 // Does not do anything for branches with a length of NIL_LENGTH
@@ -1630,6 +1646,22 @@ func (t *Tree) ScaleLengths(factor float64) {
 	for _, e := range t.Edges() {
 		if s := e.Length(); s != NIL_LENGTH {
 			e.SetLength(e.Length() * factor)
+		}
+	}
+}
+
+// Rounds branch lengths by a given precision. Precision is defined as 1/(power of 10)
+// Example: 6, means 10^-6.
+//
+// Does not do anything for branches with a length of NIL_LENGTH or if precision is <=0.
+// If precision > 15, then 15 is taken
+func (t *Tree) RoundLengths(precision int) {
+	if precision > 15 {
+		precision = 15
+	}
+	for _, e := range t.Edges() {
+		if s := e.Length(); s != NIL_LENGTH {
+			e.SetLength(math.Round(math.Pow10(precision)*s) / math.Pow10(precision))
 		}
 	}
 }

@@ -3,7 +3,7 @@
 ## Commands
 
 ### support
-This command modifies branch lengths of input trees.
+This command modifies branch supports of input trees.
 
 #### Usage
 
@@ -28,6 +28,20 @@ Usage:
 
 Flags:
   -h, --help   help for clear
+
+Global Flags:
+  -i, --input string    Input tree (default "stdin")
+  -o, --output string   Cleared tree output file (default "stdout")
+```
+
+round subcommand
+```
+Usage:
+  gotree support round [flags]
+
+Flags:
+  -h, --help   help for clear
+  -p, --precision int   Rounding support precision (x means 10^-x) (default 3)
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")

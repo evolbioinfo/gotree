@@ -88,7 +88,7 @@ conda install -c bioconda gotree
 ```
 
 ### From sources
-In order to compile gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system.
+In order to compile gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system ($>=1.10$).
 
 Then you just have to type :
 ```
@@ -157,6 +157,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 *  annotate:    Annotate internal nodes of a tree with given data
 *  brlen:       Modify branch lengths
     * clear       Clear lengths from input trees
+	* round       Round branch lengths from input trees with a given precision
     * scale       Scale lengths from input trees by a given factor
 	* setmin      Set a min branch length to all branches with length < cutoff
 	* setrand     Assign a random length to edges of input trees
@@ -211,6 +212,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 *  subtree: extract a subtree
 *  support: Modify branch supports
     * clear       Clear supports from input trees
+	* round       Round branch lengths from input trees with a given precision
     * setrand     Assign a random support to edges of input trees
     * scale       Scale branch supports from input trees by a given factor
 *  stats:       Print statistics about the tree, its edges, its nodes, if it is rooted, and its tips

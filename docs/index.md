@@ -38,6 +38,7 @@ Command                                                            | Subcommand 
 [annotate](commands/annotate.md) ([api](api/annotate.md))          |                   | Annotates internal nodes of a tree with given data
 [brlen](commands/brlen.md) ([api](api/brlen.md))                   |                   | Modifies branch lengths
 --                                                                 | clear             | Clear lengths from input trees
+--                                                                 | round             | Rounds branch lengths from input trees with a given precision
 --                                                                 | scale             | Scales branch lengths from input trees by a given factor
 --                                                                 | setmin            | Sets a min branch length to all branches with length < cutoff
 --                                                                 | setrand           | Assigns a random length to edges of input trees
@@ -94,6 +95,7 @@ Command                                                            | Subcommand 
 [subtree](commands/subtree.md) ([api](api/subtree.md))             |                   | Extracts a subtree starting at a given node
 [support](commands/support.md) ([api](api/support.md))             |                   | Modifies branch supports
 --                                                                 | clear             | Clears branch supports from input trees
+--                                                                 | round             | Rounds branch supports from input trees with a given precision
 --                                                                 | scale             | Scales branch supports from input trees by a given factor
 --                                                                 | setrand           | Assigns a random support to edges of input trees
 [stats](commands/stats.md) ([api](api/stats.md))                   |                   | Prints statistics about the tree, its edges, its nodes, if it is rooted, and its tips

@@ -32,6 +32,31 @@ func TestClearSupports(t *testing.T) {
 		t.Error(fmt.Sprintf("Tree after clear lengths is not valid: %s", tr.Newick()))
 	}
 }
+
+func TestRoundLengths(t *testing.T) {
+	treeString := "(Tip4:0.000099999999,Tip0:0.000099999999,(Tip3:0.00006666666666666,(Tip2:0.00019999999,Tip1:0.00019999999)0.8:0.000266666666666)0.9:0.0003999999999);"
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	tr.RoundLengths(4)
+	if tr.Newick() != "(Tip4:0.0001,Tip0:0.0001,(Tip3:0.0001,(Tip2:0.0002,Tip1:0.0002)0.8:0.0003)0.9:0.0004);" {
+		t.Error(fmt.Sprintf("Tree after round supports is not valid: %s", tr.Newick()))
+	}
+}
+
+func TestRoundSupports(t *testing.T) {
+	treeString := "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.00007888888888:0.3)0.00008666666666:0.4);"
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+	tr.RoundSupports(4)
+	if tr.Newick() != "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.0001:0.3)0.0009:0.4);" {
+		t.Error(fmt.Sprintf("Tree after round lengths is not valid: %s", tr.Newick()))
+	}
+}
+
 func TestClearComments(t *testing.T) {
 	treeString := "(Tip4:0.1[c1],Tip0:0.1[c2],(Tip3:0.1[c3],(Tip2:0.2[c4],Tip1:0.2[c5])0.8:0.3[c6])0.9:0.4[c7])[c8];"
 	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()

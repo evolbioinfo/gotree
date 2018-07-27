@@ -35,6 +35,20 @@ Global Flags:
   -o, --output string   Cleared tree output file (default "stdout")
 ```
 
+round subcommand
+```
+Usage:
+  gotree brlen round [flags]
+
+Flags:
+  -h, --help   help for clear
+  -p, --precision int   Rounding length precision (x means 10^-x) (default 3)
+
+Global Flags:
+  -i, --input string    Input tree (default "stdin")
+  -o, --output string   Cleared tree output file (default "stdout")
+```
+
 scale subcommand
 ```
 Usage:
