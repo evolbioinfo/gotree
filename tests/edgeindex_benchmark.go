@@ -21,7 +21,7 @@ func BenchmarkEdgeIndex(b *testing.B) {
 
 		reftree, err := utils.ReadTree("data/benchmark_ref.nw.gz", utils.FORMAT_NEWICK)
 		if err != nil {
-			b.Error(err.Error)
+			b.Error(err.Error())
 		}
 
 		if treefile, treereader, err = utils.GetReader("data/benchmark_boot.nw.gz"); err != nil {

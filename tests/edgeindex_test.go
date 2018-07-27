@@ -61,9 +61,9 @@ func TestEdgeIndex2(t *testing.T) {
 				if !ok {
 					t.Error(fmt.Sprintf("Edge not found in the index"))
 				} else if !e.Right().Tip() && val.Count != i {
-					t.Error(fmt.Sprintf("Non tip edge count must be == %d (actually %d)", i, val))
+					t.Errorf("Non tip edge count must be == %d (actually %d)", i, val.Count)
 				} else if e.Right().Tip() && val.Count != (nbtrees-1)*numLoops+i {
-					t.Error(fmt.Sprintf("Tip edge count must be == %d (actually %d)", (nbtrees-1)*numLoops+i, val))
+					t.Errorf("Tip edge count must be == %d (actually %d)", (nbtrees-1)*numLoops+i, val.Count)
 				}
 			}
 		}

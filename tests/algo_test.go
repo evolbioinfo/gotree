@@ -25,16 +25,16 @@ func TestLeastCommonAncestorUnrooted(t *testing.T) {
 		t.Error(err)
 	}
 	if n == nil {
-		t.Error("No common ancestor found")
+		t.Errorf("No common ancestor found")
 	}
 	if e == nil || len(e) == 0 {
-		t.Error("No common ancestor Edges found")
+		t.Errorf("No common ancestor Edges found")
 	}
 	if !mono {
-		t.Error("The group should be monophyletic")
+		t.Errorf("The group should be monophyletic")
 	}
 	if len(e) != 2 {
-		t.Error("Edge Length should be 2 and is %d", len(e))
+		t.Errorf("Edge Length should be 2 and is %d", len(e))
 	}
 
 	for _, ed := range e {
@@ -42,7 +42,7 @@ func TestLeastCommonAncestorUnrooted(t *testing.T) {
 			ed.Right().Name() != "3" &&
 			ed.Left().Name() != "4" &&
 			ed.Left().Name() != "3" {
-			t.Error("Ancestor of wrong tips found")
+			t.Errorf("Ancestor of wrong tips found")
 		}
 	}
 
@@ -52,17 +52,17 @@ func TestLeastCommonAncestorUnrooted(t *testing.T) {
 	}
 
 	if n == nil {
-		t.Error("No common ancestor found")
+		t.Errorf("No common ancestor found")
 	}
 	if e == nil || len(e) == 0 {
-		t.Error("No common ancestor Edges found")
+		t.Errorf("No common ancestor Edges found")
 	}
 	if mono {
-		t.Error("The group should not be monophyletic")
+		t.Errorf("The group should not be monophyletic")
 	}
 
 	if len(e) != 2 {
-		t.Error("Edge Length should be 2 and is %d", len(e))
+		t.Errorf("Edge Length should be 2 and is %d", len(e))
 	}
 
 	star, err2 := newick.NewParser(strings.NewReader(startree)).Parse()
@@ -75,17 +75,17 @@ func TestLeastCommonAncestorUnrooted(t *testing.T) {
 	}
 
 	if n == nil {
-		t.Error("No common ancestor found")
+		t.Errorf("No common ancestor found")
 	}
 	if e == nil || len(e) == 0 {
-		t.Error("No common ancestor Edges found")
+		t.Errorf("No common ancestor Edges found")
 	}
 
 	if len(e) != 4 {
-		t.Error("Edge Length should be 4 and is %d", len(e))
+		t.Errorf("Edge Length should be 4 and is %d", len(e))
 	}
 	if !mono {
-		t.Error("The group should be monophyletic")
+		t.Errorf("The group should be monophyletic")
 	}
 
 }
@@ -101,17 +101,17 @@ func TestAddBipartition(t *testing.T) {
 	}
 
 	if n == nil {
-		t.Error("No common ancestor found")
+		t.Errorf("No common ancestor found")
 	}
 	if e == nil || len(e) == 0 {
-		t.Error("No common ancestor Edges found")
+		t.Errorf("No common ancestor Edges found")
 	}
 	if !mono {
-		t.Error("The group should be monophyletic")
+		t.Errorf("The group should be monophyletic")
 	}
 
 	if len(e) != 3 {
-		t.Error("Edge Length should be 3 and is %d", len(e))
+		t.Errorf("Edge Length should be 3 and is %d", len(e))
 	}
 	star.AddBipartition(n, e, 0.001, 0.9)
 	n, e, mono, err = star.LeastCommonAncestorUnrooted(nil, "4", "5")
@@ -120,17 +120,17 @@ func TestAddBipartition(t *testing.T) {
 	}
 
 	if n == nil {
-		t.Error("No common ancestor found")
+		t.Errorf("No common ancestor found")
 	}
 	if e == nil || len(e) == 0 {
-		t.Error("No common ancestor Edges found")
+		t.Errorf("No common ancestor Edges found")
 	}
 	if !mono {
-		t.Error("The group should be monophyletic")
+		t.Errorf("The group should be monophyletic")
 	}
 
 	if len(e) != 2 {
-		t.Error("Edge Length should be 2 and is %d", len(e))
+		t.Errorf("Edge Length should be 2 and is %d", len(e))
 	}
 	fmt.Fprintf(os.Stdout, "%s\n", star.Newick())
 	star.AddBipartition(n, e, 0.001, 0.9)
@@ -141,17 +141,17 @@ func TestAddBipartition(t *testing.T) {
 	}
 
 	if n == nil {
-		t.Error("No common ancestor found")
+		t.Errorf("No common ancestor found")
 	}
 	if e == nil || len(e) == 0 {
-		t.Error("No common ancestor Edges found")
+		t.Errorf("No common ancestor Edges found")
 	}
 	if !mono {
-		t.Error("The group should be monophyletic")
+		t.Errorf("The group should be monophyletic")
 	}
 
 	if len(e) != 2 {
-		t.Error("Edge Length should be 2 and is %d", len(e))
+		t.Errorf("Edge Length should be 2 and is %d", len(e))
 	}
 	fmt.Fprintf(os.Stdout, "%s\n", star.Newick())
 }
@@ -177,7 +177,7 @@ func TestMaxLengthPath(t *testing.T) {
 		tip, ok := nodeindex.GetNode(name)
 		if !ok {
 			if err != nil {
-				t.Error(fmt.Sprintf("Tip %s not found in the tree", name))
+				t.Errorf("Tip %s not found in the tree", name)
 			}
 		}
 		e, l, err2 := tree.MaxLengthPath(tip, nil)
@@ -186,15 +186,15 @@ func TestMaxLengthPath(t *testing.T) {
 
 		}
 		if l != expmaxlen[i] {
-			t.Error(fmt.Sprintf("Maximum length from Tip %s should be %f and is %f", name, expmaxlen[i], l))
+			t.Errorf("Maximum length from Tip %s should be %f and is %f", name, expmaxlen[i], l)
 		}
 
 		if len(e) != expmaxpath[i] {
-			t.Error(fmt.Sprintf("Nb edges of the maximum length path from Tip %s should be %d and is %d", name, expmaxpath[i], len(e)))
+			t.Errorf("Nb edges of the maximum length path from Tip %s should be %d and is %d", name, expmaxpath[i], len(e))
 		}
 
 		if e[0].Right().Name() != expmaxtip[i] {
-			t.Error(fmt.Sprintf("Maximum length tip from tip %s should be %s and is %s", name, expmaxtip[i], e[0].Right().Name()))
+			t.Errorf("Maximum length tip from tip %s should be %s and is %s", name, expmaxtip[i], e[0].Right().Name())
 		}
 	}
 	tr.RerootMidPoint()
@@ -211,10 +211,10 @@ func TestRerootMidPoint(t *testing.T) {
 	for _, e := range tr.Root().Edges() {
 		if e.Right().Name() == "4" {
 			if e.Length() != 8.5 {
-				t.Error("Length of the edge from root to 4 should be 8.5")
+				t.Errorf("Length of the edge from root to 4 should be 8.5")
 			}
 		} else if e.Length() != 1.5 {
-			t.Error("Length of the edge from root to internal node should be 1.5")
+			t.Errorf("Length of the edge from root to internal node should be 1.5")
 		}
 	}
 }
@@ -230,7 +230,7 @@ func TestRerootMidPoint2(t *testing.T) {
 	fmt.Println(tr.Newick())
 	for _, e := range tr.Root().Edges() {
 		if e.Length() != 3 && e.Length() != 1 {
-			t.Error(fmt.Sprintf("Length at root should be 1 or 3 but is %f", e.Length()))
+			t.Errorf("Length at root should be 1 or 3 but is %f", e.Length())
 		}
 	}
 }

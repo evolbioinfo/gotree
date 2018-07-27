@@ -92,7 +92,7 @@ func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, stat
 		if ok {
 			states[cur.Id()][stateindex] = 1
 		} else {
-			return errors.New(fmt.Sprintf("State %c does not exist in the alphabet, ignoring the state", state))
+			return errors.New(fmt.Sprintf("State %s does not exist in the alphabet, ignoring the state", state))
 		}
 	} else {
 		for _, child := range cur.Neigh() {

@@ -199,7 +199,7 @@ func (p *Parser) Parse() (*Nexus, error) {
 				tips := t.Tips()
 				for _, tip := range tips {
 					if _, ok := taxlabels[tip.Name()]; !ok {
-						return nil, fmt.Errorf("Taxa name %s in the tree %d is not defined in the TAXLABELS block", i, tip.Name())
+						return nil, fmt.Errorf("Taxa name %s in the tree %d is not defined in the TAXLABELS block", tip.Name(), i)
 					}
 				}
 				if len(tips) != len(taxlabels) {
