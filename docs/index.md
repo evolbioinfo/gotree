@@ -38,6 +38,7 @@ Command                                                            | Subcommand 
 [annotate](commands/annotate.md) ([api](api/annotate.md))          |                   | Annotates internal nodes of a tree with given data
 [brlen](commands/brlen.md) ([api](api/brlen.md))                   |                   | Modifies branch lengths
 --                                                                 | clear             | Clear lengths from input trees
+--                                                                 | cut               | Cut branches whose length is greater than or equal to the given length
 --                                                                 | round             | Rounds branch lengths from input trees with a given precision
 --                                                                 | scale             | Scales branch lengths from input trees by a given factor
 --                                                                 | setmin            | Sets a min branch length to all branches with length < cutoff

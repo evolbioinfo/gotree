@@ -19,7 +19,6 @@ Available Commands:
 
 Flags:
   -i, --input string    Input tree (default "stdin")
-  -o, --output string   Cleared tree output file (default "stdout")
 ```
 
 clear subcommand
@@ -29,10 +28,10 @@ Usage:
 
 Flags:
   -h, --help   help for clear
+  -o, --output string   Cleared tree output file (default "stdout")
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")
-  -o, --output string   Cleared tree output file (default "stdout")
 ```
 
 round subcommand
@@ -43,6 +42,7 @@ Usage:
 Flags:
   -h, --help   help for clear
   -p, --precision int   Rounding length precision (x means 10^-x) (default 3)
+  -o, --output string   Rounded length output tree file (default "stdout")
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")
@@ -57,10 +57,10 @@ Usage:
 Flags:
   -f, --factor float   Branch length scaling factor (default 1)
   -h, --help           help for scale
+  -o, --output string   Scaled length output tree file (default "stdout")
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")
-  -o, --output string   Scaled tree output file (default "stdout")
 ```
 
 setmin subcommand
@@ -71,10 +71,10 @@ Usage:
 Flags:
   -h, --help           help for setmin
   -l, --length float   Min Length cutoff
+  -o, --output string   Min length output tree file (default "stdout")
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")
-  -o, --output string   Cleared tree output file (default "stdout")
 ```
 
 setrand subcommand
@@ -86,10 +86,10 @@ Flags:
   -h, --help         help for setrand
   -m, --mean float   Mean of the exponential distribution of branch lengths (default 0.1)
   -s, --seed int     Initial Random Seed (default random)
+  -o, --output string   Random length output tree file (default "stdout")
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")
-  -o, --output string   Cleared tree output file (default "stdout")
 ```
 
 #### Examples
@@ -163,3 +163,19 @@ Random Tree                          | Min brlen tree
 gotree generate yuletree -s 10 -l 100 -o outtree.nw
 gotree brlen scale -f 3.0 -i outtree.nw
 ```
+
+5. Removing branches with length > 0.2 anf printing connected components
+
+```
+echo "(((1:0.1,2:0.1):0.5,((3:0.1,4:0.1):0.2,5:0.1):0.5):0.6,(6:0.1,7:0.1):0.5,(8:0.1,9:0.1):0.5);" | gotree brlen cut -l 0.2
+```
+
+Should print:
+```
+0	1,2
+0	3,4
+0	5
+0	6,7
+0	8,9
+```
+

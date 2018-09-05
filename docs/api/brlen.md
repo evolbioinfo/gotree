@@ -58,3 +58,43 @@ func main() {
 }
 ```
 
+Cut long branches and list the connected components
+
+```go
+package main
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/fredericlemoine/gotree/io/newick"
+	"github.com/fredericlemoine/gotree/tree"
+)
+
+func main() {
+	var treeString string
+	var t *tree.Tree
+	var err error
+	var bags []*tree.TipBag
+
+	treeString = "(((1:0.1,2:0.1):0.5,((3:0.1,4:0.1):0.2,5:0.1):0.5):0.6,(6:0.1,7:0.1):0.5,(8:0.1,9:0.1):0.5);"
+	t, err = newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		panic(err)
+	}
+	bags, err = t.CutEdgesMaxLength(0.2)
+	if err != nil {
+		panic(err)
+	}
+	for _, b := range bags {
+		for i, tip := range b.Tips() {
+			if i > 0 {
+				fmt.Printf(",")
+			}
+			fmt.Printf("%s", tip.Name())
+		}
+		fmt.Printf("\n")
+	}
+
+}
+```
