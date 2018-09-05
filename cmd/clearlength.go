@@ -27,4 +27,5 @@ var clearlengthCmd = &cobra.Command{
 
 func init() {
 	brlenCmd.AddCommand(clearlengthCmd)
+	clearlengthCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Cleared tree output file")
 }

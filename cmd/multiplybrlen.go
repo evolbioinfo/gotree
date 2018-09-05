@@ -31,4 +31,5 @@ var scalelengthCmd = &cobra.Command{
 func init() {
 	brlenCmd.AddCommand(scalelengthCmd)
 	scalelengthCmd.Flags().Float64VarP(&scalelengthfactor, "factor", "f", 1.0, "Branch length scaling factor")
+	scalelengthCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Scaled length output tree file")
 }

@@ -46,7 +46,7 @@ func init() {
 	brlenCmd.AddCommand(randbrlenCmd)
 
 	randbrlenCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
-	randbrlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
 	randbrlenCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 	randbrlenCmd.Flags().Float64VarP(&setlengthmean, "mean", "m", 0.1, "Mean of the exponential distribution of branch lengths")
+	randbrlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Random length output tree file")
 }

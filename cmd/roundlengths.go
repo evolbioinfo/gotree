@@ -40,4 +40,5 @@ Takes precision=15 if precision>15.
 func init() {
 	brlenCmd.AddCommand(roundlengthCmd)
 	roundlengthCmd.Flags().IntVarP(&roundlengthprecision, "precision", "p", 3, "Rounding length precision (x means 10^-x)")
+	roundlengthCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Rounded length output tree file")
 }

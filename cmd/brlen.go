@@ -16,5 +16,4 @@ Set a minimum branch length, or set random branch lengths, or multiply branch le
 func init() {
 	RootCmd.AddCommand(brlenCmd)
 	brlenCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
-	brlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Cleared tree output file")
 }

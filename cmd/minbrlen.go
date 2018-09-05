@@ -41,5 +41,5 @@ func init() {
 	brlenCmd.AddCommand(minbrlenCmd)
 	minbrlenCmd.Flags().Float64VarP(&cutoff, "length", "l", 0.0, "Min Length cutoff")
 	minbrlenCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
-	minbrlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Length corrected tree output file")
+	minbrlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Min length output tree file")
 }
