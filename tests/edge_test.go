@@ -2,9 +2,12 @@ package tests
 
 import (
 	"fmt"
-	"github.com/fredericlemoine/gotree/tree"
 	"math"
+	"strings"
 	"testing"
+
+	"github.com/fredericlemoine/gotree/io/newick"
+	"github.com/fredericlemoine/gotree/tree"
 )
 
 // Tests the function to get neighboring edges of a given edges
@@ -141,6 +144,28 @@ func TestLocality2(t *testing.T) {
 			if !hx {
 				t.Error(fmt.Sprintf("Neighbor entropy for cutoff > 0.8 should be true and is %t", hx))
 			}
+		}
+	}
+}
+
+// Tests Cut Branches
+func TestCutBranches(t *testing.T) {
+	treeString := "(((1:0.1,2:0.1):0.5,((3:0.1,4:0.1):0.2,5:0.1):0.5):0.6,(6:0.1,7:0.1):0.5,(8:0.1,9:0.1):0.5);"
+	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		t.Error(err)
+	}
+
+	lentab := []float64{1.0, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0}
+	nbagtab := []int{1, 2, 4, 4, 4, 5, 9, 9}
+
+	for i, lencut := range lentab {
+		bags, err := tr.CutEdgesMaxLength(lencut)
+		if err != nil {
+			t.Error(err)
+		}
+		if len(bags) != nbagtab[i] {
+			t.Error(fmt.Sprintf("Expected number of connected components: %d, and found: %d", nbagtab[i], len(bags)))
 		}
 	}
 }

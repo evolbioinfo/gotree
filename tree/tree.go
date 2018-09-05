@@ -1665,3 +1665,76 @@ func (t *Tree) RoundLengths(precision int) {
 		}
 	}
 }
+
+// Get all connected components (only the tips) of the tree
+// when edges with length more than maxLen (included) are removed
+// If a connected components have no tips, then it is not taken into account.
+//
+// The edges are not actually removed from the input tree.
+func (t *Tree) CutEdgesMaxLength(maxlen float64) (bags []*TipBag, err error) {
+	edges := t.Edges()
+	visited := make([]bool, len(edges))
+	bags = make([]*TipBag, 0, 10)
+
+	// Associate an index to each edges
+	for i, e := range edges {
+		e.SetId(i)
+		visited[i] = false
+	}
+
+	// Visit all the edges if they are not already visited
+	for _, e := range edges {
+		if !visited[e.Id()] {
+			if e.Length() < maxlen {
+				tipBag := NewTipBag()
+				// We go both directions of the edge
+				if err = t.cutEdgesMaxLengthRecur(tipBag, e.Left(), e.Right(), maxlen, visited); err != nil {
+					return
+				}
+				if err = t.cutEdgesMaxLengthRecur(tipBag, e.Right(), e.Left(), maxlen, visited); err != nil {
+					return
+				}
+				if tipBag.Size() > 0 {
+					bags = append(bags, tipBag)
+				}
+			} else {
+				// We consider that edge as removed
+				// but if it connects tips, we keep the tips in a new bag
+				if e.Left().Tip() {
+					tipBag := NewTipBag()
+					tipBag.AddTip(e.Left())
+					bags = append(bags, tipBag)
+				}
+				if e.Right().Tip() {
+					tipBag := NewTipBag()
+					tipBag.AddTip(e.Right())
+					bags = append(bags, tipBag)
+				}
+			}
+		}
+	}
+	return
+}
+
+// recursive function that lists all tips of the current connected
+// component defined by edges with length < maxlen
+func (t *Tree) cutEdgesMaxLengthRecur(tipBag *TipBag, cur *Node, prev *Node, maxlen float64, visited []bool) error {
+	if cur == nil {
+		return errors.New("Nil node given to Tree.cutEdgesMaxLengthRecur")
+	}
+	if cur.Tip() {
+		if err := tipBag.AddTip(cur); err != nil {
+			return err
+		}
+	}
+	for i, n := range cur.neigh {
+		b := cur.br[i]
+		visited[b.Id()] = true
+		if n != prev && b.Length() < maxlen {
+			if err := t.cutEdgesMaxLengthRecur(tipBag, n, cur, maxlen, visited); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}

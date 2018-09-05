@@ -1225,3 +1225,89 @@ EOF
 gotree brlen round -i input -o output -p 8 > result
 diff expected output
 rm -f expected output input
+
+#gotree brlen cut
+echo "->gotree brlen cut"
+cat > input <<EOF
+(((1:0.1,2:0.1):0.5,((3:0.1,4:0.1):0.2,5:0.1):0.5):0.6,(6:0.1,7:0.1):0.5,(8:0.1,9:0.1):0.5);
+EOF
+
+cat > expected <<EOF
+0	1,2,3,4,5,6,7,8,9
+EOF
+gotree brlen cut -i input  -l 1.0 | sort > output
+diff expected output
+
+cat > expected <<EOF
+0	1,2,3,4,5
+0	6,7,8,9
+EOF
+gotree brlen cut -i input -l 0.6 | sort > output
+diff expected output
+
+cat > expected <<EOF
+0	1,2
+0	3,4,5
+0	6,7
+0	8,9
+EOF
+gotree brlen cut -i input -l 0.5 | sort > output
+diff expected output
+
+cat > expected <<EOF
+0	1,2
+0	3,4,5
+0	6,7
+0	8,9
+EOF
+gotree brlen cut -i input -l 0.4 | sort > output
+diff expected output
+
+cat > expected <<EOF
+0	1,2
+0	3,4,5
+0	6,7
+0	8,9
+EOF
+gotree brlen cut -i input -l 0.3 | sort > output
+diff expected output
+
+cat > expected <<EOF
+0	1,2
+0	3,4
+0	5
+0	6,7
+0	8,9
+EOF
+gotree brlen cut -i input -l 0.2 | sort > output
+diff expected output
+
+cat > expected <<EOF
+0	1
+0	2
+0	3
+0	4
+0	5
+0	6
+0	7
+0	8
+0	9
+EOF
+gotree brlen cut -i input -l 0.1 | sort > output
+diff expected output
+
+cat > expected <<EOF
+0	1
+0	2
+0	3
+0	4
+0	5
+0	6
+0	7
+0	8
+0	9
+EOF
+gotree brlen cut -i input -l 0.0 | sort > output
+diff expected output
+
+rm -f expected output input expected
