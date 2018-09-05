@@ -17,8 +17,8 @@ var cutCmd = &cobra.Command{
 
 As output, it prints groups of tips that are in connected components of the now disconnected tree.
 
-Output format: One line per group/connected component. Each line contains id \t t1,t2,t3, 
-with id="id of the input tree", and t1,t2,t3="a coma separated list of tips in the group".
+Output format: One line per group/connected component. Each line contains id \t ntips \t t1,t2,t3, 
+with id="id of the input tree", ntips="Number of tips in that group" and t1,t2,t3="a coma separated list of tips in the group".
 
 Example:
 
@@ -38,7 +38,7 @@ gotree brlen cut -i tree.nhx -l 0.1 -o groups.txt
 				io.ExitWithMessage(t.Err)
 			}
 			for _, b := range bags {
-				f.WriteString(fmt.Sprintf("%d\t", t.Id))
+				f.WriteString(fmt.Sprintf("%d\t%d\t", t.Id, b.Size()))
 				for i, tip := range b.Tips() {
 					if i > 0 {
 						f.WriteString(",")
