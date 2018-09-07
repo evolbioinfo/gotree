@@ -158,11 +158,12 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 ### List of commands
 *  annotate:    Annotate internal nodes of a tree with given data
 *  brlen:       Modify branch lengths
-    * clear       Clear lengths from input trees
-	* round       Round branch lengths from input trees with a given precision
-    * scale       Scale lengths from input trees by a given factor
-	* setmin      Set a min branch length to all branches with length < cutoff
-	* setrand     Assign a random length to edges of input trees
+    * clear:       Clear lengths from input trees
+	* cut:         Cut branches whose length is greater than or equal to the given length
+	* round:       Round branch lengths from input trees with a given precision
+    * scale:       Scale lengths from input trees by a given factor
+	* setmin:      Set a min branch length to all branches with length < cutoff
+	* setrand:     Assign a random length to edges of input trees
 *  collapse:    Collapse branches of input trees
     * depth
     * length
