@@ -180,7 +180,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * edgetrees: Write one output tree per branch of the input tree, with only one branch
     * support: Compute bootstrap supports
       * classical ([Felsenstein Bootstrap](https://www.jstor.org/stable/2408678))
-      * booster ([Transfer Bootstrap](http://biorxiv.org/content/early/2017/06/23/154542))
+      * booster ([Transfer Bootstrap](https://www.nature.com/articles/s41586-018-0043-0))
 *  divide:      Divide an input tree file into several tree files
 *  download:     Download a tree image from a server
     * itol: download a tree image from iTOL, with given image options
