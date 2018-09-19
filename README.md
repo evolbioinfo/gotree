@@ -1,7 +1,7 @@
 # Gotree
 [![build](https://travis-ci.org/fredericlemoine/gotree.svg?branch=master)](https://travis-ci.org/fredericlemoine/gotree) [![Anaconda-Server Badge](https://anaconda.org/bioconda/gotree/badges/installer/conda.svg)](https://anaconda.org/bioconda/gotree)  [![Docker hub](https://img.shields.io/docker/build/evolbioinfo/gotree.svg)](https://hub.docker.com/r/evolbioinfo/gotree/builds/)
 
-![Gotree Logo](images/logo.svg)
+![Gotree Logo](images/logo.png)
 
 GoTree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
 
