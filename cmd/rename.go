@@ -99,6 +99,8 @@ If --internal is specified, then internal nodes are renamed;
 		}
 
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		// Read ref Trees and rename them
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()
@@ -132,7 +134,6 @@ If --internal is specified, then internal nodes are renamed;
 		if (autorename || setregex) && mapfile != "none" {
 			writeNameMap(namemap, mapfile)
 		}
-		f.Close()
 	},
 }
 

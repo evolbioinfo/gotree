@@ -15,6 +15,8 @@ var scalelengthCmd = &cobra.Command{
 	Long:  `Scale lengths from input trees by a given factor.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for tr := range treechan {
@@ -24,7 +26,6 @@ var scalelengthCmd = &cobra.Command{
 			tr.Tree.ScaleLengths(scalelengthfactor)
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

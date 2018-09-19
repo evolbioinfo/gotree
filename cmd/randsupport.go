@@ -23,6 +23,8 @@ Support follows a uniform distribution in [0,1].
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()
 
@@ -37,7 +39,6 @@ Support follows a uniform distribution in [0,1].
 			}
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

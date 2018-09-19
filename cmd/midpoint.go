@@ -17,6 +17,8 @@ gotree reroot midpoint  -i tree.nw > reroot.nw
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()
 
@@ -30,7 +32,6 @@ gotree reroot midpoint  -i tree.nw > reroot.nw
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

@@ -87,6 +87,8 @@ randomly before going deeper in the tree.
 
 		// Computing parsimony ASR and writing each trees
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		for t := range treechan {
 			err = asr.ParsimonyAsr(t.Tree, align, algo, asrrandomresolve)
 			if err != nil {
@@ -94,7 +96,6 @@ randomly before going deeper in the tree.
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

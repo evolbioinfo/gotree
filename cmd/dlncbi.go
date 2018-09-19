@@ -29,7 +29,7 @@ var dlncbiCmd = &cobra.Command{
 		}
 		f := openWriteFile(ncbioutput)
 		f.WriteString(t.Newick() + "\n")
-		f.Close()
+		closeWriteFile(f, ncbioutput)
 	},
 }
 

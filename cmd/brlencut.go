@@ -27,6 +27,8 @@ gotree brlen cut -i tree.nhx -l 0.1 -o groups.txt
  `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -48,7 +50,6 @@ gotree brlen cut -i tree.nhx -l 0.1 -o groups.txt
 				f.WriteString("\n")
 			}
 		}
-		f.Close()
 	},
 }
 

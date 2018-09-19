@@ -48,6 +48,8 @@ removed after reroot.
 		}
 
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()
 
@@ -62,8 +64,6 @@ removed after reroot.
 
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-
-		f.Close()
 	},
 }
 

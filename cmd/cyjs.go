@@ -39,7 +39,7 @@ var cyjsCmd = &cobra.Command{
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
 			w.Flush()
-			f.Close()
+			closeWriteFile(f, fname)
 			ntree++
 		}
 	},

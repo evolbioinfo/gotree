@@ -27,6 +27,7 @@ In the output consensus tree:
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
 
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
@@ -35,7 +36,6 @@ In the output consensus tree:
 			io.ExitWithMessage(err)
 		}
 		f.WriteString(consensus.Newick() + "\n")
-		f.Close()
 	},
 }
 

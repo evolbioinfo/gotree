@@ -15,6 +15,8 @@ var scalesupportCmd = &cobra.Command{
 	Long:  `Scale branch supports from input trees by a given factor.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for tr := range treechan {
@@ -24,7 +26,6 @@ var scalesupportCmd = &cobra.Command{
 			tr.Tree.ScaleSupports(scalesupportfactor)
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

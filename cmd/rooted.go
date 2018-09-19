@@ -20,6 +20,8 @@ gotree stats rooted -i t.nw
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		f.WriteString("tree\trooted\n")
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
@@ -34,7 +36,6 @@ gotree stats rooted -i t.nw
 				f.WriteString("unrooted\n")
 			}
 		}
-		f.Close()
 	},
 }
 

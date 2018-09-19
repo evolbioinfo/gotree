@@ -16,7 +16,8 @@ var nexusCmd = &cobra.Command{
 - Output format: Nexus.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		defer f.Close()
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		nex, err := nexus.WriteNexus(treechan)

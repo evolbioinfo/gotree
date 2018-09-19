@@ -54,7 +54,7 @@ var svgCmd = &cobra.Command{
 			l.SetDisplayNodeComments(drawNodeComment)
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
-			f.Close()
+			closeWriteFile(f, fname)
 			ntree++
 		}
 	},

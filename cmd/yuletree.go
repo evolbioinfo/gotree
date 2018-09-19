@@ -15,8 +15,9 @@ func yuleTree(nbtrees int, nbtips int, output string, seed int64, rooted bool) e
 
 	rand.Seed(seed)
 
-	if output != "stdout" {
+	if output != "stdout" && output != "-" {
 		f, err = os.Create(output)
+		defer f.Close()
 	} else {
 		f = os.Stdout
 	}
@@ -31,7 +32,7 @@ func yuleTree(nbtrees int, nbtips int, output string, seed int64, rooted bool) e
 		}
 		f.WriteString(t.Newick() + "\n")
 	}
-	f.Close()
+
 	return nil
 }
 

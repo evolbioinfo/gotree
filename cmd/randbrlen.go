@@ -25,6 +25,8 @@ Length follows an exponential distribution of parameter lambda=1/0.1
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()
 
@@ -38,7 +40,6 @@ Length follows an exponential distribution of parameter lambda=1/0.1
 			}
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

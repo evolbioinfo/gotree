@@ -25,6 +25,8 @@ gotree stats nodes -i t.nw
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		f.WriteString("tree\tnid\tnneigh\tname\tdepth\tcomments\n")
 		var depth int
 		var err error
@@ -43,7 +45,6 @@ gotree stats nodes -i t.nw
 				f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\t%d\t%s\n", t.Id, i, n.Nneigh(), n.Name(), depth, n.CommentsString()))
 			}
 		}
-		f.Close()
 	},
 }
 

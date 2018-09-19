@@ -25,6 +25,8 @@ gotree stats tips -i t.mw
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		f.WriteString("tree\tid\tnneigh\tname\n")
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
@@ -38,7 +40,6 @@ gotree stats tips -i t.mw
 				}
 			}
 		}
-		f.Close()
 	},
 }
 

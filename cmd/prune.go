@@ -86,6 +86,8 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 		rand.Seed(seed)
 
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		comptree := readTree(intree2file)
 
 		// Read ref Trees
@@ -114,7 +116,6 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 			}
 			f.WriteString(reftree.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

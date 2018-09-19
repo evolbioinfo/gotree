@@ -37,7 +37,7 @@ The supports implemented are :
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		RootCmd.PersistentPreRun(cmd, args)
 		var err error
-		if supportOutFile != "stdout" {
+		if supportOutFile != "stdout" && supportOutFile != "-" {
 			supportOut, err = os.Create(supportOutFile)
 		} else {
 			supportOut = os.Stdout
@@ -54,7 +54,7 @@ The supports implemented are :
 			io.ExitWithMessage(err)
 		}
 		if rawSupportOutputFile != "none" {
-			if rawSupportOutputFile != "stdout" {
+			if rawSupportOutputFile != "stdout" && rawSupportOutputFile != "-" {
 				rawSupportOut, err = os.Create(rawSupportOutputFile)
 			} else {
 				rawSupportOut = os.Stdout
@@ -65,8 +65,9 @@ The supports implemented are :
 		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		supportOut.Close()
-		supportLog.Close()
+		closeWriteFile(supportOut, supportOutFile)
+		closeWriteFile(supportLog, supportLogFile)
+		closeWriteFile(rawSupportOut, rawSupportOutputFile)
 	},
 }
 

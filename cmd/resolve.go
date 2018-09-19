@@ -21,6 +21,8 @@ var resolveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		rand.Seed(seed)
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()
 
@@ -31,7 +33,6 @@ var resolveCmd = &cobra.Command{
 			tr.Tree.Resolve()
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

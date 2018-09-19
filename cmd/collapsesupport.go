@@ -18,6 +18,8 @@ with support < threshold are removed.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -27,7 +29,6 @@ with support < threshold are removed.
 			t.Tree.CollapseLowSupport(lowSupportThreshold)
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

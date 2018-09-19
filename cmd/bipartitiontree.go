@@ -38,6 +38,8 @@ or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 		var outtree *tree.Tree
 
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		tr := readTree(intreefile)
 		tr.UpdateTipIndex()
 		if tipfile != "none" {
@@ -81,7 +83,6 @@ or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 		}
 
 		f.WriteString(outtree.Newick() + "\n")
-		f.Close()
 	},
 }
 

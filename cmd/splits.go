@@ -18,6 +18,8 @@ Then: One line per branch, and 0/1
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -39,7 +41,6 @@ Then: One line per branch, and 0/1
 				f.WriteString(e.DumpBitSet() + "\n")
 			}
 		}
-		f.Close()
 	},
 }
 

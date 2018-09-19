@@ -33,3 +33,7 @@
 [[constraint]]
   branch = "master"
   name = "golang.org/x/image"
+  
+[[constraint]]
+  name = "github.com/abiosoft/ishell"
+  version = "v2.0.0"

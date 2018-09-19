@@ -12,6 +12,8 @@ var clearsupportCmd = &cobra.Command{
 	Long:  `Clear supports from input trees.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -21,7 +23,6 @@ var clearsupportCmd = &cobra.Command{
 			t.Tree.ClearSupports()
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

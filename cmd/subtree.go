@@ -28,6 +28,8 @@ The only matching node must be an internal node, otherwise, it will do nothing a
 		var nodes []*tree.Node
 
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		i := 0
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
@@ -59,7 +61,6 @@ The only matching node must be an internal node, otherwise, it will do nothing a
 			}
 			i++
 		}
-		f.Close()
 	},
 }
 

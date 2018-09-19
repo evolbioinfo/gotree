@@ -30,6 +30,8 @@ gotree shuffletips -i t.nw
 		// Read Tree
 		rand.Seed(seed)
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -39,7 +41,6 @@ gotree shuffletips -i t.nw
 			t.Tree.ShuffleTips()
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

@@ -15,8 +15,9 @@ func uniformTree(nbtrees int, nbtips int, output string, seed int64, rooted bool
 
 	rand.Seed(seed)
 
-	if output != "stdout" {
+	if output != "stdout" && output != "-" {
 		f, err = os.Create(output)
+		defer f.Close()
 	} else {
 		f = os.Stdout
 	}
@@ -31,7 +32,6 @@ func uniformTree(nbtrees int, nbtips int, output string, seed int64, rooted bool
 		}
 		f.WriteString(t.Newick() + "\n")
 	}
-	f.Close()
 	return nil
 }
 

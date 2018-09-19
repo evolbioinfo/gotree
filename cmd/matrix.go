@@ -14,6 +14,8 @@ var matrixCmd = &cobra.Command{
 	Long:  `Prints distance matrix associated to the input tree.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()
 
@@ -32,7 +34,6 @@ var matrixCmd = &cobra.Command{
 				f.WriteString("\n")
 			}
 		}
-		f.Close()
 	},
 }
 

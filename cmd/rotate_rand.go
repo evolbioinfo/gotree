@@ -31,6 +31,8 @@ gotree rotate rand -i t.nw
 		// Read Tree
 		rand.Seed(seed)
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -40,7 +42,6 @@ gotree rotate rand -i t.nw
 			t.Tree.RotateInternalNodes()
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

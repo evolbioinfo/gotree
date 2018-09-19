@@ -33,7 +33,7 @@ var topologiesCmd = &cobra.Command{
 			for _, t := range trees {
 				f.WriteString(t.Newick() + "\n")
 			}
-			f.Close()
+			closeWriteFile(f, generateOutputfile)
 		}
 	},
 }

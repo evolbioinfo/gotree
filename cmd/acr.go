@@ -66,11 +66,11 @@ randomly before going deeper in the tree.
 
 		// Computing parsimony ACR and writing each trees
 		f := openWriteFile(outtreefile)
-		defer f.Close()
+		defer closeWriteFile(f, outtreefile)
 
 		if outresfile != "none" {
 			resfile = openWriteFile(outresfile)
-			defer resfile.Close()
+			defer closeWriteFile(resfile, outresfile)
 		}
 		for t := range treechan {
 			statemap, err = acr.ParsimonyAcr(t.Tree, tipstates, algo, acrrandomresolve)

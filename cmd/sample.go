@@ -71,10 +71,11 @@ If the number of desired trees is > number of input trees:
 		}
 
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		for _, t := range outtrees {
 			f.WriteString(t.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

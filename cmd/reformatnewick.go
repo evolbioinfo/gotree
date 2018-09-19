@@ -16,6 +16,8 @@ var newickCmd = &cobra.Command{
 - Output format: Newick.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 
@@ -25,7 +27,6 @@ var newickCmd = &cobra.Command{
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

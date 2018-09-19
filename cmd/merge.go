@@ -19,7 +19,7 @@ Edges connecting new root with old roots have length of 1.0.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		defer f.Close()
+		defer closeWriteFile(f, outtreefile)
 
 		refTree := readTree(intreefile)
 		compTree := readTree(intree2file)

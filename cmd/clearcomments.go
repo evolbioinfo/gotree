@@ -30,6 +30,8 @@ If both or none are given, will remove every comments.
 		}
 
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -44,8 +46,6 @@ If both or none are given, will remove every comments.
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
-
 	},
 }
 

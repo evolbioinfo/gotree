@@ -17,6 +17,8 @@ var textCmd = &cobra.Command{
 		var d draw.TreeDrawer
 		var l draw.TreeLayout
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -29,7 +31,6 @@ var textCmd = &cobra.Command{
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
 		}
-		f.Close()
 	},
 }
 

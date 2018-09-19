@@ -11,9 +11,11 @@ import (
 	"strconv"
 	"strings"
 
+	//"github.com/alanchchen/krait"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/fileutils"
 	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/shell"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
@@ -65,20 +67,29 @@ Different usages are implemented:
 			treeformat = utils.FORMAT_NEWICK
 		}
 	},
+
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+	},
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	// We open a gotree console to interactively execute commands
+	s := shell.New()
+	shell.AddCommands(s, RootCmd, nil, RootCmd.Commands()...)
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
+	s.Run()
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
 	maxcpus := runtime.NumCPU()
+	//RootCmd.AddCommand(krait.NewConsoleCommand())
+
 	RootCmd.PersistentFlags().IntVarP(&rootCpus, "threads", "t", 1, "Number of threads (Max="+strconv.Itoa(maxcpus)+")")
 	RootCmd.PersistentFlags().StringVar(&rootInputFormat, "format", "newick", "Input tree format (newick, nexus, or phyloxml)")
 }
@@ -96,6 +107,12 @@ func openWriteFile(file string) *os.File {
 			io.ExitWithMessage(err)
 		}
 		return f
+	}
+}
+
+func closeWriteFile(f goio.Closer, filename string) {
+	if filename != "-" && filename != "stdout" {
+		f.Close()
 	}
 }
 

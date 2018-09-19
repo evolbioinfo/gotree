@@ -18,6 +18,8 @@ gotree minbrlen -i tree.nw -o out.nw -l 0.001
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, trees := readTrees(intreefile)
 		defer treefile.Close()
 
@@ -32,8 +34,6 @@ gotree minbrlen -i tree.nw -o out.nw -l 0.001
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
-
 	},
 }
 

@@ -60,6 +60,8 @@ As output, a tab delimited file with columns:
 		fplen := make([]int, nbsteps)
 
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		intree := readTree(intreefile)
 		truetree := readTree(intree2file)
 
@@ -140,7 +142,6 @@ As output, a tab delimited file with columns:
 			fmt.Fprintf(f, "%f\t%d\t%d\t%d\t%d\n", thr, tp[i], fp[i], tplen[i], fplen[i])
 			i++
 		}
-		f.Close()
 	},
 }
 

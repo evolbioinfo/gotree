@@ -22,6 +22,8 @@ For example:
 	Run: func(cmd *cobra.Command, args []string) {
 		/* Dividing trees */
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		f.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tsumbrlen\tmeansupport\tmediansupport\trooted\tnbcherries\tcolless\tsackin\n")
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
@@ -47,7 +49,6 @@ For example:
 			f.WriteString(fmt.Sprintf("\t%d", t.Tree.CollessIndex()))
 			f.WriteString(fmt.Sprintf("\t%d\n", t.Tree.SackinIndex()))
 		}
-		f.Close()
 	},
 }
 

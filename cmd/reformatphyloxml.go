@@ -20,6 +20,8 @@ branch supports are kept.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		xml, err := phyloxml.WritePhyloXML(treechan)
@@ -27,7 +29,6 @@ branch supports are kept.
 			io.ExitWithMessage(err)
 		}
 		f.WriteString(xml)
-		f.Close()
 	},
 }
 

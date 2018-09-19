@@ -24,6 +24,8 @@ Takes precision=15 if precision>15.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
@@ -33,7 +35,6 @@ Takes precision=15 if precision>15.
 			t.Tree.RoundLengths(roundlengthprecision)
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

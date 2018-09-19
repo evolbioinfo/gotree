@@ -44,7 +44,8 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
-		defer f.Close()
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
 

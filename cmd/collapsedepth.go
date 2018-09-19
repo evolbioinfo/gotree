@@ -24,8 +24,11 @@ will be collapsed.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		treefile, treechan := readTrees(intreefile)
 		defer treefile.Close()
+
 		for t := range treechan {
 			t.Tree.ReinitIndexes()
 			if t.Err != nil {
@@ -34,7 +37,6 @@ will be collapsed.
 			t.Tree.CollapseTopoDepth(mindepthThreshold, maxdepthThreshold)
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
 	},
 }
 

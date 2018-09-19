@@ -64,8 +64,8 @@ The resulting trees are star trees to which we added one biparition. All branch 
 					if !edgeS.e.Right().Tip() {
 						var edgeOut *os.File
 
-						if outtreefile == "stdout" {
-							edgeOut = openWriteFile(outtreefile)
+						if outtreefile == "stdout" || outtreefile == "-" {
+							edgeOut = openWriteFile("stdout")
 						} else {
 							edgeOut = openWriteFile(fmt.Sprintf("%s_%06d.nw", outtreefile, edgeS.idx))
 						}
@@ -108,9 +108,7 @@ The resulting trees are star trees to which we added one biparition. All branch 
 							// We build a new Tree with a single edge
 							edgeOut.WriteString(edgeTree.Newick() + "\n")
 						}
-						if outtreefile != "stdout" {
-							edgeOut.Close()
-						}
+						closeWriteFile(edgeOut, outtreefile)
 					}
 				}
 				wg.Done()

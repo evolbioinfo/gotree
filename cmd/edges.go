@@ -41,6 +41,8 @@ gotree stats edges -i t.nw
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		f := openWriteFile(outtreefile)
+		defer closeWriteFile(f, outtreefile)
+
 		f.WriteString("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tcomments\tleftname\trightcomment\tleftcomment")
 		f.WriteString("\n")
 		treefile, trees := readTrees(intreefile)
@@ -59,7 +61,6 @@ gotree stats edges -i t.nw
 				f.WriteString("\n")
 			}
 		}
-		f.Close()
 	},
 }
 
