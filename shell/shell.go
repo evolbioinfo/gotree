@@ -2,6 +2,7 @@ package shell
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/abiosoft/ishell"
 	"github.com/spf13/cobra"
@@ -11,12 +12,20 @@ import (
 type Shell interface {
 	AddCmd(*ishell.Cmd)
 	Run()
+	Println(...interface{})
 }
 
 func AddCommands(s Shell, rootcmd *cobra.Command, parent *ishell.Cmd, cmds ...*cobra.Command) {
 	for _, cmd := range cmds {
+		cmd.Flags().VisitAll(func(f *pflag.Flag) {
+			// In console mode, we deactivate stdin input files
+			if f.Value.String() == "stdin" || f.Value.String() == "-" ||
+				f.DefValue == "stdin" || f.DefValue == "-" {
+				f.Value.Set("none")
+				f.DefValue = "none"
+			}
+		})
 		if cmd.Name() != "help" {
-			fmt.Println(cmd.Name())
 			ishellcmd := &ishell.Cmd{
 				Name:     cmd.Name(),
 				Help:     cmd.Short,
@@ -25,10 +34,16 @@ func AddCommands(s Shell, rootcmd *cobra.Command, parent *ishell.Cmd, cmds ...*c
 					// We reinitialize all flags
 					cobrac, _, err := rootcmd.Find(c.RawArgs)
 					if err != nil {
-						fmt.Println(err.Error())
+						fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 					} else {
 						cobrac.Flags().VisitAll(func(f *pflag.Flag) {
-							f.Value.Set(f.DefValue)
+							// In console mode, we deactivate stdin input files
+							if f.Value.String() == "stdin" || f.Value.String() == "-" ||
+								f.DefValue == "stdin" || f.DefValue == "-" {
+								f.Value.Set("none")
+							} else {
+								f.Value.Set(f.DefValue)
+							}
 						})
 						// Then we execute the command using cobra
 						rootcmd.SetArgs(c.RawArgs)
