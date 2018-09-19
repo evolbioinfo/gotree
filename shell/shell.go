@@ -2,7 +2,6 @@ package shell
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/abiosoft/ishell"
 	"github.com/spf13/cobra"

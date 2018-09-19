@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	goio "io"
 	"math/rand"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -26,21 +29,33 @@ Example of usage:
 
 gotree rotate sort -i t.nw
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		// Read Tree
 		rand.Seed(seed)
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			t.Tree.SortNeighborsByTips()
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		return
 	},
 }
 

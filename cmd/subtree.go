@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
 	"log"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -23,24 +25,35 @@ If several nodes match the given name/regexp, do nothing, and print the name of 
 The only matching node must be an internal node, otherwise, it will do nothing and print the tip.
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		var nodes []*tree.Node
 
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
 		i := 0
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 
 			nodes, err = t.Tree.SelectNodes(inputname)
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 			switch len(nodes) {
 			case 1:
@@ -61,6 +74,7 @@ The only matching node must be an internal node, otherwise, it will do nothing a
 			}
 			i++
 		}
+		return
 	},
 }
 

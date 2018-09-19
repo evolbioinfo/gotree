@@ -3,9 +3,12 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/spf13/cobra"
+	goio "io"
 	"os"
+
+	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
+	"github.com/spf13/cobra"
 )
 
 // difftipsCmd represents the difftips command
@@ -26,25 +29,40 @@ should produce the following output:
 = 3
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var refTree *tree.Tree
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var ok bool
+
 		if intree2file == "none" {
-			io.ExitWithMessage(errors.New("Compare tree file must be provided with -c"))
+			err = errors.New("Compare tree file must be provided with -c")
+			io.LogError(err)
+			return
 		}
 
-		refTree := readTree(intreefile)
+		if refTree, err = readTree(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		refTree.UpdateTipIndex()
-		treefile, treechan := readTrees(intree2file)
+		if treefile, treechan, err = readTrees(intree2file); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for compTree := range treechan {
 			if compTree.Err != nil {
-				io.ExitWithMessage(compTree.Err)
+				io.LogError(compTree.Err)
+				return compTree.Err
 			}
 			compTree.Tree.UpdateTipIndex()
 
 			eq := 0
 			for _, t := range refTree.Tips() {
-				if ok, err3 := compTree.Tree.ExistsTip(t.Name()); err3 != nil {
-					io.ExitWithMessage(err3)
+				if ok, err = compTree.Tree.ExistsTip(t.Name()); err != nil {
+					io.LogError(err)
+					return
 				} else {
 					if !ok {
 						fmt.Fprintf(os.Stdout, "(Tree %d) < %s\n", compTree.Id, t.Name())
@@ -54,8 +72,9 @@ should produce the following output:
 				}
 			}
 			for _, t := range compTree.Tree.Tips() {
-				if ok, err4 := refTree.ExistsTip(t.Name()); err4 != nil {
-					io.ExitWithMessage(err4)
+				if ok, err = refTree.ExistsTip(t.Name()); err != nil {
+					io.LogError(err)
+					return
 				} else {
 					if !ok {
 						fmt.Fprintf(os.Stdout, "(Tree %d) > %s\n", compTree.Id, t.Name())
@@ -64,6 +83,7 @@ should produce the following output:
 			}
 			fmt.Fprintf(os.Stdout, "(Tree %d) = %d\n", compTree.Id, eq)
 		}
+		return
 	},
 }
 

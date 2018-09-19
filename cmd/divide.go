@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -21,21 +24,33 @@ Example:
 gotree divide -i trees.nw -o prefix_
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		/* Dividing trees */
 		i := 0
-		treefile, trees := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
-		for t := range trees {
+		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
-			f := openWriteFile(fmt.Sprintf("%s_%03d.nw", outtreefile, i))
+			if f, err = openWriteFile(fmt.Sprintf("%s_%03d.nw", outtreefile, i)); err != nil {
+				io.LogError(err)
+				return
+			}
 			f.WriteString(t.Tree.Newick() + "\n")
 			f.Close()
 			i++
 		}
+		return
 	},
 }
 

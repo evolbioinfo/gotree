@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/fredericlemoine/gotree/download"
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -16,20 +19,27 @@ var dlncbiCmd = &cobra.Command{
 	Use:   "ncbitax",
 	Short: "Downloads the full ncbi taxonomy in newick format",
 	Long:  `Downloads the full ncbi taxonomy in newick format`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var t *tree.Tree
+		var f *os.File
+
 		dl := download.NewNcbiTreeDownloader()
 		dl.SetInternalNodesTaxId(ncbinodetaxid)
 		dl.SetTipsTaxId(ncbitiptaxid)
 		if ncbitaxidtoname != "none" {
 			dl.SetMapFileOutputPath(ncbitaxidtoname)
 		}
-		t, err := dl.Download("")
-		if err != nil {
-			io.ExitWithMessage(err)
+		if t, err = dl.Download(""); err != nil {
+			io.LogError(err)
+			return
 		}
-		f := openWriteFile(ncbioutput)
+		if f, err = openWriteFile(ncbioutput); err != nil {
+			io.LogError(err)
+			return
+		}
 		f.WriteString(t.Newick() + "\n")
 		closeWriteFile(f, ncbioutput)
+		return
 	},
 }
 

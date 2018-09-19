@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -23,16 +26,27 @@ Example of usage:
 gotree stats tips -i t.mw
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		f := openWriteFile(outtreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
 		f.WriteString("tree\tid\tnneigh\tname\n")
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			for i, n := range t.Tree.Nodes() {
 				if n.Nneigh() == 1 {
@@ -40,6 +54,7 @@ gotree stats tips -i t.mw
 				}
 			}
 		}
+		return
 	},
 }
 

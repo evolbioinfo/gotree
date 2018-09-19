@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	goio "io"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/fredericlemoine/gotree/io"
@@ -80,27 +82,43 @@ By order of priority:
 
 If -r is given, behavior is reversed, it keep given tips instead of removing them.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var comptree *tree.Tree
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		var specificTipNames []string
 		rand.Seed(seed)
 
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		comptree := readTree(intree2file)
+		if comptree, err = readTree(intree2file); err != nil {
+			io.LogError(err)
+			return
+		}
 
 		// Read ref Trees
-		treefile, trees := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
-		for reftree := range trees {
+		for reftree := range treechan {
 			if reftree.Err != nil {
 				io.ExitWithMessage(reftree.Err)
 			}
 			var tips []string
 			if tipfile != "none" {
-				tips = parseTipsFile(tipfile)
+				if tips, err = parseTipsFile(tipfile); err != nil {
+					io.LogError(err)
+					return
+				}
 				err = reftree.Tree.RemoveTips(revert, tips...)
 			} else if comptree != nil {
 				specificTipNames = specificTips(reftree.Tree, comptree)
@@ -112,10 +130,12 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 				err = reftree.Tree.RemoveTips(revert, args...)
 			}
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 			f.WriteString(reftree.Tree.Newick() + "\n")
 		}
+		return
 	},
 }
 

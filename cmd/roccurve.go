@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"sync"
+
+	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"sync"
 )
 
 var roccurveMinThr float64
@@ -50,7 +53,10 @@ As output, a tab delimited file with columns:
 5) number of FP with branch length filter
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var intree, truetree *tree.Tree
+
 		nbsteps := int((float64(roccurveMaxThr)-float64(roccurveMinThr))/float64(roccurveStepThr)) + 1
 		inputTreeEdges := make(chan *tree.Edge, 100)
 		statResults := make(chan roccurveOutStats, 100)
@@ -59,11 +65,20 @@ As output, a tab delimited file with columns:
 		tplen := make([]int, nbsteps)
 		fplen := make([]int, nbsteps)
 
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		intree := readTree(intreefile)
-		truetree := readTree(intree2file)
+		if intree, err = readTree(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
+		if truetree, err = readTree(intree2file); err != nil {
+			io.LogError(err)
+			return
+		}
 
 		/* We fill the edges channel */
 		go func() {
@@ -142,6 +157,7 @@ As output, a tab delimited file with columns:
 			fmt.Fprintf(f, "%f\t%d\t%d\t%d\t%d\n", thr, tp[i], fp[i], tplen[i], fplen[i])
 			i++
 		}
+		return
 	},
 }
 

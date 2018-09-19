@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"errors"
+	goio "io"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -37,33 +40,51 @@ error.
 If the option -r|--remove-outgroup is given, then the outgroup is
 removed after reroot.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		var tips []string
 		if tipfile != "none" {
-			tips = parseTipsFile(tipfile)
+			if tips, err = parseTipsFile(tipfile); err != nil {
+				io.LogError(err)
+				return
+			}
 		} else if len(args) > 0 {
 			tips = args
 		} else {
-			io.ExitWithMessage(errors.New("Not group given"))
+			err = errors.New("Not group given")
+			io.LogError(err)
+			return
 		}
 
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		treefile, trees := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
-		for t := range trees {
+		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
-			err := t.Tree.RerootOutGroup(removeoutgroup, rerootstrict, tips...)
+			err = t.Tree.RerootOutGroup(removeoutgroup, rerootstrict, tips...)
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		return
 	},
 }
 

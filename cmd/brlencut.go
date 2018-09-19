@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -25,19 +28,31 @@ Example:
 gotree brlen cut -i tree.nhx -l 0.1 -o groups.txt
 
  `,
-	Run: func(cmd *cobra.Command, args []string) {
-		f := openWriteFile(outtreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var bags []*tree.TipBag
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
-			bags, err := t.Tree.CutEdgesMaxLength(cutlengthmax)
-			if err != nil {
-				io.ExitWithMessage(t.Err)
+			if bags, err = t.Tree.CutEdgesMaxLength(cutlengthmax); err != nil {
+				io.LogError(err)
+				return
 			}
 			for _, b := range bags {
 				f.WriteString(fmt.Sprintf("%d\t%d\t", t.Id, b.Size()))
@@ -50,6 +65,7 @@ gotree brlen cut -i tree.nhx -l 0.1 -o groups.txt
 				f.WriteString("\n")
 			}
 		}
+		return
 	},
 }
 

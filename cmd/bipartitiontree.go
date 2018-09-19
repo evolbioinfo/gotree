@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -28,22 +29,32 @@ Tips may be given using a file with --tipfile (-f) or as last arguments of the c
    gotree compute bipartitiontree -i tree.nw -f tipfile -o outtree.nw
 or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var tipNames []string
 		var leftTipsMap map[string]bool = make(map[string]bool)
 		var leftTips []string = make([]string, 0, 10)
 		var rightTips []string = make([]string, 0, 10)
 		var existTip bool
 		var outtree *tree.Tree
+		var f *os.File
+		var tr *tree.Tree
 
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		tr := readTree(intreefile)
+		if tr, err = readTree(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		tr.UpdateTipIndex()
 		if tipfile != "none" {
-			tipNames = parseTipsFile(tipfile)
+			if tipNames, err = parseTipsFile(tipfile); err != nil {
+				io.LogError(err)
+				return
+			}
 		} else {
 			tipNames = args
 		}
@@ -52,7 +63,8 @@ or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 		for _, t := range tipNames {
 			existTip, err = tr.ExistsTip(t)
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 			if !existTip {
 				io.LogWarning(errors.New(fmt.Sprintf("Tip %s does not exist in the tree", t)))
@@ -63,7 +75,8 @@ or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 		}
 
 		if len(leftTips) == 0 {
-			io.ExitWithMessage(errors.New("No given tips exist in the input tree"))
+			io.LogError(errors.New("No given tips exist in the input tree"))
+			return
 		}
 
 		//We take the tips of the input tree that are not in the map => right side of the bipartition
@@ -73,16 +86,19 @@ or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 			}
 		}
 		if len(rightTips) == 0 {
-			io.ExitWithMessage(errors.New("No tips left on the right side of the bipartition"))
+			io.LogError(errors.New("No tips left on the right side of the bipartition"))
+			return
 		}
 
 		outtree, err = tree.BipartitionTree(leftTips, rightTips)
 
 		if err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		}
 
 		f.WriteString(outtree.Newick() + "\n")
+		return
 	},
 }
 

@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	goio "io"
 	"math/rand"
 	"os"
 	"regexp"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/fredericlemoine/gotree/acr"
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -39,11 +41,15 @@ If --random-resolve is given then, during the last pass, each time
 a node with several possible states still exists, one state is chosen 
 randomly before going deeper in the tree.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var algo int
 		var statemap map[string]string
+		var tipstates map[string]string
 		var resfile *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var f *os.File
+
 		rand.Seed(seed)
 
 		switch strings.ToLower(parsimonyAlgo) {
@@ -56,26 +62,41 @@ randomly before going deeper in the tree.
 		case "none":
 			algo = acr.ALGO_NONE
 		default:
-			io.ExitWithMessage(fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo))
+			io.LogError(fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo))
+			return
 		}
 		// Reading tip state in an input file
-		tipstates := parseTipStates(acrstates)
+		if tipstates, err = parseTipStates(acrstates); err != nil {
+			io.LogError(err)
+			return
+		}
 		// Reading the trees
-		treefile, treechan := readTrees(intreefile)
+
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
 		// Computing parsimony ACR and writing each trees
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
 		if outresfile != "none" {
-			resfile = openWriteFile(outresfile)
+			if resfile, err = openWriteFile(outresfile); err != nil {
+				io.LogError(err)
+				return
+			}
 			defer closeWriteFile(resfile, outresfile)
 		}
 		for t := range treechan {
 			statemap, err = acr.ParsimonyAcr(t.Tree, tipstates, algo, acrrandomresolve)
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 			if outresfile != "none" {
@@ -84,6 +105,7 @@ randomly before going deeper in the tree.
 				}
 			}
 		}
+		return
 	},
 }
 
@@ -99,24 +121,24 @@ func init() {
 
 }
 
-func parseTipStates(file string) map[string]string {
+func parseTipStates(file string) (states map[string]string, err error) {
 	var f *os.File
 	var r *bufio.Reader
-	states := make(map[string]string)
-	var err error
+	var gr *gzip.Reader
+
+	states = make(map[string]string)
 
 	if file == "stdin" || file == "-" {
 		f = os.Stdin
 	} else {
-		f, err = os.Open(file)
-		if err != nil {
-			io.ExitWithMessage(err)
+		if f, err = os.Open(file); err != nil {
+			return
 		}
 	}
 
 	if strings.HasSuffix(file, ".gz") {
-		if gr, err := gzip.NewReader(f); err != nil {
-			io.ExitWithMessage(err)
+		if gr, err = gzip.NewReader(f); err != nil {
+			return
 		} else {
 			r = bufio.NewReader(gr)
 		}
@@ -129,10 +151,11 @@ func parseTipStates(file string) map[string]string {
 	for e == nil {
 		cols := re.Split(l, -1)
 		if cols == nil || len(cols) != 2 {
-			io.ExitWithMessage(errors.New("Bad format for tip states: Wrong number of columns"))
+			err = errors.New("Bad format for tip states: Wrong number of columns")
+			return
 		}
 		states[cols[0]] = cols[1]
 		l, e = Readln(r)
 	}
-	return states
+	return
 }

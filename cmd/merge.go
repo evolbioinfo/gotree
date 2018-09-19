@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -17,19 +20,32 @@ Tip names must be different between the two trees, otherwise returns an error
 Edges connecting new root with old roots have length of 1.0.
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		f := openWriteFile(outtreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var reftree, comptree *tree.Tree
+
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		refTree := readTree(intreefile)
-		compTree := readTree(intree2file)
-		refTree.UpdateTipIndex()
-		compTree.UpdateTipIndex()
-		err := refTree.Merge(compTree)
-		if err != nil {
-			io.ExitWithMessage(err)
+		if reftree, err = readTree(intreefile); err != nil {
+			io.LogError(err)
+			return
 		}
-		f.WriteString(refTree.Newick() + "\n")
+		if comptree, err = readTree(intree2file); err != nil {
+			io.LogError(err)
+			return
+		}
+		reftree.UpdateTipIndex()
+		comptree.UpdateTipIndex()
+		if err = reftree.Merge(comptree); err != nil {
+			io.LogError(err)
+			return
+		}
+		f.WriteString(reftree.Newick() + "\n")
+		return
 	},
 }
 

@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	//"github.com/alanchchen/krait"
-	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/fileutils"
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/shell"
@@ -68,6 +66,13 @@ Different usages are implemented:
 		}
 	},
 
+	Run: func(cmd *cobra.Command, args []string) {
+		s := shell.New()
+		shell.AddCommands(s, cmd.Root(), nil, cmd.Root().Commands()...)
+		// We open a gotree console to interactively execute commands
+		s.Run()
+	},
+
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 	},
 }
@@ -75,14 +80,10 @@ Different usages are implemented:
 // Execute adds all child commands to the root command sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	// We open a gotree console to interactively execute commands
-	s := shell.New()
-	shell.AddCommands(s, RootCmd, nil, RootCmd.Commands()...)
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
-		os.Exit(-1)
+		os.Exit(1)
 	}
-	s.Run()
 }
 
 func init() {
@@ -98,16 +99,13 @@ func init() {
 func initConfig() {
 }
 
-func openWriteFile(file string) *os.File {
+func openWriteFile(file string) (f *os.File, err error) {
 	if file == "stdout" || file == "-" {
-		return os.Stdout
+		f = os.Stdout
 	} else {
-		f, err := os.Create(file)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
-		return f
+		f, err = os.Create(file)
 	}
+	return
 }
 
 func closeWriteFile(f goio.Closer, filename string) {
@@ -134,49 +132,47 @@ func Readln(r *bufio.Reader) (string, error) {
 }
 
 /*File in output must be closed by calling function */
-func readTrees(infile string) (goio.Closer, <-chan tree.Trees) {
+func readTrees(infile string) (treefile goio.Closer, treeChannel <-chan tree.Trees, err error) {
 	// Read Tree
-	var treefile goio.Closer
 	var treereader *bufio.Reader
-	var err error
-	var treeChannel <-chan tree.Trees
 
-	if treefile, treereader, err = utils.GetReader(infile); err != nil {
-		io.ExitWithMessage(err)
+	if treefile, treereader, err = utils.GetReader(infile); err == nil {
+		treeChannel = utils.ReadMultiTrees(treereader, treeformat)
 	}
-	treeChannel = utils.ReadMultiTrees(treereader, treeformat)
 
-	return treefile, treeChannel
+	return
 }
 
-func readTree(infile string) *tree.Tree {
-	var tree *tree.Tree
-	var err error
+func readTree(infile string) (t *tree.Tree, err error) {
 	if infile != "none" {
 		// Read comp Tree : Only one tree in input
-		tree, err = utils.ReadTree(infile, treeformat)
-		if err != nil {
-			io.ExitWithMessage(err)
-		}
+		t, err = utils.ReadTree(infile, treeformat)
+	} else {
+		err = errors.New("Cannot use \"none\" as input file")
 	}
-	return tree
+	return
 }
 
-func parseTipsFile(file string) []string {
-	tips := make([]string, 0, 100)
-	f, r, err := utils.GetReader(file)
-	if err != nil {
-		io.ExitWithMessage(err)
-	}
-	l, e := Readln(r)
-	for e == nil {
-		for _, name := range strings.Split(l, ",") {
-			tips = append(tips, name)
+func parseTipsFile(file string) (tips []string, err error) {
+
+	var treereader *bufio.Reader
+	var treefile goio.Closer
+	var line string
+	var err2 error
+
+	tips = make([]string, 0, 100)
+
+	if treefile, treereader, err = utils.GetReader(file); err == nil {
+		line, err2 = Readln(treereader)
+		for err2 == nil {
+			for _, name := range strings.Split(line, ",") {
+				tips = append(tips, name)
+			}
+			line, err2 = Readln(treereader)
 		}
-		l, e = Readln(r)
+		treefile.Close()
 	}
-	f.Close()
-	return tips
+	return
 }
 
 func readMapFile(file string, revert bool) (map[string]string, error) {

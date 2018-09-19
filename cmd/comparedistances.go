@@ -3,10 +3,12 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	goio "io"
 	"os"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/support"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -32,21 +34,34 @@ and for each internal edge ec of the compared tree, this command will print in t
 11. taxa to move
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var refTree *tree.Tree
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var depth int
+		var plus, minus []uint
+
 		fmt.Fprintf(os.Stderr, "Reference : %s\n", intreefile)
 		fmt.Fprintf(os.Stderr, "Compared  : %s\n", intree2file)
 
-		refTree := readTree(intreefile)
+		if refTree, err = readTree(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		refTree.ReinitIndexes()
 		names := refTree.SortedTips()
 
 		edges1 := refTree.Edges()
 		fmt.Printf("tree_id\ter_id\tec_id\ttdist\tec_length\tec_support\tec_topodepth\tmoving_taxa\n")
-		treefile, treechan := readTrees(intree2file)
+		if treefile, treechan, err = readTrees(intree2file); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t2 := range treechan {
 			if t2.Err != nil {
-				io.ExitWithMessage(t2.Err)
+				io.LogError(t2.Err)
+				return t2.Err
 			}
 			t2.Tree.ReinitIndexes()
 
@@ -82,7 +97,10 @@ and for each internal edge ec of the compared tree, this command will print in t
 								dist = uint16(len(tips)) - dist
 							}
 							var movedtaxabuf bytes.Buffer
-							plus, minus := speciesToMove(e1, e2, int(dist))
+							if plus, minus, err = speciesToMove(e1, e2, int(dist)); err != nil {
+								io.LogError(err)
+								return
+							}
 							for k, sp := range plus {
 								if k > 0 {
 									movedtaxabuf.WriteRune(',')
@@ -97,9 +115,9 @@ and for each internal edge ec of the compared tree, this command will print in t
 								movedtaxabuf.WriteRune('-')
 								movedtaxabuf.WriteString(names[sp])
 							}
-							depth, err := e2.TopoDepth()
-							if err != nil {
-								io.ExitWithMessage(err)
+							if depth, err = e2.TopoDepth(); err != nil {
+								io.LogError(err)
+								return
 							}
 							fmt.Printf("%d\t%d\t%d\t%d\t%s\t%s\t%d\t%s\n", t2.Id, e1.Id(), e2.Id(), int(dist), e2.LengthString(), e2.SupportString(), int(depth), movedtaxabuf.String())
 						}
@@ -107,6 +125,7 @@ and for each internal edge ec of the compared tree, this command will print in t
 				}
 			}
 		}
+		return
 	},
 }
 

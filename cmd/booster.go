@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
 	"math/rand"
 	"time"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/support"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -16,17 +18,27 @@ var boosterCmd = &cobra.Command{
 	Short: "Compute BOOSTER supports",
 	Long: `Compute BOOtstrap Support by TransfER
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var refTree *tree.Tree
+		var boottreefile goio.Closer
+		var boottreechan <-chan tree.Trees
+
 		writeLogBooster()
 		rand.Seed(seed)
-		refTree := readTree(supportIntree)
-		boottreefile, boottreechan := readTrees(supportBoottrees)
+		if refTree, err = readTree(supportIntree); err != nil {
+			io.LogError(err)
+			return
+		}
+		if boottreefile, boottreechan, err = readTrees(supportBoottrees); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer boottreefile.Close()
 
 		// Compute average supports (non normalized, e.g normalizedByExpected=false)
-		err := support.Booster(refTree, boottreechan, supportLog, supportSilent, movedtaxa, taxperbranches, hightaxperbranches, cutoff, false, rootCpus)
-		if err != nil {
-			io.ExitWithMessage(err)
+		if err = support.Booster(refTree, boottreechan, supportLog, supportSilent, movedtaxa, taxperbranches, hightaxperbranches, cutoff, false, rootCpus); err != nil {
+			io.LogError(err)
+			return
 		}
 		// If rawSupportOutputFile is set, then we print the raw support tree first
 		if rawSupportOutputFile != "none" {
@@ -38,6 +50,8 @@ var boosterCmd = &cobra.Command{
 		support.NormalizeTransferDistancesByDepth(refTree)
 		supportOut.WriteString(refTree.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
+
+		return
 	},
 }
 

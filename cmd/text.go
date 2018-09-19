@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	goio "io"
+	"os"
+
 	"github.com/fredericlemoine/gotree/draw"
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -13,17 +17,27 @@ var textCmd = &cobra.Command{
 	Use:   "text",
 	Short: "Print trees in ASCII",
 	Long:  `Print trees in ASCII.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
 		var d draw.TreeDrawer
 		var l draw.TreeLayout
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			d = draw.NewTextTreeDrawer(f, termwidth, len(t.Tree.Tips())*2, 10)
 			l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
@@ -31,6 +45,7 @@ var textCmd = &cobra.Command{
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
 		}
+		return
 	},
 }
 

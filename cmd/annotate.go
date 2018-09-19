@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	goio "io"
 	"os"
 	"strings"
 
@@ -42,11 +43,22 @@ Otherwise output tree won't have bootstrap support at the branches anymore
 
 If neither -c nor -m are given, gotree annotate will wait for a reference tree on stdin
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		f := openWriteFile(outtreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var compTree *tree.Tree
+
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
 		if mapfile != "none" {
@@ -68,7 +80,10 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 			}
 			// We will annotate branches using labels of closest branches in
 			// the closest tree
-			compTree := readTree(intree2file)
+			if compTree, err = readTree(intree2file); err != nil {
+				io.LogError(err)
+				return
+			}
 			compTree.ReinitIndexes()
 			edges2 := compTree.Edges()
 			for i, e := range edges2 {
@@ -118,6 +133,7 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 				f.WriteString(t.Tree.Newick() + "\n")
 			}
 		}
+		return
 	},
 }
 

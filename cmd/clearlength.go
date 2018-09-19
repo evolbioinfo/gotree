@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	goio "io"
+	"os"
+
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -10,19 +14,31 @@ var clearlengthCmd = &cobra.Command{
 	Use:   "clear",
 	Short: "Clear lengths from input trees",
 	Long:  `Clear lengths from input trees.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		f := openWriteFile(outtreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			t.Tree.ClearLengths()
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		return
 	},
 }
 

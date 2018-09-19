@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	goio "io"
+	"os"
+
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -23,20 +27,28 @@ If --edges-only is given: will only remove edge comments
 If --nodes-only is given: will only remove nodes comments
 If both or none are given, will remove every comments.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		if !edgecomments && !nodecomments {
 			edgecomments = true
 			nodecomments = true
 		}
 
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
-		treefile, treechan := readTrees(intreefile)
+		treefile, treechan, err = readTrees(intreefile)
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			if nodecomments {
 				t.Tree.ClearNodeComments()
@@ -46,6 +58,7 @@ If both or none are given, will remove every comments.
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		return
 	},
 }
 

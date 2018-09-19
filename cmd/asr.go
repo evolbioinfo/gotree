@@ -5,6 +5,7 @@ import (
 	"fmt"
 	goio "io"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/fredericlemoine/gotree/asr"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -42,12 +44,15 @@ If --random-resolve is given then, during the last pass, each time
 a node with several possible states still exists, one state is chosen 
 randomly before going deeper in the tree.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var align align.Alignment
 		var fi goio.Closer
 		var r *bufio.Reader
-		var err error
 		var algo int
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var f *os.File
+
 		rand.Seed(seed)
 
 		switch strings.ToLower(parsimonyAlgo) {
@@ -82,11 +87,17 @@ randomly before going deeper in the tree.
 		fi.Close()
 
 		// Reading the trees
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
 		// Computing parsimony ASR and writing each trees
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
 		for t := range treechan {
@@ -96,6 +107,7 @@ randomly before going deeper in the tree.
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
+		return
 	},
 }
 

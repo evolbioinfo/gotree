@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"errors"
+	goio "io"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -69,6 +72,9 @@ If --internal is specified, then internal nodes are renamed;
 --tips is true by default. To inactivate it, you must specify --tips=false .
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
 		var namemap map[string]string = nil
 		var err error
 		var setregex, setreplace bool
@@ -98,33 +104,39 @@ If --internal is specified, then internal nodes are renamed;
 			namemap = make(map[string]string)
 		}
 
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer closeWriteFile(f, outtreefile)
 
 		// Read ref Trees and rename them
-		treefile, trees := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
 		curid := 1
-		for tr := range trees {
+		for tr := range treechan {
 			if tr.Err != nil {
 				io.ExitWithMessage(tr.Err)
 			}
 
 			if autorename {
-				err = tr.Tree.RenameAuto(renameInternalNodes, renameTips, autorenamelength, &curid, namemap)
-				if err != nil {
-					io.ExitWithMessage(err)
+				if err = tr.Tree.RenameAuto(renameInternalNodes, renameTips, autorenamelength, &curid, namemap); err != nil {
+					io.LogError(err)
+					return
 				}
 			} else if setregex {
-				err = tr.Tree.RenameRegexp(renameInternalNodes, renameTips, renameRegex, renameReplaceBy, namemap)
-				if err != nil {
-					io.ExitWithMessage(err)
+				if err = tr.Tree.RenameRegexp(renameInternalNodes, renameTips, renameRegex, renameReplaceBy, namemap); err != nil {
+					io.LogError(err)
+					return
 				}
 			} else {
-				err = tr.Tree.Rename(namemap)
-				if err != nil {
-					io.ExitWithMessage(err)
+				if err = tr.Tree.Rename(namemap); err != nil {
+					io.LogError(err)
+					return
 				}
 			}
 
@@ -132,8 +144,12 @@ If --internal is specified, then internal nodes are renamed;
 		}
 
 		if (autorename || setregex) && mapfile != "none" {
-			writeNameMap(namemap, mapfile)
+			if err = writeNameMap(namemap, mapfile); err != nil {
+				io.LogError(err)
+				return
+			}
 		}
+		return
 	},
 }
 
@@ -151,8 +167,11 @@ func init() {
 	renameCmd.Flags().BoolVarP(&revert, "revert", "r", false, "Revert orientation of map file")
 }
 
-func writeNameMap(namemap map[string]string, outfile string) {
-	f := openWriteFile(outfile)
+func writeNameMap(namemap map[string]string, outfile string) (err error) {
+	var f *os.File
+	if f, err = openWriteFile(outfile); err != nil {
+		return
+	}
 	for old, new := range namemap {
 		f.WriteString(old)
 		f.WriteString("\t")
@@ -160,4 +179,5 @@ func writeNameMap(namemap map[string]string, outfile string) {
 		f.WriteString("\n")
 	}
 	f.Close()
+	return
 }

@@ -24,8 +24,13 @@ var edgeTreesCmd = &cobra.Command{
 
 The resulting trees are star trees to which we added one biparition. All branch lengths are set to 1.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		t := readTree(intreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var t *tree.Tree
+
+		if t, err = readTree(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		t.ReinitIndexes()
 		alltips := t.AllTipNames()
 		edges := make(chan EdgeStruct, 1000)
@@ -38,7 +43,8 @@ The resulting trees are star trees to which we added one biparition. All branch 
 				maxid := -1
 				for i, e := range t.Edges() {
 					if d, er := e.TopoDepth(); er != nil {
-						io.ExitWithMessage(er)
+						err = er
+						return
 					} else {
 						if d > maxdepth {
 							maxdepth = d
@@ -63,11 +69,18 @@ The resulting trees are star trees to which we added one biparition. All branch 
 				for edgeS := range edges {
 					if !edgeS.e.Right().Tip() {
 						var edgeOut *os.File
+						var err2 error
+						var bitsetindex uint
 
 						if outtreefile == "stdout" || outtreefile == "-" {
-							edgeOut = openWriteFile("stdout")
+							if edgeOut, err2 = openWriteFile("stdout"); err2 != nil {
+								err = err2
+								return
+							}
 						} else {
-							edgeOut = openWriteFile(fmt.Sprintf("%s_%06d.nw", outtreefile, edgeS.idx))
+							edgeOut, err2 = openWriteFile(fmt.Sprintf("%s_%06d.nw", outtreefile, edgeS.idx))
+							err = err2
+							return
 						}
 
 						if edgeformattext {
@@ -76,9 +89,9 @@ The resulting trees are star trees to which we added one biparition. All branch 
 							leftnb := 0
 							rightnb := 0
 							for _, n := range alltips {
-								bitsetindex, err := t.TipIndex(n)
-								if err != nil {
-									io.ExitWithMessage(err)
+								if bitsetindex, err2 = t.TipIndex(n); err2 != nil {
+									err = err2
+									return
 								}
 								if edgeS.e.TipPresent(bitsetindex) {
 									if leftnb > 0 {
@@ -115,6 +128,7 @@ The resulting trees are star trees to which we added one biparition. All branch 
 			}()
 		}
 		wg.Wait()
+		return
 	},
 }
 
