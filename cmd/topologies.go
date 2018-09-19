@@ -39,7 +39,8 @@ var topologiesCmd = &cobra.Command{
 			generateNbTips = len(tipNames)
 		}
 		if trees, err = tree.AllTopologies(generateNbTips, generateRooted, tipNames...); err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		} else {
 			if f, err = openWriteFile(generateOutputfile); err != nil {
 				io.LogError(err)

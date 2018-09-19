@@ -65,23 +65,28 @@ randomly before going deeper in the tree.
 		case "none":
 			algo = asr.ALGO_NONE
 		default:
-			io.ExitWithMessage(fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo))
+			err = fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo)
+			io.LogError(err)
+			return
 		}
 
 		// Reading the alignment
 		fi, r, err = utils.GetReader(asralign)
 		if err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		}
 		if asrphylip {
 			align, err = phylip.NewParser(r, asrinputstrict).Parse()
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 		} else {
 			align, err = fasta.NewParser(r).Parse()
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 		}
 		fi.Close()
@@ -103,7 +108,8 @@ randomly before going deeper in the tree.
 		for t := range treechan {
 			err = asr.ParsimonyAsr(t.Tree, align, algo, asrrandomresolve)
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}

@@ -68,6 +68,9 @@ Different usages are implemented:
 
 	Run: func(cmd *cobra.Command, args []string) {
 		s := shell.New()
+		// display welcome info.
+		s.Println(fmt.Sprintf("Welcome to Gotree Console %s", Version))
+		s.Println("type \"help\" to get a list of available commands")
 		shell.AddCommands(s, cmd.Root(), nil, cmd.Root().Commands()...)
 		// We open a gotree console to interactively execute commands
 		s.Run()

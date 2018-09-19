@@ -41,10 +41,11 @@ var uniformtreeCmd = &cobra.Command{
 	Short: "Generates a random uniform binary tree",
 	Long: `Generates a random uniform binary tree
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := uniformTree(generateNbTrees, generateNbTips, generateOutputfile, generateSeed, generateRooted); err != nil {
-			io.ExitWithMessage(err)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if err = uniformTree(generateNbTrees, generateNbTips, generateOutputfile, generateSeed, generateRooted); err != nil {
+			io.LogError(err)
 		}
+		return
 	},
 }
 

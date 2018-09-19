@@ -36,7 +36,8 @@ var nexusCmd = &cobra.Command{
 		}
 		defer treefile.Close()
 		if nex, err = nexus.WriteNexus(treechan); err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		}
 		f.WriteString(nex)
 		return

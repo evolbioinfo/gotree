@@ -40,10 +40,11 @@ var caterpilartreeCmd = &cobra.Command{
 	Use:   "caterpillartree",
 	Short: "Generates a random caterpilar binary tree",
 	Long:  `Generates a random caterpilar binary tree.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := caterpilarTree(generateNbTrees, generateNbTips, generateOutputfile, generateSeed, generateRooted); err != nil {
-			io.ExitWithMessage(err)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if err = caterpilarTree(generateNbTrees, generateNbTips, generateOutputfile, generateSeed, generateRooted); err != nil {
+			io.LogError(err)
 		}
+		return
 	},
 }
 

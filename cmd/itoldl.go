@@ -24,34 +24,42 @@ Option -c allows to give a configuration file having tab separated key value pai
 as defined here:
 http://itol.embl.de/help.cgi#bExOpt
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var b []byte
+
 		if dloutput == "" {
-			io.ExitWithMessage(errors.New("Output file must be specified"))
+			err = errors.New("Output file must be specified")
+			io.LogError(err)
+			return
 		}
 		if dltreeid == "" {
-			io.ExitWithMessage(errors.New("Tree id must be specified"))
+			err = errors.New("Tree id must be specified")
+			io.LogError(err)
+			return
 		}
 		format := download.Format(dlformat)
 		if format == download.FORMAT_UNKNOWN {
-			io.ExitWithMessage(errors.New("Unkown format: " + dlformat))
+			err = errors.New("Unkown format: " + dlformat)
+			io.LogError(err)
+			return
 		}
 		var config map[string]string
 		if dlconfig != "" {
-			var err error
-			config, err = readMapFile(dlconfig, false)
-			if err != nil {
-				io.ExitWithMessage(err)
+			if config, err = readMapFile(dlconfig, false); err != nil {
+				io.LogError(err)
+				return
 			}
 		} else {
 			config = make(map[string]string)
 		}
 
 		dl := download.NewItolImageDownloader(config)
-		b, err := dl.Download(dltreeid, format)
-		if err != nil {
-			io.ExitWithMessage(err)
+		if b, err = dl.Download(dltreeid, format); err != nil {
+			io.LogError(err)
+			return
 		}
 		ioutil.WriteFile(dloutput, b, 0644)
+		return
 	},
 }
 

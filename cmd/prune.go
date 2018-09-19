@@ -111,7 +111,8 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 
 		for reftree := range treechan {
 			if reftree.Err != nil {
-				io.ExitWithMessage(reftree.Err)
+				io.LogError(reftree.Err)
+				return reftree.Err
 			}
 			var tips []string
 			if tipfile != "none" {

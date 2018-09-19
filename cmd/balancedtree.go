@@ -41,10 +41,11 @@ var balancedtreeCmd = &cobra.Command{
 	Short: "Generates a random balanced binary tree",
 	Long: `Generates a random balanced binary tree
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := balancedTree(generateNbTrees, generateDepth, generateOutputfile, generateSeed, generateRooted); err != nil {
-			io.ExitWithMessage(err)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if err = balancedTree(generateNbTrees, generateDepth, generateOutputfile, generateSeed, generateRooted); err != nil {
+			io.LogError(err)
 		}
+		return
 	},
 }
 

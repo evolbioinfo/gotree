@@ -43,7 +43,8 @@ var yuletreeCmd = &cobra.Command{
 	Long:  `Generates a random yule binary tree.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := yuleTree(generateNbTrees, generateNbTips, generateOutputfile, generateSeed, generateRooted); err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		}
 	},
 }

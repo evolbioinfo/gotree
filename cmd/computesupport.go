@@ -34,16 +34,16 @@ The supports implemented are :
 - Classical Felsenstein support
 
 `,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		RootCmd.PersistentPreRun(cmd, args)
-		var err error
 		if supportOutFile != "stdout" && supportOutFile != "-" {
 			supportOut, err = os.Create(supportOutFile)
 		} else {
 			supportOut = os.Stdout
 		}
 		if err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		}
 		if supportLogFile != "stderr" {
 			supportLog, err = os.Create(supportLogFile)
@@ -51,7 +51,8 @@ The supports implemented are :
 			supportLog = os.Stderr
 		}
 		if err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		}
 		if rawSupportOutputFile != "none" {
 			if rawSupportOutputFile != "stdout" && rawSupportOutputFile != "-" {
@@ -60,9 +61,11 @@ The supports implemented are :
 				rawSupportOut = os.Stdout
 			}
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 		}
+		return
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		closeWriteFile(supportOut, supportOutFile)

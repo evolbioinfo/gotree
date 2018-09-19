@@ -48,6 +48,7 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 		var treefile goio.Closer
 		var treechan <-chan tree.Trees
 		var compTree *tree.Tree
+		var annotateNames [][]string
 
 		if f, err = openWriteFile(outtreefile); err != nil {
 			io.LogError(err)
@@ -62,14 +63,16 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 		defer treefile.Close()
 
 		if mapfile != "none" {
-			annotateNames, err := readAnnotateNameMap(mapfile)
+			annotateNames, err = readAnnotateNameMap(mapfile)
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 
 			for t := range treechan {
 				if t.Err != nil {
-					io.ExitWithMessage(t.Err)
+					io.LogError(t.Err)
+					return t.Err
 				}
 				t.Tree.Annotate(annotateNames, annotateComment)
 				f.WriteString(t.Tree.Newick() + "\n")
@@ -93,7 +96,8 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 
 			for t := range treechan {
 				if t.Err != nil {
-					io.ExitWithMessage(t.Err)
+					io.LogError(t.Err)
+					return t.Err
 				}
 				t.Tree.ReinitIndexes()
 				edges1 := t.Tree.Edges()
