@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fredericlemoine/cobrashell"
 	"github.com/fredericlemoine/gotree/io/fileutils"
 	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/shell"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
@@ -67,11 +67,11 @@ Different usages are implemented:
 	},
 
 	Run: func(cmd *cobra.Command, args []string) {
-		s := shell.New()
+		s := cobrashell.New()
 		// display welcome info.
 		s.Println(fmt.Sprintf("Welcome to Gotree Console %s", Version))
 		s.Println("type \"help\" to get a list of available commands")
-		shell.AddCommands(s, cmd.Root(), nil, cmd.Root().Commands()...)
+		cobrashell.AddCommands(s, cmd.Root(), nil, cmd.Root().Commands()...)
 		// We open a gotree console to interactively execute commands
 		s.Run()
 	},
