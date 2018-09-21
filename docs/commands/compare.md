@@ -88,7 +88,7 @@ Global Flags:
 1. Comparing edges
 
 ```
-gotree compare edges -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1) -m --moved-taxa
+gotree compare edges -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1) -m --moved-taxa
 ```
 
 Should give:
@@ -116,7 +116,7 @@ tree|brid| length | support |terminal|depth|topodepth|rightname|found|transfer|t
 2. Comparing tips
 
 ```
-gotree compare tips -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1 -l 12)
+gotree compare tips -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1 -l 12)
 ```
 
 Should give:
@@ -130,7 +130,7 @@ Should give:
 3. Comparing trees
 
 ```
-gotree compare trees -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1)
+gotree compare trees -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1)
 ```
 
 |tree  |  reference  |  common  |  compared  |

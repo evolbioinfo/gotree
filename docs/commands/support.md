@@ -69,7 +69,7 @@ Usage:
 
 Flags:
   -h, --help       help for setrand
-  -s, --seed int   Initial Random Seed (default 1513954241492262668)
+      --seed int   Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")
@@ -80,7 +80,7 @@ Global Flags:
 
 1. Removing branch supports from a set of 10 trees
 ```
-gotree generate yuletree -s 10 -n 10 | gotree brlen clear | gotree support setrand -s 10
+gotree generate yuletree --seed 10 -n 10 | gotree brlen clear | gotree support setrand --seed 10
 ```
 
 Should give: 
@@ -98,7 +98,7 @@ Should give:
 ```
 
 ```
-gotree generate yuletree -s 10 -n 10 | gotree brlen clear | gotree support setrand -s 10 | gotree support clear
+gotree generate yuletree --seed 10 -n 10 | gotree brlen clear | gotree support setrand --seed 10 | gotree support clear
 ```
 
 Should produce:
@@ -118,8 +118,8 @@ Should produce:
 
 2. Assigning random supports to a random tree and highlight branches with support > 0.5
 ```
-gotree generate yuletree -s 10 -o outtree1.nw
-gotree support setrand -i outtree.nw -s 12 -o outtree2.nw
+gotree generate yuletree --seed 10 -o outtree1.nw
+gotree support setrand -i outtree.nw --seed 12 -o outtree2.nw
 gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/randsupport_1.svg
 gotree draw svg -w 200 -H 200  -i outtree2.nw --with-branch-support --support-cutoff 0.5 -o commands/randsupport_2.svg
 ```

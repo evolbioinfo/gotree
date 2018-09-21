@@ -249,7 +249,7 @@ $ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -r -o tree_ra
 
 * Reformating 10 input random trees into Nexus format:
 ```[bash]
-$ gotree generate yuletree -n 4 -l 8 -s 10 | gotree clear lengths | gotree reformat nexus
+$ gotree generate yuletree -n 4 -l 8 --seed 10 | gotree brlen clear | gotree reformat nexus
 ```
 Will output:
 ```
@@ -282,17 +282,17 @@ $ gotree collapse support -i tree.tre -s 0.8 -o collapsed.tre
 
 * Removing length information
 ```[bash]
-$ gotree clear lengths -i tree.nw -o nolength.nw
+$ gotree brlen clear -i tree.nw -o nolength.nw
 ```
 
 * Removing support information
 ```[bash]
-$ gotree clear supports -i tree.nw -o nosupport.nw
+$ gotree support clear -i tree.nw -o nosupport.nw
 ```
 Note that you can pipe the two previous commands:
 
 ```[bash]
-$ gotree clear supports -i tree.nw | gotree clear lengths -o nosupport.nw
+$ gotree support clear -i tree.nw | gotree clear lengths -o nosupport.nw
 ```
 
 * Printing tree statistics

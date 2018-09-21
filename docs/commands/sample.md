@@ -23,7 +23,7 @@ Flags:
   -n, --nbtrees int     Number of trees to sample from input file (default 1)
   -o, --output string   Output trees (default "stdout")
       --replace         If given, samples with replacement
-  -s, --seed int        Initial Random Seed (default 1506352512647801740)
+      --seed int        Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
 ```
 
 #### Examples
@@ -31,7 +31,7 @@ Flags:
 * We generate 10 random trees, take a sample of size 10 with replacement, and count different sampled trees:
 
 ```
-gotree generate yuletree -s 10 -l 4 -n 10 | gotree sample -n 10 --replace -s 10 | sort | uniq -c
+gotree generate yuletree --seed 10 -l 4 -n 10 | gotree sample -n 10 --replace --seed 10 | sort | uniq -c
 ```
 
 Should give:

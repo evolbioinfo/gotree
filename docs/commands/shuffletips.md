@@ -15,7 +15,7 @@ Usage:
 Flags:
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Shuffled tree output file (default "stdout")
-  -s, --seed int        Initial Random Seed
+      --seed int        Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
 ```
 
 #### Examples
@@ -23,8 +23,8 @@ Flags:
 * Shuffle tips of a random tree
 
 ```
-gotree generate yuletree -s 10 -o outtree1.nw
-gotree shuffletips -i outtree1.nw -o outtree2.nw -s 12
+gotree generate yuletree --seed 10 -o outtree1.nw
+gotree shuffletips -i outtree1.nw -o outtree2.nw --seed 12
 gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/shuffletips_1.svg
 gotree draw svg -w 200 -H 200  -i outtree2.nw -o commands/shuffletips_2.svg
 ```

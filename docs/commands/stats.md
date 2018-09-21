@@ -71,8 +71,8 @@ Flags:
 * Generate a random tree and display informations about it
 
 ```
-gotree generate yuletree -s 10 | gotree stats
-gotree generate yuletree -s 10 | gotree stats edges
+gotree generate yuletree --seed 10 | gotree stats
+gotree generate yuletree --seed 10 | gotree stats edges
 ```
 
 Should give

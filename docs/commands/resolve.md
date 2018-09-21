@@ -15,7 +15,7 @@ Usage:
 Flags:
   -i, --input string    Input tree(s) file (default "stdin")
   -o, --output string   Resolved tree(s) output file (default "stdout")
-  -s, --seed int        Initial Random Seed
+      --seed int        Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
 ```
 
 #### Examples

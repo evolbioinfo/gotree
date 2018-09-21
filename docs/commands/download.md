@@ -50,7 +50,7 @@ Flags:
 
 * We generate a tree that we upload to iTOL and get the tree ID
 ```
-gotree generate yuletree -s 10 | gotree upload itol > url
+gotree generate yuletree --seed 10 | gotree upload itol > url
 TREEID=$(basename $(cat url))
 ```
 

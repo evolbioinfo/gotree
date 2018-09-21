@@ -32,7 +32,7 @@ clade:Tip2,Tip4,Tip7
 ```
 
 ```
-gotree generate yuletree -s 10 -o outtree1.nw
+gotree generate yuletree --seed 10 -o outtree1.nw
 gotree annotate -m clade.txt -i outtree.nw | gotree subtree -n clade -o outtree2.nw
 gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/subtree_1.svg
 gotree draw svg -w 200 -H 200  -i outtree2.nw -o commands/subtree_2.svg

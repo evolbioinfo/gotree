@@ -98,8 +98,8 @@ Global Flags:
 1. Removing branches with length < 0.05
 
 ```
-gotree generate yuletree -s 10 | gotree draw svg -w 200 -H 200 --no-tip-labels -r  > commands/collapse_tree.svg
-gotree generate yuletree -s 10 | gotree collapse length -l 0.05 | gotree draw svg -w 200 -H 200 --no-tip-labels -r > commands/collapse_length.svg
+gotree generate yuletree --seed 10 | gotree draw svg -w 200 -H 200 --no-tip-labels -r  > commands/collapse_tree.svg
+gotree generate yuletree --seed 10 | gotree collapse length -l 0.05 | gotree draw svg -w 200 -H 200 --no-tip-labels -r > commands/collapse_length.svg
 ```
 Original tree                       |             Collapsed tree
 ------------------------------------|---------------------------------------
@@ -108,8 +108,8 @@ Original tree                       |             Collapsed tree
 2. Removing branches with support < 0.7
 
 ```
-gotree generate yuletree -s 10 | gotree randsupport -s 10 | gotree draw svg -w 200 -H 200 --no-tip-labels -r --with-branch-support --support-cutoff 0.7 > commands/collapse_tree2.svg
-gotree generate yuletree -s 10 | gotree randsupport -s 10 | gotree collapse support -s 0.7 | gotree draw svg -w 200 -H 200 --no-tip-labels -r --with-branch-support --support-cutoff 0.7 > commands/collapse_support.svg
+gotree generate yuletree --seed 10 | gotree randsupport --seed 10 | gotree draw svg -w 200 -H 200 --no-tip-labels -r --with-branch-support --support-cutoff 0.7 > commands/collapse_tree2.svg
+gotree generate yuletree --seed 10 | gotree randsupport --seed 10 | gotree collapse support -s 0.7 | gotree draw svg -w 200 -H 200 --no-tip-labels -r --with-branch-support --support-cutoff 0.7 > commands/collapse_support.svg
 ```
 
 Original tree                       |             Collapsed tree
@@ -119,8 +119,8 @@ Original tree                       |             Collapsed tree
 2. Removing branches with depth 2 (cherries)
 
 ```
-gotree generate yuletree -s 10 | gotree draw svg -w 200 -H 200 --no-tip-labels -r > commands/collapse_tree.svg
-gotree generate yuletree -s 10 | gotree collapse depth -m 2 -M 2 | gotree draw svg -w 200 -H 200 --no-tip-labels -r  > commands/collapse_depth.svg
+gotree generate yuletree --seed 10 | gotree draw svg -w 200 -H 200 --no-tip-labels -r > commands/collapse_tree.svg
+gotree generate yuletree --seed 10 | gotree collapse depth -m 2 -M 2 | gotree draw svg -w 200 -H 200 --no-tip-labels -r  > commands/collapse_depth.svg
 ```
 
 Original tree                       |             Collapsed tree
