@@ -4,9 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	goio "io"
-	"math/rand"
+	"os"
 	"strings"
-	"time"
 
 	"github.com/fredericlemoine/goalign/align"
 	"github.com/fredericlemoine/goalign/io/fasta"
@@ -14,6 +13,7 @@ import (
 	"github.com/fredericlemoine/gotree/asr"
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/utils"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -42,13 +42,14 @@ If --random-resolve is given then, during the last pass, each time
 a node with several possible states still exists, one state is chosen 
 randomly before going deeper in the tree.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var align align.Alignment
 		var fi goio.Closer
 		var r *bufio.Reader
-		var err error
 		var algo int
-		rand.Seed(seed)
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var f *os.File
 
 		switch strings.ToLower(parsimonyAlgo) {
 		case "acctran":
@@ -60,41 +61,55 @@ randomly before going deeper in the tree.
 		case "none":
 			algo = asr.ALGO_NONE
 		default:
-			io.ExitWithMessage(fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo))
+			err = fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo)
+			io.LogError(err)
+			return
 		}
 
 		// Reading the alignment
 		fi, r, err = utils.GetReader(asralign)
 		if err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		}
 		if asrphylip {
 			align, err = phylip.NewParser(r, asrinputstrict).Parse()
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 		} else {
 			align, err = fasta.NewParser(r).Parse()
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 		}
 		fi.Close()
 
 		// Reading the trees
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
 		// Computing parsimony ASR and writing each trees
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(f, outtreefile)
+
 		for t := range treechan {
 			err = asr.ParsimonyAsr(t.Tree, align, algo, asrrandomresolve)
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
-		f.Close()
+		return
 	},
 }
 
@@ -107,5 +122,4 @@ func init() {
 	asrCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
 	asrCmd.PersistentFlags().StringVar(&parsimonyAlgo, "algo", "acctran", "Parsimony algorithm for resolving ambiguities: acctran, deltran, or downpass")
 	asrCmd.PersistentFlags().BoolVar(&asrrandomresolve, "random-resolve", false, "Random resolve states when several possibilities in: acctran, deltran, or downpass")
-	asrCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 }

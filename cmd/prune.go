@@ -1,8 +1,9 @@
 package cmd
 
 import (
+	goio "io"
 	"math/rand"
-	"time"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -80,25 +81,43 @@ By order of priority:
 
 If -r is given, behavior is reversed, it keep given tips instead of removing them.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-		var specificTipNames []string
-		rand.Seed(seed)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var comptree *tree.Tree
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
 
-		f := openWriteFile(outtreefile)
-		comptree := readTree(intree2file)
+		var specificTipNames []string
+
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(f, outtreefile)
+
+		if comptree, err = readTree(intree2file); err != nil {
+			io.LogError(err)
+			return
+		}
 
 		// Read ref Trees
-		treefile, trees := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
-		for reftree := range trees {
+		for reftree := range treechan {
 			if reftree.Err != nil {
-				io.ExitWithMessage(reftree.Err)
+				io.LogError(reftree.Err)
+				return reftree.Err
 			}
 			var tips []string
 			if tipfile != "none" {
-				tips = parseTipsFile(tipfile)
+				if tips, err = parseTipsFile(tipfile); err != nil {
+					io.LogError(err)
+					return
+				}
 				err = reftree.Tree.RemoveTips(revert, tips...)
 			} else if comptree != nil {
 				specificTipNames = specificTips(reftree.Tree, comptree)
@@ -110,11 +129,12 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 				err = reftree.Tree.RemoveTips(revert, args...)
 			}
 			if err != nil {
-				io.ExitWithMessage(err)
+				io.LogError(err)
+				return
 			}
 			f.WriteString(reftree.Tree.Newick() + "\n")
 		}
-		f.Close()
+		return
 	},
 }
 
@@ -125,6 +145,5 @@ func init() {
 	pruneCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output tree")
 	pruneCmd.Flags().StringVarP(&tipfile, "tipfile", "f", "none", "Tip file")
 	pruneCmd.Flags().BoolVarP(&revert, "revert", "r", false, "If true, then revert the behavior: will keep only species given in the command line, or keep only the species that are specific to the input tree, or keep only randomly selected taxa")
-	pruneCmd.PersistentFlags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 	pruneCmd.PersistentFlags().IntVar(&randomtips, "random", 0, "Number of tips to randomly sample")
 }

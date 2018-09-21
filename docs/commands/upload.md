@@ -62,7 +62,7 @@ Tip9 branch #FF9C00 normal 5
 
 
 ```
-gotree generate yuletree -r -s 10 -o outtree1.nw
+gotree generate yuletree -r --seed 10 -o outtree1.nw
 gotree upload itol -i outtree1.nw annotations.txt > url
 ```
 It is also possible to download the image from iTOL with `gotree dlimage itol`:

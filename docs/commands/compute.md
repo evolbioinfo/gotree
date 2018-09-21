@@ -86,13 +86,13 @@ Global Flags:
 
 * We generate a random tree, and build a tree with one bipartition have on the left (Tip1, Tip2, Tip3)
 ```
-gotree generate yuletree -s 10 | gotree compute bipartitiontree Tip1 Tip2 Tip3
+gotree generate yuletree --seed 10 | gotree compute bipartitiontree Tip1 Tip2 Tip3
 ```
 
 * We generate a random phylogenetic tree with gotree, 1 alignment with seq-gen, and we infer a tree with FastTree
 
 ```
-gotree generate yuletree -s 10 > tree.nw
+gotree generate yuletree --seed 10 > tree.nw
 seq-gen -q -op -a0.5 -g4 -mGTR -l500 -r 3 5 7 4 6 2 -f 0.25 0.15 0.2 0.4 -z 20 tree.nw -n 1 > align.ph
 FastTree align.ph > inferred.nw
 ```

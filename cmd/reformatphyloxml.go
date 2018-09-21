@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	goio "io"
+	"os"
+
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/phyloxml"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -18,16 +22,29 @@ var phyloxmlCmd = &cobra.Command{
 Note that only toplogical information, node names, branch lengths and 
 branch supports are kept.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		f := openWriteFile(outtreefile)
-		treefile, treechan := readTrees(intreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var xml string
+
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(f, outtreefile)
+
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
-		xml, err := phyloxml.WritePhyloXML(treechan)
-		if err != nil {
-			io.ExitWithMessage(err)
+		if xml, err = phyloxml.WritePhyloXML(treechan); err != nil {
+			io.LogError(err)
+			return
 		}
 		f.WriteString(xml)
-		f.Close()
+		return
 	},
 }
 

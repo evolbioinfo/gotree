@@ -70,7 +70,7 @@ Tip9	Tax9
 ```
 
 ```
-gotree generate yuletree -s 10 -o outtree1.nw
+gotree generate yuletree --seed 10 -o outtree1.nw
 gotree rename -i outtree1.nw -o outtree2.nw -m mapfile.txt
 gotree draw svg -w 200 -H 200 -i outtree1.nw -o commands/rename_1.svg
 gotree draw svg -w 200 -H 200 -i outtree2.nw --with-branch-support --support-cutoff 0.5 -o commands/rename_2.svg
@@ -84,7 +84,7 @@ Initial random Tree            | Renamed Tree
 * Rename automatically all tips an input tree, using identifiers of length 5:
 
 ```
-gotree generate yuletree -s 10 | gotree rename -a -m map -l 5 -o outtree.nw
+gotree generate yuletree --seed 10 | gotree rename -a -m map -l 5 -o outtree.nw
 ```
 
 Should give the following tree:

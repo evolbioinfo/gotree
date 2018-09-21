@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
+	goio "io"
 	"runtime"
 
 	"github.com/fredericlemoine/gotree/io"
@@ -32,22 +33,35 @@ For each trees in the compared tree file, it will print tab separated values wit
 4) The number of branches that are specific to the compared tree
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var refTree *tree.Tree
+		var stats <-chan tree.BipartitionStats
+
 		if intree2file == "none" {
-			io.ExitWithMessage(errors.New("You must provide a file containing compared trees"))
+			err = errors.New("You must provide a file containing compared trees")
+			io.LogError(err)
+			return
 		}
 
 		maxcpus := runtime.NumCPU()
 		if rootCpus > maxcpus {
 			rootCpus = maxcpus
 		}
-		refTree := readTree(intreefile)
+		if refTree, err = readTree(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		refTree.ReinitIndexes()
-		treefile, compareChannel := readTrees(intree2file)
+		if treefile, treechan, err = readTrees(intree2file); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
-		stats, err := tree.Compare(refTree, compareChannel, compareTips, comparetreeidentical, rootCpus)
-		if err != nil {
-			io.ExitWithMessage(err)
+		if stats, err = tree.Compare(refTree, treechan, compareTips, comparetreeidentical, rootCpus); err != nil {
+			io.LogError(err)
+			return
 		}
 
 		if comparetreeidentical {
@@ -57,7 +71,8 @@ For each trees in the compared tree file, it will print tab separated values wit
 					/* We empty the channel if needed*/
 					for _ = range stats {
 					}
-					io.ExitWithMessage(st.Err)
+					io.LogError(st.Err)
+					return st.Err
 				}
 				fmt.Printf("%d\t%v\n", st.Id, st.Sametree)
 			}
@@ -68,11 +83,13 @@ For each trees in the compared tree file, it will print tab separated values wit
 					/* We empty the channel if needed*/
 					for _ = range stats {
 					}
-					io.ExitWithMessage(st.Err)
+					io.LogError(st.Err)
+					return st.Err
 				}
 				fmt.Printf("%d\t%d\t%d\t%d\n", st.Id, st.Tree1, st.Common, st.Tree2)
 			}
 		}
+		return
 	},
 }
 

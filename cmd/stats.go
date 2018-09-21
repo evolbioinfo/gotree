@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -19,15 +22,28 @@ For example:
 - Tips informations
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		/* Dividing trees */
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(f, outtreefile)
+
 		f.WriteString("tree\tnodes\ttips\tedges\tmeanbrlen\tsumbrlen\tmeansupport\tmediansupport\trooted\tnbcherries\tcolless\tsackin\n")
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			t.Tree.ComputeDepths()
 			f.WriteString(fmt.Sprintf("%d", t.Id))
@@ -47,7 +63,7 @@ For example:
 			f.WriteString(fmt.Sprintf("\t%d", t.Tree.CollessIndex()))
 			f.WriteString(fmt.Sprintf("\t%d\n", t.Tree.SackinIndex()))
 		}
-		f.Close()
+		return
 	},
 }
 

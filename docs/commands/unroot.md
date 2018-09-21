@@ -33,7 +33,7 @@ Flags:
 * Generate a rooted random tree, and unroots it
 
 ```
-gotree generate yuletree -r -s 10 -o outtree1.nw
+gotree generate yuletree -r --seed 10 -o outtree1.nw
 gotree unroot -i outtree1.nw -o outtree2.nw
 gotree draw svg -w 200 -H 200 -i outtree1.nw -o commands/unroot_1.svg
 gotree draw svg -w 200 -H 200 -i outtree2.nw -o commands/unroot_2.svg

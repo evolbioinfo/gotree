@@ -3,10 +3,13 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	goio "io"
+	"os"
 	"path/filepath"
 
 	"github.com/fredericlemoine/gotree/draw"
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -15,15 +18,24 @@ var cyjsCmd = &cobra.Command{
 	Use:   "cyjs",
 	Short: "Draw trees in html file using cytoscape js",
 	Long:  `Draw trees in html file using cytoscape js.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var l draw.TreeLayout
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var f *os.File
+
 		ntree := 0
-		treefile, trees := readTrees(intreefile)
+
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
-		for t := range trees {
+		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			fname := outtreefile
 			if ntree > 0 {
@@ -33,15 +45,19 @@ var cyjsCmd = &cobra.Command{
 				}
 				fname = fmt.Sprintf(fname+"_%03d.html", ntree)
 			}
-			f := openWriteFile(fname)
+			if f, err = openWriteFile(fname); err != nil {
+				io.LogError(err)
+				return
+			}
 			w := bufio.NewWriter(f)
 			l = draw.NewCytoscapeLayout(w, drawSupport)
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
 			w.Flush()
-			f.Close()
+			closeWriteFile(f, fname)
 			ntree++
 		}
+		return
 	},
 }
 

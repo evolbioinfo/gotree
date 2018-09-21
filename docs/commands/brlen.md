@@ -85,18 +85,18 @@ Usage:
 Flags:
   -h, --help         help for setrand
   -m, --mean float   Mean of the exponential distribution of branch lengths (default 0.1)
-  -s, --seed int     Initial Random Seed (default random)
   -o, --output string   Random length output tree file (default "stdout")
 
 Global Flags:
   -i, --input string    Input tree (default "stdin")
+      --seed    int     Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
 ```
 
 #### Examples
 
 1. Removing branch lengths from a set of 10 trees
 ```
-gotree generate yuletree -s 10 -n 10
+gotree generate yuletree --seed 10 -n 10
 ```
 
 should output:
@@ -114,7 +114,7 @@ should output:
 ```
 
 ```
-gotree generate yuletree -s 10 -n 10 | gotree brlen clear
+gotree generate yuletree --seed 10 -n 10 | gotree brlen clear
 ```
 
 should output :
@@ -133,8 +133,8 @@ should output :
 
 2. Assign random lengths to a random tree
 ```
-gotree generate yuletree -s 10 -o outtree1.nw
-gotree brlen setrand -i outtree.nw -s 13 -o outtree2.nw
+gotree generate yuletree --seed 10 -o outtree1.nw
+gotree brlen setrand -i outtree.nw --seed 13 -o outtree2.nw
 gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/randbrlen_1.svg
 gotree draw svg -w 200 -H 200  -i outtree2.nw -o commands/randbrlen_2.svg
 ```
@@ -147,7 +147,7 @@ Initial random Tree               | Random lengths
 3. Setting min branch length to 0.1.
 
 ```
-gotree generate yuletree -s 10 -l 100 -o outtree.nw
+gotree generate yuletree --seed 10 -l 100 -o outtree.nw
 gotree draw svg -r -w 200 -H 200 --no-tip-labels -i outtree.nw -o commands/minbrlen_1.svg
 gotree brlen setmin -i outtree.nw -l 0.1 | gotree draw svg -r -w 200 -H 200 --no-tip-labels -o commands/minbrlen_2.svg
 ```
@@ -160,7 +160,7 @@ Random Tree                          | Min brlen tree
 4. Scaling branch lengths by a factor 3.0
 
 ```
-gotree generate yuletree -s 10 -l 100 -o outtree.nw
+gotree generate yuletree --seed 10 -l 100 -o outtree.nw
 gotree brlen scale -f 3.0 -i outtree.nw
 ```
 

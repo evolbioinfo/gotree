@@ -58,7 +58,7 @@ internal1:Tip6,Tip5,Tip1
 
 commands:
 ```
-gotree generate yuletree -s 10 | gotree annotate -m mapfile.txt | gotree draw svg -w 800 -H 800  -c --with-node-labels > commands/annotate_1.svg
+gotree generate yuletree --seed 10 | gotree annotate -m mapfile.txt | gotree draw svg -w 800 -H 800  -c --with-node-labels > commands/annotate_1.svg
 ```
 
 Should give:

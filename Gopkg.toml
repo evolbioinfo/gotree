@@ -16,6 +16,10 @@
 
 [[constraint]]
   branch = "master"
+  name = "github.com/fredericlemoine/cobrashell"
+
+[[constraint]]
+  branch = "master"
   name = "github.com/golang/freetype"
 
 [[constraint]]
@@ -33,3 +37,4 @@
 [[constraint]]
   branch = "master"
   name = "golang.org/x/image"
+

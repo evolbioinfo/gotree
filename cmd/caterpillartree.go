@@ -1,22 +1,21 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"math/rand"
-	"os"
 )
 
-func caterpilarTree(nbtrees int, nbtips int, output string, seed int64, rooted bool) error {
+func caterpilarTree(nbtrees int, nbtips int, output string, rooted bool) error {
 	var f *os.File
 	var err error
 	var t *tree.Tree
 
-	rand.Seed(seed)
-
-	if output != "stdout" {
+	if output != "stdout" && output != "-" {
 		f, err = os.Create(output)
+		defer f.Close()
 	} else {
 		f = os.Stdout
 	}
@@ -31,7 +30,6 @@ func caterpilarTree(nbtrees int, nbtips int, output string, seed int64, rooted b
 		}
 		f.WriteString(t.Newick() + "\n")
 	}
-	f.Close()
 	return nil
 }
 
@@ -40,10 +38,11 @@ var caterpilartreeCmd = &cobra.Command{
 	Use:   "caterpillartree",
 	Short: "Generates a random caterpilar binary tree",
 	Long:  `Generates a random caterpilar binary tree.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := caterpilarTree(generateNbTrees, generateNbTips, generateOutputfile, generateSeed, generateRooted); err != nil {
-			io.ExitWithMessage(err)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if err = caterpilarTree(generateNbTrees, generateNbTips, generateOutputfile, generateRooted); err != nil {
+			io.LogError(err)
 		}
+		return
 	},
 }
 

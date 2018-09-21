@@ -30,21 +30,21 @@ Flags:
 
 * SVG image, radial layout with branch supports
 ```
-gotree generate yuletree -s 10 | gotree randsupport -s 10 | gotree draw svg -r -w 200 -H 200 --with-branch-support --support-cutoff 0.7 -o commands/draw_1.svg
+gotree generate yuletree --seed 10 | gotree randsupport --seed 10 | gotree draw svg -r -w 200 -H 200 --with-branch-support --support-cutoff 0.7 -o commands/draw_1.svg
 ```
 
 ![radial svg](draw_1.svg)
 
 * SVG image, circular layout with branch supports
 ```
-gotree generate yuletree -s 10 | gotree randsupport -s 10 | gotree draw svg -c -w 200 -H 200 --with-branch-support --support-cutoff 0.7 -o commands/draw_2.svg
+gotree generate yuletree --seed 10 | gotree randsupport --seed 10 | gotree draw svg -c -w 200 -H 200 --with-branch-support --support-cutoff 0.7 -o commands/draw_2.svg
 ```
 
 ![circular svg](draw_2.svg)
 
 * SVG image, norman layout with branch supports
 ```
-gotree generate yuletree -s 10 | gotree randsupport -s 10 | gotree draw svg -w 200 -H 200 --with-branch-support --support-cutoff 0.7 -o commands/draw_3.svg
+gotree generate yuletree --seed 10 | gotree randsupport --seed 10 | gotree draw svg -w 200 -H 200 --with-branch-support --support-cutoff 0.7 -o commands/draw_3.svg
 ```
 
 ![circular svg](draw_3.svg)

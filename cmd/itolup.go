@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
 	"os"
 	"time"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/fredericlemoine/gotree/upload"
 	"github.com/spf13/cobra"
 )
@@ -40,20 +42,28 @@ gotree upload itol -i tree.tree --name tree --user-id uploadkey --project projec
 Will store only urls in the output file
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var url, response string
+
 		// args: All annotation files to add to the upload
 		upld := upload.NewItolUploader(itoluploadid, itolprojectname, args...)
 		i := 0
-		treefile, trees := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
-		for reftree := range trees {
+		for reftree := range treechan {
 			if reftree.Err != nil {
-				io.ExitWithMessage(reftree.Err)
+				io.LogError(reftree.Err)
+				return reftree.Err
 			}
-			url, response, err := upld.Upload(fmt.Sprintf("%s_%03d", itoltreename, i), reftree.Tree)
-			if err != nil {
-				io.ExitWithMessage(err)
+			if url, response, err = upld.Upload(fmt.Sprintf("%s_%03d", itoltreename, i), reftree.Tree); err != nil {
+				io.LogError(err)
+				return
 			}
 			fmt.Println(url)
 
@@ -64,6 +74,7 @@ Will store only urls in the output file
 			time.Sleep(1 * time.Second)
 			i++
 		}
+		return
 	},
 }
 

@@ -16,10 +16,12 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
 	"time"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/support"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -33,20 +35,32 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var refTree *tree.Tree
+		var boottreefile goio.Closer
+		var boottreechan <-chan tree.Trees
+
 		writeLogClassical()
-		refTree := readTree(supportIntree)
-		boottreefile, boottreechan := readTrees(supportBoottrees)
+		if refTree, err = readTree(supportIntree); err != nil {
+			io.LogError(err)
+			return
+		}
+		if boottreefile, boottreechan, err = readTrees(supportBoottrees); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer boottreefile.Close()
 
 		var supporter *support.ClassicalSupporter = support.NewClassicalSupporter(false)
-		e := support.ComputeSupport(refTree, boottreechan, nil, rootCpus, supporter)
+		err = support.ComputeSupport(refTree, boottreechan, nil, rootCpus, supporter)
 		//e := support.Classical(refTree, boottreechan, rootCpus)
-		if e != nil {
-			io.ExitWithMessage(e)
+		if err != nil {
+			io.LogError(err)
+			return
 		}
 		supportOut.WriteString(refTree.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
+		return
 	},
 }
 

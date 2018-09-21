@@ -2,10 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
+	"os"
 	"path/filepath"
 
 	"github.com/fredericlemoine/gotree/draw"
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -19,16 +22,24 @@ var pngCmd = &cobra.Command{
 	Use:   "png",
 	Short: "Draw trees in png files",
 	Long:  `Draw trees in png files.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		var d draw.TreeDrawer
 		var l draw.TreeLayout
 		ntree := 0
-		treefile, trees := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
-		for t := range trees {
+		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			fname := outtreefile
 			if ntree > 0 {
@@ -38,7 +49,10 @@ var pngCmd = &cobra.Command{
 				}
 				fname = fmt.Sprintf(fname+"_%03d.png", ntree)
 			}
-			f := openWriteFile(fname)
+			if f, err = openWriteFile(fname); err != nil {
+				io.LogError(err)
+				return
+			}
 			if pngradial {
 				t.Tree.ReinitIndexes()
 				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
@@ -54,9 +68,10 @@ var pngCmd = &cobra.Command{
 			l.SetDisplayNodeComments(drawNodeComment)
 			l.SetSupportCutoff(drawSupportCutoff)
 			l.DrawTree(t.Tree)
-			f.Close()
+			closeWriteFile(f, fname)
 			ntree++
 		}
+		return
 	},
 }
 

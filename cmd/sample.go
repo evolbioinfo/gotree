@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	//"fmt"
+	goio "io"
 	"math/rand"
-	"time"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -24,19 +24,26 @@ If the number of desired trees is > number of input trees:
   - with --replace: Will take -n trees
   - without --replace: Will take all trees.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
 		totaltrees := 0
 		outtrees := make([]*tree.Tree, numtrees)
-		rand.Seed(seed)
 
-		treefile, treechan := readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 
 		// Standard reservoir sampling
 		if !replace {
 			for t := range treechan {
 				if t.Err != nil {
-					io.ExitWithMessage(t.Err)
+					io.LogError(t.Err)
+					return t.Err
 				}
 				if totaltrees < numtrees {
 					outtrees[totaltrees] = t.Tree
@@ -57,7 +64,8 @@ If the number of desired trees is > number of input trees:
 			// https://doi.org/10.1016/j.csda.2007.03.010
 			for t := range treechan {
 				if t.Err != nil {
-					io.ExitWithMessage(t.Err)
+					io.LogError(t.Err)
+					return t.Err
 				}
 				totaltrees++
 				for j := 0; j < numtrees; j++ {
@@ -70,11 +78,16 @@ If the number of desired trees is > number of input trees:
 			}
 		}
 
-		f := openWriteFile(outtreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(f, outtreefile)
+
 		for _, t := range outtrees {
 			f.WriteString(t.Newick() + "\n")
 		}
-		f.Close()
+		return
 	},
 }
 
@@ -83,6 +96,5 @@ func init() {
 	sampleCmd.Flags().StringVarP(&intreefile, "input", "i", "stdin", "Input reference trees")
 	sampleCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output trees")
 	sampleCmd.PersistentFlags().IntVarP(&numtrees, "nbtrees", "n", 1, "Number of trees to sample from input file")
-	sampleCmd.PersistentFlags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 	sampleCmd.PersistentFlags().BoolVar(&replace, "replace", false, "If given, samples with replacement")
 }

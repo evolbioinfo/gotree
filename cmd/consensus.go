@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	goio "io"
+	"os"
+
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
@@ -25,17 +28,30 @@ In the output consensus tree:
    over all the trees where it is present
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		f := openWriteFile(outtreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var consensus *tree.Tree
 
-		treefile, treechan := readTrees(intreefile)
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(f, outtreefile)
+
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
-		consensus, err := tree.Consensus(treechan, cutoff)
+		consensus, err = tree.Consensus(treechan, cutoff)
 		if err != nil {
-			io.ExitWithMessage(err)
+			io.LogError(err)
+			return
 		}
 		f.WriteString(consensus.Newick() + "\n")
-		f.Close()
+		return
 	},
 }
 

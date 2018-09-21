@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	goio "io"
 	"os"
 
 	"github.com/fredericlemoine/gotree/io"
@@ -20,11 +21,19 @@ var compareedgesCmd = &cobra.Command{
 
 If the compared tree file contains several trees, it will take the first one only
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var refTree *tree.Tree
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+		var plus, minus []uint
+
 		fmt.Fprintf(os.Stderr, "Reference : %s\n", intreefile)
 		fmt.Fprintf(os.Stderr, "Compared  : %s\n", intree2file)
 
-		refTree := readTree(intreefile)
+		if refTree, err = readTree(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		refTree.ReinitIndexes()
 		names := refTree.SortedTips()
 
@@ -36,11 +45,15 @@ If the compared tree file contains several trees, it will take the first one onl
 			fmt.Printf("\tcomparednodename\tcomparedlength")
 		}
 		fmt.Printf("\n")
-		treefile, treechan := readTrees(intree2file)
+		if treefile, treechan, err = readTrees(intree2file); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t2 := range treechan {
 			if t2.Err != nil {
-				io.ExitWithMessage(t2.Err)
+				io.LogError(t2.Err)
+				return t2.Err
 			}
 			t2.Tree.ReinitIndexes()
 
@@ -87,7 +100,10 @@ If the compared tree file contains several trees, it will take the first one onl
 					var movedtaxabuf bytes.Buffer
 					if movedtaxa {
 						be := edges2[min_dist_edges[i]]
-						plus, minus := speciesToMove(e1, be, int(min_dist[i]))
+						if plus, minus, err = speciesToMove(e1, be, int(min_dist[i])); err != nil {
+							io.LogError(err)
+							return
+						}
 						for k, sp := range plus {
 							if k > 0 {
 								movedtaxabuf.WriteRune(',')
@@ -114,6 +130,7 @@ If the compared tree file contains several trees, it will take the first one onl
 				fmt.Printf("\n")
 			}
 		}
+		return
 	},
 }
 
@@ -125,15 +142,15 @@ func init() {
 
 // Returns the list of species to move to go from one branch to the other
 // Its length should correspond to given dist
-// If not, exit with an error
-func speciesToMove(e, be *tree.Edge, dist int) ([]uint, []uint) {
+// If not, returns an error
+func speciesToMove(e, be *tree.Edge, dist int) (equplus []uint, equminus []uint, err error) {
 	var i uint
 	ndiff := 0
 	neq := 0
 	diffplus := make([]uint, 0, 100)
 	diffminus := make([]uint, 0, 100)
-	equplus := make([]uint, 0, 100)
-	equminus := make([]uint, 0, 100)
+	equplus = make([]uint, 0, 100)
+	equminus = make([]uint, 0, 100)
 
 	for i = 0; i < e.Bitset().Len(); i++ {
 		t1 := e.Bitset().Test(i)
@@ -156,12 +173,14 @@ func speciesToMove(e, be *tree.Edge, dist int) ([]uint, []uint) {
 	}
 	if ndiff < neq {
 		if ndiff != dist {
-			io.ExitWithMessage(errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", ndiff, dist)))
+			err = errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", ndiff, dist))
+			return
 		}
-		return diffplus, diffminus
+		return diffplus, diffminus, nil
 	}
 	if neq != dist {
-		io.ExitWithMessage(errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", neq, dist)))
+		err = errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", neq, dist))
+		return
 	}
-	return equplus, equminus
+	return equplus, equminus, nil
 }

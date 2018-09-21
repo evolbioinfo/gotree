@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	goio "io"
+	"os"
 
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -16,13 +19,26 @@ var splitsCmd = &cobra.Command{
 First line : List of taxa
 Then: One line per branch, and 0/1 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		f := openWriteFile(outtreefile)
-		treefile, treechan := readTrees(intreefile)
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var f *os.File
+		var treefile goio.Closer
+		var treechan <-chan tree.Trees
+
+		if f, err = openWriteFile(outtreefile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(f, outtreefile)
+
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
-				io.ExitWithMessage(t.Err)
+				io.LogError(t.Err)
+				return t.Err
 			}
 			t.Tree.ReinitIndexes()
 			f.WriteString("Tree\t")
@@ -39,7 +55,7 @@ Then: One line per branch, and 0/1
 				f.WriteString(e.DumpBitSet() + "\n")
 			}
 		}
-		f.Close()
+		return
 	},
 }
 
