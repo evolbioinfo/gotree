@@ -2,9 +2,7 @@ package cmd
 
 import (
 	goio "io"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -36,7 +34,6 @@ gotree rotate rand -i t.nw
 		var treechan <-chan tree.Trees
 
 		// Read Tree
-		rand.Seed(seed)
 		if f, err = openWriteFile(outtreefile); err != nil {
 			io.LogError(err)
 			return
@@ -62,5 +59,4 @@ gotree rotate rand -i t.nw
 
 func init() {
 	rotateCmd.AddCommand(rotateRandCmd)
-	rotateRandCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 }

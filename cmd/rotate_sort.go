@@ -2,7 +2,6 @@ package cmd
 
 import (
 	goio "io"
-	"math/rand"
 	"os"
 
 	"github.com/fredericlemoine/gotree/io"
@@ -35,7 +34,6 @@ gotree rotate sort -i t.nw
 		var treechan <-chan tree.Trees
 
 		// Read Tree
-		rand.Seed(seed)
 		if f, err = openWriteFile(outtreefile); err != nil {
 			io.LogError(err)
 			return

@@ -2,9 +2,7 @@ package cmd
 
 import (
 	goio "io"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -35,7 +33,6 @@ gotree shuffletips -i t.nw
 		var treechan <-chan tree.Trees
 
 		// Read Tree
-		rand.Seed(seed)
 		if f, err = openWriteFile(outtreefile); err != nil {
 			io.LogError(err)
 			return
@@ -61,7 +58,6 @@ gotree shuffletips -i t.nw
 
 func init() {
 	RootCmd.AddCommand(shuffletipsCmd)
-	shuffletipsCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 	shuffletipsCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	shuffletipsCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Shuffled tree output file")
 }

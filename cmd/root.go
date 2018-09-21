@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	goio "io"
+	"math/rand"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fredericlemoine/cobrashell"
 	"github.com/fredericlemoine/gotree/io/fileutils"
@@ -22,7 +24,7 @@ import (
 var inalignfile string
 var intreefile, intree2file, outtreefile string
 var outresfile string
-var seed int64
+var seed int64 = -1
 var inputname string
 var mapfile string
 var revert bool
@@ -64,6 +66,10 @@ Different usages are implemented:
 		default:
 			treeformat = utils.FORMAT_NEWICK
 		}
+		if seed == -1 {
+			seed = time.Now().UTC().UnixNano()
+		}
+		rand.Seed(seed)
 	},
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -92,8 +98,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	maxcpus := runtime.NumCPU()
-	//RootCmd.AddCommand(krait.NewConsoleCommand())
 
+	RootCmd.PersistentFlags().Int64Var(&seed, "seed", -1, "Random Seed: -1 = nano seconds since 1970/01/01 00:00:00")
 	RootCmd.PersistentFlags().IntVarP(&rootCpus, "threads", "t", 1, "Number of threads (Max="+strconv.Itoa(maxcpus)+")")
 	RootCmd.PersistentFlags().StringVar(&rootInputFormat, "format", "newick", "Input tree format (newick, nexus, or phyloxml)")
 }

@@ -2,9 +2,7 @@ package cmd
 
 import (
 	goio "io"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/fredericlemoine/gostats"
 	"github.com/fredericlemoine/gotree/io"
@@ -23,10 +21,6 @@ var randbrlenCmd = &cobra.Command{
 Length follows an exponential distribution of parameter lambda=1/0.1 
 (Mean=0.1)
 `,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		RootCmd.PersistentPreRun(cmd, args)
-		rand.Seed(seed)
-	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
 		var treefile goio.Closer
@@ -63,7 +57,6 @@ func init() {
 	brlenCmd.AddCommand(randbrlenCmd)
 
 	randbrlenCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
-	randbrlenCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 	randbrlenCmd.Flags().Float64VarP(&setlengthmean, "mean", "m", 0.1, "Mean of the exponential distribution of branch lengths")
 	randbrlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Random length output tree file")
 }

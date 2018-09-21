@@ -2,9 +2,7 @@ package cmd
 
 import (
 	goio "io"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/fredericlemoine/gostats"
 	"github.com/fredericlemoine/gotree/io"
@@ -21,10 +19,6 @@ var randsupportCmd = &cobra.Command{
 Support follows a uniform distribution in [0,1].
 
 `,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		RootCmd.PersistentPreRun(cmd, args)
-		rand.Seed(seed)
-	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
 		var treefile goio.Closer
@@ -63,5 +57,4 @@ func init() {
 
 	randsupportCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	randsupportCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
-	randsupportCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 }

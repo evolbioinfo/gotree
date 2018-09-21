@@ -4,7 +4,6 @@ import (
 	goio "io"
 	"math/rand"
 	"os"
-	"time"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -89,7 +88,6 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 		var treechan <-chan tree.Trees
 
 		var specificTipNames []string
-		rand.Seed(seed)
 
 		if f, err = openWriteFile(outtreefile); err != nil {
 			io.LogError(err)
@@ -147,6 +145,5 @@ func init() {
 	pruneCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output tree")
 	pruneCmd.Flags().StringVarP(&tipfile, "tipfile", "f", "none", "Tip file")
 	pruneCmd.Flags().BoolVarP(&revert, "revert", "r", false, "If true, then revert the behavior: will keep only species given in the command line, or keep only the species that are specific to the input tree, or keep only randomly selected taxa")
-	pruneCmd.PersistentFlags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 	pruneCmd.PersistentFlags().IntVar(&randomtips, "random", 0, "Number of tips to randomly sample")
 }

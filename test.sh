@@ -12,7 +12,7 @@ EOF
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)internal1));
 EOF
-gotree generate yuletree -s 10 | gotree brlen clear | gotree annotate -m mapfile > result
+gotree generate yuletree --seed 10 | gotree brlen clear | gotree annotate -m mapfile > result
 diff result expected
 rm -f expected result mapfile
 
@@ -40,7 +40,7 @@ EOF
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)[internal1]));
 EOF
-gotree generate yuletree -s 10 | gotree brlen clear | gotree annotate --comment -m mapfile > result
+gotree generate yuletree --seed 10 | gotree brlen clear | gotree annotate --comment -m mapfile > result
 diff result expected
 rm -f expected result mapfile
 
@@ -68,7 +68,7 @@ EOF
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)n1_0_2)n2_0_3,Tip0,((Tip8,(Tip9,Tip3)n3_0_2)n4_0_3,((Tip6,Tip5)Tip6_1_2,Tip1)n6_0_3)n7_0_6);
 EOF
-gotree generate yuletree -s 10 | gotree brlen clear | gotree annotate -c intree > result
+gotree generate yuletree --seed 10 | gotree brlen clear | gotree annotate -c intree > result
 diff result expected
 rm -f expected result intree
 
@@ -80,7 +80,7 @@ EOF
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)[n1_0_2])[n2_0_3],Tip0,((Tip8,(Tip9,Tip3)[n3_0_2])[n4_0_3],((Tip6,Tip5)[Tip6_1_2],Tip1)[n6_0_3])[n7_0_6]);
 EOF
-gotree generate yuletree -s 10 | gotree brlen clear | gotree annotate --comment -c intree > result
+gotree generate yuletree --seed 10 | gotree brlen clear | gotree annotate --comment -c intree > result
 diff result expected
 rm -f expected result intree
 
@@ -99,7 +99,7 @@ cat > expected <<EOF
 (Tip9,Tip0,(Tip8,((Tip7,Tip4),((Tip6,Tip2),(Tip3,(Tip5,Tip1))))));
 ((((Tip7,(Tip8,(Tip9,Tip6))),Tip5),Tip4),Tip0,(Tip2,(Tip3,Tip1)));
 EOF
-gotree generate yuletree -s 10 -n 10 | gotree brlen clear > result
+gotree generate yuletree --seed 10 -n 10 | gotree brlen clear > result
 diff result expected
 rm -f expected result
 
@@ -151,7 +151,7 @@ cat > expected <<EOF
 (Tip9,Tip0,(Tip8,((Tip7,Tip4),((Tip6,Tip2),(Tip3,(Tip5,Tip1))))));
 ((((Tip7,(Tip8,(Tip9,Tip6))),Tip5),Tip4),Tip0,(Tip2,(Tip3,Tip1)));
 EOF
-gotree generate yuletree -s 10 -n 10 | gotree support setrand | gotree support clear | gotree brlen clear > result
+gotree generate yuletree --seed 10 -n 10 | gotree support setrand | gotree support clear | gotree brlen clear > result
 diff result expected
 rm -f expected result
 
@@ -208,7 +208,7 @@ echo "->gotree collapse length"
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)),Tip0,(Tip8,Tip9,Tip3),((Tip6,Tip5),Tip1));
 EOF
-gotree generate yuletree -s 10 | gotree collapse length -l 0.05 | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree collapse length -l 0.05 | gotree brlen clear > result
 diff result expected
 rm -f expected result
 
@@ -218,7 +218,7 @@ echo "->gotree collapse support"
 cat > expected <<EOF
 (Tip0,((Tip1,Tip6,Tip5)0.9167074899036827,Tip8,Tip9,Tip3)0.925128845219594,Tip4,Tip7,Tip2);
 EOF
-gotree generate yuletree -s 10 | gotree support setrand -s 10 | gotree collapse support -s 0.7 | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree support setrand --seed 10 | gotree collapse support -s 0.7 | gotree brlen clear > result
 diff result expected
 rm -f expected result
 
@@ -228,7 +228,7 @@ echo "->gotree collapse depth"
 cat > expected <<EOF
 ((Tip4,Tip7,Tip2),Tip0,((Tip8,Tip9,Tip3),(Tip1,Tip6,Tip5)));
 EOF
-gotree generate yuletree -s 10 | gotree collapse depth -m 2 -M 2 | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree collapse depth -m 2 -M 2 | gotree brlen clear > result
 diff result expected
 rm -f expected result
 
@@ -250,7 +250,7 @@ cat > expected <<EOF
 tree	reference	common	compared
 0	7	0	7
 EOF
-gotree compare trees -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1) > result
+gotree compare trees -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1) > result
 diff expected result
 rm -f expected result
 
@@ -277,7 +277,7 @@ tree	brid	length	support	terminal	depth	topodepth	rightname	found	transfer	taxat
 0	15	0.1120177846434196	N/A	true	0	1	Tip5	true	0		Tip5	0.054439044275040135
 0	16	0.239082088939295	N/A	true	0	1	Tip1	true	0		Tip1	0.013105562909283169
 EOF
-gotree compare edges -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1) -m --moved-taxa > result 2>/dev/null
+gotree compare edges -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1) -m --moved-taxa > result 2>/dev/null
 diff expected result
 rm -f expected result
 
@@ -289,7 +289,7 @@ cat > expected <<EOF
 (Tree 0) > Tip10
 (Tree 0) = 10
 EOF
-gotree compare tips -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1 -l 12) > result
+gotree compare tips -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1 -l 12) > result
 diff expected result
 rm -f expected result
 
@@ -348,7 +348,7 @@ tree_id	er_id	ec_id	tdist	ec_length	ec_support	ec_topodepth	moving_taxa
 0	13	12	3	0.12937482578337411	N/A	3	+Tip1,+Tip7,-Tip6
 0	13	13	2	0.00518311446616857	N/A	2	+Tip7,-Tip6
 EOF
-gotree compare distances -i <(gotree generate yuletree -s 10) -c <(gotree generate yuletree -s 12 -n 1) > result 2>/dev/null
+gotree compare distances -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1) > result 2>/dev/null
 diff expected result
 rm -f expected result
 
@@ -358,7 +358,7 @@ echo "->gotree compute bipartitiontree"
 cat > expected <<EOF
 ((Tip4:1,Tip7:1,Tip0:1,Tip8:1,Tip9:1,Tip6:1,Tip5:1):1,Tip1:1,Tip2:1,Tip3:1);
 EOF
-gotree generate yuletree -s 10 | gotree compute bipartitiontree Tip1 Tip2 Tip3 > result
+gotree generate yuletree --seed 10 | gotree compute bipartitiontree Tip1 Tip2 Tip3 > result
 diff expected result
 rm -f result expected
 
@@ -401,7 +401,7 @@ cat > expected <<EOF
 ((Tip6:1,Tip5:1,Tip1:1):1,Tip4:1,Tip7:1,Tip2:1,Tip0:1,Tip8:1,Tip9:1,Tip3:1);
 ((Tip6:1,Tip5:1):1,Tip4:1,Tip7:1,Tip2:1,Tip0:1,Tip8:1,Tip9:1,Tip3:1,Tip1:1);
 EOF
-gotree generate yuletree -s 10  | gotree compute edgetrees > result
+gotree generate yuletree --seed 10  | gotree compute edgetrees > result
 diff expected result
 rm -f expected result
 
@@ -415,7 +415,7 @@ cat > expected <<EOF
 ((Tip6:1,Tip5:1,Tip1:1):1,Tip4:1,Tip7:1,Tip2:1,Tip0:1,Tip8:1,Tip9:1,Tip3:1);
 ((Tip6:1,Tip5:1):1,Tip4:1,Tip7:1,Tip2:1,Tip0:1,Tip8:1,Tip9:1,Tip3:1,Tip1:1);
 EOF
-gotree generate yuletree -s 10  | gotree compute edgetrees > result
+gotree generate yuletree --seed 10  | gotree compute edgetrees > result
 diff expected result
 rm -f expected result
 
@@ -426,7 +426,7 @@ EOF
 cat > expected2 <<EOF
 (Tip5,Tip0,((Tip6,(Tip7,Tip4)),(Tip2,((Tip8,(Tip9,Tip3)),Tip1))));
 EOF
-gotree generate yuletree -s 10 -n 2 |gotree brlen clear | gotree divide -o div
+gotree generate yuletree --seed 10 -n 2 |gotree brlen clear | gotree divide -o div
 diff expected1 div_000.nw
 diff expected2 div_001.nw
 rm -f expected1 expected2 div_000.nw div_001.nw
@@ -436,7 +436,7 @@ echo "->gotree generate yuletree"
 cat > expected <<EOF
 ((Tip4:0.020616211789029896,(Tip7:0.09740195047110385,Tip2:0.015450672710905129):0.25879284932877245):0.1824683850061218,Tip0:0.25919865790518115,((Tip8:0.027845992087631298,(Tip9:0.13492605122032592,Tip3:0.10309294031874587):0.01026581233891113):0.1920960924280275,((Tip6:0.3779897840448691,Tip5:0.1120177846434196):0.05817538156872999,Tip1:0.239082088939295):0.30150414585026103):0.04593880904706901);
 EOF
-gotree generate yuletree -s 10 -n 1 > result
+gotree generate yuletree --seed 10 -n 1 > result
 diff expected result
 rm -f expected result
 
@@ -445,7 +445,7 @@ echo "->gotree generate balancedtree"
 cat > expected <<EOF
 (((Tip0:0.04593880904706901,Tip1:0.13604994737755394):0.06718605070537677,(Tip2:0.19852695409349608,Tip3:0.002749016032849596):0.2485396648662035):0.25919865790518115,((Tip4:0.12467449897149811,Tip5:0.10033210749794116):0.1824683850061218,(Tip6:0.30150414585026103,Tip7:0.08184535681853511):0.020616211789029896):0.054743875470795914,(((Tip8:0.1120177846434196,Tip9:0.18347097513974125):0.05817538156872999,(Tip10:0.25879284932877245,Tip11:0.09740195047110385):0.3779897840448691):0.239082088939295,((Tip12:0.1920960924280275,Tip13:0.027845992087631298):0.015450672710905129,(Tip14:0.0440885662122905,Tip15:0.14809735366802398):0.17182241382980687):0.03199874235185574):0.13756099791982077);
 EOF
-gotree generate balancedtree -s 10 -d 4 > result
+gotree generate balancedtree --seed 10 -d 4 > result
 diff expected result
 rm -f expected result
 
@@ -454,7 +454,7 @@ echo "->gotree generate caterpillartree"
 cat > expected <<EOF
 ((((((((Tip9:0.09740195047110385,Tip8:0.015450672710905129):0.25879284932877245,Tip7:0.18347097513974125):0.3779897840448691,Tip6:0.05817538156872999):0.239082088939295,Tip5:0.08184535681853511):0.10033210749794116,Tip4:0.12467449897149811):0.1824683850061218,Tip3:0.002749016032849596):0.13604994737755394,Tip2:0.04593880904706901):0.06718605070537677,Tip0:0.0540687078328298,Tip1:0.054743875470795914);
 EOF
-gotree generate caterpillartree -s 10  > result
+gotree generate caterpillartree --seed 10  > result
 diff expected result
 rm -f expected result
 
@@ -462,7 +462,7 @@ echo "->gotree generate uniformtree"
 cat > expected <<EOF
 (Tip5:0.08184535681853511,Tip0:0.30150414585026103,((Tip9:0.13492605122032592,Tip6:0.10309294031874587):0.01026581233891113,((Tip7:0.09740195047110385,(Tip8:0.027845992087631298,((Tip4:0.020616211789029896,Tip3:0.12467449897149811):0.1824683850061218,Tip2:0.19852695409349608):0.0440885662122905):0.1920960924280275):0.25879284932877245,Tip1:0.06718605070537677):0.1120177846434196):0.05817538156872999);
 EOF
-gotree generate uniformtree -s 10  > result
+gotree generate uniformtree --seed 10  > result
 diff expected result
 rm -f expected result
 
@@ -476,7 +476,7 @@ Tip0	0.462283254700	0.566341541883	0.000000000000	0.441187414330	0.503664421046
 Tip3	0.385073353220	0.489131640402	0.441187414330	0.000000000000	0.334576901471
 Tip1	0.447550359936	0.551608647118	0.503664421046	0.334576901471	0.000000000000
 EOF
-gotree generate yuletree -s 10 -l 5 | gotree matrix > result
+gotree generate yuletree --seed 10 -l 5 | gotree matrix > result
 diff expected result
 rm -f expected result
 
@@ -484,7 +484,7 @@ echo "->gotree brlen setmin 1"
 cat > expected <<EOF
 ((Tip4:1,(Tip7:1,Tip2:1):1):1,Tip0:1,((Tip8:1,(Tip9:1,Tip3:1):1):1,((Tip6:1,Tip5:1):1,Tip1:1):1):1);
 EOF
-gotree generate yuletree -s 10 -l 10 | gotree brlen setmin  -l 1 > result
+gotree generate yuletree --seed 10 -l 10 | gotree brlen setmin  -l 1 > result
 diff expected result
 rm -f expected result
 
@@ -492,7 +492,7 @@ echo "->gotree brlen setmin 10"
 cat > expected <<EOF
 ((Tip4:10,(Tip7:10,Tip2:10):10):10,Tip0:10,((Tip8:10,(Tip9:10,Tip3:10):10):10,((Tip6:10,Tip5:10):10,Tip1:10):10):10);
 EOF
-gotree generate yuletree -s 10 -l 10 | gotree brlen clear | gotree brlen setmin  -l 10 > result
+gotree generate yuletree --seed 10 -l 10 | gotree brlen clear | gotree brlen setmin  -l 10 > result
 diff expected result
 rm -f expected result
 
@@ -500,7 +500,7 @@ echo "->gotree prune"
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)),((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)),Tip0);
 EOF
-gotree generate yuletree -s 10 -l 20 | gotree prune -i - -c <(gotree generate yuletree -s 12 -l 10) | gotree brlen clear > result
+gotree generate yuletree --seed 10 -l 20 | gotree prune -i - -c <(gotree generate yuletree --seed 12 -l 10) | gotree brlen clear > result
 diff expected result
 rm -f expected result
 
@@ -509,7 +509,7 @@ echo "->gotree brlen setrand"
 cat > expected <<EOF
 ((Tip4:0.11181011331618643,(Tip7:0.21688356961855743,Tip2:0.21695890315161873):0.007486847792469759):0.02262551762264341,Tip0:0.07447903650558614,((Tip8:0.05414175839023796,(Tip9:0.34924246250387486,Tip3:0.023925115233614132):0.1890483249199916):0.03146499978313507,((Tip6:0.31897358778004786,Tip5:0.29071259678750266):0.04826059603128351,Tip1:0.02031669307269784):0.052025373286913534):0.011401847253594477);
 EOF
-gotree generate yuletree -s 10 | gotree brlen setrand -s 13 > result
+gotree generate yuletree --seed 10 | gotree brlen setrand --seed 13 > result
 diff expected result
 rm -f expected result
 
@@ -518,7 +518,7 @@ echo "->gotree support setrand"
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)0.2550878763278657)0.6418716208549535,Tip0,((Tip8,(Tip9,Tip3)0.9581212767194948)0.24992593115716047,((Tip6,Tip5)0.2962112349523319,Tip1)0.2923644736644398)0.20284376043157062);
 EOF
-gotree generate yuletree -s 10 | gotree support setrand -s 12  | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree support setrand --seed 12  | gotree brlen clear > result
 diff expected result
 rm -f expected result
 
@@ -539,7 +539,7 @@ EOF
 cat > expected <<EOF
 ((Tax4,(Tax7,Tax2)),Tax0,((Tax8,(Tax9,Tax3)),((Tax6,Tax5),Tax1)));
 EOF
-gotree generate yuletree -s 10 | gotree rename -m mapfile | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree rename -m mapfile | gotree brlen clear > result
 diff expected result
 rm -f expected result mapfile
 
@@ -560,7 +560,7 @@ EOF
 cat > expected <<EOF
 ((T0001,(T0002,T0003)),T0004,((T0005,(T0006,T0007)),((T0008,T0009),T0010)));
 EOF
-gotree generate yuletree -s 10 | gotree rename -a -m mapfile2 -l 5  | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree rename -a -m mapfile2 -l 5  | gotree brlen clear > result
 diff expected result
 diff <(sort mapfile) <(sort mapfile2)
 rm -f expected result mapfile mapfile2
@@ -619,7 +619,7 @@ EOF
 cat > expected <<EOF
 ((Leaf4,(Leaf7,Leaf2)),Leaf0,((Leaf8,(Leaf9,Leaf3)),((Leaf6,Leaf5),Leaf1)));
 EOF
-gotree generate yuletree -s 10 | gotree rename --regexp 'Tip(\d+)' --replace 'Leaf$1' -m mapfile2  | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree rename --regexp 'Tip(\d+)' --replace 'Leaf$1' -m mapfile2  | gotree brlen clear > result
 diff expected result
 diff <(sort mapfile) <(sort mapfile2)
 rm -f expected result mapfile mapfile2
@@ -629,7 +629,7 @@ echo "->gotree reroot outgroup"
 cat > expected <<EOF
 ((((Tip4,(Tip7,Tip2)),Tip0),((Tip6,Tip5),Tip1)),(Tip8,(Tip9,Tip3)));
 EOF
-gotree generate yuletree -s 10 | gotree reroot outgroup Tip3 Tip8 Tip9 | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree reroot outgroup Tip3 Tip8 Tip9 | gotree brlen clear > result
 diff expected result
 rm -f expected result
 
@@ -637,7 +637,7 @@ echo "->gotree reroot midpoint"
 cat > expected <<EOF
 (((Tip6,Tip5),Tip1),(((Tip4,(Tip7,Tip2)),Tip0),(Tip8,(Tip9,Tip3))));
 EOF
-gotree generate yuletree -s 10 | gotree reroot midpoint | gotree brlen clear> result
+gotree generate yuletree --seed 10 | gotree reroot midpoint | gotree brlen clear> result
 diff expected result
 rm -f expected result
 
@@ -645,7 +645,7 @@ echo "->gotree resolve"
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)),(Tip3,(Tip9,Tip8)),(((Tip6,Tip5),Tip1),Tip0));
 EOF
-gotree generate yuletree -s 10 | gotree collapse length -l 0.05 | gotree resolve -s 10 | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree collapse length -l 0.05 | gotree resolve --seed 10 | gotree brlen clear > result
 diff expected result
 rm -f expected result
 
@@ -654,7 +654,7 @@ echo "->gotree shuffletips"
 cat > expected <<EOF
 ((Tip5,(Tip2,Tip3)),Tip7,((Tip8,(Tip4,Tip0)),((Tip6,Tip1),Tip9)));
 EOF
-gotree generate yuletree -s 10 | gotree shuffletips -s 12 | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree shuffletips --seed 12 | gotree brlen clear > result
 diff expected result
 rm -f expected result
 
@@ -666,7 +666,7 @@ EOF
 cat > expected <<EOF
 (Tip4,(Tip7,Tip2))clade;
 EOF
-gotree generate yuletree -s 10 | gotree annotate -m clade | gotree subtree -n clade | gotree brlen clear > result
+gotree generate yuletree --seed 10 | gotree annotate -m clade | gotree subtree -n clade | gotree brlen clear > result
 diff expected result
 rm -f expected result clade
 
@@ -676,7 +676,7 @@ cat > expected <<EOF
 tree	nodes	tips	edges	meanbrlen	sumbrlen	meansupport	mediansupport	rooted	nbcherries	colless	sackin
 0	18	10	17	0.14334492	2.43686361	NaN	NaN	unrooted	3	7	35
 EOF
-gotree generate yuletree -s 10 | gotree stats > result
+gotree generate yuletree --seed 10 | gotree stats > result
 diff expected result
 rm -f expected result
 
@@ -702,7 +702,7 @@ tree	brid	length	support	terminal	depth	topodepth	rightname	comments	leftname	ri
 0	15	0.1120177846434196	N/A	true	0	1	Tip5	[]		[]	[]
 0	16	0.239082088939295	N/A	true	0	1	Tip1	[]		[]	[]
 EOF
-gotree generate yuletree -s 10 | gotree stats edges > result
+gotree generate yuletree --seed 10 | gotree stats edges > result
 diff expected result
 rm -f expected result
 
@@ -729,7 +729,7 @@ tree	nid	nneigh	name	depth	comments
 0	16	1	Tip5	0	[]
 0	17	1	Tip1	0	[]
 EOF
-gotree generate yuletree -s 10 | gotree stats nodes > result
+gotree generate yuletree --seed 10 | gotree stats nodes > result
 diff expected result
 rm -f expected result
 
@@ -739,7 +739,7 @@ cat > expected <<EOF
 tree	rooted
 0	unrooted
 EOF
-gotree generate yuletree -s 10 | gotree stats rooted > result
+gotree generate yuletree --seed 10 | gotree stats rooted > result
 diff expected result
 rm -f expected result
 
@@ -765,7 +765,7 @@ Tree	Tip9|Tip8|Tip7|Tip6|Tip5|Tip4|Tip3|Tip2|Tip1|Tip0
 0	0000100000.
 0	0000000010.
 EOF
-gotree generate yuletree -s 10 | gotree stats splits > result
+gotree generate yuletree --seed 10 | gotree stats splits > result
 diff expected result
 rm -f expected result
 
@@ -784,7 +784,7 @@ tree	id	nneigh	name
 0	16	1	Tip5
 0	17	1	Tip1
 EOF
-gotree generate yuletree -s 10 | gotree stats tips > result
+gotree generate yuletree --seed 10 | gotree stats tips > result
 diff expected result
 rm -f expected result
 
@@ -793,7 +793,7 @@ echo "->gotree unroot"
 cat > expected <<EOF
 ((Tip9,Tip2),(Tip3,((((Tip8,Tip6),Tip5),Tip4),Tip1)),(Tip7,Tip0));
 EOF
-gotree generate yuletree -r -s 10 | gotree brlen clear | gotree unroot > result
+gotree generate yuletree -r --seed 10 | gotree brlen clear | gotree unroot > result
 diff expected result
 rm -f expected result
 
@@ -820,7 +820,7 @@ cat > expected <<EOF
                       +-------------- Tip1                  
                                                             
 EOF
-gotree generate yuletree -s 10 | gotree draw text -w 50 > result
+gotree generate yuletree --seed 10 | gotree draw text -w 50 > result
 diff expected result
 rm -f expected result
 

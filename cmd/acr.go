@@ -6,11 +6,9 @@ import (
 	"errors"
 	"fmt"
 	goio "io"
-	"math/rand"
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/fredericlemoine/gotree/acr"
 	"github.com/fredericlemoine/gotree/io"
@@ -49,8 +47,6 @@ randomly before going deeper in the tree.
 		var treefile goio.Closer
 		var treechan <-chan tree.Trees
 		var f *os.File
-
-		rand.Seed(seed)
 
 		switch strings.ToLower(parsimonyAlgo) {
 		case "acctran":
@@ -117,8 +113,6 @@ func init() {
 	acrCmd.PersistentFlags().StringVar(&outresfile, "out-states", "none", "Output mapping file between node names and states")
 	acrCmd.PersistentFlags().StringVar(&parsimonyAlgo, "algo", "acctran", "Parsimony algorithm for resolving ambiguities: acctran, deltran, or downpass")
 	acrCmd.PersistentFlags().BoolVar(&acrrandomresolve, "random-resolve", false, "Random resolve states when several possibilities in: acctran, deltran, or downpass")
-	acrCmd.Flags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
-
 }
 
 func parseTipStates(file string) (states map[string]string, err error) {

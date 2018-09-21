@@ -1,19 +1,17 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
 	"github.com/spf13/cobra"
-	"math/rand"
-	"os"
 )
 
-func uniformTree(nbtrees int, nbtips int, output string, seed int64, rooted bool) error {
+func uniformTree(nbtrees int, nbtips int, output string, rooted bool) error {
 	var f *os.File
 	var err error
 	var t *tree.Tree
-
-	rand.Seed(seed)
 
 	if output != "stdout" && output != "-" {
 		f, err = os.Create(output)
@@ -42,7 +40,7 @@ var uniformtreeCmd = &cobra.Command{
 	Long: `Generates a random uniform binary tree
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if err = uniformTree(generateNbTrees, generateNbTips, generateOutputfile, generateSeed, generateRooted); err != nil {
+		if err = uniformTree(generateNbTrees, generateNbTips, generateOutputfile, generateRooted); err != nil {
 			io.LogError(err)
 		}
 		return

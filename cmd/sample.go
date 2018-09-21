@@ -4,7 +4,6 @@ import (
 	goio "io"
 	"math/rand"
 	"os"
-	"time"
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/tree"
@@ -32,7 +31,6 @@ If the number of desired trees is > number of input trees:
 
 		totaltrees := 0
 		outtrees := make([]*tree.Tree, numtrees)
-		rand.Seed(seed)
 
 		if treefile, treechan, err = readTrees(intreefile); err != nil {
 			io.LogError(err)
@@ -98,6 +96,5 @@ func init() {
 	sampleCmd.Flags().StringVarP(&intreefile, "input", "i", "stdin", "Input reference trees")
 	sampleCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output trees")
 	sampleCmd.PersistentFlags().IntVarP(&numtrees, "nbtrees", "n", 1, "Number of trees to sample from input file")
-	sampleCmd.PersistentFlags().Int64VarP(&seed, "seed", "s", time.Now().UTC().UnixNano(), "Initial Random Seed")
 	sampleCmd.PersistentFlags().BoolVar(&replace, "replace", false, "If given, samples with replacement")
 }
