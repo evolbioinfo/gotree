@@ -58,7 +58,10 @@ func (u *ItolUploader) UploadNewick(name string, newick string) (string, string,
 	if zipbytes, err = compressTree(name+".tree", newick, u.annotationfiles); err != nil {
 		return "", "", err
 	}
-	formwriter.Write(zipbytes)
+
+	if _, err = formwriter.Write(zipbytes); err != nil {
+		return "", "", err
+	}
 
 	if err = writer.WriteField("treeFormat", "newick"); err != nil {
 		return "", "", err
@@ -83,7 +86,7 @@ func (u *ItolUploader) UploadNewick(name string, newick string) (string, string,
 		return "", "", err
 	}
 
-	if postrequest, err = http.NewRequest("POST", "http://itol.embl.de/batch_uploader.cgi", body); err != nil {
+	if postrequest, err = http.NewRequest("POST", "https://itol.embl.de/batch_uploader.cgi", body); err != nil {
 		return "", "", err
 	}
 
@@ -119,7 +122,7 @@ func (u *ItolUploader) UploadNewick(name string, newick string) (string, string,
 	}
 
 	if len(sub) > 1 {
-		return "http://itol.embl.de/tree/" + sub[1], responsebodystring, nil
+		return "https://itol.embl.de/tree/" + sub[1], responsebodystring, nil
 	} else {
 		return "", "", errors.New(responsebodystring)
 	}

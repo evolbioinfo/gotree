@@ -82,5 +82,5 @@ func init() {
 	uploadCmd.AddCommand(itolCmd)
 	itolCmd.Flags().StringVar(&itoluploadid, "user-id", "", "iTOL User upload id")
 	itolCmd.Flags().StringVar(&itolprojectname, "project", "", "iTOL project to upload the tree")
-	itolCmd.Flags().StringVar(&itoltreename, "name", "", "iTOL tree name prefix")
+	itolCmd.Flags().StringVar(&itoltreename, "name", "tree", "iTOL tree name prefix")
 }
