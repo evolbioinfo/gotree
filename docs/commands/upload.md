@@ -9,7 +9,7 @@ iTOL subcommand: It prints the url(s) at which tree(s) is(are) accessible. If `-
 
 If several trees are included in the input file, it will upload all of them, waiting 1 second between each upload to avoid overload of iTOL server.
 
-It is possible to give itol annotation files (see [iTOL documentation](http://itol.embl.de/help.cgi#annot)) to the uploader at the end of command line:
+It is possible to give itol annotation files (see [iTOL documentation](https://itol.embl.de/help.cgi#annot)) to the uploader at the end of command line:
 ```
 gotree upload itol -i tree.nw --name tree --user-id uploadkey --project project annotation*.txt
 ```

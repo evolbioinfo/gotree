@@ -4,7 +4,7 @@
 
 ### download
 
-#### Download from [iTOL](http://itol.embl.de/) (SVG)
+#### Download from [iTOL](https://itol.embl.de/) (SVG)
 Downloading a tree image from iTOL
 ```go
 package main
@@ -24,7 +24,7 @@ func main() {
 	var b []byte
 	var err error
 
-	// See http://itol.embl.de/help.cgi#bExOpt for all config options
+	// See https://itol.embl.de/help.cgi#bExOpt for all config options
 	config = make(map[string]string)
 	config["display_mode"] = "3"          // Unrooted
 	config["ignore_branch_length"] = "0"  // Take branch length into account
@@ -42,7 +42,7 @@ func main() {
 }
 ```
 
-#### Download from [iTOL](http://itol.embl.de/) (Newick format)
+#### Download from [iTOL](https://itol.embl.de/) (Newick format)
 Downloading a tree image from iTOL
 ```go
 package main

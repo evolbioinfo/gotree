@@ -17,7 +17,7 @@ func NewItolImageDownloader(config map[string]string) *ItolImageDownloader {
 
 // Down a tree image from ITOL
 func (d *ItolImageDownloader) Download(id string, format int) ([]byte, error) {
-	posturl := "http://itol.embl.de/batch_downloader.cgi"
+	posturl := "https://itol.embl.de/batch_downloader.cgi"
 	var err error
 	var postresponse *http.Response
 	var responsebody []byte
