@@ -22,7 +22,7 @@ var dlitolCmd = &cobra.Command{
 
 Option -c allows to give a configuration file having tab separated key value pairs, 
 as defined here:
-http://itol.embl.de/help.cgi#bExOpt
+https://itol.embl.de/help.cgi#bExOpt
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var b []byte

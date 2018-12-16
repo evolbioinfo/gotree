@@ -4,7 +4,7 @@
 
 ### upload
 
-#### Upload a tree to [iTOL](http://itol.embl.de/)
+#### Upload a tree to [iTOL](https://itol.embl.de/)
 
 	
 ```go
