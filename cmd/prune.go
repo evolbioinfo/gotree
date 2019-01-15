@@ -95,9 +95,11 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 		}
 		defer closeWriteFile(f, outtreefile)
 
-		if comptree, err = readTree(intree2file); err != nil {
-			io.LogError(err)
-			return
+		if intree2file != "none" {
+			if comptree, err = readTree(intree2file); err != nil {
+				io.LogError(err)
+				return
+			}
 		}
 
 		// Read ref Trees
@@ -107,17 +109,20 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 		}
 		defer treefile.Close()
 
+		var tips []string
+		if tipfile != "none" {
+			if tips, err = parseTipsFile(tipfile); err != nil {
+				io.LogError(err)
+				return
+			}
+		}
+
 		for reftree := range treechan {
 			if reftree.Err != nil {
 				io.LogError(reftree.Err)
 				return reftree.Err
 			}
-			var tips []string
 			if tipfile != "none" {
-				if tips, err = parseTipsFile(tipfile); err != nil {
-					io.LogError(err)
-					return
-				}
 				err = reftree.Tree.RemoveTips(revert, tips...)
 			} else if comptree != nil {
 				specificTipNames = specificTips(reftree.Tree, comptree)
