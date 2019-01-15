@@ -1685,6 +1685,7 @@ func (t *Tree) CutEdgesMaxLength(maxlen float64) (bags []*TipBag, err error) {
 	// Visit all the edges if they are not already visited
 	for _, e := range edges {
 		if !visited[e.Id()] {
+			visited[e.Id()] = true
 			if e.Length() < maxlen {
 				tipBag := NewTipBag()
 				// We go both directions of the edge
@@ -1729,8 +1730,8 @@ func (t *Tree) cutEdgesMaxLengthRecur(tipBag *TipBag, cur *Node, prev *Node, max
 	}
 	for i, n := range cur.neigh {
 		b := cur.br[i]
-		visited[b.Id()] = true
 		if n != prev && b.Length() < maxlen {
+			visited[b.Id()] = true
 			if err := t.cutEdgesMaxLengthRecur(tipBag, n, cur, maxlen, visited); err != nil {
 				return err
 			}

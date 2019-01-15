@@ -504,6 +504,25 @@ gotree generate yuletree --seed 10 -l 20 | gotree prune -i - -c <(gotree generat
 diff expected result
 rm -f expected result
 
+echo "->gotree prune tipfile"
+cat > expected <<EOF
+((Tip4,(Tip7,Tip2)),((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)),Tip0);
+EOF
+cat > tipfile <<EOF
+Tip6
+Tip4
+Tip0
+Tip3
+Tip9
+Tip8
+Tip2
+Tip7
+Tip5
+Tip1
+EOF
+gotree generate yuletree --seed 10 -l 20 | gotree prune -i - -f tipfile -r | gotree brlen clear > result
+diff expected result
+rm -f expected result tipfile
 
 echo "->gotree brlen setrand"
 cat > expected <<EOF
@@ -1311,3 +1330,28 @@ gotree brlen cut -i input -l 0.0 | sort > output
 diff expected output
 
 rm -f expected output input expected
+
+
+#gotree brlen cut
+echo "->gotree brlen cut / 2"
+#
+# 1--0.1------       ---0.2-----6
+#             |     |
+#             |-0.2-|
+# 2-0.1-      |     |      -0.1-4
+#       |-0.1-       -0.1-|
+# 3-0.1-                   -0.1-5
+#
+cat > input <<EOF
+((1:0.1,(2:0.1,3:0.1):0.1):0.2,(4:0.1,5:0.1):0.1,6:0.2);
+EOF
+
+cat > expected <<EOF
+0	1	6
+0	2	4,5
+0	3	1,2,3
+EOF
+gotree brlen cut -i input  -l 0.2 | sort > output
+diff expected output
+
+rm -f expected output input
