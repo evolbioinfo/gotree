@@ -247,7 +247,7 @@ $ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -o tree.svg
 $ gotree generate yuletree -l 50 | gotree draw svg -w 1000 -H 1000 -r -o tree_radial.svg
 ```
 
-* Reformating 10 input random trees into Nexus format:
+* Reformating 4 input random trees into Nexus format:
 ```[bash]
 $ gotree generate yuletree -n 4 -l 8 --seed 10 | gotree brlen clear | gotree reformat nexus
 ```
@@ -351,8 +351,8 @@ Example:
 ```
 $ gotree compare tips -i <(gotree generate uniformtree -l 10 -n 1) \
                       -c <(gotree generate uniformtree -l 11 -n 1)
-> Tip10
-= 10
+(Tree 0) > Tip10
+(Tree 0) = 10
 ```
 10 tips are equal, and "Tip10" is present only in the second tree.
 
@@ -462,7 +462,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 
 	"github.com/fredericlemoine/gotree/io/utils"
 	"github.com/fredericlemoine/gotree/tree"
@@ -473,7 +473,7 @@ func main() {
 	var err error
 	var ntrees int = 0
 	var trees <-chan tree.Trees
-	var treefile *os.File
+	var treefile io.Closer
 	var treereader *bufio.Reader
 
 	/* File reader (plain text or gzip) */
@@ -481,8 +481,8 @@ func main() {
 		panic(err)
 	}
 	defer treefile.Close()
-	trees = utils.ReadMultiTrees(treereader)
-
+	// format may be FORMAT_NEWICK, FORMAT_NEXUS, FORMAT_PHYLOXML
+	trees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 	for t = range trees {
 		if t.Err != nil {
 			panic(t.Err)
@@ -505,8 +505,6 @@ var tedges []*tree.Edge = t.TipEdges()
 // Getting Nodes
 var nodes []*tree.Node = t.Nodes()
 // Tips only
-var tips []*tree.Node = t.Tips()
-// Getting tips
 var tips []*tree.Node = t.Tips()
 // Getting tip names
 var tipnames []string = t.AllTipNames()
@@ -614,18 +612,12 @@ t,err = tree.RandomBalancedBinaryTree(ntips, rooted)
 t,err = tree.RandomYuleBinaryTree(ntips, rooted)
 ```
 
-* Computing bootstrap supports from tree files
-```go
-import "github.com/fredericlemoine/gotree/support"
-...
-var cpus int = 1
-boottree,err := support.ClassicalFile("referencetreefile", "bootstraptreesfile", cpus)
-```
-
 * SVG Tree drawing 
 ```go
 import "github.com/fredericlemoine/gotree/draw"
 ...
+var d draw.TreeDrawer
+var l draw.TreeLayout
 f, err := os.Create("image.svg")
 d = draw.NewSvgTreeDrawer(f, 800, 800, 30, 30, 30, 30)
 l = draw.NewRadialLayout(d, false, false, false, false)
@@ -639,6 +631,8 @@ f.Close()
 ```go
 import "github.com/fredericlemoine/gotree/draw"
 ...
+var d draw.TreeDrawer
+var l draw.TreeLayout
 f, err := os.Create("image.svg")
 d = draw.NewPngTreeDrawer(f, 800, 800, 30, 30, 30, 30)
 l = draw.NewRadialLayout(d, false, false, false, false)
