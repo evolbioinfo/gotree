@@ -140,15 +140,23 @@ func (d *NcbiTreeDownloader) parseNcbiNames(reader io.Reader) (map[string]string
 	r := bufio.NewReader(reader)
 	l, err := fileutils.Readln(r)
 	namemap := make(map[string]string)
+	sciname := make(map[string]bool)
+
 	re := regexp.MustCompile("[\\[\\]\\(\\)\\:\\,\\s\\;]")
 	for err == nil {
 		cols := regexp.MustCompile("\t*\\|\t*").Split(l, -1)
 		tax := cols[0]
 		name := cols[1]
 		tpe := cols[3]
-		if tpe == "scientific name" || tpe == "synonym" {
-			clean := re.ReplaceAllString(name, "_")
+		clean := re.ReplaceAllString(name, "_")
+		if tpe == "scientific name" {
 			namemap[tax] = clean
+			sciname[tax] = true
+		} else if tpe == "synonym" {
+			_, ok := sciname[tax]
+			if !ok {
+				namemap[tax] = clean
+			}
 		}
 		l, err = fileutils.Readln(r)
 	}
