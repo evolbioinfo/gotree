@@ -8,7 +8,7 @@
 
 [[constraint]]
   name = "github.com/fredericlemoine/goalign"
-  version = "0.2.5"
+  version = "v0.3.0-alpha5"
 
 [[constraint]]
   name = "github.com/fredericlemoine/gostats"
