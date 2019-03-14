@@ -8,7 +8,8 @@ This command annotates internal nodes/branches of a tree with given information.
 Annotations may be (in order of priority):
 - A tree with labels on internal nodes (-c). in that case, it will label each branch of 
    the input tree with label of the closest branch of the given compared tree (-c) in terms
-   of transfer distance. The labels are of the form: "`label_distance_depth`";
+   of transfer distance. The labels are of the form: "`label_distance_depth`"; Only internal branches
+   are annotated, and no internal branch is annotated with a terminal branch.
 - A file with one line per internal node to annotate (-m), and with the following format:
    `<name of internal branch/node n1>:<name of taxon n2>,<name of taxon n3>,...,<name of taxon ni>`
 	=> If 0 name is given after ':' an error is returned

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"math"
 	"sort"
+
+	"github.com/fredericlemoine/gotree/mutils"
 )
 
 const MaxInt = int(^uint(0) >> 1)
@@ -136,7 +138,7 @@ func (t *Tree) CollessIndex() (colless int) {
 		leftindex, lefttips := collessIndexRecur(edge.Left(), edge.Right())
 		rightindex, righttips := collessIndexRecur(edge.Right(), edge.Left())
 		colless += (leftindex + rightindex)
-		colless += max(lefttips, righttips) - min(lefttips, righttips)
+		colless += mutils.Max(lefttips, righttips) - mutils.Min(lefttips, righttips)
 	} else {
 		colless, _ = collessIndexRecur(t.Root(), nil)
 	}
@@ -154,8 +156,8 @@ func collessIndexRecur(n *Node, prev *Node) (colless, tips int) {
 	for _, c := range n.Neigh() {
 		if c != prev {
 			childindex, childtips := collessIndexRecur(c, n)
-			mintips = min(mintips, childtips)
-			maxtips = max(maxtips, childtips)
+			mintips = mutils.Min(mintips, childtips)
+			maxtips = mutils.Max(maxtips, childtips)
 			tips += childtips
 			colless += childindex
 		}

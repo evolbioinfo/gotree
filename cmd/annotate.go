@@ -11,6 +11,7 @@ import (
 
 	"github.com/fredericlemoine/gotree/io"
 	"github.com/fredericlemoine/gotree/io/fileutils"
+	"github.com/fredericlemoine/gotree/mutils"
 	"github.com/fredericlemoine/gotree/support"
 	"github.com/fredericlemoine/gotree/tree"
 
@@ -28,7 +29,8 @@ var annotateCmd = &cobra.Command{
 Annotations may be (in order of priority):
 - A tree with labels on internal nodes (-c). in that case, it will label each branch of 
    the input tree with label of the closest branch of the given compared tree (-c) in terms
-   of transfer distance. The labels are of the form: "label_distance_depth";
+   of transfer distance. The labels are of the form: "label_distance_depth"; Only internal branches
+   are annotated, and no internal branch is annotated with a terminal branch.
 - A file with one line per internal node to annotate (-m), and with the following format:
    <name of internal branch/node n1>:<name of taxon n2>,<name of taxon n3>,...,<name of taxon ni>
 	=> If 0 name is given after ':' an error is returned
@@ -127,10 +129,43 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 						if dist > uint16(len(tips))/2 {
 							dist = uint16(len(tips)) - dist
 						}
-						if annotateComment {
-							e1.Right().AddComment(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
-						} else {
-							e1.Right().SetName(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+
+						// If root edge and rooted tree, we take the closest branch
+						if e2.Left().Nneigh() == 2 {
+							var t3, t2, t1 int
+
+							e3 := e2.Left().Edges()[0]
+							if e3 == e2 {
+								e3 = e2.Left().Edges()[1]
+							}
+
+							if t3, err = e3.NumTipsRight(); err != nil {
+								io.LogError(err)
+								return
+							}
+							if t2, err = e2.NumTipsRight(); err != nil {
+								io.LogError(err)
+								return
+							}
+							if t1, err = e1.NumTipsRight(); err != nil {
+								io.LogError(err)
+								return
+							}
+							fmt.Println(t1)
+							fmt.Println(t2)
+							fmt.Println(t3)
+
+							if mutils.Abs(t3-t1) < mutils.Abs(t2-t1) {
+								e2 = e3
+							}
+						}
+
+						if !e2.Right().Tip() {
+							if annotateComment {
+								e1.Right().AddComment(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+							} else {
+								e1.Right().SetName(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+							}
 						}
 					}
 				}

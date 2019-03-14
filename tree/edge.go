@@ -9,6 +9,7 @@ import (
 
 	"github.com/fredericlemoine/bitset"
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/mutils"
 )
 
 // Structure of an edge
@@ -165,7 +166,7 @@ func (e *Edge) TopoDepth() (int, error) {
 	}
 	count := int(e.bitset.Count())
 	total := int(e.bitset.Len())
-	return min(count, total-count), nil
+	return mutils.Min(count, total-count), nil
 }
 
 // Returns a string representing the bitset (bipartition)
@@ -205,7 +206,7 @@ func (e *Edge) ToStatsString(withedgecomments bool) string {
 	if rightdepth, err = e.Right().Depth(); err != nil {
 		io.ExitWithMessage(err)
 	}
-	depth = min(leftdepth, rightdepth)
+	depth = mutils.Min(leftdepth, rightdepth)
 	var topodepth int
 	topodepth, err = e.TopoDepth()
 	if err != nil {

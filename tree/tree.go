@@ -16,6 +16,7 @@ import (
 
 	"github.com/fredericlemoine/bitset"
 	"github.com/fredericlemoine/gotree/io"
+	"github.com/fredericlemoine/gotree/mutils"
 )
 
 // Tree structure having a root and a tip index, that maps tip names to their index
@@ -1580,8 +1581,8 @@ func (t *Tree) deepestEdgeRecur(node, prev *Node, edge *Edge, numtips int) (maxe
 			curtips += t
 		}
 	}
-	if min(numtips-curtips, curtips) > maxdepth {
-		maxdepth = min(numtips-curtips, curtips)
+	if mutils.Min(numtips-curtips, curtips) > maxdepth {
+		maxdepth = mutils.Min(numtips-curtips, curtips)
 		maxedge = edge
 		lefttips = numtips - curtips
 		righttips = curtips
