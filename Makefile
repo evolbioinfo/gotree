@@ -6,7 +6,7 @@ VERSION_PACKAGE := github.com/fredericlemoine/gotree/cmd.Version
 NAME := gotree
 PACKAGE:=github.com/fredericlemoine/gotree
 
-all: dep build test install testcommands
+all: dep build test
 
 dep:
 	${DEP_EXECUTABLE} ensure
@@ -14,7 +14,7 @@ dep:
 build:
 	${GO_EXECUTABLE} build -o ${NAME} -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
-install:
+install: testcommands
 	rm -f ${GOPATH}/bin/${NAME}
 	${GO_EXECUTABLE} install -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
