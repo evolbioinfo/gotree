@@ -11,9 +11,9 @@ package main
 import (
 	"os"
 
-	"github.com/fredericlemoine/gotree/draw"
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/draw"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 func main() {
@@ -52,9 +52,9 @@ import (
 	"bufio"
 	"os"
 
-	"github.com/fredericlemoine/gotree/draw"
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/draw"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 func main() {

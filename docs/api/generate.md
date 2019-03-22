@@ -13,7 +13,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 func main() {

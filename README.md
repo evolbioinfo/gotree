@@ -1,5 +1,5 @@
 # Gotree
-[![build](https://travis-ci.org/fredericlemoine/gotree.svg?branch=master)](https://travis-ci.org/fredericlemoine/gotree) [![Anaconda-Server Badge](https://anaconda.org/bioconda/gotree/badges/installer/conda.svg)](https://anaconda.org/bioconda/gotree)  [![Docker hub](https://img.shields.io/docker/build/evolbioinfo/gotree.svg)](https://hub.docker.com/r/evolbioinfo/gotree/builds/)
+[![build](https://travis-ci.org/evolbioinfo/gotree.svg?branch=master)](https://travis-ci.org/evolbioinfo/gotree) [![Anaconda-Server Badge](https://anaconda.org/bioconda/gotree/badges/installer/conda.svg)](https://anaconda.org/bioconda/gotree)  [![Docker hub](https://img.shields.io/docker/build/evolbioinfo/gotree.svg)](https://hub.docker.com/r/evolbioinfo/gotree/builds/)
 
 ![Gotree Logo](images/logo.png)
 
@@ -19,7 +19,7 @@ Gzipped input files (`.gz` extension) are supported.
 
 **Note**:
 
-To manipulate multiple alignments, See also [Goalign](https://github.com/fredericlemoine/goalign).
+To manipulate multiple alignments, See also [Goalign](https://github.com/evolbioinfo/goalign).
 
 **Examples:**
 
@@ -60,7 +60,7 @@ This will generate 10 random unrooted uniform binary trees, each having 100 tips
 
 ## Installation
 ### Easy way: Binaries
-You can download ready to run binaries for the latest release in the [release](https://github.com/fredericlemoine/gotree/releases) section.
+You can download ready to run binaries for the latest release in the [release](https://github.com/evolbioinfo/gotree/releases) section.
 Binaries are available for MacOS, Linux, and Windows (32 and 64 bits).
 
 Once downloaded, you can just run the executable without any other downloads.
@@ -94,14 +94,14 @@ In order to compile gotree, you must first [download](https://golang.org/dl/) an
 
 Then you just have to type :
 ```
-go get github.com/fredericlemoine/gotree/
+go get github.com/evolbioinfo/gotree/
 go get -u github.com/golang/dep/cmd/dep
 ```
 This will download GoTree sources from github, and all its dependencies.
 
 You can then build it with:
 ```
-cd $GOPATH/src/github.com/fredericlemoine/gotree/
+cd $GOPATH/src/github.com/evolbioinfo/gotree/
 dep ensure
 make
 ```
@@ -410,8 +410,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 func main() {
@@ -435,8 +435,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 func main() {
@@ -464,8 +464,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/utils"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 func main() {
@@ -614,7 +614,7 @@ t,err = tree.RandomYuleBinaryTree(ntips, rooted)
 
 * SVG Tree drawing 
 ```go
-import "github.com/fredericlemoine/gotree/draw"
+import "github.com/evolbioinfo/gotree/draw"
 ...
 var d draw.TreeDrawer
 var l draw.TreeLayout
@@ -629,7 +629,7 @@ f.Close()
 
 * PNG Tree drawing 
 ```go
-import "github.com/fredericlemoine/gotree/draw"
+import "github.com/evolbioinfo/gotree/draw"
 ...
 var d draw.TreeDrawer
 var l draw.TreeLayout

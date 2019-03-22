@@ -97,7 +97,7 @@ seq-gen -q -op -a0.5 -g4 -mGTR -l500 -r 3 5 7 4 6 2 -f 0.25 0.15 0.2 0.4 -z 20 t
 FastTree align.ph > inferred.nw
 ```
 
-* We generate 100 bootstrap alignments with [goalign](https://github.com/fredericlemoine/goalign)
+* We generate 100 bootstrap alignments with [goalign](https://github.com/evolbioinfo/goalign)
 
 ```
 goalign build seqboot -i align.ph -n 100 -p -o align_boot

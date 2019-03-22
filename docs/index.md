@@ -1,6 +1,6 @@
 # Gotree: toolkit and api for phylogenetic tree manipulation
 ## Github repository
-[Gotree github repository](https://github.com/fredericlemoine/gotree).
+[Gotree github repository](https://github.com/evolbioinfo/gotree).
 ## Introduction
 GoTree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
 
@@ -8,7 +8,7 @@ The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wi
 
 ## Installation
 ### Binaries
-You can download already compiled binaries for the latest release in the [release](https://github.com/fredericlemoine/gotree/releases) section.
+You can download already compiled binaries for the latest release in the [release](https://github.com/evolbioinfo/gotree/releases) section.
 Binaries are available for MacOS, Linux, and Windows (32 and 64 bits).
 
 Once downloaded, you can just run the executable without any other downloads.
@@ -18,13 +18,13 @@ In order to compile gotree, you must first [download](https://golang.org/dl/) an
 
 Then you just have to type :
 ```bash
-go get github.com/fredericlemoine/gotree/
+go get github.com/evolbioinfo/gotree/
 ```
 This will download GoTree sources from github, and all its dependencies.
 
 You can then build it with:
 ```bash
-cd $GOPATH/src/github.com/fredericlemoine/gotree/
+cd $GOPATH/src/github.com/evolbioinfo/gotree/
 make
 ```
 The `gotree` executable should be located in the `$GOPATH/bin` folder.

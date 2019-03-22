@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fredericlemoine/goalign/align"
-	"github.com/fredericlemoine/goalign/io/fasta"
-	"github.com/fredericlemoine/goalign/io/phylip"
+	"github.com/evolbioinfo/goalign/align"
+	"github.com/evolbioinfo/goalign/io/fasta"
+	"github.com/evolbioinfo/goalign/io/phylip"
 	"github.com/evolbioinfo/gotree/asr"
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/io/utils"

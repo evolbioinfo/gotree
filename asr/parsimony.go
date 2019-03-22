@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/fredericlemoine/goalign/align"
+	"github.com/evolbioinfo/goalign/align"
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/tree"
 )

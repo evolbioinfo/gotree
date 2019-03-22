@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fredericlemoine/goalign/align"
+	"github.com/evolbioinfo/goalign/align"
 	treeio "github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/io/newick"
 )

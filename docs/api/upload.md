@@ -14,9 +14,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
-	"github.com/fredericlemoine/gotree/upload"
+	"github.com/evolbioinfo/gotree/io/utils"
+	"github.com/evolbioinfo/gotree/tree"
+	"github.com/evolbioinfo/gotree/upload"
 )
 
 func main() {

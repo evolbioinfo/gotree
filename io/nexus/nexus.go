@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strconv"
 
-	"github.com/fredericlemoine/goalign/align"
+	"github.com/evolbioinfo/goalign/align"
 	"github.com/evolbioinfo/gotree/tree"
 )
 

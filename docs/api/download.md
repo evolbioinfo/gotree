@@ -12,8 +12,8 @@ package main
 import (
 	"io/ioutil"
 
-	"github.com/fredericlemoine/gotree/download"
-	"github.com/fredericlemoine/gotree/io"
+	"github.com/evolbioinfo/gotree/download"
+	"github.com/evolbioinfo/gotree/io"
 )
 
 func main() {
@@ -50,8 +50,8 @@ package main
 import (
 	"io/ioutil"
 
-	"github.com/fredericlemoine/gotree/download"
-	"github.com/fredericlemoine/gotree/io"
+	"github.com/evolbioinfo/gotree/download"
+	"github.com/evolbioinfo/gotree/io"
 )
 
 func main() {
@@ -77,7 +77,7 @@ func main() {
 package main
 
 import (
-	"github.com/fredericlemoine/gotree/download"
+	"github.com/evolbioinfo/gotree/download"
 )
 
 func main(){
