@@ -2,7 +2,7 @@ package tests
 
 import (
 	"fmt"
-	"github.com/fredericlemoine/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/io/newick"
 	"strings"
 	"testing"
 )

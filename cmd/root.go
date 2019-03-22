@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/fredericlemoine/cobrashell"
-	"github.com/fredericlemoine/gotree/io/fileutils"
-	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/fileutils"
+	"github.com/evolbioinfo/gotree/io/utils"
+	"github.com/evolbioinfo/gotree/tree"
 	"github.com/spf13/cobra"
 )
 

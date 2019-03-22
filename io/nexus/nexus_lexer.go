@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	treeio "github.com/fredericlemoine/gotree/io"
+	treeio "github.com/evolbioinfo/gotree/io"
 )
 
 // Scanner represents a lexical scanner.

@@ -11,9 +11,9 @@ import (
 	"regexp"
 	"strings"
 
-	gtio "github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/fileutils"
-	"github.com/fredericlemoine/gotree/tree"
+	gtio "github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/io/fileutils"
+	"github.com/evolbioinfo/gotree/tree"
 	"github.com/jlaffaye/ftp"
 )
 

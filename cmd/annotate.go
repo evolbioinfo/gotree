@@ -9,11 +9,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/fileutils"
-	"github.com/fredericlemoine/gotree/mutils"
-	"github.com/fredericlemoine/gotree/support"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/io/fileutils"
+	"github.com/evolbioinfo/gotree/mutils"
+	"github.com/evolbioinfo/gotree/support"
+	"github.com/evolbioinfo/gotree/tree"
 
 	"github.com/spf13/cobra"
 )

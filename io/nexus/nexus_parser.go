@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/fredericlemoine/goalign/align"
-	treeio "github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/newick"
+	treeio "github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/io/newick"
 )
 
 // Parser represents a parser.

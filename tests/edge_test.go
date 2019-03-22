@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 // Tests the function to get neighboring edges of a given edges

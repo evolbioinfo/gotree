@@ -6,7 +6,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/fredericlemoine/gotree/io"
+	"github.com/evolbioinfo/gotree/io"
 	//"os"
 )
 

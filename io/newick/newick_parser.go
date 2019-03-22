@@ -3,7 +3,7 @@ package newick
 import (
 	"errors"
 	"fmt"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 	"io"
 	"strconv"
 	"strings"

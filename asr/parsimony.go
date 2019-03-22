@@ -7,8 +7,8 @@ import (
 	"math/rand"
 
 	"github.com/fredericlemoine/goalign/align"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 const (

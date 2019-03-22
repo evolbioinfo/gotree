@@ -1,7 +1,7 @@
 package draw
 
 import (
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 type normalLayout struct {

@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 	"testing"
 )
 

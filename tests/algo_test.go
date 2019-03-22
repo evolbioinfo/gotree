@@ -2,8 +2,8 @@ package tests
 
 import (
 	"fmt"
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
 	"os"
 	"strings"
 	"testing"

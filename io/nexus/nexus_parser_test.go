@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fredericlemoine/gotree/io/nexus"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/nexus"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 // Ensure the parser can parse strings into Statement ASTs.

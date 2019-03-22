@@ -11,7 +11,7 @@ And with different drawing algorithms. So far, only ASCII form in terminal.
 package draw
 
 import (
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 /*

@@ -1,7 +1,7 @@
 package download
 
 import (
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 type ImageDownloader interface {

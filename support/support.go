@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/sort"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/sort"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 type bootval struct {

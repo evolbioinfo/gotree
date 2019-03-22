@@ -3,7 +3,7 @@ package draw
 import (
 	"math"
 
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 type radialLayout struct {

@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fredericlemoine/gotree/download"
+	"github.com/evolbioinfo/gotree/download"
 )
 
 func OpenFile(inputfile string) (*os.File, error) {

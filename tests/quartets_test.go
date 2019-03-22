@@ -6,10 +6,10 @@ import (
 	"io"
 	"testing"
 
-	"github.com/fredericlemoine/gotree/hashmap"
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/hashmap"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/io/utils"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 func TestQuartets(t *testing.T) {

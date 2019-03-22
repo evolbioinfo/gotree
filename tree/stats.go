@@ -5,7 +5,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/fredericlemoine/gotree/mutils"
+	"github.com/evolbioinfo/gotree/mutils"
 )
 
 const MaxInt = int(^uint(0) >> 1)

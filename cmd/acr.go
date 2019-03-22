@@ -10,9 +10,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/fredericlemoine/gotree/acr"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/acr"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/tree"
 	"github.com/spf13/cobra"
 )
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 // Structs for representation of the PhyloXML tree

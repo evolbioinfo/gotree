@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/fredericlemoine/gotree/cmd"
+import "github.com/evolbioinfo/gotree/cmd"
 
 func main() {
 	cmd.Execute()

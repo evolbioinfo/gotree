@@ -10,10 +10,10 @@ import (
 	"github.com/fredericlemoine/goalign/align"
 	"github.com/fredericlemoine/goalign/io/fasta"
 	"github.com/fredericlemoine/goalign/io/phylip"
-	"github.com/fredericlemoine/gotree/asr"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/utils"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/asr"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/io/utils"
+	"github.com/evolbioinfo/gotree/tree"
 	"github.com/spf13/cobra"
 )
 

@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/fredericlemoine/goalign/align"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 // The nexus structure, with several trees (gotree) and one alignment (goalign)

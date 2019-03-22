@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 type ItolUploader struct {

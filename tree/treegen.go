@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/fredericlemoine/gostats"
-	"github.com/fredericlemoine/gotree/io"
+	"github.com/evolbioinfo/gotree/io"
 )
 
 // Creates a Random uniform Binary tree by successively adding

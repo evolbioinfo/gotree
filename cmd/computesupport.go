@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/fredericlemoine/gotree/io"
+	"github.com/evolbioinfo/gotree/io"
 	"github.com/spf13/cobra"
 )
 

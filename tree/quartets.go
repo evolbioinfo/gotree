@@ -2,8 +2,8 @@ package tree
 
 import (
 	"errors"
-	"github.com/fredericlemoine/gotree/hashmap"
-	"github.com/fredericlemoine/gotree/io"
+	"github.com/evolbioinfo/gotree/hashmap"
+	"github.com/evolbioinfo/gotree/io"
 )
 
 const (

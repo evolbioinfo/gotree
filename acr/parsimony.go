@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 const (

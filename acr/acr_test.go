@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 func TestACRDELTRANParsimony(t *testing.T) {

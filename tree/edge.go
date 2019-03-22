@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"github.com/fredericlemoine/bitset"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/mutils"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/mutils"
 )
 
 // Structure of an edge

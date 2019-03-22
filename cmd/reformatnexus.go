@@ -4,9 +4,9 @@ import (
 	goio "io"
 	"os"
 
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/io/nexus"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/io/nexus"
+	"github.com/evolbioinfo/gotree/tree"
 	"github.com/spf13/cobra"
 )
 

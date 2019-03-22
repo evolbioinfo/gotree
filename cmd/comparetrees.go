@@ -7,8 +7,8 @@ import (
 	goio "io"
 	"runtime"
 
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 var comparetreeidentical bool

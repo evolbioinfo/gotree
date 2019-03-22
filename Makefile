@@ -2,9 +2,9 @@ DEP_EXECUTABLE := ${GOPATH}/bin/dep
 GO_EXECUTABLE := go
 VERSION := $(shell git describe --abbrev=10 --dirty --always --tags)
 DIST_DIRS := find * -type d -exec
-VERSION_PACKAGE := github.com/fredericlemoine/gotree/cmd.Version
+VERSION_PACKAGE := github.com/evolbioinfo/gotree/cmd.Version
 NAME := gotree
-PACKAGE:=github.com/fredericlemoine/gotree
+PACKAGE:=github.com/evolbioinfo/gotree
 
 all: dep build test
 

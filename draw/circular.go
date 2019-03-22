@@ -4,7 +4,7 @@ import (
 	"log"
 	"math"
 
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 type circularLayout struct {

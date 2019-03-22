@@ -15,8 +15,8 @@ import (
 	"strconv"
 
 	"github.com/fredericlemoine/bitset"
-	"github.com/fredericlemoine/gotree/io"
-	"github.com/fredericlemoine/gotree/mutils"
+	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/mutils"
 )
 
 // Tree structure having a root and a tip index, that maps tip names to their index

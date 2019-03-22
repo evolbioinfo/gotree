@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fredericlemoine/gotree/io/fileutils"
-	"github.com/fredericlemoine/gotree/io/newick"
-	"github.com/fredericlemoine/gotree/io/nexus"
-	"github.com/fredericlemoine/gotree/io/phyloxml"
-	"github.com/fredericlemoine/gotree/tree"
+	"github.com/evolbioinfo/gotree/io/fileutils"
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/io/nexus"
+	"github.com/evolbioinfo/gotree/io/phyloxml"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 const (
