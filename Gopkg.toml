@@ -8,7 +8,8 @@
 
 [[constraint]]
   name = "github.com/evolbioinfo/goalign"
-  version = "v0.3.0-alpha5"
+  #version = "v0.3.0-alpha5"
+  revision = "ab854d8a691112edd3c4d8a90fd751d9878bb44c"
 
 [[constraint]]
   name = "github.com/fredericlemoine/gostats"
