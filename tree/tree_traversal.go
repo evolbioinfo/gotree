@@ -1,5 +1,9 @@
 package tree
 
+func (t *Tree) PostOrder(f func(*Node, *Node)) {
+	t.postOrderRecur(t.Root(), nil, f)
+}
+
 func (t *Tree) postOrderRecur(cur *Node, prev *Node, f func(cur *Node, prev *Node)) {
 	for _, n := range cur.neigh {
 		if n != prev {
@@ -9,8 +13,8 @@ func (t *Tree) postOrderRecur(cur *Node, prev *Node, f func(cur *Node, prev *Nod
 	f(cur, prev)
 }
 
-func (t *Tree) PostOrder(f func(*Node, *Node)) {
-	t.postOrderRecur(t.Root(), nil, f)
+func (t *Tree) PreOrder(f func(cur *Node, prev *Node)) {
+	t.preOrderRecur(t.Root(), nil, f)
 }
 
 func (t *Tree) preOrderRecur(cur *Node, prev *Node, f func(cur *Node, prev *Node)) {
@@ -20,8 +24,4 @@ func (t *Tree) preOrderRecur(cur *Node, prev *Node, f func(cur *Node, prev *Node
 			t.preOrderRecur(n, cur, f)
 		}
 	}
-}
-
-func (t *Tree) PreOrder(f func(cur *Node, prev *Node)) {
-	t.preOrderRecur(t.Root(), nil, f)
 }
