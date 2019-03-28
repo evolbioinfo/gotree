@@ -14,9 +14,9 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/fredericlemoine/bitset"
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/mutils"
+	"github.com/fredericlemoine/bitset"
 )
 
 // Tree structure having a root and a tip index, that maps tip names to their index
@@ -1668,7 +1668,7 @@ func (t *Tree) RoundLengths(precision int) {
 }
 
 // Get all connected components (only the tips) of the tree
-// when edges with length more than maxLen (included) are removed
+// when edges with length less than maxLen (included) are removed
 // If a connected components have no tips, then it is not taken into account.
 //
 // The edges are not actually removed from the input tree.
