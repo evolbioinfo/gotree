@@ -436,7 +436,7 @@ func TestPostOrder(t *testing.T) {
 		t.Error(err)
 	}
 
-	tr.PostOrder(func(cur *tree.Node, prev *tree.Node, e *tree.Edge) {
+	tr.PostOrder(func(cur *tree.Node, prev *tree.Node, e *tree.Edge) bool {
 		if e != nil {
 			result_tiporder = append(result_tiporder, fmt.Sprintf("%v", e.Length()))
 		}
@@ -445,6 +445,44 @@ func TestPostOrder(t *testing.T) {
 		} else {
 			result_tiporder = append(result_tiporder, "f")
 		}
+		return true
+	})
+
+	if len(result_tiporder) != len(expected_tiporder) {
+		t.Errorf("Resulting postorder is not equal to Expected postorder %v vs. %v", result_tiporder, expected_tiporder)
+	}
+
+	for i, n := range result_tiporder {
+		if n != expected_tiporder[i] {
+			t.Errorf("Resulting postorder is not equal to Expected postorder %v vs. %v", result_tiporder, expected_tiporder)
+		}
+	}
+}
+
+func TestPostOrder2(t *testing.T) {
+	var tr *tree.Tree
+	var err error
+	var treeString string = "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.8:0.3)0.9:0.4);"
+	var expected_tiporder []string = []string{"0.1", "Tip4", "0.1", "Tip0", "0.1", "Tip3"}
+	var result_tiporder []string = make([]string, 0, len(expected_tiporder))
+
+	if tr, err = newick.NewParser(strings.NewReader(treeString)).Parse(); err != nil {
+		t.Error(err)
+	}
+
+	tr.PostOrder(func(cur *tree.Node, prev *tree.Node, e *tree.Edge) bool {
+		if e != nil {
+			result_tiporder = append(result_tiporder, fmt.Sprintf("%v", e.Length()))
+		}
+		if cur.Tip() {
+			result_tiporder = append(result_tiporder, cur.Name())
+		} else {
+			result_tiporder = append(result_tiporder, "f")
+		}
+		if cur.Name() == "Tip3" {
+			return false
+		}
+		return true
 	})
 
 	if len(result_tiporder) != len(expected_tiporder) {
@@ -469,7 +507,7 @@ func TestPreOrder(t *testing.T) {
 		t.Error(err)
 	}
 
-	tr.PreOrder(func(cur *tree.Node, prev *tree.Node, e *tree.Edge) {
+	tr.PreOrder(func(cur *tree.Node, prev *tree.Node, e *tree.Edge) bool {
 		if e != nil {
 			result_tiporder = append(result_tiporder, fmt.Sprintf("%v", e.Length()))
 		}
@@ -478,6 +516,44 @@ func TestPreOrder(t *testing.T) {
 		} else {
 			result_tiporder = append(result_tiporder, "f")
 		}
+		return true
+	})
+
+	if len(result_tiporder) != len(expected_tiporder) {
+		t.Errorf("Resulting preorder is not equal to Expected preorder %v vs. %v", result_tiporder, expected_tiporder)
+	}
+
+	for i, n := range result_tiporder {
+		if n != expected_tiporder[i] {
+			t.Errorf("Resulting preorder is not equal to Expected preorder %v vs. %v", result_tiporder, expected_tiporder)
+		}
+	}
+}
+
+func TestPreOrder2(t *testing.T) {
+	var tr *tree.Tree
+	var err error
+	var treeString string = "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.8:0.3)0.9:0.4);"
+	var expected_tiporder []string = []string{"f", "0.1", "Tip4", "0.1", "Tip0", "0.4", "f", "0.1", "Tip3"}
+	var result_tiporder []string = make([]string, 0, len(expected_tiporder))
+
+	if tr, err = newick.NewParser(strings.NewReader(treeString)).Parse(); err != nil {
+		t.Error(err)
+	}
+
+	tr.PreOrder(func(cur *tree.Node, prev *tree.Node, e *tree.Edge) bool {
+		if e != nil {
+			result_tiporder = append(result_tiporder, fmt.Sprintf("%v", e.Length()))
+		}
+		if cur.Tip() {
+			result_tiporder = append(result_tiporder, cur.Name())
+		} else {
+			result_tiporder = append(result_tiporder, "f")
+		}
+		if cur.Name() == "Tip3" {
+			return false
+		}
+		return true
 	})
 
 	if len(result_tiporder) != len(expected_tiporder) {
