@@ -566,3 +566,151 @@ func TestPreOrder2(t *testing.T) {
 		}
 	}
 }
+
+func TestNNI(t *testing.T) {
+	var tr, nni1, nni2, copy *tree.Tree
+	var err error
+	var common1, common2 int
+
+	if tr, err = newick.NewParser(strings.NewReader("(n1_1,n1_2,(n2_1,n2_2)n2)n1;")).Parse(); err != nil {
+		t.Error(err)
+	}
+	if nni1, err = newick.NewParser(strings.NewReader("(n1_1,n2_1,(n1_2,n2_2)n2)n1;")).Parse(); err != nil {
+		t.Error(err)
+	}
+	if nni2, err = newick.NewParser(strings.NewReader("(n1_1,n2_2,(n2_1,n1_2)n2)n1;")).Parse(); err != nil {
+		t.Error(err)
+	}
+	tr.ReinitIndexes()
+	nni1.ReinitIndexes()
+	nni2.ReinitIndexes()
+
+	copy = tr.Clone()
+	copy.ReinitIndexes()
+
+	r := &tree.NNIRearranger{}
+
+	r.Rearrange(tr, func(re tree.Rearrangement) {
+		if err = re.Apply(); err != nil {
+			t.Error(err)
+		}
+		if err = tr.CheckTree(); err != nil {
+			t.Error(err)
+		}
+		tr.ClearBitSets()
+		tr.UpdateBitSet()
+
+		if _, common1, err = nni1.CommonEdges(tr, false); err != nil {
+			t.Error(err)
+		}
+		if _, common2, err = nni2.CommonEdges(tr, false); err != nil {
+			t.Error(err)
+		}
+		if !((common1 == 1 && common2 == 0) || (common1 == 0 && common2 == 1)) {
+			t.Error(fmt.Errorf("Tree after applying NNI does not correspond to any expected tree (%d and %d edges in common)", common1, common2))
+		}
+
+		if err = re.Undo(); err != nil {
+			t.Error(err)
+		}
+		if err = tr.CheckTree(); err != nil {
+			t.Error(err)
+		}
+		tr.ClearBitSets()
+		tr.UpdateBitSet()
+
+		if _, common1, err = copy.CommonEdges(tr, false); common1 != 1 {
+			t.Error(fmt.Errorf("Tree after undoing NNI does not correspond to the initial tree (%d edges in common): %s / %s", common1, copy.Newick(), tr.Newick()))
+		}
+	})
+}
+
+func TestNNI2(t *testing.T) {
+	var tr, copy *tree.Tree
+	var err error
+	var common int
+	var totalid int
+	var treestring = "(n4,n5,((n7,n8)n3,n6)n2)n1;"
+	var nnis = []string{"(n4,n6,((n7,n8)n3,n5)n2)n1;",
+		"(n6,n5,((n7,n8)n3,n4)n2)n1;",
+		"(n4,n5,((n6,n8)n3,n7)n2)n1;",
+		"(n4,n5,((n7,n6)n3,n8)n2)n1;",
+	}
+	var nnitrees = make([]*tree.Tree, len(nnis))
+
+	if tr, err = newick.NewParser(strings.NewReader(treestring)).Parse(); err != nil {
+		t.Error(err)
+	}
+	tr.ReinitIndexes()
+
+	for i, nni := range nnis {
+		if nnitrees[i], err = newick.NewParser(strings.NewReader(nni)).Parse(); err != nil {
+			t.Error(err)
+		}
+		nnitrees[i].ReinitIndexes()
+	}
+
+	copy = tr.Clone()
+	copy.ReinitIndexes()
+
+	r := &tree.NNIRearranger{}
+
+	r.Rearrange(tr, func(re tree.Rearrangement) {
+		if err = re.Apply(); err != nil {
+			t.Error(err)
+		}
+		fmt.Println("NNI")
+		if err = tr.CheckTree(); err != nil {
+			t.Error(err)
+		}
+		tr.ClearBitSets()
+		tr.UpdateBitSet()
+
+		totalid = 0
+		for _, nnit := range nnitrees {
+			if _, common, err = nnit.CommonEdges(tr, false); err != nil {
+				t.Error(err)
+			}
+
+			if common == 2 {
+				totalid++
+			}
+		}
+		if totalid != 1 {
+			t.Error(fmt.Errorf("Tree after applying NNI does not correspond to any expected nni tree"))
+		}
+
+		if err = re.Undo(); err != nil {
+			t.Error(err)
+		}
+		if err = tr.CheckTree(); err != nil {
+			t.Error(err)
+		}
+		tr.ClearBitSets()
+		tr.UpdateBitSet()
+
+		if _, common, err = copy.CommonEdges(tr, false); common != 2 {
+			t.Error(fmt.Errorf("Tree after undoing NNI does not correspond to the initial tree (%d edges in common): %s / %s", common, copy.Newick(), tr.Newick()))
+		}
+	})
+}
+
+func TestNNI3(t *testing.T) {
+	tr, err := tree.RandomYuleBinaryTree(1000, false)
+	if err != nil {
+		t.Error(err)
+	}
+	r := &tree.NNIRearranger{}
+
+	nnis := 0
+	r.Rearrange(tr, func(re tree.Rearrangement) {
+		if err = tr.CheckTree(); err != nil {
+			t.Error(err)
+		}
+		nnis++
+	})
+
+	if nnis != 997*2 {
+		t.Error(fmt.Errorf("The number of NNIS is not expected : %d vs. %d", nnis, 997*7))
+	}
+}

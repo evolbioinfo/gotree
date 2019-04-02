@@ -1740,3 +1740,17 @@ func (t *Tree) cutEdgesMaxLengthRecur(tipBag *TipBag, cur *Node, prev *Node, max
 	}
 	return nil
 }
+
+// Checks that edges are proerly oriented
+// And that edges connect proper nodes
+// For testing purpose
+func (t *Tree) CheckTree() (err error) {
+	t.PostOrder(func(cur, prev *Node, e *Edge) bool {
+		if prev != nil && (e.Left() != prev || e.Right() != cur) {
+			err = fmt.Errorf("Edge is not oriented as expected or does not connect right nodes")
+			return false
+		}
+		return true
+	})
+	return
+}
