@@ -13,17 +13,21 @@ type Rearrangement interface {
 // rearranger provides functions to modify input tree in order to search tree space
 type Rearranger interface {
 	// List all rearragements
-	Rearrange(t *Tree, f func(r Rearrangement))
+	Rearrange(t *Tree, f func(r Rearrangement) bool)
 }
 
 type NNIRearranger struct {
 }
 
-func (nnir *NNIRearranger) Rearrange(t *Tree, f func(r Rearrangement)) {
+func (nnir *NNIRearranger) Rearrange(t *Tree, f func(r Rearrangement) bool) {
 	for _, e := range t.Edges() {
 		if e.Left().Nneigh() == 3 && e.Right().Nneigh() == 3 {
-			f(newNNI(t, e.Left(), e.Right(), false))
-			f(newNNI(t, e.Left(), e.Right(), true))
+			if !f(newNNI(t, e.Left(), e.Right(), false)) {
+				return
+			}
+			if !f(newNNI(t, e.Left(), e.Right(), true)) {
+				return
+			}
 		}
 	}
 }
