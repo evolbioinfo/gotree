@@ -696,21 +696,47 @@ func TestNNI2(t *testing.T) {
 }
 
 func TestNNI3(t *testing.T) {
-	tr, err := tree.RandomYuleBinaryTree(1000, false)
-	if err != nil {
+	var common int
+	var tr, copy *tree.Tree
+	var err error
+	var ntips int = 500
+	if tr, err = tree.RandomYuleBinaryTree(ntips, false); err != nil {
 		t.Error(err)
 	}
+	tr.ReinitIndexes()
+	copy = tr.Clone()
+	copy.ReinitIndexes()
+
 	r := &tree.NNIRearranger{}
 
 	nnis := 0
 	r.Rearrange(tr, func(re tree.Rearrangement) {
-		if err = tr.CheckTree(); err != nil {
+		if err = re.Apply(); err != nil {
 			t.Error(err)
 		}
 		nnis++
+		if err = tr.CheckTree(); err != nil {
+			t.Error(err)
+		}
+		tr.ClearBitSets()
+		tr.UpdateBitSet()
+		if _, common, err = copy.CommonEdges(tr, false); common != ntips-3-1 {
+			t.Error(fmt.Errorf("Tree after NNI does not have %d common internal edges with initial tree but %d", 97-1, common))
+		}
+		if err = re.Undo(); err != nil {
+			t.Error(err)
+		}
+		if err = tr.CheckTree(); err != nil {
+			t.Error(err)
+		}
+		tr.ClearBitSets()
+		tr.UpdateBitSet()
+		if _, common, err = copy.CommonEdges(tr, false); common != ntips-3 {
+			t.Error(fmt.Errorf("Tree after NNI does not have %d common internal edges with initial tree but %d", 97-1, common))
+		}
 	})
 
-	if nnis != 997*2 {
-		t.Error(fmt.Errorf("The number of NNIS is not expected : %d vs. %d", nnis, 997*7))
+	if nnis != (ntips-3)*2 {
+		t.Error(fmt.Errorf("The number of NNIS is not expected : %d vs. %d", nnis, (ntips-3)*2))
 	}
 }

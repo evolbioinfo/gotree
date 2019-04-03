@@ -84,11 +84,12 @@ func (n *nni) Apply() (err error) {
 		return
 	}
 	var n12index, n1index int
+	var n1n2index int
 	var n22index, n2index int
 	var e1, e2 *Edge
 	var n22node *Node
 
-	if !n.n1.IsConnected(n.n2) {
+	if n1n2index, err = n.n1.NodeIndex(n.n2); err != nil {
 		err = fmt.Errorf("Cannot create NNI with unconnected nodes n1 n2")
 	}
 
@@ -120,8 +121,16 @@ func (n *nni) Apply() (err error) {
 
 	e1 = n.n1.Edges()[n12index]
 	e2 = n.n2.Edges()[n22index]
-	n.n1_2.Edges()[n1index] = e2
-	n22node.Edges()[n2index] = e1
+
+	// The root is somwhere in the
+	// clade on the n1_2 side
+	if e1.Right() == n.n1 {
+		// Reorient n1-n2 edge
+		n.n1.Edges()[n1n2index].Inverse()
+	}
+
+	n.n1.Edges()[n12index] = e2
+	n.n2.Edges()[n22index] = e1
 
 	n.n1.Neigh()[n12index] = n22node
 	n22node.Neigh()[n2index] = n.n1
@@ -129,21 +138,17 @@ func (n *nni) Apply() (err error) {
 	n.n2.Neigh()[n22index] = n.n1_2
 	n.n1_2.Neigh()[n1index] = n.n2
 
-	if e1.Left() == n.n1_2 {
-		e1.setLeft(n22node)
+	if e1.Left() == n.n1 {
+		e1.setLeft(n.n2)
 	} else {
-		e1.setRight(n22node)
+		e1.setRight(n.n2)
 	}
-	if e2.Left() == n22node {
-		e2.setLeft(n.n1_2)
+	if e2.Left() == n.n2 {
+		e2.setLeft(n.n1)
 	} else {
-		e2.setRight(n.n1_2)
+		e2.setRight(n.n1)
 	}
-	if n.t.Root() == n22node {
-		n.t.SetRoot(n.n1_2)
-	} else if n.t.Root() == n.n1_2 {
-		n.t.SetRoot(n22node)
-	}
+
 	n.applied = true
 
 	return
@@ -154,11 +159,12 @@ func (n *nni) Undo() (err error) {
 		return
 	}
 	var n12index, n1index int
+	var n1n2index int
 	var n11index, n2index int
 	var e1, e2 *Edge
 	var n11node *Node
 
-	if !n.n1.IsConnected(n.n2) {
+	if n1n2index, err = n.n1.NodeIndex(n.n2); err != nil {
 		err = fmt.Errorf("Cannot create NNI with unconnected nodes n1 n2")
 	}
 
@@ -190,8 +196,16 @@ func (n *nni) Undo() (err error) {
 
 	e1 = n.n1.Edges()[n11index]
 	e2 = n.n2.Edges()[n12index]
-	n11node.Edges()[n1index] = e2
-	n.n1_2.Edges()[n2index] = e1
+
+	// The root is somwhere in the
+	// clade on the n1_2 side (connected to n2)
+	if e2.Right() == n.n2 {
+		// Reorient n1-n2 edge
+		n.n1.Edges()[n1n2index].Inverse()
+	}
+
+	n.n1.Edges()[n11index] = e2
+	n.n2.Edges()[n12index] = e1
 
 	n.n1.Neigh()[n11index] = n.n1_2
 	n.n1_2.Neigh()[n2index] = n.n1
@@ -199,21 +213,15 @@ func (n *nni) Undo() (err error) {
 	n.n2.Neigh()[n12index] = n11node
 	n11node.Neigh()[n1index] = n.n2
 
-	if e1.Left() == n11node {
-		e1.setLeft(n.n1_2)
+	if e1.Left() == n.n1 {
+		e1.setLeft(n.n2)
 	} else {
-		e1.setRight(n.n1_2)
+		e1.setRight(n.n2)
 	}
-	if e2.Left() == n.n1_2 {
-		e2.setLeft(n11node)
+	if e2.Left() == n.n2 {
+		e2.setLeft(n.n1)
 	} else {
-		e2.setRight(n11node)
-	}
-
-	if n.t.Root() == n11node {
-		n.t.SetRoot(n.n1_2)
-	} else if n.t.Root() == n.n1_2 {
-		n.t.SetRoot(n11node)
+		e2.setRight(n.n1)
 	}
 
 	n.applied = false

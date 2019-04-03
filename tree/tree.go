@@ -754,7 +754,7 @@ func (t *Tree) ReorderEdges(n *Node, prev *Node, reversed *[]*Edge) error {
 	for _, next := range n.br {
 		if next.right != prev && next.left != prev {
 			if next.right == n {
-				next.right, next.left = next.left, next.right
+				next.Inverse()
 				if reversed != nil {
 					(*reversed) = append((*reversed), next)
 				}
@@ -1747,7 +1747,7 @@ func (t *Tree) cutEdgesMaxLengthRecur(tipBag *TipBag, cur *Node, prev *Node, max
 func (t *Tree) CheckTree() (err error) {
 	t.PostOrder(func(cur, prev *Node, e *Edge) bool {
 		if prev != nil && (e.Left() != prev || e.Right() != cur) {
-			err = fmt.Errorf("Edge is not oriented as expected or does not connect right nodes")
+			err = fmt.Errorf("Edge is not oriented as expected or does not connect right nodes : %s | %s - %s | %s", prev.Name(), e.Left().Name(), e.Right().Name(), cur.Name())
 			return false
 		}
 		return true
