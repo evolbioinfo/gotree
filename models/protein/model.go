@@ -89,7 +89,7 @@ func ModelStringToInt(model string) int {
 }
 
 // Initialize model with given aa frequencies
-// If aafreqs is null, then uses model frequencies
+// If aafreqs is nil, then uses model frequencies
 func (model *ProtModel) InitModel(aafreqs []float64) error {
 	var i, j int
 	var sum float64
@@ -138,6 +138,10 @@ func (model *ProtModel) InitModel(aafreqs []float64) error {
 	model.leigenvect.Inverse(model.reigenvect)
 
 	return nil
+}
+
+func (model *ProtModel) Eigens() (val []float64, leftvectors, rightvectors []float64, err error) {
+	return model.eval, model.leigenvect.RawMatrix().Data, model.reigenvect.RawMatrix().Data, nil
 }
 
 func (model *ProtModel) Ns() int {
