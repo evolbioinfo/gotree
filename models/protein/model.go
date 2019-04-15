@@ -29,8 +29,6 @@ type ProtModel struct {
 	leigenvect *mat.Dense // Left Eigen Vector (Inv of Eigen Vector)
 	reigenvect *mat.Dense // Right Eigen Vector
 	eval       []float64  // Eigen values
-	ns         int        // Number of states in the model
-	pij        *mat.Dense // Matrix of Pij
 	alpha      float64    // Alpha
 	usegamma   bool
 }
@@ -62,8 +60,6 @@ func NewProtModel(model int, usegamma bool, alpha float64) (*ProtModel, error) {
 		nil,
 		nil,
 		nil,
-		len(pi),
-		mat.NewDense(len(pi), len(pi), nil),
 		alpha,
 		usegamma,
 	}, nil
@@ -101,7 +97,7 @@ func (model *ProtModel) InitModel(aafreqs []float64) error {
 		return fmt.Errorf("Matrices have not been initialized")
 	}
 
-	if aafreqs != nil && len(aafreqs) != 20 {
+	if aafreqs != nil && len(aafreqs) != ns {
 		return fmt.Errorf("aa frequency array does not have a length of 20")
 	}
 	model.pi = aafreqs
@@ -144,119 +140,24 @@ func (model *ProtModel) Eigens() (val []float64, leftvectors, rightvectors []flo
 	return model.eval, model.leigenvect.RawMatrix().Data, model.reigenvect.RawMatrix().Data, nil
 }
 
-func (model *ProtModel) Ns() int {
-	return model.ns
+func (model *ProtModel) ReigenVects() (rightvectors *mat.Dense) {
+	return model.reigenvect
 }
 
-func (model *ProtModel) PMat(l float64) {
-	if l < BL_MIN {
-		model.pMatZeroBrLen()
-	} else {
-		model.pMatEmpirical(l)
-	}
+func (model *ProtModel) LeigenVects() (leftvectors *mat.Dense) {
+	return model.leigenvect
 }
 
-func (model *ProtModel) pMatZeroBrLen() {
-	model.pij.Apply(func(i, j int, v float64) float64 {
-		if i == j {
-			return 1.0
-		}
-		return 0.0
-	}, model.pij)
+func (model *ProtModel) Eval() (val []float64) {
+	return model.eval
 }
 
-/********************************************************************/
-
-/* Computes the substitution probability matrix
- * from the initial substitution rate matrix and frequency vector
- * and one specific branch length
- *
- * input : l , branch length
- * input : mod , choosen model parameters, qmat and pi
- * ouput : Pij , substitution probability matrix
- *
- * matrix P(l) is computed as follows :
- * P(l) = exp(Q*t) , where :
- *
- *   Q = substitution rate matrix = Vr*D*inverse(Vr) , where :
- *
- *     Vr = right eigenvector matrix for Q
- *     D  = diagonal matrix of eigenvalues for Q
- *
- *   t = time interval = l / mr , where :
- *
- *     mr = mean rate = branch length/time interval
- *        = sum(i)(pi[i]*p(i->j)) , where :
- *
- *       pi = state frequency vector
- *       p(i->j) = subst. probability from i to a different state
- *               = -Q[ii] , as sum(j)(Q[ij]) +Q[ii] = 0
- *
- * the Taylor development of exp(Q*t) gives :
- * P(l) = Vr*exp(D*t)        *inverse(Vr)
- *      = Vr*pow(exp(D/mr),l)*inverse(Vr)
- *
- * for performance we compute only once the following matrices :
- * Vr, inverse(Vr), exp(D/mr)
- * thus each time we compute P(l) we only have to :
- * make 20 times the operation pow()
- * make 2 20x20 matrix multiplications, that is :
- *   16000 = 2x20x20x20 times the operation *
- *   16000 = 2x20x20x20 times the operation +
- *   which can be reduced to (the central matrix being diagonal) :
- *   8400 = 20x20 + 20x20x20 times the operation *
- *   8000 = 20x20x20 times the operation + */
-func (model *ProtModel) pMatEmpirical(len float64) {
-	var i, k int
-	var U, V *mat.Dense
-	var R []float64
-	var expt []float64
-	var uexpt *mat.Dense
-	var tmp float64
-
-	U = model.reigenvect //mod->eigen->r_e_vect;
-	R = model.eval       //mod->eigen->e_val;// To take only real part from that vector /* eigen value matrix */
-	V = model.leigenvect
-	expt = make([]float64, model.ns)              //model.eigen.Values(nil) // To take only imaginary part from that vector
-	uexpt = mat.NewDense(model.ns, model.ns, nil) //model.eigen.Vectors() //  don't know yet how to handle that // mod->eigen->r_e_vect_im;
-
-	model.pij.Apply(func(i, j int, v float64) float64 { return .0 }, model.pij)
-	tmp = .0
-
-	for k = 0; k < model.ns; k++ {
-		expt[k] = R[k]
-	}
-
-	if model.usegamma && (math.Abs(model.alpha) > DBL_EPSILON) {
-		// compute pow (alpha / (alpha - e_val[i] * l), alpha)
-		for i = 0; i < model.ns; i++ {
-			tmp = model.alpha / (model.alpha - (R[i] * len))
-			expt[i] = math.Pow(tmp, model.alpha)
-		}
-	} else {
-		for i = 0; i < model.ns; i++ {
-			expt[i] = float64(math.Exp(R[i] * len))
-		}
-	}
-
-	// multiply Vr* pow (alpha / (alpha - e_val[i] * l), alpha) *Vi into Pij
-	uexpt.Apply(func(i, j int, v float64) float64 {
-		return U.At(i, j) * expt[j]
-	}, uexpt)
-	model.pij.Apply(func(i, j int, v float64) float64 {
-		for k = 0; k < model.ns; k++ {
-			v += uexpt.At(i, k) * V.At(k, j)
-		}
-		if v < DBL_MIN {
-			v = DBL_MIN
-		}
-		return v
-
-	}, model.pij)
+func (model *ProtModel) Alpha() float64 {
+	return model.alpha
 }
 
-func (model *ProtModel) Pij(i, j int) float64 {
-	return model.pij.At(i, j)
+func (model *ProtModel) UseGamma() bool {
+	return model.usegamma
 }
 
 func (model *ProtModel) Pi(i int) float64 {
