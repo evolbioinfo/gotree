@@ -14,10 +14,9 @@ const (
 	MODEL_LG
 	MODEL_WAG
 
-	PROT_DIST_MAX = 20.00
-	BL_MIN        = 1.e-08
-	BL_MAX        = 100.0
-	DBL_MIN       = 2.2250738585072014e-308
+	BL_MIN  = 1.e-08
+	BL_MAX  = 100.0
+	DBL_MIN = 2.2250738585072014e-308
 )
 
 var DBL_EPSILON float64 = math.Nextafter(1, 2) - 1
@@ -33,7 +32,6 @@ type ProtModel struct {
 	ns         int        // Number of states in the model
 	pij        *mat.Dense // Matrix of Pij
 	alpha      float64    // Alpha
-	stepsize   int
 	usegamma   bool
 }
 
@@ -67,7 +65,6 @@ func NewProtModel(model int, usegamma bool, alpha float64) (*ProtModel, error) {
 		len(pi),
 		mat.NewDense(len(pi), len(pi), nil),
 		alpha,
-		1,
 		usegamma,
 	}, nil
 }
@@ -252,4 +249,12 @@ func (model *ProtModel) pMatEmpirical(len float64) {
 		return v
 
 	}, model.pij)
+}
+
+func (model *ProtModel) Pij(i, j int) float64 {
+	return model.pij.At(i, j)
+}
+
+func (model *ProtModel) Pi(i int) float64 {
+	return model.pi[i]
 }
