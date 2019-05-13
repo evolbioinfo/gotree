@@ -55,29 +55,41 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 }
 
 // Parses a Newick String.
-func (p *Parser) Parse() (*tree.Tree, error) {
+func (p *Parser) Parse() (newtree *tree.Tree, err error) {
 
-	// First token should be a "OPENPAR" token.
+	// May have information inside [] before the tree
 	tok, lit := p.scanIgnoreWhitespace()
+	if tok == OPENBRACK {
+		if _, err = p.consumeComment(tok, lit); err != nil {
+			return
+		}
+		// Next token should be a "OPENPAR" token.
+		tok, lit = p.scanIgnoreWhitespace()
+	}
+
+	//Next token should be a "OPENPAR" token.
 	if tok != OPENPAR {
-		return nil, fmt.Errorf("found %q, expected (", lit)
+		err = fmt.Errorf("found %q, expected (", lit)
+		return
 	}
 	p.unscan()
-	newtree := tree.NewTree()
+	newtree = tree.NewTree()
 
 	// Now we can parse recursively the tree
 	// Read a field.
 	level := 0
-	_, err := p.parseRecur(newtree, nil, &level)
+	_, err = p.parseRecur(newtree, nil, &level)
 	if err != nil {
-		return nil, err
+		return
 	}
 	if level != 0 {
-		return nil, fmt.Errorf("Newick Error : Mismatched parenthesis after parsing")
+		err = fmt.Errorf("Newick Error : Mismatched parenthesis after parsing")
+		return
 	}
 	tok, lit = p.scanIgnoreWhitespace()
 	if tok != EOT {
-		return nil, fmt.Errorf("found %q, expected ;", lit)
+		err = fmt.Errorf("found %q, expected ;", lit)
+		return
 	}
 	/* Remove spaces before and after tip names */
 	for _, tip := range newtree.Tips() {
@@ -93,7 +105,7 @@ func (p *Parser) Parse() (*tree.Tree, error) {
 	// may be too long to do each time
 	//tree.ComputeDepths()
 	// Return the successfully parsed statement.
-	return newtree, nil
+	return
 }
 
 func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, error) {

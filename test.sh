@@ -8,6 +8,28 @@ TESTDATA="tests/data"
 
 GOTREE=./gotree
 
+# gotree stats with comments before tree
+echo "->gotree stats with []"
+
+cat > input <<EOF
+[comment](Tip3,Tip0,((Tip4,Tip2),Tip1));
+(Tip4,Tip0,((Tip3,Tip2),Tip1));
+[comment;():,](Tip2,Tip0,((Tip4,Tip3),Tip1));
+(Tip2,Tip0,((Tip4,Tip3),Tip1));
+EOF
+
+cat > expected <<EOF
+tips
+5
+5
+5
+5
+EOF
+${GOTREE} stats -i input | cut -f 3 > result
+diff -q -b result expected
+
+rm -f expected result input
+
 # gotree annotate
 echo "->gotree annotate"
 cat > mapfile <<EOF
@@ -1359,3 +1381,4 @@ ${GOTREE} brlen cut -i input  -l 0.2 | sort > output
 diff -q -b expected output
 
 rm -f expected output input
+
