@@ -3,10 +3,12 @@ package newick
 import (
 	"errors"
 	"fmt"
-	"github.com/evolbioinfo/gotree/tree"
 	"io"
+	"log"
 	"strconv"
 	"strings"
+
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 // Parser represents a parser.
@@ -202,17 +204,19 @@ func (p *Parser) parseRecur(t *tree.Tree, node *tree.Node, level *int) (Token, e
 				// Bootstrap support value (numeric)
 				if tok == NUMERIC {
 					if *level == 0 {
-						return -1, errors.New("Newick Error: We do not accept support value on root")
+						log.Print("Newick : Support values attached to root node are ignored")
+						//return -1, errors.New("Newick Error: We do not accept support value on root")
+					} else {
+						e, err := newNode.ParentEdge()
+						if err != nil {
+							return -1, err
+						}
+						support, errf := strconv.ParseFloat(lit, 64)
+						if errf != nil {
+							return -1, err
+						}
+						e.SetSupport(support)
 					}
-					e, err := newNode.ParentEdge()
-					if err != nil {
-						return -1, err
-					}
-					support, errf := strconv.ParseFloat(lit, 64)
-					if errf != nil {
-						return -1, err
-					}
-					e.SetSupport(support)
 				} else {
 					// Node name
 					if newNode == nil {
