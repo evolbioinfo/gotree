@@ -272,26 +272,25 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 	var err error
 	// We fill the edge index with all the bipartition and their count
 	for curtree := range trees {
-		curtree.Tree.ReinitIndexes()
 		if curtree.Err != nil {
 			/* We empty the channel if needed */
 			for _ = range trees {
 			}
 			return nil, curtree.Err
 		}
+		curtree.Tree.ReinitIndexes()
 
 		// If the star tree is not initialized, we create it with the tips of the first tree
 		if startree == nil {
 			alltips = curtree.Tree.AllTipNames()
 			if startree, err = StarTreeFromTree(curtree.Tree); err != nil {
 				return nil, err
-			} else {
-				startree.UpdateTipIndex()
-				nbtips = len(alltips)
-				// We first build the node index
-				if nodeindex, err = NewNodeIndex(startree); err != nil {
-					return nil, err
-				}
+			}
+			startree.UpdateTipIndex()
+			nbtips = len(alltips)
+			// We first build the node index
+			if nodeindex, err = NewNodeIndex(startree); err != nil {
+				return nil, err
 			}
 		} else {
 			// Compare tip names between star tree and current tree

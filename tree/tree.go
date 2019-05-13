@@ -631,10 +631,8 @@ func (t *Tree) fillRightBitSet(currentEdge *Edge, rightEdges *[]*Edge) error {
 // If tipedges is false: does not take into account tip edges
 func (t *Tree) CommonEdges(t2 *Tree, tipEdges bool) (tree1 int, common int, err error) {
 
-	err = t.CompareTipIndexes(t2)
-
-	if err != nil {
-		return 0, 0, err
+	if err = t.CompareTipIndexes(t2); err != nil {
+		return
 	}
 
 	edges1 := t.Edges()
