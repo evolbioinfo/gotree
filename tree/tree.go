@@ -1738,3 +1738,142 @@ func (t *Tree) cutEdgesMaxLengthRecur(tipBag *TipBag, cur *Node, prev *Node, max
 	}
 	return nil
 }
+
+// This function adds Tips to the tree, adding 0 length branches.
+// To do so, it takes all identical tipnames of the given slice
+// And add the new tip names next to the existing ones, by adding
+// 0 length branches.
+// Each identical group must contain exactly 1 already present tip
+// otherwise returns an error
+// If a new tip is identical to several already present tips, then
+// returns and error.
+func (t *Tree) InsertIdenticalTips(identicalgroups [][]string) (err error) {
+	var e bool
+	var nodeindex NodeIndex
+	var old, newtip *Node
+
+	if nodeindex, err = NewNodeIndex(t); err != nil {
+		return
+	}
+	for _, group := range identicalgroups {
+		// Search for the already present tip
+		newtips := make([]string, 0)
+		oldtip := ""
+		for _, name := range group {
+			if e, err = t.ExistsTip(name); err != nil {
+				return
+			}
+			if e && oldtip == "" {
+				oldtip = name
+			} else if e && oldtip != "" {
+				err = fmt.Errorf("Several already existing tips are present in an identical group")
+				return
+			} else {
+				newtips = append(newtips, name)
+			}
+		}
+		if oldtip == "" {
+			err = fmt.Errorf("No existing tip is present in the given identical group")
+			return
+		}
+		// Now we add the new tips
+		if len(newtips) > 0 {
+			if old, e = nodeindex.GetNode(oldtip); e {
+				for _, tip := range newtips {
+					if newtip, err = t.InsertIdenticalTip(old, tip); err != nil {
+						return
+					}
+					nodeindex.AddNode(newtip)
+				}
+			}
+		}
+	}
+	return
+}
+
+// This function adds a new tip next to the given tip node.
+// This adds two 0 length branches. The given node reference is still a tip after this function.
+// The new node is the internal node.
+//
+// Before:
+//   l
+// *----*tip1
+// After:
+//       *tip1
+//  l   /.0
+// ----*
+//      \.0
+//       *newTipName
+//
+// If l==0.0 then, after:
+//   tip1
+//  /l
+// *
+//  \.0
+//   newTipName
+//
+//
+// It updates the tipindex temporarily but if needed in downstream analysis t.ReinitIndexes()
+// must be called.
+// If initialized, Bitsets and Depths are not up2date after this function. They should be
+// updated with t.ReinitIndexes() if needed.
+func (t *Tree) InsertIdenticalTip(n *Node, newTipName string) (newtipnode *Node, err error) {
+	var e bool
+
+	if !n.Tip() {
+		err = fmt.Errorf("The node to add the new tip to is not a tip")
+		return
+	}
+	if e, err = t.ExistsTip(newTipName); err != nil {
+		return
+	}
+	if e {
+		err = fmt.Errorf("The tip to add to %s is already present in the tree", n.Name())
+		return
+	}
+
+	var parentedge *Edge
+	var parentnode *Node
+	if parentedge, err = n.ParentEdge(); err != nil {
+		return
+	}
+	if parentnode, err = n.Parent(); err != nil {
+		return
+	}
+	if parentedge.Length() == 0.0 {
+		newtipnode = t.NewNode()
+		newtipnode.SetName(newTipName)
+		e1 := t.ConnectNodes(parentnode, newtipnode)
+		e1.SetLength(0.0)
+	} else {
+		var e_ind, n_ind int
+		// index of parent edge in neighbors of parent node
+		if e_ind, err = parentnode.EdgeIndex(parentedge); err != nil {
+			return
+		}
+		// index of parent node in neighbors of node
+		if n_ind, err = n.NodeIndex(parentnode); err != nil {
+			return
+		}
+
+		newtipnode = t.NewNode()
+		newtipnode.SetName(newTipName)
+		newinternal := t.NewNode()
+		newedge := t.ConnectNodes(newinternal, newtipnode)
+		newedge.SetLength(0.0)
+
+		newedge1 := t.NewEdge()
+		newedge1.SetLength(0.0)
+		parentedge.setRight(newinternal)
+		newinternal.addChild(parentnode, parentedge)
+		newinternal.addChild(n, newedge1)
+		parentnode.neigh[e_ind] = newinternal
+
+		newedge1.setRight(n)
+		newedge1.setLeft(newinternal)
+		n.neigh[n_ind] = newinternal
+		n.br[n_ind] = newedge1
+	}
+	t.tipIndex[newTipName] = uint(len(t.tipIndex))
+	return
+}

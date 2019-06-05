@@ -7,6 +7,7 @@ import "errors"
 // and values node of the trees.
 type NodeIndex interface {
 	GetNode(name string) (*Node, bool)
+	AddNode(n *Node)
 }
 
 type nodeIndex struct {
@@ -57,4 +58,10 @@ func NewAllNodeIndex(t *Tree) *nodeIndex {
 func (ni *nodeIndex) GetNode(name string) (*Node, bool) {
 	n, ok := ni.index[name]
 	return n, ok
+}
+
+// Adds the given node to the index
+// If it already exists, then replaces it
+func (ni *nodeIndex) AddNode(n *Node) {
+	ni.index[n.Name()] = n
 }
