@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -28,5 +27,15 @@ func TestAddIdenticalTip(t *testing.T) {
 	if tr.Newick() != expectednewick {
 		t.Errorf("Tree with identical tips is not as expected: \n%s vs.\n%s\n", tr.Newick(), expectednewick)
 	}
-	fmt.Println(tr.Newick())
+
+	tr.UpdateTipIndex()
+	if err = tr.ClearBitSets(); err != nil {
+		t.Error(err)
+	}
+	if err = tr.UpdateBitSet(); err != nil {
+		t.Error(err)
+	}
+	if !tr.CheckTree() {
+		t.Error("The tree is maformed after adding identical tips")
+	}
 }

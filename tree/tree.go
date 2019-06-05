@@ -1877,3 +1877,43 @@ func (t *Tree) InsertIdenticalTip(n *Node, newTipName string) (newtipnode *Node,
 	t.tipIndex[newTipName] = uint(len(t.tipIndex))
 	return
 }
+
+// Check that tree is well structured, with the
+// right child, parent, edges, and node pointers
+func (t *Tree) CheckTree() bool {
+	return t.checkTreeRecur(nil, nil)
+}
+
+// Check that tree is well structured, with the
+// right child, parent, edges, and node pointers
+func (t *Tree) checkTreeRecur(cur *Node, prev *Node) (ok bool) {
+	ok = true
+	if cur == nil {
+		cur = t.Root()
+	}
+
+	for i, n := range cur.neigh {
+		if n != prev {
+			if cur.br[i].left != cur {
+				return false
+			}
+			if cur.br[i].right != n {
+				return false
+			}
+			if ok = ok && t.checkTreeRecur(n, cur); !ok {
+				return
+			}
+		} else if n == prev {
+			if prev == nil {
+				return false
+			}
+			if cur.br[i].right != cur {
+				return false
+			}
+			if cur.br[i].left != prev {
+				return false
+			}
+		}
+	}
+	return
+}
