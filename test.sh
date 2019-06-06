@@ -1420,6 +1420,11 @@ Tip1,Tip101
 Tip12,Tip102,Tip103,Tip104
 Tip12,Tip105
 Tip18,Tip106
+Tip23
+Tip1
+Tip2
+Tip3
+Tip4
 EOF
 
 cat > expected <<EOF
