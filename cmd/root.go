@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fredericlemoine/cobrashell"
 	"github.com/evolbioinfo/gotree/io/fileutils"
 	"github.com/evolbioinfo/gotree/io/utils"
 	"github.com/evolbioinfo/gotree/tree"
+	"github.com/fredericlemoine/cobrashell"
 	"github.com/spf13/cobra"
 )
 
@@ -224,4 +224,42 @@ func readMapFile(file string, revert bool) (map[string]string, error) {
 	}
 
 	return outmap, nil
+}
+
+func readIdenticalGroupFile(file string) (groups [][]string, err error) {
+	var groupfile *os.File
+	var reader *bufio.Reader
+	var gr *gzip.Reader
+
+	groups = make([][]string, 0)
+
+	if groupfile, err = os.Open(file); err != nil {
+		return
+	}
+
+	if strings.HasSuffix(file, ".gz") {
+		if gr, err = gzip.NewReader(groupfile); err != nil {
+			return
+		}
+		reader = bufio.NewReader(gr)
+		defer gr.Close()
+	} else {
+		reader = bufio.NewReader(groupfile)
+	}
+
+	line, e := fileutils.Readln(reader)
+	nl := 1
+	for e == nil {
+		cols := strings.Split(line, ",")
+		if len(cols) == 0 {
+			err = errors.New("Found empty line in file of group of identical tips")
+			return
+		}
+		groups = append(groups, cols)
+		line, e = fileutils.Readln(reader)
+		nl++
+	}
+	err = groupfile.Close()
+
+	return
 }

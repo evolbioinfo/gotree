@@ -1806,12 +1806,13 @@ func (t *Tree) InsertIdenticalTips(identicalgroups [][]string) (err error) {
 //       *newTipName
 //
 // If l==0.0 then, after:
-//   tip1
-//  /l
+//   *tip1
+//  /.0
 // *
 //  \.0
-//   newTipName
+//   *newTipName
 //
+// Warning: This function may add polytomies if l==0.0.
 //
 // It updates the tipindex temporarily but if needed in downstream analysis t.ReinitIndexes()
 // must be called.

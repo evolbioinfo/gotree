@@ -1382,3 +1382,60 @@ diff -q -b expected output
 
 rm -f expected output input
 
+#gotree repopulate
+echo "->gotree repopulate / 1"
+cat > input <<EOF
+(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.8:0.3)0.9:0.4);
+EOF
+cat > id_groups <<EOF
+Tip2,Tip5,Tip6,Tip7
+Tip4,Tip8
+EOF
+
+cat > expected <<EOF
+((Tip8:0,Tip4:0):0.1,Tip0:0.1,(Tip3:0.1,((Tip5:0,Tip2:0,Tip6:0,Tip7:0):0.2,Tip1:0.2)0.8:0.3)0.9:0.4);
+EOF
+
+cat > expectedcompare <<EOF
+tree	reference	common	compared
+0	0	4	0
+EOF
+
+${GOTREE} repopulate -i input -g id_groups -o output
+${GOTREE} compare trees -i output -c expected > outputcompare
+diff -q -b expectedcompare outputcompare
+# Compare all branches with lengths, etc.
+${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$11){exit 1};if($9!="true"){exit 1};if($8!=$10){exit 1}}'
+
+rm -f expected output input outputcompare expectedcompare
+
+#gotree repopulate
+echo "->gotree repopulate / 2"
+cat > input <<EOF
+(Tip27,Tip0,(((Tip23,((Tip41,(Tip45,(Tip48,Tip25))),((Tip42,Tip30),((Tip35,Tip34),Tip12)))),(Tip16,Tip10)),((Tip11,Tip8),((((((((((Tip37,Tip20),Tip15),(Tip49,Tip14)),((Tip22,(Tip31,Tip19)),((Tip43,Tip28),(Tip46,Tip9)))),(Tip40,Tip7)),((Tip17,Tip13),(Tip47,Tip5))),((Tip18,Tip6),(Tip39,Tip4))),(Tip26,(Tip38,Tip3))),(Tip24,((Tip32,(Tip33,Tip29)),(Tip36,Tip2)))),((Tip44,Tip21),Tip1)))));
+EOF
+cat > id_groups <<EOF
+Tip43,Tip100
+Tip1,Tip101
+Tip12,Tip102,Tip103,Tip104
+Tip12,Tip105
+Tip18,Tip106
+EOF
+
+cat > expected <<EOF
+(Tip27,Tip0,(((Tip23,((Tip41,(Tip45,(Tip48,Tip25))),((Tip42,Tip30),((Tip35,Tip34),(Tip12:0,Tip102:0,Tip103:0,Tip104:0,Tip105:0))))),(Tip16,Tip10)),((Tip11,Tip8),((((((((((Tip37,Tip20),Tip15),(Tip49,Tip14)),((Tip22,(Tip31,Tip19)),(((Tip43:0,Tip100:0),Tip28),(Tip46,Tip9)))),(Tip40,Tip7)),((Tip17,Tip13),(Tip47,Tip5))),(((Tip18:0,Tip106:0),Tip6),(Tip39,Tip4))),(Tip26,(Tip38,Tip3))),(Tip24,((Tip32,(Tip33,Tip29)),(Tip36,Tip2)))),((Tip44,Tip21),(Tip1:0,Tip101:0))))));
+EOF
+
+cat > expectedcompare <<EOF
+tree	reference	common	compared
+0	0	51	0
+EOF
+
+${GOTREE} repopulate -i input -g id_groups -o output
+# Compare output topologies
+${GOTREE} compare trees -i output -c expected > outputcompare
+diff -q -b expectedcompare outputcompare
+# Compare all branches with lengths, etc.
+${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$11){exit 1};if($9!="true"){exit 1};if($8!=$10){exit 1}}'
+
+rm -f expected output input outputcompare expectedcompare
