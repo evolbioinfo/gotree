@@ -72,7 +72,6 @@ $ echo "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.8:0.3)0.9:0.4);" | got
 ```
 
 
-           Before                  |          After
------------------------------------|-----------------------------------
-![Repopulate 4](repopulate_4.png)  | ![Repopulate 5](repopulate_5.png) 
-
+|           Before                   |          After                   |
+:-----------------------------------:|:---------------------------------:
+![Repopulate 4](repopulate_4.png)    | ![Repopulate 5](repopulate_5.png)
