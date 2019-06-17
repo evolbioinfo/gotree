@@ -26,7 +26,7 @@ Tip1 next to Tip2 if Tip2 is present in the tree. To do so, it adds two 0.0 leng
 Example with Tip1,Tip2 :
 
            Before                  |          After (if `l>0.0`)       |         After (if `l=0.0`)
------------------------------------+-----------------------------------+----------------------------------
+-----------------------------------|-----------------------------------|----------------------------------
 ![Repopulate 1](repopulate_1.png)  | ![Repopulate 2](repopulate_2.png) | ![Repopulate 3](repopulate_3.png)
 
 
@@ -73,6 +73,6 @@ $ echo "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,(Tip2:0.2,Tip1:0.2)0.8:0.3)0.9:0.4);" | got
 
 
            Before                  |          After
------------------------------------+-----------------------------------
+-----------------------------------|-----------------------------------
 ![Repopulate 4](repopulate_4.png)  | ![Repopulate 5](repopulate_5.png) 
 

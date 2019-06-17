@@ -203,6 +203,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * newick
     * nexus
 *  rename:      Rename tips of the input tree, given a map file, or a regexp, or automatically
+*  repopulate:  Re populate the tree with identical tips (having the exact same sequence)
 *  reroot:      Reroot trees using an outgroup or at midpoint
     * midpoint
     * outgroup
