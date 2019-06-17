@@ -25,8 +25,8 @@ Tip1 next to Tip2 if Tip2 is present in the tree. To do so, it adds two 0.0 leng
 
 Example with Tip1,Tip2 :
 
-           Before                  |          After (if `l>0.0`)       |         After (if `l=0.0`)
------------------------------------|-----------------------------------|----------------------------------
+|           Before                   |          After (if `l>0.0`)         |         After (if `l=0.0`)     |
+:-----------------------------------:|:-----------------------------------:|:-------------------------------:
 ![Repopulate 1](repopulate_1.png)  | ![Repopulate 2](repopulate_2.png) | ![Repopulate 3](repopulate_3.png)
 
 
