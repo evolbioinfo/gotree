@@ -84,6 +84,7 @@ Command                                                            | Subcommand 
 --                                                                 | nexus             | Reformats input file (nexus, newick, phyloxml) into nexus
 --                                                                 | phyloxml          | Reformats input file (nexus, newick, phyloxml) into phyloxml
 [rename](commands/rename.md) ([api](api/rename.md))                |                   | Renames tips/nodes of the input tree
+[repopulate](commands/repopulate.md) ([api](api/repopulate.md))    |                   | Re populate the tree with identical tips (having the exact same sequence)
 [reroot](commands/reroot.md) ([api](api/reroot.md))                |                   | Reroots trees using an outgroup or at midpoint
 --                                                                 | midpoint          | Reroots trees at midpoint position
 --                                                                 | outgroup          | Reroots trees using a given outgroup
