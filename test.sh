@@ -1444,3 +1444,16 @@ diff -q -b expectedcompare outputcompare
 ${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$11){exit 1};if($9!="true"){exit 1};if($8!=$10){exit 1}}'
 
 rm -f expected output input outputcompare expectedcompare
+
+#gotree generate startree
+echo "->gotree generate startree"
+cat > expected <<EOF
+(Tip0,Tip1,Tip2,Tip3,Tip4,Tip5,Tip6,Tip7,Tip8,Tip9,Tip10);
+(Tip0,Tip1,Tip2,Tip3,Tip4,Tip5,Tip6,Tip7,Tip8,Tip9,Tip10);
+(Tip0,Tip1,Tip2,Tip3,Tip4,Tip5,Tip6,Tip7,Tip8,Tip9,Tip10);
+EOF
+
+${GOTREE} generate startree -l 11 -n 3 | gotree brlen clear -o output
+diff -q -b output expected
+
+rm -f expected output

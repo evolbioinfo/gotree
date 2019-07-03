@@ -4,9 +4,9 @@ import (
 	goio "io"
 	"os"
 
-	"github.com/fredericlemoine/gostats"
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/tree"
+	"github.com/fredericlemoine/gostats"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +45,7 @@ Length follows an exponential distribution of parameter lambda=1/0.1
 			}
 
 			for _, e := range tr.Tree.Edges() {
-				e.SetLength(gostats.Exp(1 / setlengthmean))
+				e.SetLength(gostats.Exp(1.0 / setlengthmean))
 			}
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}

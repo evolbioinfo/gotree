@@ -22,6 +22,7 @@ Usage:
 Available Commands:
   balancedtree    Generates a random balanced binary tree
   caterpillartree Generates a random caterpilar binary tree
+  startree        Generates a star tree (no internal branch)
   topologies      Generates all possible tree topologies
   uniformtree     Generates a random uniform binary tree
   yuletree        Generates a random yule binary tree
@@ -55,6 +56,14 @@ gotree generate balancedtree --seed 10 -d 10 | gotree draw svg -r -w 200 -H 200 
 ```
 
 ![balanced](generate_3.svg)
+
+* Generate star tree
+```
+gotree generate startree -l 100 | gotree draw svg -r -w 200 -H 200 --no-tip-labels -o commands/generate_5.svg
+```
+
+![star](generate_5.svg)
+
 
 * Generate uniform tree
 ```

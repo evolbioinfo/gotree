@@ -28,6 +28,7 @@ func main() {
 	//t, err = tree.RandomBalancedBinaryTree(depth, rooted)
 	//t, err = tree.RandomUniformBinaryTree(nbtips, rooted)
 	//t, err = tree.RandomCaterpilarBinaryTree(nbtips, rooted)
+	//t, err = tree.StarTree(nbtips)
 
 	if err != nil {
 		panic(err)
