@@ -14,7 +14,7 @@
 
 [[constraint]]
   name = "github.com/fredericlemoine/gostats"
-  version = "0.1.0"
+  revision = "e750742f8b05a600f247b0f866a10e41d0a2128c"
 
 [[constraint]]
   branch = "master"
