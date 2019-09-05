@@ -78,9 +78,10 @@ The resulting trees are star trees to which we added one biparition. All branch 
 								return
 							}
 						} else {
-							edgeOut, err2 = openWriteFile(fmt.Sprintf("%s_%06d.nw", outtreefile, edgeS.idx))
-							err = err2
-							return
+							if edgeOut, err2 = openWriteFile(fmt.Sprintf("%s_%06d.nw", outtreefile, edgeS.idx)); err2 != nil {
+								err = err2
+								return
+							}
 						}
 
 						if edgeformattext {
