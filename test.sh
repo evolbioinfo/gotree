@@ -319,6 +319,33 @@ ${GOTREE} compare tips -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTREE
 diff -q -b expected result
 rm -f expected result
 
+# gotree compare tips file
+echo "->gotree compare tips file"
+cat > expected <<EOF
+(Tree 0) > Tip11
+(Tree 0) > Tip10
+(Tree 0) = 10
+EOF
+
+cat > tipfile <<EOF
+Tip0
+Tip1
+Tip2
+Tip3
+Tip4
+Tip5
+Tip6
+Tip7
+Tip8
+Tip9
+Tip11
+Tip10
+EOF
+
+${GOTREE} compare tips -i <(${GOTREE} generate yuletree --seed 10) -f tipfile  > result
+diff -q -b expected result
+rm -f expected result
+
 
 # gotree compare distances
 echo "->gotree compare distances"
