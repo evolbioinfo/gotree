@@ -59,18 +59,17 @@ func (d *NcbiTreeDownloader) Download(id string) (*tree.Tree, error) {
 	var namemap map[string]string // map between node ids and node names
 
 	// Connect to NCBI FTP Server
-	client, err = ftp.Dial(d.server)
-	defer client.Quit()
-	if err != nil {
+	if client, err = ftp.Dial(d.server); err != nil {
 		return nil, err
 	}
+	defer client.Quit()
+
 	if err = client.Login("anonymous", "anonymous@domain.com"); err != nil {
 		return nil, err
 	}
 	// Retrieve the "taxdump.tar.gz" file
 	gtio.LogInfo("Downloading from NCBI ftp")
-	reader, err = client.Retr(d.path)
-	if err != nil {
+	if reader, err = client.Retr(d.path); err != nil {
 		return nil, err
 	}
 
