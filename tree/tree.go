@@ -1751,6 +1751,7 @@ func (t *Tree) InsertIdenticalTips(identicalgroups [][]string) (err error) {
 	var e bool
 	var nodeindex NodeIndex
 	var old, newtip *Node
+	var name string
 
 	if nodeindex, err = NewNodeIndex(t); err != nil {
 		return
@@ -1759,7 +1760,7 @@ func (t *Tree) InsertIdenticalTips(identicalgroups [][]string) (err error) {
 		// Search for the already present tip
 		newtips := make([]string, 0)
 		oldtip := ""
-		for _, name := range group {
+		for _, name = range group {
 			if e, err = t.ExistsTip(name); err != nil {
 				return
 			}
@@ -1773,7 +1774,7 @@ func (t *Tree) InsertIdenticalTips(identicalgroups [][]string) (err error) {
 			}
 		}
 		if oldtip == "" {
-			err = fmt.Errorf("No existing tip is present in the given identical group")
+			err = fmt.Errorf("No existing tip is present in the given identical group: %s", name)
 			return
 		}
 		// Now we add the new tips
