@@ -1480,7 +1480,7 @@ cat > expected <<EOF
 (Tip0,Tip1,Tip2,Tip3,Tip4,Tip5,Tip6,Tip7,Tip8,Tip9,Tip10);
 EOF
 
-${GOTREE} generate startree -l 11 -n 3 | gotree brlen clear -o output
+${GOTREE} generate startree -l 11 -n 3 | ${GOTREE} brlen clear -o output
 diff -q -b output expected
 
 rm -f expected output
