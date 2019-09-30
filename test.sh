@@ -343,7 +343,7 @@ Tip10
 EOF
 
 ${GOTREE} compare tips -i <(${GOTREE} generate yuletree --seed 10) -f tipfile  > result
-diff -q -b expected result
+diff -q -b <(sort expected) <(sort result)
 rm -f expected result
 
 
