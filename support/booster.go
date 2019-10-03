@@ -4,7 +4,6 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
-	"math"
 	"os"
 	"sync"
 
@@ -74,6 +73,7 @@ func (supporter *BoosterSupporter) Progress() int {
 	defer supporter.mutex.RUnlock()
 	return supporter.currentTree
 }
+
 func (supporter *BoosterSupporter) PrintMovingTaxa() bool {
 	return supporter.computeMovedSpecies
 }
@@ -89,6 +89,7 @@ func (supporter *BoosterSupporter) PrintHighTaxPerBranches() bool {
 func (supporter *BoosterSupporter) Cancel() {
 	supporter.stop = true
 }
+
 func (supporter *BoosterSupporter) Canceled() bool {
 	return supporter.stop
 }
@@ -99,172 +100,62 @@ func (supporter *BoosterSupporter) Init(maxdepth int, nbtips int) {
 	supporter.currentTree = 0
 }
 
-func Update_all_i_c_post_order_ref_tree(refTree *tree.Tree, edges *[]*tree.Edge, bootTree *tree.Tree, bootEdges *[]*tree.Edge, i_matrix *[][]uint16, c_matrix *[][]uint16) {
-	for i, child := range refTree.Root().Neigh() {
-		update_i_c_post_order_ref_tree(refTree, edges, child, i, refTree.Root(), bootTree, bootEdges, i_matrix, c_matrix)
-	}
+func minTransferDist(refEdge *tree.Edge, refTree, bootTree *tree.Tree, ntips int, bootEdges []*tree.Edge) (dist int) {
+	numBootEdges := len(bootEdges)
+	ones := make([]int, numBootEdges)
+	//fmt.Fprintf(os.Stderr, "r=%s\n", refEdge.DumpBitSet())
+	p, _ := refEdge.TopoDepth()
+	dist = p - 1
+	minTransferDistRecur(refTree, ntips, bootTree.Root(), nil, nil, refEdge, p, ones, &dist)
+	//fmt.Fprintf(os.Stderr, "Final d=%d\n", dist)
+	return
 }
 
-// this function does the post-order traversal (recursive from the pseudoroot to the leaves, updating knowledge for the subtrees)
-//   of the reference tree, examining only leaves (terminal edges) of the bootstrap tree.
-//   It sends a probe from the orig node to the target node (nodes in ref_tree), calculating I_ij and C_ij
-//   (see Brehelin, Gascuel, Martin 2008).
-func update_i_c_post_order_ref_tree(refTree *tree.Tree, edges *[]*tree.Edge,
-	current *tree.Node, curidx int, prev *tree.Node,
-	bootTree *tree.Tree, bootEdges *[]*tree.Edge,
-	i_matrix *[][]uint16, c_matrix *[][]uint16) {
-
-	var e, be, e2 *tree.Edge
-	var child *tree.Node
-	var edge_id, edge_id2, be_id, k int
-
-	e = prev.Edges()[curidx]
-	edge_id = e.Id() /* all this is in ref_tree */
-
-	if current.Tip() {
-		for be_id, be = range *bootEdges { // for all the terminal edges of boot_tree
-			if !be.Right().Tip() {
-				continue
-			}
-			/* we only want to scan terminal edges of boot_tree, where the right son is a leaf */
-			/* else we update all the I_ij and C_ij with i = edge_id */
-			if current.Name() != be.Right().Name() {
-				/* here the taxa are different */
-				(*i_matrix)[edge_id][be_id] = 0
-				(*c_matrix)[edge_id][be_id] = 1
-			} else {
-				/* same taxa here in T_ref and T_boot */
-				(*i_matrix)[edge_id][be_id] = 1
-				(*c_matrix)[edge_id][be_id] = 0
-			}
-		} /* end for on all edges of T_boot, for my_br being terminal */
+func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, curEdge, refEdge *tree.Edge, p int, ones []int, dist *int) (stop bool) {
+	if cur.Tip() {
+		tipIndex, _ := refTree.TipIndex(cur.Name())
+		light := refEdge.TipPresent(tipIndex)
+		if r, _ := refEdge.NumTipsRight(); r > ntips/2 {
+			light = !light
+		}
+		if light {
+			ones[curEdge.Id()] = 0
+		} else {
+			ones[curEdge.Id()] = 1
+		}
 	} else {
-		/* now the case where my_br is not a terminal edge */
-		/* first initialise (zero) the cells we are going to update */
-		for be_id, be = range *bootEdges {
-			// We initialize the i and c matrices for the edge edge_id with :
-			// 	* 0 for i : because afterwards we do i[edge_id] = i[edge_id] || i[edge_id2]
-			// 	* 1 for c : because afterwards we do c[edge_id] = c[edge_id] && c[edge_id2]
-			if be.Right().Tip() {
-				(*i_matrix)[edge_id][be_id] = 0
-				(*c_matrix)[edge_id][be_id] = 1
+		curOnes := 0
+		for i, n := range cur.Neigh() {
+			if n != prev {
+				nextEdge := cur.Edges()[i]
+				if minTransferDistRecur(refTree, ntips, n, cur, nextEdge, refEdge, p, ones, dist) {
+					return true
+				}
+				curOnes += ones[nextEdge.Id()]
 			}
 		}
-
-		for k, child = range current.Neigh() {
-			if child != prev {
-				e2 = current.Edges()[k]
-				edge_id2 = e2.Id()
-				update_i_c_post_order_ref_tree(refTree, edges, child, k, current, bootTree, bootEdges, i_matrix, c_matrix)
-
-				for be_id, be = range *bootEdges { /* for all the terminal edges of boot_tree */
-					if !be.Right().Tip() {
-						continue
-					}
-
-					// OR between two integers, result is 0 or 1 */
-					if (*i_matrix)[edge_id][be_id] != 0 || (*i_matrix)[edge_id2][be_id] != 0 {
-						(*i_matrix)[edge_id][be_id] = 1
-					} else {
-						(*i_matrix)[edge_id][be_id] = 0
-					}
-
-					// AND between two integers, result is 0 or 1
-					if (*c_matrix)[edge_id][be_id] != 0 && (*c_matrix)[edge_id2][be_id] != 0 {
-						(*c_matrix)[edge_id][be_id] = 1
-					} else {
-						(*c_matrix)[edge_id][be_id] = 0
-					}
+		if curEdge != nil {
+			//fmt.Fprintf(os.Stderr, "b=%s\n", curEdge.DumpBitSet())
+			ones[curEdge.Id()] = curOnes
+			r, _ := curEdge.NumTipsRight()
+			zero := r - curOnes
+			d := p - zero + ones[curEdge.Id()]
+			//fmt.Fprintf(os.Stderr, "d=%d\n", d)
+			if d > ntips/2 {
+				d = ntips - d
+			}
+			//fmt.Fprintf(os.Stderr, "d=%d\n", d)
+			if d < *dist {
+				*dist = d
+				if d == 1 {
+					return true
 				}
 			}
 		}
-	}
-}
-
-func Update_all_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*tree.Edge,
-	bootTree *tree.Tree, bootEdges *[]*tree.Edge,
-	i_matrix *[][]uint16, c_matrix *[][]uint16, hamming *[][]uint16, min_dist *[]uint16, min_dist_edge *[]int) error {
-	for i, child := range bootTree.Root().Neigh() {
-		update_i_c_post_order_boot_tree(refTree, ntips, edges, bootTree, bootEdges, child, i, bootTree.Root(), i_matrix, c_matrix, hamming, min_dist, min_dist_edge)
+		//fmt.Fprintf(os.Stderr, "%d\n", curOnes)
 	}
 
-	/* and then some checks to make sure everything went ok */
-	for _, e := range *edges {
-		if (*min_dist)[e.Id()] < 0 {
-			er := errors.New("Min dist should be >= 0")
-			io.LogError(er)
-			return er
-		}
-		if e.Right().Tip() && (*min_dist)[e.Id()] != 0 {
-			er := errors.New(fmt.Sprintf("any terminal edge should have an exact match in any bootstrap tree (%d)", (*min_dist)[e.Id()]))
-			io.LogError(er)
-			return er
-		}
-	}
-	return nil
-}
-
-// here we implement the second part of the Brehelin/Gascuel/Martin algorithm:
-//    post-order traversal of the bootstrap tree, and numerical recurrence.
-// in this function, orig and target are nodes of boot_tree (aka T_boot).
-// min_dist is an array whose size is equal to the number of edges in T_ref.
-//    It gives for each edge of T_ref its min distance to a split in T_boot.
-func update_i_c_post_order_boot_tree(refTree *tree.Tree, ntips uint, edges *[]*tree.Edge,
-	bootTree *tree.Tree, bootEdges *[]*tree.Edge,
-	current *tree.Node, curindex int, prev *tree.Node,
-	i_matrix *[][]uint16, c_matrix *[][]uint16,
-	hamming *[][]uint16, min_dist *[]uint16, min_dist_edge *[]int) {
-
-	var e, e2, e3 *tree.Edge
-	var edge_id, edge_id2, edge_id3, j int
-	var child *tree.Node
-
-	e = prev.Edges()[curindex]
-	edge_id = e.Id()
-
-	if !current.Tip() {
-		// because nothing to do in the case where target is a leaf: intersection and union already ok.
-		// otherwise, keep on posttraversing in all other directions
-
-		// first initialise (zero) the cells we are going to update
-		for edge_id3 = 0; edge_id3 < len(*edges); edge_id3++ {
-			(*i_matrix)[edge_id3][edge_id] = 0
-			(*c_matrix)[edge_id3][edge_id] = 0
-		}
-
-		for j, child = range current.Neigh() {
-			if child != prev {
-				e2 = current.Edges()[j]
-				edge_id2 = e2.Id()
-				update_i_c_post_order_boot_tree(refTree, ntips, edges, bootTree, bootEdges, child, j, current,
-					i_matrix, c_matrix, hamming, min_dist, min_dist_edge)
-				for edge_id3 = 0; edge_id3 < len(*edges); edge_id3++ { /* for all the edges of ref_tree */
-					(*i_matrix)[edge_id3][edge_id] += (*i_matrix)[edge_id3][edge_id2]
-					(*c_matrix)[edge_id3][edge_id] += (*c_matrix)[edge_id3][edge_id2]
-				}
-			}
-		}
-	}
-
-	for edge_id3, e3 = range *edges { // for all the edges of ref_tree
-		e3numtips, _ := e3.NumTipsRight()
-		// at this point we can calculate in all cases (internal branch or not) the Hamming distance at [i][edge_id],
-		(*hamming)[edge_id3][edge_id] = // card of union minus card of intersection
-			uint16(e3numtips) + // #taxa in the cluster i of T_ref
-				(*c_matrix)[edge_id3][edge_id] - // #taxa in cluster edge_id of T_boot BUT NOT in cluster i of T_ref
-				(*i_matrix)[edge_id3][edge_id] // #taxa in the intersection of the two clusters
-
-		/* NEW!! Let's immediately calculate the right distance, taking into account the fact that the true disance is min (dist, N-dist) */
-		if (*hamming)[edge_id3][edge_id] > uint16(ntips)/2 { // floor value
-			(*hamming)[edge_id3][edge_id] = uint16(ntips) - (*hamming)[edge_id3][edge_id]
-		}
-
-		/*   and update the min of all Hamming (Transfer) distances hamming[i][j] over all j */
-		if (*hamming)[edge_id3][edge_id] < (*min_dist)[edge_id3] {
-			(*min_dist)[edge_id3] = (*hamming)[edge_id3][edge_id]
-			(*min_dist_edge)[edge_id3] = edge_id
-		}
-	}
+	return false
 }
 
 // Thread that takes bootstrap trees from the channel,
@@ -275,115 +166,121 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved,
 	taxPerBranchChannel chan<- []*list.List) error {
 	tips := refTree.Tips()
-	var min_dist []uint16 = make([]uint16, len(edges))
-	var min_dist_edge []int = make([]int, len(edges))
-	var i_matrix [][]uint16 = make([][]uint16, len(edges))
-	var c_matrix [][]uint16 = make([][]uint16, len(edges))
-	var hamming [][]uint16 = make([][]uint16, len(edges))
-	var movedSpecies []int = make([]int, len(tips))
+	//var movedSpecies []int = make([]int, len(tips))
 	// List of moved species per reference branches
 	// It is initialized at each new bootstrap tree
 	// It is to the taxperbranch channel reciever
 	// to clear all lists
 	var taxaTransferedPerBranch []*list.List
 
-	vals := make([]int, len(edges))
+	//vals := make([]int, len(edges))
 	// Number of branches that have a normalized similarity (1- (min_dist/(n-1)) to
 	// bootstrap trees > 0.8
-	var nb_branches_close int
+	//var nb_branches_close int
 	var err error
-	for treeV := range bootTreeChannel {
-		if treeV.Err != nil {
-			io.LogError(treeV.Err)
-			err = treeV.Err
-		} else {
-			treeV.Tree.ReinitIndexes()
-			err = refTree.CompareTipIndexes(treeV.Tree)
 
+	for bootTree := range bootTreeChannel {
+		if bootTree.Err != nil {
+			io.LogError(bootTree.Err)
+			err = bootTree.Err
+		} else {
+			bootTree.Tree.ReinitIndexes()
+			err = refTree.CompareTipIndexes(bootTree.Tree)
 			if err == nil {
-				nb_branches_close = 0
+				//nb_branches_close = 0
 				if !supporter.silent {
-					fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, treeV.Id)
+					fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, bootTree.Id)
 				}
-				bootEdges := treeV.Tree.Edges()
+				bootEdges := bootTree.Tree.Edges()
+				bootEdgeIndex := tree.NewEdgeIndex(int64(len(bootEdges)*2), 0.75)
 				taxaTransferedPerBranch = make([]*list.List, len(edges))
-				for i, _ := range edges {
-					min_dist[i] = uint16(len(tips))
-					min_dist_edge[i] = -1
-					if len(bootEdges) > len(i_matrix[i]) {
-						i_matrix[i] = make([]uint16, len(bootEdges))
-						c_matrix[i] = make([]uint16, len(bootEdges))
-						hamming[i] = make([]uint16, len(bootEdges))
-					}
-				}
 
 				for i, e := range bootEdges {
 					e.SetId(i)
+					if !e.Right().Tip() {
+						e.Right().SetName("")
+					}
+					if !e.Left().Tip() {
+						e.Left().SetName("")
+					}
+					bootEdgeIndex.PutEdgeValue(e, i, e.Length())
 				}
-
-				Update_all_i_c_post_order_ref_tree(refTree, &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix)
-				Update_all_i_c_post_order_boot_tree(refTree, uint(len(tips)), &edges, treeV.Tree, &bootEdges, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edge)
 
 				for i, e := range edges {
 					if e.Right().Tip() {
 						taxaTransferedPerBranch[i] = list.New()
 						continue
 					}
-					vals[i] = int(min_dist[i])
-					if supporter.computeMovedSpecies || supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
-						td, err := e.TopoDepth()
-						if err != nil {
-							io.LogError(err)
-							return err
-						}
-						be := bootEdges[min_dist_edge[i]]
-						norm := float64(vals[i]) / (float64(td) - 1.0)
-						mindepth := int(math.Ceil(1.0/supporter.movedSpeciesCutoff + 1.0))
-						if sm, er := speciesToMove(e, be, vals[i]); er != nil {
-							io.LogError(er)
-							return er
-						} else {
-							if supporter.computeMovedSpecies && norm <= supporter.movedSpeciesCutoff && td >= mindepth {
-								for e := sm.Front(); e != nil; e = e.Next() {
-									movedSpecies[e.Value.(uint)]++
-								}
-								nb_branches_close++
-							}
-							if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
-								// The list of taxons that move around branch i in that bootstrap tree
-								taxaTransferedPerBranch[i] = sm
-							} else {
-								sm.Init() // Clear List
-							}
-						}
 
+					if _, ok := bootEdgeIndex.Value(e); ok {
+						valChan <- bootval{
+							0,
+							i,
+							false,
+						}
+					} else if p, _ := e.TopoDepth(); p == 2 {
+						valChan <- bootval{
+							1,
+							i,
+							false,
+						}
+					} else {
+						valChan <- bootval{
+							minTransferDist(e, refTree, bootTree.Tree, len(tips), bootEdges),
+							i,
+							false,
+						}
 					}
-					valChan <- bootval{
-						vals[i],
-						i,
-						false,
-					}
+
+					// vals[i] = int(min_dist[i])
+					// if supporter.computeMovedSpecies || supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
+					// 	td, err := e.TopoDepth()
+					// 	if err != nil {
+					// 		io.LogError(err)
+					// 		return err
+					// 	}
+					// 	be := bootEdges[min_dist_edge[i]]
+					// 	norm := float64(vals[i]) / (float64(td) - 1.0)
+					// 	mindepth := int(math.Ceil(1.0/supporter.movedSpeciesCutoff + 1.0))
+					// 	if sm, er := speciesToMove(e, be, vals[i]); er != nil {
+					// 		io.LogError(er)
+					// 		return er
+					// 	} else {
+					// 		if supporter.computeMovedSpecies && norm <= supporter.movedSpeciesCutoff && td >= mindepth {
+					// 			for e := sm.Front(); e != nil; e = e.Next() {
+					// 				movedSpecies[e.Value.(uint)]++
+					// 			}
+					// 			nb_branches_close++
+					// 		}
+					// 		if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
+					// 			// The list of taxons that move around branch i in that bootstrap tree
+					// 			taxaTransferedPerBranch[i] = sm
+					// 		} else {
+					// 			sm.Init() // Clear List
+					// 		}
+					// 	}
+					//}
 				}
 
-				if supporter.computeMovedSpecies {
-					for sp, nb := range movedSpecies {
-						speciesChannel <- speciesmoved{
-							uint(sp),
-							float64(nb) / float64(nb_branches_close),
-						}
-						movedSpecies[sp] = 0
-					}
-				}
-				if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
-					taxPerBranchChannel <- taxaTransferedPerBranch
-				}
+				// if supporter.computeMovedSpecies {
+				// 	for sp, nb := range movedSpecies {
+				// 		speciesChannel <- speciesmoved{
+				// 			uint(sp),
+				// 			float64(nb) / float64(nb_branches_close),
+				// 		}
+				// 		movedSpecies[sp] = 0
+				// 	}
+				// }
+				// if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
+				// 	taxPerBranchChannel <- taxaTransferedPerBranch
+				// }
 				supporter.NewBootTreeComputed()
 				if supporter.stop {
 					break
 				}
 			}
 		}
-		treeV.Tree.Delete()
+		bootTree.Tree.Delete()
 	}
 	return err
 }

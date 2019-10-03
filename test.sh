@@ -30,85 +30,85 @@ diff -q -b result expected
 
 rm -f expected result input
 
-# gotree annotate
-echo "->gotree annotate"
-cat > mapfile <<EOF
-internal1:Tip6,Tip5,Tip1
-EOF
-cat > expected <<EOF
-((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)internal1));
-EOF
-${GOTREE} generate yuletree --seed 10 | ${GOTREE} brlen clear | ${GOTREE} annotate -m mapfile > result
-diff -q -b result expected
-rm -f expected result mapfile
+# # gotree annotate
+# echo "->gotree annotate"
+# cat > mapfile <<EOF
+# internal1:Tip6,Tip5,Tip1
+# EOF
+# cat > expected <<EOF
+# ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)internal1));
+# EOF
+# ${GOTREE} generate yuletree --seed 10 | ${GOTREE} brlen clear | ${GOTREE} annotate -m mapfile > result
+# diff -q -b result expected
+# rm -f expected result mapfile
 
-# gotree annotate
-echo "->gotree annotate 2"
-cat > mapfile <<EOF
-ACGACTCATCTA:Tip6,Tip5,Tip1
-ACGACTCATCTA:internal1
-EOF
-cat > intree <<EOF
-((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1,((Tip6,Tip5),Tip1)));
-EOF
-cat > expected <<EOF
-((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))ACGACTCATCTA,((Tip6,Tip5),Tip1)ACGACTCATCTA));
-EOF
-${GOTREE} annotate -i intree -m mapfile > result
-diff -q -b result expected
-rm -f expected result intree mapfile
+# # gotree annotate
+# echo "->gotree annotate 2"
+# cat > mapfile <<EOF
+# ACGACTCATCTA:Tip6,Tip5,Tip1
+# ACGACTCATCTA:internal1
+# EOF
+# cat > intree <<EOF
+# ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1,((Tip6,Tip5),Tip1)));
+# EOF
+# cat > expected <<EOF
+# ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))ACGACTCATCTA,((Tip6,Tip5),Tip1)ACGACTCATCTA));
+# EOF
+# ${GOTREE} annotate -i intree -m mapfile > result
+# diff -q -b result expected
+# rm -f expected result intree mapfile
 
-# gotree annotate
-echo "->gotree annotate comment"
-cat > mapfile <<EOF
-internal1:Tip6,Tip5,Tip1
-EOF
-cat > expected <<EOF
-((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)[internal1]));
-EOF
-${GOTREE} generate yuletree --seed 10 | ${GOTREE} brlen clear | ${GOTREE} annotate --comment -m mapfile > result
-diff -q -b result expected
-rm -f expected result mapfile
+# # gotree annotate
+# echo "->gotree annotate comment"
+# cat > mapfile <<EOF
+# internal1:Tip6,Tip5,Tip1
+# EOF
+# cat > expected <<EOF
+# ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)[internal1]));
+# EOF
+# ${GOTREE} generate yuletree --seed 10 | ${GOTREE} brlen clear | ${GOTREE} annotate --comment -m mapfile > result
+# diff -q -b result expected
+# rm -f expected result mapfile
 
-# gotree annotate
-echo "->gotree annotate comment 2"
-cat > mapfile <<EOF
-ACGACTCATCTA:Tip6,Tip5,Tip1
-ACGACTCATCTA:internal1
-EOF
-cat > intree <<EOF
-((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1,((Tip6,Tip5),Tip1)));
-EOF
-cat > expected <<EOF
-((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1[ACGACTCATCTA],((Tip6,Tip5),Tip1)[ACGACTCATCTA]));
-EOF
-${GOTREE} annotate -i intree --comment -m mapfile > result
-diff -q -b result expected
-rm -f expected result intree mapfile
+# # gotree annotate
+# echo "->gotree annotate comment 2"
+# cat > mapfile <<EOF
+# ACGACTCATCTA:Tip6,Tip5,Tip1
+# ACGACTCATCTA:internal1
+# EOF
+# cat > intree <<EOF
+# ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1,((Tip6,Tip5),Tip1)));
+# EOF
+# cat > expected <<EOF
+# ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3))internal1[ACGACTCATCTA],((Tip6,Tip5),Tip1)[ACGACTCATCTA]));
+# EOF
+# ${GOTREE} annotate -i intree --comment -m mapfile > result
+# diff -q -b result expected
+# rm -f expected result intree mapfile
 
-# gotree annotate with tree
-echo "->gotree annotate with tree"
-cat > intree <<EOF
-((Tip4,(Tip7,Tip2)n1)n2,Tip0,((Tip8,(Tip9,Tip3)n3)n4,((Tip6,Tip1)n5,Tip5)n6)n7);
-EOF
-cat > expected <<EOF
-((Tip4,(Tip7,Tip2)n1_0_2)n2_0_3,Tip0,((Tip8,(Tip9,Tip3)n3_0_2)n4_0_3,((Tip6,Tip5),Tip1)n6_0_3)n7_0_6);
-EOF
-${GOTREE} generate yuletree --seed 10 | ${GOTREE} brlen clear | ${GOTREE} annotate -c intree > result
-diff -q -b result expected
-rm -f expected result intree
+# # gotree annotate with tree
+# echo "->gotree annotate with tree"
+# cat > intree <<EOF
+# ((Tip4,(Tip7,Tip2)n1)n2,Tip0,((Tip8,(Tip9,Tip3)n3)n4,((Tip6,Tip1)n5,Tip5)n6)n7);
+# EOF
+# cat > expected <<EOF
+# ((Tip4,(Tip7,Tip2)n1_0_2)n2_0_3,Tip0,((Tip8,(Tip9,Tip3)n3_0_2)n4_0_3,((Tip6,Tip5),Tip1)n6_0_3)n7_0_6);
+# EOF
+# ${GOTREE} generate yuletree --seed 10 | ${GOTREE} brlen clear | ${GOTREE} annotate -c intree > result
+# diff -q -b result expected
+# rm -f expected result intree
 
-# gotree annotate with tree
-echo "->gotree annotate with tree comments"
-cat > intree <<EOF
-((Tip4,(Tip7,Tip2)n1)n2,Tip0,((Tip8,(Tip9,Tip3)n3)n4,((Tip6,Tip1)n5,Tip5)n6)n7);
-EOF
-cat > expected <<EOF
-((Tip4,(Tip7,Tip2)[n1_0_2])[n2_0_3],Tip0,((Tip8,(Tip9,Tip3)[n3_0_2])[n4_0_3],((Tip6,Tip5),Tip1)[n6_0_3])[n7_0_6]);
-EOF
-${GOTREE} generate yuletree --seed 10 | ${GOTREE} brlen clear | ${GOTREE} annotate --comment -c intree > result
-diff -q -b result expected
-rm -f expected result intree
+# # gotree annotate with tree
+# echo "->gotree annotate with tree comments"
+# cat > intree <<EOF
+# ((Tip4,(Tip7,Tip2)n1)n2,Tip0,((Tip8,(Tip9,Tip3)n3)n4,((Tip6,Tip1)n5,Tip5)n6)n7);
+# EOF
+# cat > expected <<EOF
+# ((Tip4,(Tip7,Tip2)[n1_0_2])[n2_0_3],Tip0,((Tip8,(Tip9,Tip3)[n3_0_2])[n4_0_3],((Tip6,Tip5),Tip1)[n6_0_3])[n7_0_6]);
+# EOF
+# ${GOTREE} generate yuletree --seed 10 | ${GOTREE} brlen clear | ${GOTREE} annotate --comment -c intree > result
+# diff -q -b result expected
+# rm -f expected result intree
 
 
 # gotree brlen clear
@@ -281,31 +281,31 @@ diff -q -b expected result
 rm -f expected result
 
 
-# gotree compare edges
-echo "->gotree compare edges"
-cat > expected <<EOF
-tree	brid	length	support	terminal	depth	topodepth	rightname	found	transfer	taxatomove	comparednodename	comparedlength
-0	0	0.1824683850061218	N/A	false	1	3		false	2	-Tip2,-Tip7	Tip4	N/A
-0	1	0.020616211789029896	N/A	true	0	1	Tip4	true	0		Tip4	0.32980883896257585
-0	2	0.25879284932877245	N/A	false	1	2		false	1	-Tip7	Tip2	N/A
-0	3	0.09740195047110385	N/A	true	0	1	Tip7	true	0		Tip7	0.2281203179753742
-0	4	0.015450672710905129	N/A	true	0	1	Tip2	true	0		Tip2	0.037584651176611125
-0	5	0.25919865790518115	N/A	true	0	1	Tip0	true	0		Tip0	0.11291296397843323
-0	6	0.04593880904706901	N/A	false	1	4		false	3	+Tip0,+Tip2,+Tip7	Tip4	N/A
-0	7	0.1920960924280275	N/A	false	1	3		false	1	-Tip3		N/A
-0	8	0.027845992087631298	N/A	true	0	1	Tip8	true	0		Tip8	0.060367242116658816
-0	9	0.01026581233891113	N/A	false	1	2		false	1	-Tip9	Tip3	N/A
-0	10	0.13492605122032592	N/A	true	0	1	Tip9	true	0		Tip9	0.16045157517594316
-0	11	0.10309294031874587	N/A	true	0	1	Tip3	true	0		Tip3	0.35163191615522493
-0	12	0.30150414585026103	N/A	false	1	3		false	2	-Tip1,-Tip5	Tip6	N/A
-0	13	0.05817538156872999	N/A	false	1	2		false	1	-Tip5	Tip6	N/A
-0	14	0.3779897840448691	N/A	true	0	1	Tip6	true	0		Tip6	0.05325654013915672
-0	15	0.1120177846434196	N/A	true	0	1	Tip5	true	0		Tip5	0.054439044275040135
-0	16	0.239082088939295	N/A	true	0	1	Tip1	true	0		Tip1	0.013105562909283169
-EOF
-${GOTREE} compare edges -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTREE} generate yuletree --seed 12 -n 1) -m --moved-taxa > result 2>/dev/null
-diff -q -b expected result
-rm -f expected result
+# # gotree compare edges
+# echo "->gotree compare edges"
+# cat > expected <<EOF
+# tree	brid	length	support	terminal	depth	topodepth	rightname	found	transfer	taxatomove	comparednodename	comparedlength
+# 0	0	0.1824683850061218	N/A	false	1	3		false	2	-Tip2,-Tip7	Tip4	N/A
+# 0	1	0.020616211789029896	N/A	true	0	1	Tip4	true	0		Tip4	0.32980883896257585
+# 0	2	0.25879284932877245	N/A	false	1	2		false	1	-Tip7	Tip2	N/A
+# 0	3	0.09740195047110385	N/A	true	0	1	Tip7	true	0		Tip7	0.2281203179753742
+# 0	4	0.015450672710905129	N/A	true	0	1	Tip2	true	0		Tip2	0.037584651176611125
+# 0	5	0.25919865790518115	N/A	true	0	1	Tip0	true	0		Tip0	0.11291296397843323
+# 0	6	0.04593880904706901	N/A	false	1	4		false	3	+Tip0,+Tip2,+Tip7	Tip4	N/A
+# 0	7	0.1920960924280275	N/A	false	1	3		false	1	-Tip3		N/A
+# 0	8	0.027845992087631298	N/A	true	0	1	Tip8	true	0		Tip8	0.060367242116658816
+# 0	9	0.01026581233891113	N/A	false	1	2		false	1	-Tip9	Tip3	N/A
+# 0	10	0.13492605122032592	N/A	true	0	1	Tip9	true	0		Tip9	0.16045157517594316
+# 0	11	0.10309294031874587	N/A	true	0	1	Tip3	true	0		Tip3	0.35163191615522493
+# 0	12	0.30150414585026103	N/A	false	1	3		false	2	-Tip1,-Tip5	Tip6	N/A
+# 0	13	0.05817538156872999	N/A	false	1	2		false	1	-Tip5	Tip6	N/A
+# 0	14	0.3779897840448691	N/A	true	0	1	Tip6	true	0		Tip6	0.05325654013915672
+# 0	15	0.1120177846434196	N/A	true	0	1	Tip5	true	0		Tip5	0.054439044275040135
+# 0	16	0.239082088939295	N/A	true	0	1	Tip1	true	0		Tip1	0.013105562909283169
+# EOF
+# ${GOTREE} compare edges -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTREE} generate yuletree --seed 12 -n 1) -m --moved-taxa > result 2>/dev/null
+# diff -q -b expected result
+# rm -f expected result
 
 
 # gotree compare tips
@@ -347,63 +347,63 @@ diff -q -b <(sort expected) <(sort result)
 rm -f expected result
 
 
-# gotree compare distances
-echo "->gotree compare distances"
-cat > expected <<EOF
-tree_id	er_id	ec_id	tdist	ec_length	ec_support	ec_topodepth	moving_taxa
-0	0	0	3	0.018862750655150758	N/A	2	+Tip6,-Tip2,-Tip7
-0	0	4	4	0.05806229063227526	N/A	3	+Tip0,+Tip6,-Tip2,-Tip7
-0	0	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip6,-Tip2,-Tip7
-0	0	7	4	0.03856952076464118	N/A	3	+Tip8,+Tip9,-Tip4,-Tip7
-0	0	8	5	0.005131510752894519	N/A	2	+Tip0,+Tip1,+Tip3,+Tip5,+Tip6
-0	0	12	4	0.12937482578337411	N/A	3	+Tip1,+Tip5,-Tip2,-Tip4
-0	0	13	3	0.00518311446616857	N/A	2	+Tip5,-Tip2,-Tip4
-0	2	0	4	0.018862750655150758	N/A	2	+Tip4,+Tip6,-Tip2,-Tip7
-0	2	4	5	0.05806229063227526	N/A	3	+Tip0,+Tip4,+Tip6,-Tip2,-Tip7
-0	2	6	4	0.006167968511774678	N/A	4	+Tip1,+Tip5,+Tip8,+Tip9
-0	2	7	3	0.03856952076464118	N/A	3	+Tip8,+Tip9,-Tip7
-0	2	8	4	0.005131510752894519	N/A	2	+Tip8,+Tip9,-Tip2,-Tip7
-0	2	12	3	0.12937482578337411	N/A	3	+Tip1,+Tip5,-Tip2
-0	2	13	2	0.00518311446616857	N/A	2	+Tip5,-Tip2
-0	6	0	4	0.018862750655150758	N/A	2	+Tip0,+Tip2,+Tip7,-Tip6
-0	6	4	3	0.05806229063227526	N/A	3	+Tip2,+Tip7,-Tip6
-0	6	6	4	0.006167968511774678	N/A	4	+Tip2,+Tip7,-Tip3,-Tip6
-0	6	7	5	0.03856952076464118	N/A	3	+Tip0,+Tip4,+Tip7,-Tip8,-Tip9
-0	6	8	4	0.005131510752894519	N/A	2	-Tip1,-Tip3,-Tip5,-Tip6
-0	6	12	5	0.12937482578337411	N/A	3	+Tip0,+Tip2,+Tip4,-Tip1,-Tip5
-0	6	13	4	0.00518311446616857	N/A	2	+Tip0,+Tip2,+Tip4,-Tip5
-0	7	0	5	0.018862750655150758	N/A	2	+Tip0,+Tip1,+Tip2,+Tip5,+Tip7
-0	7	4	4	0.05806229063227526	N/A	3	+Tip1,+Tip2,+Tip5,+Tip7
-0	7	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip4,+Tip6,-Tip8,-Tip9
-0	7	7	2	0.03856952076464118	N/A	3	+Tip2,-Tip3
-0	7	8	1	0.005131510752894519	N/A	2	-Tip3
-0	7	12	4	0.12937482578337411	N/A	3	+Tip0,+Tip2,+Tip4,+Tip6
-0	7	13	5	0.00518311446616857	N/A	2	+Tip0,+Tip1,+Tip2,+Tip4,+Tip6
-0	9	0	4	0.018862750655150758	N/A	2	+Tip4,+Tip6,-Tip3,-Tip9
-0	9	4	5	0.05806229063227526	N/A	3	+Tip0,+Tip4,+Tip6,-Tip3,-Tip9
-0	9	6	4	0.006167968511774678	N/A	4	+Tip0,+Tip4,+Tip6,-Tip9
-0	9	7	3	0.03856952076464118	N/A	3	+Tip2,+Tip8,-Tip3
-0	9	8	2	0.005131510752894519	N/A	2	+Tip8,-Tip3
-0	9	12	5	0.12937482578337411	N/A	3	+Tip0,+Tip2,+Tip4,+Tip6,+Tip8
-0	9	13	4	0.00518311446616857	N/A	2	+Tip5,+Tip7,-Tip3,-Tip9
-0	12	0	3	0.018862750655150758	N/A	2	+Tip4,-Tip1,-Tip5
-0	12	4	4	0.05806229063227526	N/A	3	+Tip0,+Tip4,-Tip1,-Tip5
-0	12	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip4,-Tip1,-Tip5
-0	12	7	4	0.03856952076464118	N/A	3	+Tip0,+Tip3,+Tip4,+Tip7
-0	12	8	5	0.005131510752894519	N/A	2	+Tip0,+Tip2,+Tip3,+Tip4,+Tip7
-0	12	12	2	0.12937482578337411	N/A	3	+Tip7,-Tip6
-0	12	13	3	0.00518311446616857	N/A	2	+Tip7,-Tip1,-Tip6
-0	13	0	2	0.018862750655150758	N/A	2	+Tip4,-Tip5
-0	13	4	3	0.05806229063227526	N/A	3	+Tip0,+Tip4,-Tip5
-0	13	6	4	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip4,-Tip5
-0	13	7	5	0.03856952076464118	N/A	3	+Tip0,+Tip1,+Tip3,+Tip4,+Tip7
-0	13	8	4	0.005131510752894519	N/A	2	+Tip8,+Tip9,-Tip5,-Tip6
-0	13	12	3	0.12937482578337411	N/A	3	+Tip1,+Tip7,-Tip6
-0	13	13	2	0.00518311446616857	N/A	2	+Tip7,-Tip6
-EOF
-${GOTREE} compare distances -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTREE} generate yuletree --seed 12 -n 1) > result 2>/dev/null
-diff -q -b expected result
-rm -f expected result
+# # gotree compare distances
+# echo "->gotree compare distances"
+# cat > expected <<EOF
+# tree_id	er_id	ec_id	tdist	ec_length	ec_support	ec_topodepth	moving_taxa
+# 0	0	0	3	0.018862750655150758	N/A	2	+Tip6,-Tip2,-Tip7
+# 0	0	4	4	0.05806229063227526	N/A	3	+Tip0,+Tip6,-Tip2,-Tip7
+# 0	0	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip6,-Tip2,-Tip7
+# 0	0	7	4	0.03856952076464118	N/A	3	+Tip8,+Tip9,-Tip4,-Tip7
+# 0	0	8	5	0.005131510752894519	N/A	2	+Tip0,+Tip1,+Tip3,+Tip5,+Tip6
+# 0	0	12	4	0.12937482578337411	N/A	3	+Tip1,+Tip5,-Tip2,-Tip4
+# 0	0	13	3	0.00518311446616857	N/A	2	+Tip5,-Tip2,-Tip4
+# 0	2	0	4	0.018862750655150758	N/A	2	+Tip4,+Tip6,-Tip2,-Tip7
+# 0	2	4	5	0.05806229063227526	N/A	3	+Tip0,+Tip4,+Tip6,-Tip2,-Tip7
+# 0	2	6	4	0.006167968511774678	N/A	4	+Tip1,+Tip5,+Tip8,+Tip9
+# 0	2	7	3	0.03856952076464118	N/A	3	+Tip8,+Tip9,-Tip7
+# 0	2	8	4	0.005131510752894519	N/A	2	+Tip8,+Tip9,-Tip2,-Tip7
+# 0	2	12	3	0.12937482578337411	N/A	3	+Tip1,+Tip5,-Tip2
+# 0	2	13	2	0.00518311446616857	N/A	2	+Tip5,-Tip2
+# 0	6	0	4	0.018862750655150758	N/A	2	+Tip0,+Tip2,+Tip7,-Tip6
+# 0	6	4	3	0.05806229063227526	N/A	3	+Tip2,+Tip7,-Tip6
+# 0	6	6	4	0.006167968511774678	N/A	4	+Tip2,+Tip7,-Tip3,-Tip6
+# 0	6	7	5	0.03856952076464118	N/A	3	+Tip0,+Tip4,+Tip7,-Tip8,-Tip9
+# 0	6	8	4	0.005131510752894519	N/A	2	-Tip1,-Tip3,-Tip5,-Tip6
+# 0	6	12	5	0.12937482578337411	N/A	3	+Tip0,+Tip2,+Tip4,-Tip1,-Tip5
+# 0	6	13	4	0.00518311446616857	N/A	2	+Tip0,+Tip2,+Tip4,-Tip5
+# 0	7	0	5	0.018862750655150758	N/A	2	+Tip0,+Tip1,+Tip2,+Tip5,+Tip7
+# 0	7	4	4	0.05806229063227526	N/A	3	+Tip1,+Tip2,+Tip5,+Tip7
+# 0	7	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip4,+Tip6,-Tip8,-Tip9
+# 0	7	7	2	0.03856952076464118	N/A	3	+Tip2,-Tip3
+# 0	7	8	1	0.005131510752894519	N/A	2	-Tip3
+# 0	7	12	4	0.12937482578337411	N/A	3	+Tip0,+Tip2,+Tip4,+Tip6
+# 0	7	13	5	0.00518311446616857	N/A	2	+Tip0,+Tip1,+Tip2,+Tip4,+Tip6
+# 0	9	0	4	0.018862750655150758	N/A	2	+Tip4,+Tip6,-Tip3,-Tip9
+# 0	9	4	5	0.05806229063227526	N/A	3	+Tip0,+Tip4,+Tip6,-Tip3,-Tip9
+# 0	9	6	4	0.006167968511774678	N/A	4	+Tip0,+Tip4,+Tip6,-Tip9
+# 0	9	7	3	0.03856952076464118	N/A	3	+Tip2,+Tip8,-Tip3
+# 0	9	8	2	0.005131510752894519	N/A	2	+Tip8,-Tip3
+# 0	9	12	5	0.12937482578337411	N/A	3	+Tip0,+Tip2,+Tip4,+Tip6,+Tip8
+# 0	9	13	4	0.00518311446616857	N/A	2	+Tip5,+Tip7,-Tip3,-Tip9
+# 0	12	0	3	0.018862750655150758	N/A	2	+Tip4,-Tip1,-Tip5
+# 0	12	4	4	0.05806229063227526	N/A	3	+Tip0,+Tip4,-Tip1,-Tip5
+# 0	12	6	5	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip4,-Tip1,-Tip5
+# 0	12	7	4	0.03856952076464118	N/A	3	+Tip0,+Tip3,+Tip4,+Tip7
+# 0	12	8	5	0.005131510752894519	N/A	2	+Tip0,+Tip2,+Tip3,+Tip4,+Tip7
+# 0	12	12	2	0.12937482578337411	N/A	3	+Tip7,-Tip6
+# 0	12	13	3	0.00518311446616857	N/A	2	+Tip7,-Tip1,-Tip6
+# 0	13	0	2	0.018862750655150758	N/A	2	+Tip4,-Tip5
+# 0	13	4	3	0.05806229063227526	N/A	3	+Tip0,+Tip4,-Tip5
+# 0	13	6	4	0.006167968511774678	N/A	4	+Tip0,+Tip3,+Tip4,-Tip5
+# 0	13	7	5	0.03856952076464118	N/A	3	+Tip0,+Tip1,+Tip3,+Tip4,+Tip7
+# 0	13	8	4	0.005131510752894519	N/A	2	+Tip8,+Tip9,-Tip5,-Tip6
+# 0	13	12	3	0.12937482578337411	N/A	3	+Tip1,+Tip7,-Tip6
+# 0	13	13	2	0.00518311446616857	N/A	2	+Tip7,-Tip6
+# EOF
+# ${GOTREE} compare distances -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTREE} generate yuletree --seed 12 -n 1) > result 2>/dev/null
+# diff -q -b expected result
+# rm -f expected result
 
 
 # goree compute bipartitiontree
@@ -731,16 +731,16 @@ diff -q -b expected result
 rm -f expected result
 
 
-echo "->gotree subtree"
-cat > clade <<EOF
-clade:Tip2,Tip4,Tip7
-EOF
-cat > expected <<EOF
-(Tip4,(Tip7,Tip2))clade;
-EOF
-${GOTREE} generate yuletree --seed 10 | ${GOTREE} annotate -m clade | ${GOTREE} subtree -n clade | ${GOTREE} brlen clear > result
-diff -q -b expected result
-rm -f expected result clade
+# echo "->gotree subtree"
+# cat > clade <<EOF
+# clade:Tip2,Tip4,Tip7
+# EOF
+# cat > expected <<EOF
+# (Tip4,(Tip7,Tip2))clade;
+# EOF
+# ${GOTREE} generate yuletree --seed 10 | ${GOTREE} annotate -m clade | ${GOTREE} subtree -n clade | ${GOTREE} brlen clear > result
+# diff -q -b expected result
+# rm -f expected result clade
 
 
 echo "->gotree stats"
@@ -896,19 +896,19 @@ ${GOTREE} generate yuletree --seed 10 | ${GOTREE} draw text -w 50 > result
 diff -q -b expected result
 rm -f expected result
 
-echo "->gotree annotate"
-cat > inferred <<EOF
-(((((Hylobates_pileatus:0.23988592,(Pongo_pygmaeus_abelii:0.11809071,(Gorilla_gorilla_gorilla:0.13596645,(Homo_sapiens:0.11344407,Pan_troglodytes:0.11665038)0.62:0.02364476)0.78:0.04257513)0.93:0.15711475)0.56:0.03966791,(Macaca_sylvanus:0.06332916,(Macaca_fascicularis_fascicularis:0.07605049,(Macaca_mulatta:0.06998962,Macaca_fuscata:0)0.98:0.08492791)0.47:0.02236558)0.89:0.11208218)0.43:0.0477543,Saimiri_sciureus:0.25824985)0.71:0.14311537,(Tarsius_tarsier:0.62272677,Lemur_sp.:0.40249393)0.35:0)0.62:0.077084225,(Mus_musculus:0.4057381,Bos_taurus:0.65776307)0.62:0.077084225);
-EOF
-cat > annotated <<EOF
-((((((((Gorilla_gorilla_gorilla[subspecies],Pan_troglodytes[species],Homo_sapiens[species])Homo/Pan/Gorilla_group[subfamily],Pongo_pygmaeus_abelii[species])Pongidae[family],Hylobates_pileatus[species])Hominoidea[superfamily],(Macaca_sylvanus[species],Macaca_fascicularis_fascicularis[subspecies],Macaca_fuscata[species],Macaca_mulatta[species])Macaca[genus])Catarrhini[parvorder],Saimiri_sciureus[species])Simiiformes[infraorder],Tarsius_tarsier[species])Haplorrhini[suborder],Lemur_sp.[species])Primates[order],Mus_musculus[species],Bos_taurus[species])Euarchontoglires[superorder];
-EOF
-cat > expected <<EOF
-(((((Hylobates_pileatus:0.23988592,(Pongo_pygmaeus_abelii:0.11809071,(Gorilla_gorilla_gorilla:0.13596645,(Homo_sapiens:0.11344407,Pan_troglodytes:0.11665038)0.62:0.02364476)Homo/Pan/Gorilla_group_0_3:0.04257513)Pongidae_0_4:0.15711475)Hominoidea_0_5:0.03966791,(Macaca_sylvanus:0.06332916,(Macaca_fascicularis_fascicularis:0.07605049,(Macaca_mulatta:0.06998962,Macaca_fuscata:0)0.98:0.08492791)Macaca_1_3:0.02236558)Macaca_0_4:0.11208218)Catarrhini_0_9:0.0477543,Saimiri_sciureus:0.25824985)Simiiformes_0_10:0.14311537,(Tarsius_tarsier:0.62272677,Lemur_sp.:0.40249393)0.35:0)Primates_0_12:0.077084225,(Mus_musculus:0.4057381,Bos_taurus:0.65776307)Primates_0_2:0.077084225);
-EOF
-${GOTREE} annotate -i inferred -c annotated -o result
-diff -q -b expected result
-rm -f expected result annotated inferred
+# echo "->gotree annotate"
+# cat > inferred <<EOF
+# (((((Hylobates_pileatus:0.23988592,(Pongo_pygmaeus_abelii:0.11809071,(Gorilla_gorilla_gorilla:0.13596645,(Homo_sapiens:0.11344407,Pan_troglodytes:0.11665038)0.62:0.02364476)0.78:0.04257513)0.93:0.15711475)0.56:0.03966791,(Macaca_sylvanus:0.06332916,(Macaca_fascicularis_fascicularis:0.07605049,(Macaca_mulatta:0.06998962,Macaca_fuscata:0)0.98:0.08492791)0.47:0.02236558)0.89:0.11208218)0.43:0.0477543,Saimiri_sciureus:0.25824985)0.71:0.14311537,(Tarsius_tarsier:0.62272677,Lemur_sp.:0.40249393)0.35:0)0.62:0.077084225,(Mus_musculus:0.4057381,Bos_taurus:0.65776307)0.62:0.077084225);
+# EOF
+# cat > annotated <<EOF
+# ((((((((Gorilla_gorilla_gorilla[subspecies],Pan_troglodytes[species],Homo_sapiens[species])Homo/Pan/Gorilla_group[subfamily],Pongo_pygmaeus_abelii[species])Pongidae[family],Hylobates_pileatus[species])Hominoidea[superfamily],(Macaca_sylvanus[species],Macaca_fascicularis_fascicularis[subspecies],Macaca_fuscata[species],Macaca_mulatta[species])Macaca[genus])Catarrhini[parvorder],Saimiri_sciureus[species])Simiiformes[infraorder],Tarsius_tarsier[species])Haplorrhini[suborder],Lemur_sp.[species])Primates[order],Mus_musculus[species],Bos_taurus[species])Euarchontoglires[superorder];
+# EOF
+# cat > expected <<EOF
+# (((((Hylobates_pileatus:0.23988592,(Pongo_pygmaeus_abelii:0.11809071,(Gorilla_gorilla_gorilla:0.13596645,(Homo_sapiens:0.11344407,Pan_troglodytes:0.11665038)0.62:0.02364476)Homo/Pan/Gorilla_group_0_3:0.04257513)Pongidae_0_4:0.15711475)Hominoidea_0_5:0.03966791,(Macaca_sylvanus:0.06332916,(Macaca_fascicularis_fascicularis:0.07605049,(Macaca_mulatta:0.06998962,Macaca_fuscata:0)0.98:0.08492791)Macaca_1_3:0.02236558)Macaca_0_4:0.11208218)Catarrhini_0_9:0.0477543,Saimiri_sciureus:0.25824985)Simiiformes_0_10:0.14311537,(Tarsius_tarsier:0.62272677,Lemur_sp.:0.40249393)0.35:0)Primates_0_12:0.077084225,(Mus_musculus:0.4057381,Bos_taurus:0.65776307)Primates_0_2:0.077084225);
+# EOF
+# ${GOTREE} annotate -i inferred -c annotated -o result
+# diff -q -b expected result
+# rm -f expected result annotated inferred
 
 
 echo "->gotree reformat nexus"

@@ -692,12 +692,12 @@ func (t *Tree) CompareTipIndexes(t2 *Tree) error {
 		}
 	}
 
-	for k := range t2.tipIndex {
-		_, ok := t.tipIndex[k]
-		if !ok {
-			return errors.New("Trees do not have the same tip names")
-		}
-	}
+	// for k := range t2.tipIndex {
+	// 	_, ok := t.tipIndex[k]
+	// 	if !ok {
+	// 		return errors.New("Trees do not have the same tip names")
+	// 	}
+	// }
 	return nil
 }
 
