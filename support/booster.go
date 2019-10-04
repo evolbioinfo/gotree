@@ -192,7 +192,7 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 					fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, bootTree.Id)
 				}
 				bootEdges := bootTree.Tree.Edges()
-				bootEdgeIndex := tree.NewEdgeIndex(int64(len(bootEdges)*2), 0.75)
+				bootEdgeIndex := tree.NewEdgeIndex(uint64(len(bootEdges)*2), 0.75)
 				taxaTransferedPerBranch = make([]*list.List, len(edges))
 
 				for i, e := range bootEdges {

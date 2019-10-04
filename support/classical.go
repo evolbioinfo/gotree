@@ -25,7 +25,7 @@ func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error 
 	var ntrees int32 = 0
 	foundEdges := make(chan int, 100)
 	foundBoot := make([]int, len(edges))
-	edgeIndex := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
+	edgeIndex := tree.NewEdgeIndex(uint64(len(edges)*2), 0.75)
 	for i, e := range edges {
 		if !e.Right().Tip() {
 			e.Right().SetName("")
@@ -148,7 +148,7 @@ func (supporter *ClassicalSupporter) ComputeValue(refTree *tree.Tree, cpu int, e
 	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved,
 	taxPerBranchChannel chan<- []*list.List) error {
 
-	edgeIndex := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
+	edgeIndex := tree.NewEdgeIndex(uint64(len(edges)*2), 0.75)
 	for i, e := range edges {
 		if !e.Right().Tip() {
 			e.Right().SetName("")

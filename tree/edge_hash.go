@@ -2,10 +2,17 @@ package tree
 
 import (
 	"fmt"
+	"hash/fnv"
 	"os"
 
 	"github.com/evolbioinfo/gotree/hashmap"
 )
+
+func tax_hash(s string) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(s))
+	return h.Sum64()
+}
 
 func (t *Tree) ComputeEdgeHashes(cur, prev *Node, e *Edge) {
 	if cur == nil {
@@ -21,8 +28,8 @@ func (t *Tree) computeEdgeHashesRightRecur(cur, prev *Node, e *Edge) {
 		e.hashcoderight = 0
 	}
 	if cur.Tip() {
-		tipIndex, _ := t.TipIndex(cur.Name())
-		e.hashcoderight = 31 + 31*int64(tipIndex)
+		//tipIndex, _ := t.TipIndex(cur.Name())
+		e.hashcoderight = tax_hash(cur.Name())
 		e.ntaxright++
 	} else {
 		for i, n := range cur.Neigh() {
@@ -70,18 +77,18 @@ func (t *Tree) computeEdgeHashesLeftRecur(cur, prev *Node, e *Edge) {
 	}
 }
 
-// HashCode for an Edge, computed from its bitset.
+// HashCode for an Edge
 //
 // Used for insertion in an HashMap
 // If the bitsets are not initialized, then returns 0
-func (e *Edge) HashCode() int64 {
-	var hashcode int64 = 0
+func (e *Edge) HashCode() uint64 {
+	var hashcode uint64 = 0
 	if e.ntaxleft == e.ntaxright {
-		hashcode = 31 * (e.hashcodeleft + e.hashcoderight)
+		hashcode = e.hashcodeleft * e.hashcoderight
 	} else if e.ntaxleft < e.ntaxright {
-		hashcode = 31 * e.hashcodeleft
+		hashcode = e.hashcodeleft
 	} else {
-		hashcode = 31 * e.hashcoderight
+		hashcode = e.hashcoderight
 	}
 	return hashcode
 }

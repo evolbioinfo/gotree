@@ -23,8 +23,8 @@ type Edge struct {
 	//left:0/right:1 .
 	// i is the index of the tip in the sorted tip name array
 	bitset        *bitset.BitSet // Bitset of length Number of taxa each
-	hashcoderight int64          // HashCode related to Taxa on the left
-	hashcodeleft  int64          // HashCode related to Taxa on the right
+	hashcoderight uint64         // HashCode related to Taxa on the left
+	hashcodeleft  uint64         // HashCode related to Taxa on the right
 	ntaxright     int            // Number of taxa below : Initialized with hashes / ReinitIndexes
 	ntaxleft      int            // Number of taxa above : Initialized with hashes / ReinitIndexes
 	id            int            // this field is used at discretion of the user to store information

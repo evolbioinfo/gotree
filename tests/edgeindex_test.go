@@ -90,13 +90,14 @@ func benchmarkEdgeIndex(ntrees int, b *testing.B) {
 		intrees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
 
 		var wg sync.WaitGroup
-		edgeindex := tree.NewEdgeIndex(24000, .75)
+		edgeindex := tree.NewEdgeIndex(1000, .75)
 		for tr := range intrees {
 			if tr.Err != nil {
 				b.Error(tr.Err)
 			}
 			edges := tr.Tree.Edges()
 			for _, e := range edges {
+				//fmt.Fprintf(os.Stderr, "%d\n", e.HashCode()%uint64(10000))
 				edgeindex.AddEdgeCount(e)
 			}
 		}

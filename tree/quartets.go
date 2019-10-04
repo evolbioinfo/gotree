@@ -62,7 +62,7 @@ unorder taxon index, i.e:
 => because we do not want conflicting quartets
  in the map
 */
-func (q *Quartet) HashCode() int64 {
+func (q *Quartet) HashCode() uint64 {
 	i1, i2, i3, i4 := int(q.T1), int(q.T2), int(q.T3), int(q.T4)
 	// We sort the tax id before computing the hashcode
 	if i2 < i1 {
@@ -80,8 +80,8 @@ func (q *Quartet) HashCode() int64 {
 	if i3 < i2 {
 		i3, i2 = i2, i3
 	}
-	var hashCode int64 = 1
-	hashCode = 31*(31*(31*(31+int64(i1))+int64(i2))+int64(i3)) + int64(i4)
+	var hashCode uint64 = 1
+	hashCode = 31*(31*(31*(31+uint64(i1))+uint64(i2))+uint64(i3)) + uint64(i4)
 	return hashCode
 }
 

@@ -29,7 +29,7 @@ type KeyValue struct {
 }
 
 // Initializes an Edge Count Index
-func NewEdgeIndex(size int64, loadfactor float64) *EdgeIndex {
+func NewEdgeIndex(size uint64, loadfactor float64) *EdgeIndex {
 	return &EdgeIndex{
 		hashmap.NewHashMap(size, loadfactor),
 	}
@@ -49,6 +49,8 @@ func (em *EdgeIndex) Value(e *Edge) (*EdgeIndexInfo, bool) {
 
 // Increments edge count for an edge if it already exists in the map.
 // If it does not exist, adds it with count 1
+//
+// Also adds edge length
 func (em *EdgeIndex) AddEdgeCount(e *Edge) error {
 	if e.Bitset() == nil {
 		io.LogError(errors.New("Bitset not initialized"))

@@ -644,7 +644,7 @@ func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical b
 	}
 	refTree.ReinitIndexes()
 	edges = refTree.Edges()
-	index := NewEdgeIndex(int64(len(edges)*2), 0.75)
+	index := NewEdgeIndex(uint64(len(edges)*2), 0.75)
 	total := 0
 	for i, e := range edges {
 		index.PutEdgeValue(e, i, e.Length())

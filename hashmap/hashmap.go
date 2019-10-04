@@ -14,7 +14,7 @@ import (
 
 type HashMap struct {
 	mapArray   []Bucket
-	capacity   int64
+	capacity   uint64
 	loadfactor float64
 	total      int
 	sync.RWMutex
@@ -27,12 +27,12 @@ type KeyValue struct {
 }
 
 type Hasher interface {
-	HashCode() int64
+	HashCode() uint64
 	HashEquals(k Hasher) bool
 }
 
 // Initializes a HashMap
-func NewHashMap(size int64, loadfactor float64) *HashMap {
+func NewHashMap(size uint64, loadfactor float64) *HashMap {
 	return &HashMap{
 		mapArray:   make([]Bucket, size),
 		capacity:   size,
@@ -45,9 +45,9 @@ func NewHashMap(size int64, loadfactor float64) *HashMap {
 // If the edge is not present, returns 0 and false
 // If the edge is present, returns the value and true
 func (em *HashMap) Value(h Hasher) (interface{}, bool) {
-	index := indexFor(h.HashCode(), em.capacity)
 	em.RLock()
 	defer em.RUnlock()
+	index := indexFor(h.HashCode(), em.capacity)
 
 	if em.mapArray[index] != nil {
 		for _, kv := range em.mapArray[index] {
@@ -60,9 +60,9 @@ func (em *HashMap) Value(h Hasher) (interface{}, bool) {
 }
 
 func (em *HashMap) PutValue(h Hasher, value interface{}) {
-	index := indexFor(h.HashCode(), em.capacity)
 	em.Lock()
 	defer em.Unlock()
+	index := indexFor(h.HashCode(), em.capacity)
 
 	if em.mapArray[index] == nil {
 		em.mapArray[index] = make(Bucket, 1, 3)
@@ -75,6 +75,7 @@ func (em *HashMap) PutValue(h Hasher, value interface{}) {
 				return
 			}
 		}
+		//fmt.Fprintf(os.Stderr, "Collision (%d)!!!\n", index)
 		em.mapArray[index] = append(em.mapArray[index], &KeyValue{h, value})
 		em.total++
 	}
@@ -82,7 +83,7 @@ func (em *HashMap) PutValue(h Hasher, value interface{}) {
 }
 
 // returns the index in the hash map, given a hashcode
-func indexFor(hashcode int64, capacity int64) int64 {
+func indexFor(hashcode uint64, capacity uint64) uint64 {
 	return hashcode & (capacity - 1)
 }
 
