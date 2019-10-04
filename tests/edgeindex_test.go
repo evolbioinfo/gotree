@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/evolbioinfo/gotree/io/newick"
@@ -68,3 +69,45 @@ func TestEdgeIndex2(t *testing.T) {
 		nbtrees++
 	}
 }
+
+// Benchmark for reading 1000 bootstrap trees for example
+// With gunzip
+func benchmarkEdgeIndex(ntrees int, b *testing.B) {
+
+	for n := 0; n < ntrees; n++ {
+		var treefile io.Closer
+		var treereader *bufio.Reader
+		var intrees <-chan tree.Trees
+
+		reftree, err := utils.ReadTree("data/bootstrap_trees.nw.gz", utils.FORMAT_NEWICK)
+		if err != nil {
+			b.Error(err.Error())
+		}
+
+		if treefile, treereader, err = utils.GetReader("data/bootstrap_trees.nw.gz"); err != nil {
+			b.Error(err)
+		}
+		intrees = utils.ReadMultiTrees(treereader, utils.FORMAT_NEWICK)
+
+		var wg sync.WaitGroup
+		edgeindex := tree.NewEdgeIndex(24000, .75)
+		for tr := range intrees {
+			if tr.Err != nil {
+				b.Error(tr.Err)
+			}
+			edges := tr.Tree.Edges()
+			for _, e := range edges {
+				edgeindex.AddEdgeCount(e)
+			}
+		}
+		wg.Wait()
+
+		for _, e := range reftree.Edges() {
+			edgeindex.Value(e)
+		}
+		treefile.Close()
+	}
+}
+
+func BenchmarkEdgeIndex10(b *testing.B)  { benchmarkEdgeIndex(10, b) }
+func BenchmarkEdgeIndex100(b *testing.B) { benchmarkEdgeIndex(100, b) }
