@@ -12,7 +12,6 @@ and compare all bipartitions of the rerooted tree with the original tree
 */
 func TestRootOutgroup(t *testing.T) {
 	tr, err := tree.RandomYuleBinaryTree(1000, true)
-	tr.ReinitIndexes()
 	clone := tr.Clone()
 	if err != nil {
 		t.Error(err)
@@ -56,7 +55,6 @@ and compare all bipartitions of the rerooted tree with the original tree
 */
 func TestReRootOutgroupRemove(t *testing.T) {
 	tr, err := tree.RandomYuleBinaryTree(1000, true)
-	tr.ReinitIndexes()
 	edges := tr.Edges()
 	tips := tr.Tips()
 	nodes := tr.Nodes()
@@ -93,7 +91,6 @@ and compare all bipartitions of the rerooted tree with the original tree
 */
 func TestReRootOutgroupRemoveUnRooted(t *testing.T) {
 	tr, err := tree.RandomYuleBinaryTree(1000, false)
-	tr.ReinitIndexes()
 	edges := tr.Edges()
 	tips := tr.Tips()
 	nodes := tr.Nodes()

@@ -79,6 +79,7 @@ func (p *PhyloXML) FirstTree() (t *tree.Tree, err error) {
 
 func phylogenyToTree(p *Phylogeny, t *tree.Tree) (err error) {
 	err = cladeToTree(&p.Root, t, nil)
+	t.ReinitIndexes()
 	return
 }
 

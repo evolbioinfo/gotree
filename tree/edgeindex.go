@@ -3,7 +3,6 @@ package tree
 import (
 	"errors"
 
-	"github.com/fredericlemoine/bitset"
 	"github.com/evolbioinfo/gotree/hashmap"
 	"github.com/evolbioinfo/gotree/io"
 )
@@ -17,52 +16,6 @@ type EdgeIndex struct {
 	hash *hashmap.HashMap
 }
 
-// The key for an edge is its bitset
-type EdgeKey struct {
-	key *bitset.BitSet
-}
-
-// HashCode for an Edge, computed from its bitset.
-//
-// Used for insertion in an HashMap
-func (k *EdgeKey) HashCode() int64 {
-	var hashCodeSet int64 = 1
-	var hashCodeUnset int64 = 1
-	var hashCodeAll int64 = 1
-	nbset := 0
-	nbunset := 0
-	var bit uint
-	for bit = 0; bit < k.key.Len(); bit++ {
-		if k.key.Test(bit) {
-			hashCodeSet = 31*hashCodeSet + int64(bit)
-			nbset++
-		} else {
-			hashCodeUnset = 31*hashCodeUnset + int64(bit)
-			nbunset++
-		}
-		hashCodeAll = 31*hashCodeAll + int64(bit)
-	}
-	// If the number of species on the left is the same
-	// than the number of species on the right
-	// We return the hashcode of the all species
-	// Otherwise, we return the hashcode for the minimum
-	// between left and right
-	// Allows an edge to be kind of "unique"
-	if nbset == nbunset {
-		return hashCodeAll
-	} else if nbset < nbunset {
-		return hashCodeSet
-	}
-	return hashCodeUnset
-}
-
-// HashCode for an edge bitset.
-//
-// Used for insertion in an EdgeMap
-func (k *EdgeKey) HashEquals(h hashmap.Hasher) bool {
-	return k.key.EqualOrComplement(h.(*EdgeKey).key)
-}
-
 // Value stored in the HashMap
 type EdgeIndexInfo struct {
 	Count int     // Number of occurences of the branch
@@ -71,7 +24,7 @@ type EdgeIndexInfo struct {
 
 // KeyValue Pair stored in the HashMap
 type KeyValue struct {
-	key *bitset.BitSet
+	key *Edge
 	val *EdgeIndexInfo
 }
 
@@ -86,7 +39,7 @@ func NewEdgeIndex(size int64, loadfactor float64) *EdgeIndex {
 //	* If the edge is not present, returns 0 and false
 //	* If the edge is present, returns the value and true
 func (em *EdgeIndex) Value(e *Edge) (*EdgeIndexInfo, bool) {
-	v, ok := em.hash.Value(&EdgeKey{e.Bitset()})
+	v, ok := em.hash.Value(e)
 	if ok {
 		return v.(*EdgeIndexInfo), ok
 	} else {
@@ -101,9 +54,9 @@ func (em *EdgeIndex) AddEdgeCount(e *Edge) error {
 		io.LogError(errors.New("Bitset not initialized"))
 		return errors.New("Bitset not initialized")
 	}
-	v, ok := em.hash.Value(&EdgeKey{e.Bitset()})
+	v, ok := em.hash.Value(e)
 	if !ok {
-		em.hash.PutValue(&EdgeKey{e.Bitset()}, &EdgeIndexInfo{1, e.Length()})
+		em.hash.PutValue(e, &EdgeIndexInfo{1, e.Length()})
 	} else {
 		v.(*EdgeIndexInfo).Count++
 		v.(*EdgeIndexInfo).Len += e.Length()
@@ -119,7 +72,7 @@ func (em *EdgeIndex) PutEdgeValue(e *Edge, count int, length float64) error {
 		io.LogError(errors.New("Bitset not initialized"))
 		return errors.New("Bitset not initialized")
 	}
-	em.hash.PutValue(&EdgeKey{e.Bitset()}, &EdgeIndexInfo{count, length})
+	em.hash.PutValue(e, &EdgeIndexInfo{count, length})
 	return nil
 }
 
@@ -127,14 +80,14 @@ func (em *EdgeIndex) PutEdgeValue(e *Edge, count int, length float64) error {
 // included in ]min,max]. If min==Max==1 : [1].
 //
 // Keys of the index
-func (em *EdgeIndex) BitSets(minCount, maxCount int) []*KeyValue {
+func (em *EdgeIndex) Edges(minCount, maxCount int) []*KeyValue {
 	keyvalues := em.hash.KeyValues()
 	bitsets := make([]*KeyValue, 0, len(keyvalues))
 	for _, kv := range keyvalues {
-		b := kv.Key.(*EdgeKey).key
+		e := kv.Key.(*Edge)
 		v := (kv.Value).(*EdgeIndexInfo)
 		if (v.Count > minCount && v.Count <= maxCount) || v.Count == maxCount {
-			bitsets = append(bitsets, &KeyValue{b, v})
+			bitsets = append(bitsets, &KeyValue{e, v})
 		}
 	}
 	return bitsets

@@ -7,9 +7,9 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/fredericlemoine/bitset"
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/mutils"
+	"github.com/fredericlemoine/bitset"
 )
 
 // Structure of an edge
@@ -22,8 +22,12 @@ type Edge struct {
 	// a Bit at index i in the bitset corresponds to the position of the tip i
 	//left:0/right:1 .
 	// i is the index of the tip in the sorted tip name array
-	bitset *bitset.BitSet // Bitset of length Number of taxa each
-	id     int            // this field is used at discretion of the user to store information
+	bitset        *bitset.BitSet // Bitset of length Number of taxa each
+	hashcoderight int64          // HashCode related to Taxa on the left
+	hashcodeleft  int64          // HashCode related to Taxa on the right
+	ntaxright     int            // Number of taxa below : Initialized with hashes / ReinitIndexes
+	ntaxleft      int            // Number of taxa above : Initialized with hashes / ReinitIndexes
+	id            int            // this field is used at discretion of the user to store information
 }
 
 // Constant for uninitialized values

@@ -206,6 +206,7 @@ func (p *Parser) Parse() (*Nexus, error) {
 					return nil, fmt.Errorf("Some tax names defined in TAXLABELS are not present in the tree %d", i)
 				}
 			}
+			t.ReinitIndexes()
 			nexus.AddTree(treenames[i], t)
 		}
 	}

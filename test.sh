@@ -418,12 +418,17 @@ rm -f result expected
 
 # gotree compute consensus
 echo "->gotree compute consensus"
-cat > expected <<EOF
+cat > expected_comp <<EOF
+tree	reference	common	compared
+0	0	5	0
+EOF
+cat > expected_tree <<EOF
 (Tip0:0.12347870000000004,(Tip9:0.12811019999999992,(Tip8:0.018413999999999993,Tip3:0.10146340000000001)0.87:0.012998850574712643)1:0.08962310000000002,(Tip1:0.17112029999999998,Tip6:0.30890189999999984,Tip5:0.0929547)0.97:0.07447020618556698,(Tip4:0.030012499999999987,(Tip7:0.09010099999999997,Tip2:0.015264200000000006)1:0.10734890000000002)1:0.09298299999999998);
 EOF
-${GOTREE} compute consensus -i ${TESTDATA}/bootstap_test.nw.gz -f 0.7 -o result
-diff -q -b expected result
-rm -f expected result
+
+${GOTREE} compute consensus -i ${TESTDATA}/bootstap_test.nw.gz -f 0.7 | ${GOTREE} compare trees -i expected_tree  -c - > result
+diff -q -b expected_comp result
+rm -f expected_comp expected_tree result
 
 
 echo "->gotree compute classical bootstrap"

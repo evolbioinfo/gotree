@@ -97,6 +97,8 @@ func (p *Parser) Parse() (newtree *tree.Tree, err error) {
 	for _, tip := range newtree.Tips() {
 		tip.SetName(strings.TrimSpace(tip.Name()))
 	}
+
+	newtree.ReinitIndexes()
 	//tree.UpdateTipIndex()
 	// err = tree.ClearBitSets()
 	// if err != nil {

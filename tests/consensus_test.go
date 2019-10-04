@@ -48,7 +48,6 @@ func TestMajorityConsensus(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	expected_majority.ReinitIndexes()
 	edgeindex2 := tree.NewEdgeIndex(128, .75)
 	for _, e := range expected_majority.Edges() {
 		edgeindex2.PutEdgeValue(e, 1, e.Length())
@@ -89,7 +88,6 @@ func TestStrictConsensus(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	strict.ReinitIndexes()
 	edgeindex1 := tree.NewEdgeIndex(128, .75)
 	for _, e := range strict.Edges() {
 		edgeindex1.PutEdgeValue(e, 1, e.Length())
@@ -104,7 +102,6 @@ func TestStrictConsensus(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	expected_strict.ReinitIndexes()
 	edgeindex2 := tree.NewEdgeIndex(128, .75)
 	for _, e := range expected_strict.Edges() {
 		edgeindex2.PutEdgeValue(e, 1, e.Length())

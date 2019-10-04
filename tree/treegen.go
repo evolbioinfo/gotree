@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"strconv"
 
-	"github.com/fredericlemoine/gostats"
 	"github.com/evolbioinfo/gotree/io"
+	"github.com/fredericlemoine/gostats"
 )
 
 // Creates a Random uniform Binary tree by successively adding
@@ -66,6 +66,7 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	if !rooted {
 		err = t.RerootFirst()
 	}
+	t.ReinitIndexes()
 	return t, err
 }
 
@@ -89,6 +90,7 @@ func RandomBalancedBinaryTree(depth int, rooted bool) (*Tree, error) {
 	if !rooted {
 		t.UnRoot()
 	}
+	t.ReinitIndexes()
 	return t, nil
 }
 
@@ -174,6 +176,7 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	if !rooted {
 		err = t.RerootFirst()
 	}
+	t.ReinitIndexes()
 	return t, err
 }
 
@@ -230,6 +233,7 @@ func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 	if !rooted {
 		err = t.RerootFirst()
 	}
+	t.ReinitIndexes()
 	return t, err
 }
 
@@ -256,10 +260,7 @@ func StarTree(nbtips int) (*Tree, error) {
 		e.SetLength(1.0)
 	}
 	//err := t.RerootFirst()
-	t.UpdateTipIndex()
-	t.ClearBitSets()
-	t.UpdateBitSet()
-	t.ComputeDepths()
+	t.ReinitIndexes()
 	return t, nil
 }
 
@@ -275,8 +276,10 @@ func StarTreeFromName(names ...string) (*Tree, error) {
 		for i, t := range t.Tips() {
 			t.SetName(names[i])
 		}
+		t.ReinitIndexes()
 		return t, nil
 	}
+
 }
 
 // Creates a Star tree with the same tips as the tree in argument
@@ -291,6 +294,7 @@ func StarTreeFromTree(t *Tree) (*Tree, error) {
 			te.Right().SetName(edges[i].Right().Name())
 			te.SetLength(edges[i].Length())
 		}
+		star.ReinitIndexes()
 		return star, nil
 	}
 }
@@ -330,6 +334,7 @@ func EdgeTree(t *Tree, e *Edge, alltips []string) *Tree {
 			}
 		}
 	}
+	edgeTree.ReinitIndexes()
 	return edgeTree
 }
 
@@ -377,6 +382,7 @@ func BipartitionTree(leftTips []string, rightTips []string) (*Tree, error) {
 		etmp := bipartitionTree.ConnectNodes(n, ntmp)
 		etmp.SetLength(1.0)
 	}
+	bipartitionTree.ReinitIndexes()
 	return bipartitionTree, nil
 }
 

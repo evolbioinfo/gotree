@@ -269,7 +269,7 @@ func (t *Tree) RemoveTips(revert bool, names ...string) error {
 			}
 		}
 	}
-
+	t.ReinitInternalIndexes()
 	return nil
 }
 
@@ -521,6 +521,7 @@ func (t *Tree) ConnectNodes(parent *Node, child *Node) *Edge {
 
 // This function takes the first node having 3 neighbors
 // and reroot the tree on this node
+// It then recomputes indices
 func (t *Tree) RerootFirst() error {
 	for _, n := range t.Nodes() {
 		if len(n.neigh) == 3 {
@@ -550,6 +551,19 @@ func (t *Tree) ReinitIndexes() {
 	t.UpdateTipIndex()
 	t.ClearBitSets()
 	t.UpdateBitSet()
+	t.ComputeEdgeHashes(nil, nil, nil)
+	t.ComputeDepths()
+}
+
+// This Function initializes or reinitializes
+// memory consuming structures:
+//	* bitset indexes
+//	* Tipindex
+//	* And computes node depths
+func (t *Tree) ReinitInternalIndexes() {
+	t.ClearBitSets()
+	t.UpdateBitSet()
+	t.ComputeEdgeHashes(nil, nil, nil)
 	t.ComputeDepths()
 }
 
@@ -564,6 +578,8 @@ func (t *Tree) clearBitSetsRecur(n *Node, parent *Node, ntip uint) {
 		if child != parent {
 			e := n.br[i]
 			e.bitset = nil
+			e.hashcodeleft = 0
+			e.hashcoderight = 0
 			e.bitset = bitset.New(ntip)
 			t.clearBitSetsRecur(child, n, ntip)
 		}
@@ -721,6 +737,7 @@ func (t *Tree) Reroot(n *Node) error {
 	}
 	t.root = n
 	err := t.ReorderEdges(n, nil, nil)
+	t.ReinitInternalIndexes()
 	return err
 }
 
@@ -893,9 +910,7 @@ func (t *Tree) ShuffleTips() {
 		tips[i].SetName(names[p])
 	}
 
-	t.UpdateTipIndex()
-	t.ClearBitSets()
-	t.UpdateBitSet()
+	t.ReinitIndexes()
 }
 
 // Randomly rotates neighbors of all internal nodes
@@ -1013,6 +1028,7 @@ func (t *Tree) Resolve() {
 	root := t.Root()
 
 	t.resolveRecur(root, nil)
+	t.ReinitInternalIndexes()
 }
 
 // Recursive function to resolve
@@ -1099,6 +1115,7 @@ func (t *Tree) RemoveSingleNodes() {
 	root := t.Root()
 
 	t.removeSingleNodesRecur(root, nil, nil)
+	t.ReinitInternalIndexes()
 }
 
 // Removes recursively Edges for which the left node has a unique child.
@@ -1245,6 +1262,7 @@ func (t *Tree) RemoveEdges(edges ...*Edge) {
 		}
 		t.unconnectNode(e.Right())
 	}
+	t.ReinitInternalIndexes()
 }
 
 // Unroots a rooted tree by removing the bifurcating root, and
@@ -1283,6 +1301,8 @@ func (t *Tree) UnRoot() {
 		e3.SetSupport(math.Max(math.Max(0, e1.Support()), math.Max(0, e2.Support())))
 	}
 	t.delNode(root)
+
+	t.ReinitIndexes()
 }
 
 // Annotates internal branches of a tree with given data using the
@@ -1351,12 +1371,7 @@ func (t *Tree) Rename(namemap map[string]string) error {
 		}
 	}
 	// After we update bitsets if any, and node indexes
-	t.UpdateTipIndex()
-	err = t.ClearBitSets()
-	if err != nil {
-		return err
-	}
-	t.UpdateBitSet()
+	t.ReinitIndexes()
 	return nil
 }
 
@@ -1391,12 +1406,7 @@ func (t *Tree) RenameAuto(internals, tips bool, length int, curid *int, namemap 
 		}
 	}
 	// After we update bitsets if any, and node indexes
-	t.UpdateTipIndex()
-	err := t.ClearBitSets()
-	if err != nil {
-		return err
-	}
-	t.UpdateBitSet()
+	t.ReinitIndexes()
 	return nil
 }
 
@@ -1420,12 +1430,7 @@ func (t *Tree) RenameRegexp(internals, tips bool, regex, replace string, namemap
 		}
 	}
 	// After we update bitsets if any, and node indexes
-	t.UpdateTipIndex()
-	err = t.ClearBitSets()
-	if err != nil {
-		return err
-	}
-	t.UpdateBitSet()
+	t.ReinitIndexes()
 	return nil
 }
 
@@ -1463,6 +1468,10 @@ func (t *Tree) CopyEdge(e *Edge, copy *Edge) {
 	if e.bitset != nil {
 		copy.bitset = e.bitset.Clone()
 	}
+	copy.ntaxleft = e.ntaxleft
+	copy.ntaxright = e.ntaxright
+	copy.hashcodeleft = e.hashcodeleft
+	copy.hashcoderight = e.hashcoderight
 }
 
 // Clone the input tree
@@ -1505,7 +1514,7 @@ func (t *Tree) SubTree(n *Node) *Tree {
 			t.copyTreeRecur(subtree, root, n, e)
 		}
 	}
-	subtree.UpdateTipIndex()
+	subtree.ReinitIndexes()
 	return (subtree)
 }
 
@@ -1541,7 +1550,7 @@ func (t *Tree) Merge(t2 *Tree) error {
 	t.ConnectNodes(newroot, t.Root())
 	t.ConnectNodes(newroot, t2.Root())
 	t.SetRoot(newroot)
-	t.UpdateTipIndex()
+	t.ReinitIndexes()
 	return nil
 }
 
@@ -1789,6 +1798,7 @@ func (t *Tree) InsertIdenticalTips(identicalgroups [][]string) (err error) {
 			}
 		}
 	}
+	t.ReinitIndexes()
 	return
 }
 

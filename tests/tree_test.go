@@ -72,7 +72,6 @@ func TestClearComments(t *testing.T) {
 func TestCollapseDepth(t *testing.T) {
 	treeString := "(Tip4,Tip0,(Tip3,(Tip2,Tip1)));"
 	tr, err := newick.NewParser(strings.NewReader(treeString)).Parse()
-	tr.ReinitIndexes()
 	if err != nil {
 		t.Error(err)
 	}
@@ -116,7 +115,6 @@ func TestBipartitionTree(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	tr.ReinitIndexes()
 	if len(tr.Tips()) != 7 {
 		t.Error(fmt.Sprintf("Tree should have 7 tips but have %d", len(tr.Tips())))
 	}
@@ -166,9 +164,6 @@ func TestMerge(t *testing.T) {
 	if err3 != nil {
 		t.Error(err3)
 	}
-	tr.ReinitIndexes()
-	tr2.ReinitIndexes()
-	tr3.ReinitIndexes()
 
 	compchan := make(chan tree.Trees)
 	err4 := tr.Merge(tr2)
@@ -340,7 +335,6 @@ func TestDelete(t *testing.T) {
 // Topology must be the same afterwards
 func TestRotateRandom(t *testing.T) {
 	tr, err := tree.RandomYuleBinaryTree(1000, true)
-	tr.ReinitIndexes()
 	clone := tr.Clone()
 	if err != nil {
 		t.Error(err)
@@ -372,7 +366,6 @@ func TestRotateRandom(t *testing.T) {
 // Topology must be the same afterwards
 func TestRotateSort(t *testing.T) {
 	tr, err := tree.RandomYuleBinaryTree(1000, true)
-	tr.ReinitIndexes()
 	clone := tr.Clone()
 	if err != nil {
 		t.Error(err)

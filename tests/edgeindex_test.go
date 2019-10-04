@@ -20,7 +20,6 @@ func TestEdgeIndex(t *testing.T) {
 	if err2 != nil {
 		t.Error(err2)
 	}
-	tr.ReinitIndexes()
 	edges := tr.Edges()
 	edgeindex := tree.NewEdgeIndex(128, .75)
 
@@ -52,7 +51,6 @@ func TestEdgeIndex2(t *testing.T) {
 	nbtrees := 1
 	numLoops := 10
 	for tr := range trees {
-		tr.Tree.ReinitIndexes()
 		edges := tr.Tree.Edges()
 		for i := 1; i <= numLoops; i++ {
 			for _, e := range edges {

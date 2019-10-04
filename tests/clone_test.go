@@ -11,7 +11,6 @@ Generates 100 random 1000 tip trees, clone them, and compare them to the origina
 func TestCloneTree(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		tr, err := tree.RandomYuleBinaryTree(1000, true)
-		tr.ReinitIndexes()
 		clone := tr.Clone()
 
 		// Comparing tip names

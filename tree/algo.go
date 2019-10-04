@@ -317,13 +317,13 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 	// We take the bipartitions that are present in more than cutoff trees and less
 	// than or equal the number of trees
 	// And we add it to the startree
-	for _, bs := range edgeindex.BitSets(int(cutoff*float64(nbtrees)), nbtrees) {
-		names := make([]string, 0, bs.key.Count())
+	for _, bs := range edgeindex.Edges(int(cutoff*float64(nbtrees)), nbtrees) {
+		names := make([]string, 0, bs.key.Bitset().Count())
 		for _, n := range alltips {
 			if idx, err := startree.TipIndex(n); err != nil {
 				return nil, err
 			} else {
-				if bs.key.Test(idx) {
+				if bs.key.Bitset().Test(idx) {
 					names = append(names, n)
 				}
 			}
@@ -463,9 +463,7 @@ func (t *Tree) RerootOutGroup(removeoutgroup, strict bool, tips ...string) error
 	if removeoutgroup {
 		t.UpdateTipIndex()
 	}
-	t.ClearBitSets()
-	t.UpdateBitSet()
-	t.ComputeDepths()
+	t.ReinitInternalIndexes()
 	return nil
 }
 
