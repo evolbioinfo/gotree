@@ -149,7 +149,7 @@ func (e *Edge) SetId(id int) {
 func (e *Edge) Name(rooted bool) (nodename string) {
 	//If rooted, the clade name is the name of the
 	// descendent node
-	if rooted || e.bitset.Count() <= e.bitset.Len() {
+	if rooted || e.ntaxright < e.ntaxleft {
 		nodename = e.Right().Name()
 	} else {
 		nodename = e.Left().Name()
@@ -162,15 +162,11 @@ func (e *Edge) Name(rooted bool) (nodename string) {
 //
 // Bitsets must be initialized otherwise returns an error.
 func (e *Edge) TopoDepth() (int, error) {
-	if e.bitset == nil {
-		return -1, errors.New("Cannot compute topodepth, Bitset is nil")
+	if e.ntaxleft == 0 || e.ntaxright == 0 {
+		return -1, errors.New("Cannot compute topodepth, subtree sizes not computed")
 	}
-	if e.bitset.None() {
-		return -1, errors.New("Cannot compute topodepth, Bitset is 000...0")
-	}
-	count := int(e.bitset.Count())
-	total := int(e.bitset.Len())
-	return mutils.Min(count, total-count), nil
+
+	return mutils.Min(e.ntaxleft, e.ntaxright), nil
 }
 
 // Returns a string representing the bitset (bipartition)
@@ -237,6 +233,9 @@ func (e *Edge) ToStatsString(withedgecomments bool) string {
 //
 // Bitsets must be initialized
 func (e *Edge) SameBipartition(e2 *Edge) bool {
+	if e.HashCode() != e2.HashCode() {
+		return false
+	}
 	return e.bitset.EqualOrComplement(e2.bitset)
 }
 
@@ -254,13 +253,9 @@ func (e *Edge) TipPresent(id uint) bool {
 // Bitsets must be initialized, otherwise returns an error.
 func (e *Edge) NumTipsRight() (int, error) {
 	if e.bitset == nil {
-		return -1, errors.New("Cannot count right tips, Bitset is nil")
+		return -1, errors.New("Cannot count right tips, subtree sizes not initialized")
 	}
-	if e.bitset.None() {
-		return -1, errors.New("Cannot count right tips, Bitset is 000...0")
-	}
-
-	return int(e.bitset.Count()), nil
+	return e.ntaxright, nil
 }
 
 // Number of tips on the left side of the bipartition
@@ -268,13 +263,10 @@ func (e *Edge) NumTipsRight() (int, error) {
 //
 // Bitsets must be initialized, otherwise returns an error.
 func (e *Edge) NumTipsLeft() (int, error) {
-	if e.bitset == nil {
-		return -1, errors.New("Cannot count left tips, Bitset is nil")
+	if e.ntaxleft == 0 {
+		return -1, errors.New("Cannot count left tips, subtree sizes not initialized ")
 	}
-	if e.bitset.None() {
-		return -1, errors.New("Cannot count left tips, Bitset is 000...0")
-	}
-	return int(e.bitset.Len() - e.bitset.Count()), nil
+	return e.ntaxleft, nil
 }
 
 // Return the given edge in the array of edges comparing bitsets fields
@@ -294,6 +286,9 @@ func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {
 		}
 
 		if e.Right().Tip() != e2.Right().Tip() {
+			continue
+		}
+		if e.HashCode() != e2.HashCode() {
 			continue
 		}
 		// If we take all the edges, or if both edges are not tips
