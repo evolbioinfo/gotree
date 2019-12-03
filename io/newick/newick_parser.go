@@ -58,7 +58,6 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 
 // Parses a Newick String.
 func (p *Parser) Parse() (newtree *tree.Tree, err error) {
-
 	// May have information inside [] before the tree
 	tok, lit := p.scanIgnoreWhitespace()
 	if tok == OPENBRACK {
@@ -98,7 +97,7 @@ func (p *Parser) Parse() (newtree *tree.Tree, err error) {
 		tip.SetName(strings.TrimSpace(tip.Name()))
 	}
 
-	newtree.ReinitIndexes()
+	//newtree.ReinitIndexes()
 	//tree.UpdateTipIndex()
 	// err = tree.ClearBitSets()
 	// if err != nil {
