@@ -1371,7 +1371,14 @@ func (t *Tree) Rename(namemap map[string]string) error {
 		}
 	}
 	// After we update bitsets if any, and node indexes
-	t.ReinitIndexes()
+	//t.ReinitIndexes()
+
+	t.UpdateTipIndex()
+	// err = t.ClearBitSets()
+	// if err != nil {
+	// 	return err
+	// }
+	// t.UpdateBitSet()
 	return nil
 }
 
@@ -1381,7 +1388,7 @@ func (t *Tree) Rename(namemap map[string]string) error {
 // tips: Renames tips
 // length: length of the generated names
 // curid: index that is incremented, to keep track of the number of generated names
-// namemap: map that associates old names to new names
+// namemap: map that associates old names to new names - allows to keep track of renames for previous trees
 func (t *Tree) RenameAuto(internals, tips bool, length int, curid *int, namemap map[string]string) error {
 	for i, n := range t.Nodes() {
 		if (tips && n.Tip()) || (internals && !n.Tip()) {
@@ -1406,7 +1413,13 @@ func (t *Tree) RenameAuto(internals, tips bool, length int, curid *int, namemap 
 		}
 	}
 	// After we update bitsets if any, and node indexes
-	t.ReinitIndexes()
+	//t.ReinitIndexes()
+	t.UpdateTipIndex()
+	// err := t.ClearBitSets()
+	// if err != nil {
+	// 	return err
+	// }
+	// t.UpdateBitSet()
 	return nil
 }
 
@@ -1430,7 +1443,13 @@ func (t *Tree) RenameRegexp(internals, tips bool, regex, replace string, namemap
 		}
 	}
 	// After we update bitsets if any, and node indexes
-	t.ReinitIndexes()
+	//t.ReinitIndexes()
+	t.UpdateTipIndex()
+	// err = t.ClearBitSets()
+	// if err != nil {
+	// 	return err
+	// }
+	// t.UpdateBitSet()
 	return nil
 }
 
