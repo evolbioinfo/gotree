@@ -116,13 +116,16 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 	var length, support, pval float64
 	prevTok = -1
 
+	defer nodeStack.Clear()
+
 	for {
 		tok, lit := p.scanIgnoreWhitespace()
 		switch tok {
 		case OPENPAR:
 			if node == nil {
 				if *level > 0 {
-					return -1, errors.New("Nil node at depth > 0")
+					err = errors.New("Nil node at depth > 0")
+					return
 				}
 				node = t.NewNode()
 				nodeStack.Push(node, nil)
@@ -151,7 +154,7 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 			var comment string
 			//if prevTok == OPENPAR || prevTok == NEWSIBLING || prevTok == -1 {
 			if comment, err = p.consumeComment(tok, lit); err != nil {
-				return -1, err
+				return
 			}
 			// Add comment to edge if comment located after branch length
 			if prevTok == STARTLEN {
@@ -166,10 +169,12 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 			prevTok = CLOSEBRACK
 		case CLOSEBRACK:
 			// Error here should not have
-			return -1, errors.New("Newick Error: Mismatched ] here...")
+			err = errors.New("Newick Error: Mismatched ] here...")
+			return
 		case STARTLEN:
 			if tok, lit = p.scanIgnoreWhitespace(); tok != NUMERIC {
-				return -1, errors.New("Newick Error: No numeric value after :")
+				err = errors.New("Newick Error: No numeric value after :")
+				return
 			}
 			// We skip length if the length is assigned to the root node
 			if node != nil && *level != 0 {
@@ -182,14 +187,16 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 					return
 				}
 				if length, err = strconv.ParseFloat(lit, 64); err != nil {
-					return -1, errors.New("Newick Error: Length is not a float value : " + lit)
+					err = errors.New("Newick Error: Length is not a float value : " + lit)
+					return
 				}
 				edge.SetLength(length)
 			} else if *level == 0 {
 				log.Print("Newick : Branch lengths attached to root node are ignored")
 			} else {
 				// For root node, level==0, we just ignore it
-				return -1, errors.New("Newick Error: Cannot assign length to nil node :" + lit)
+				err = errors.New("Newick Error: Cannot assign length to nil node :" + lit)
+				return
 			}
 			prevTok = STARTLEN
 		case NEWSIBLING:
