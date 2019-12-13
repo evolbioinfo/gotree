@@ -281,31 +281,31 @@ diff -q -b expected result
 rm -f expected result
 
 
-# # gotree compare edges
-# echo "->gotree compare edges"
-# cat > expected <<EOF
-# tree	brid	length	support	terminal	depth	topodepth	rightname	found	transfer	taxatomove	comparednodename	comparedlength
-# 0	0	0.1824683850061218	N/A	false	1	3		false	2	-Tip2,-Tip7	Tip4	N/A
-# 0	1	0.020616211789029896	N/A	true	0	1	Tip4	true	0		Tip4	0.32980883896257585
-# 0	2	0.25879284932877245	N/A	false	1	2		false	1	-Tip7	Tip2	N/A
-# 0	3	0.09740195047110385	N/A	true	0	1	Tip7	true	0		Tip7	0.2281203179753742
-# 0	4	0.015450672710905129	N/A	true	0	1	Tip2	true	0		Tip2	0.037584651176611125
-# 0	5	0.25919865790518115	N/A	true	0	1	Tip0	true	0		Tip0	0.11291296397843323
-# 0	6	0.04593880904706901	N/A	false	1	4		false	3	+Tip0,+Tip2,+Tip7	Tip4	N/A
-# 0	7	0.1920960924280275	N/A	false	1	3		false	1	-Tip3		N/A
-# 0	8	0.027845992087631298	N/A	true	0	1	Tip8	true	0		Tip8	0.060367242116658816
-# 0	9	0.01026581233891113	N/A	false	1	2		false	1	-Tip9	Tip3	N/A
-# 0	10	0.13492605122032592	N/A	true	0	1	Tip9	true	0		Tip9	0.16045157517594316
-# 0	11	0.10309294031874587	N/A	true	0	1	Tip3	true	0		Tip3	0.35163191615522493
-# 0	12	0.30150414585026103	N/A	false	1	3		false	2	-Tip1,-Tip5	Tip6	N/A
-# 0	13	0.05817538156872999	N/A	false	1	2		false	1	-Tip5	Tip6	N/A
-# 0	14	0.3779897840448691	N/A	true	0	1	Tip6	true	0		Tip6	0.05325654013915672
-# 0	15	0.1120177846434196	N/A	true	0	1	Tip5	true	0		Tip5	0.054439044275040135
-# 0	16	0.239082088939295	N/A	true	0	1	Tip1	true	0		Tip1	0.013105562909283169
-# EOF
-# ${GOTREE} compare edges -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTREE} generate yuletree --seed 12 -n 1) -m --moved-taxa > result 2>/dev/null
-# diff -q -b expected result
-# rm -f expected result
+# gotree compare edges
+echo "->gotree compare edges"
+cat > expected <<EOF
+tree	brid	length	support	terminal	depth	topodepth	rightname	found	transfer	taxatomove	comparednodename	comparedlength	comparedsupport
+0	0	0.1824683850061218	N/A	false	1	3		false	2	-Tip2,-Tip7	Tip4	N/A	N/A
+0	1	0.020616211789029896	N/A	true	0	1	Tip4	true	0		Tip4	0.32980883896257585	N/A
+0	2	0.25879284932877245	N/A	false	1	2		false	1	-Tip7	Tip2	N/A	N/A
+0	3	0.09740195047110385	N/A	true	0	1	Tip7	true	0		Tip7	0.2281203179753742	N/A
+0	4	0.015450672710905129	N/A	true	0	1	Tip2	true	0		Tip2	0.037584651176611125	N/A
+0	5	0.25919865790518115	N/A	true	0	1	Tip0	true	0		Tip0	0.11291296397843323	N/A
+0	6	0.04593880904706901	N/A	false	1	4		false	3	+Tip0,+Tip2,+Tip7	Tip4	N/A	N/A
+0	7	0.1920960924280275	N/A	false	1	3		false	1	-Tip3		N/A	N/A
+0	8	0.027845992087631298	N/A	true	0	1	Tip8	true	0		Tip8	0.060367242116658816	N/A
+0	9	0.01026581233891113	N/A	false	1	2		false	1	-Tip9	Tip3	N/A	N/A
+0	10	0.13492605122032592	N/A	true	0	1	Tip9	true	0		Tip9	0.16045157517594316	N/A
+0	11	0.10309294031874587	N/A	true	0	1	Tip3	true	0		Tip3	0.35163191615522493	N/A
+0	12	0.30150414585026103	N/A	false	1	3		false	2	-Tip1,-Tip5	Tip6	N/A	N/A
+0	13	0.05817538156872999	N/A	false	1	2		false	1	-Tip5	Tip6	N/A	N/A
+0	14	0.3779897840448691	N/A	true	0	1	Tip6	true	0		Tip6	0.05325654013915672	N/A
+0	15	0.1120177846434196	N/A	true	0	1	Tip5	true	0		Tip5	0.054439044275040135	N/A
+0	16	0.239082088939295	N/A	true	0	1	Tip1	true	0		Tip1	0.013105562909283169	N/A
+EOF
+${GOTREE} compare edges -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTREE} generate yuletree --seed 12 -n 1) -m --moved-taxa > result 2>/dev/null
+diff -q -b expected result
+rm -f expected result
 
 
 # gotree compare tips
