@@ -75,6 +75,7 @@ func TestCollapseDepth(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	tr.ReinitIndexes()
 	if err = tr.CollapseTopoDepth(2, 3); err != nil {
 		t.Error(err)
 	}
@@ -165,6 +166,10 @@ func TestMerge(t *testing.T) {
 		t.Error(err3)
 	}
 
+	tr.ReinitIndexes()
+	tr2.ReinitIndexes()
+	tr3.ReinitIndexes()
+
 	compchan := make(chan tree.Trees)
 	err4 := tr.Merge(tr2)
 	if err4 != nil {
@@ -172,7 +177,7 @@ func TestMerge(t *testing.T) {
 	}
 
 	stats, err := tree.Compare(tr, compchan, false, true, 1)
-	compchan <- tree.Trees{tr3, 0, nil}
+	compchan <- tree.Trees{Tree: tr3, Id: 0, Err: nil}
 	st := <-stats
 	if st.Err != nil {
 		t.Error(st.Err)
@@ -340,7 +345,7 @@ func TestRotateRandom(t *testing.T) {
 		t.Error(err)
 	}
 	edges := tr.Edges()
-	index := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
+	index := tree.NewEdgeIndex(uint64(len(edges)*2), 0.75)
 	for i, e := range edges {
 		index.PutEdgeValue(e, i, e.Length())
 	}
@@ -371,7 +376,7 @@ func TestRotateSort(t *testing.T) {
 		t.Error(err)
 	}
 	edges := tr.Edges()
-	index := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
+	index := tree.NewEdgeIndex(uint64(len(edges)*2), 0.75)
 	for i, e := range edges {
 		index.PutEdgeValue(e, i, e.Length())
 	}

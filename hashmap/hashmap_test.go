@@ -21,14 +21,14 @@ func (k *PairKey) HashEquals(h2 Hasher) bool {
 }
 
 // Does not depend on the order
-func (k *PairKey) HashCode() int64 {
-	var hashCode int64 = 1
+func (k *PairKey) HashCode() uint64 {
+	var hashCode uint64 = 1
 	if k.i1 < k.i2 {
-		hashCode = 31*hashCode + int64(k.i1)
-		hashCode = 31*hashCode + int64(k.i2)
+		hashCode = 31*hashCode + uint64(k.i1)
+		hashCode = 31*hashCode + uint64(k.i2)
 	} else {
-		hashCode = 31*hashCode + int64(k.i2)
-		hashCode = 31*hashCode + int64(k.i1)
+		hashCode = 31*hashCode + uint64(k.i2)
+		hashCode = 31*hashCode + uint64(k.i1)
 	}
 	return hashCode
 }

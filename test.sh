@@ -280,7 +280,6 @@ ${GOTREE} compare trees -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTRE
 diff -q -b expected result
 rm -f expected result
 
-
 # gotree compare edges
 echo "->gotree compare edges"
 cat > expected <<EOF

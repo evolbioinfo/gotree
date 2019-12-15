@@ -17,7 +17,7 @@ func TestRootOutgroup(t *testing.T) {
 		t.Error(err)
 	}
 	edges := tr.Edges()
-	index := tree.NewEdgeIndex(int64(len(edges)*2), 0.75)
+	index := tree.NewEdgeIndex(uint64(len(edges)*2), 0.75)
 	for i, e := range edges {
 		index.PutEdgeValue(e, i, e.Length())
 	}
