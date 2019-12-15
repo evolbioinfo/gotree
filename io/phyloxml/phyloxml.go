@@ -78,17 +78,22 @@ func (p *PhyloXML) FirstTree() (t *tree.Tree, err error) {
 }
 
 func phylogenyToTree(p *Phylogeny, t *tree.Tree) (err error) {
-	err = cladeToTree(&p.Root, t, nil)
+	var nedges, nnodes int = 0, 0
+	err = cladeToTree(&p.Root, t, nil, &nedges, &nnodes)
 	t.ReinitIndexes()
 	return
 }
 
-func cladeToTree(c *Clade, t *tree.Tree, parent *tree.Node) (err error) {
+func cladeToTree(c *Clade, t *tree.Tree, parent *tree.Node, nedges, nnodes *int) (err error) {
 	newNode := t.NewNode()
+	newNode.SetId(*nnodes)
+	(*nnodes)++
 	if parent == nil {
 		t.SetRoot(newNode)
 	} else {
 		e := t.ConnectNodes(parent, newNode)
+		e.SetId(*nedges)
+		(*nedges)++
 		if c.BranchLength != nil {
 			e.SetLength(*(c.BranchLength))
 		}
@@ -106,7 +111,7 @@ func cladeToTree(c *Clade, t *tree.Tree, parent *tree.Node) (err error) {
 		newNode.SetName(c.Tax.Code)
 	}
 	for _, cl := range c.Clades {
-		err = cladeToTree(&cl, t, newNode)
+		err = cladeToTree(&cl, t, newNode, nedges, nnodes)
 		if err != nil {
 			return
 		}

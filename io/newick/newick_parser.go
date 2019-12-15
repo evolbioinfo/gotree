@@ -116,7 +116,7 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 	var edge *tree.Edge = nil
 	var length, support, pval float64
 	prevTok = -1
-
+	var nedges, nnodes int = 0, 0
 	defer nodeStack.Clear()
 
 	for {
@@ -129,6 +129,8 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 					return
 				}
 				node = t.NewNode()
+				node.SetId(nnodes)
+				nnodes++
 				nodeStack.Push(node, nil)
 				t.SetRoot(node)
 			} else {
@@ -137,7 +139,11 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 					return
 				}
 				newNode = t.NewNode()
+				newNode.SetId(nnodes)
+				nnodes++
 				edge = t.ConnectNodes(node, newNode)
+				edge.SetId(nedges)
+				nedges++
 				node = newNode
 				nodeStack.Push(node, edge)
 			}
@@ -254,8 +260,12 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 					return
 				}
 				newNode = t.NewNode()
+				newNode.SetId(nnodes)
+				nnodes++
 				newNode.SetName(lit)
 				edge = t.ConnectNodes(node, newNode)
+				edge.SetId(nedges)
+				nedges++
 				node = newNode
 				nodeStack.Push(node, edge)
 				prevTok = tok
