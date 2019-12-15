@@ -68,6 +68,14 @@ func (e *Edge) SetSupport(support float64) {
 	e.support = support
 }
 
+// Increments the branch support by the given support
+func (e *Edge) IncrementSupport(support float64) {
+	if e.support == NIL_SUPPORT {
+		e.support = 0
+	}
+	e.support += support
+}
+
 // returns the length of the branch
 func (e *Edge) Length() float64 {
 	return e.length

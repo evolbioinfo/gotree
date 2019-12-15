@@ -1,9 +1,8 @@
 package support
 
 import (
-	"container/list"
-	"errors"
 	"fmt"
+	"math"
 	"os"
 	"sync"
 
@@ -11,191 +10,156 @@ import (
 	"github.com/evolbioinfo/gotree/tree"
 )
 
-type BoosterSupporter struct {
-	currentTree                    int
-	mutex                          *sync.RWMutex
-	stop                           bool
-	silent                         bool
-	computeMovedSpecies            bool
-	computeTransferPerBranches     bool // All  transfered taxa per branches are computed
-	computeHighTransferPerBranches bool // Only highest transfered taxa per branches are computed
-
-	/* Cutoff for considering a branch : ok if norm distance to current
-	bootstrap tree < cutoff (ex=0.05) => allows to compute a minimum depth also:
-	norm_dist = distance / (p-1)
-	=> If we want at least one species that moves (distance=1) at a given norm_dist cutoff, we need a depth p :
-	p=(1/norm_dist)+1
-	*/
-	movedSpeciesCutoff float64
-	// If false, then we do not normalize by the expected value: 1-avg/expected
-	normalizeByExpected bool
-}
-
-// computeTransferPerBranches and computeHighTransferPerBranches are mutually expclusive
-// computeTransferPerBranches has priority over computeHighTransferPerBranches
-func NewBoosterSupporter(silent, computeMovedSpecies, computeTransferPerBranches, computeHighTransferPerBranches bool, movedSpeciesCutoff float64, normalizeByExpected bool) *BoosterSupporter {
-	if movedSpeciesCutoff < 0 {
-		movedSpeciesCutoff = 1.0
-	}
-	if movedSpeciesCutoff > 1 {
-		movedSpeciesCutoff = 1.0
-	}
-
-	return &BoosterSupporter{
-		currentTree:                    0,
-		mutex:                          &sync.RWMutex{},
-		stop:                           false,
-		silent:                         silent,
-		computeMovedSpecies:            computeMovedSpecies,
-		movedSpeciesCutoff:             movedSpeciesCutoff,
-		normalizeByExpected:            normalizeByExpected,
-		computeTransferPerBranches:     computeTransferPerBranches,
-		computeHighTransferPerBranches: computeHighTransferPerBranches,
-	}
-}
-
-func (supporter *BoosterSupporter) ExpectedRandValues(depth int) float64 {
-	return float64(depth - 1)
-}
-
-func (supporter *BoosterSupporter) NormalizeByExpected() bool {
-	return supporter.normalizeByExpected
-}
-
-func (supporter *BoosterSupporter) NewBootTreeComputed() {
-	supporter.mutex.Lock()
-	supporter.currentTree++
-	supporter.mutex.Unlock()
-}
-
-func (supporter *BoosterSupporter) Progress() int {
-	supporter.mutex.RLock()
-	defer supporter.mutex.RUnlock()
-	return supporter.currentTree
-}
-
-func (supporter *BoosterSupporter) PrintMovingTaxa() bool {
-	return supporter.computeMovedSpecies
-}
-
-func (supporter *BoosterSupporter) PrintTaxPerBranches() bool {
-	return supporter.computeTransferPerBranches
-}
-
-func (supporter *BoosterSupporter) PrintHighTaxPerBranches() bool {
-	return supporter.computeHighTransferPerBranches
-}
-
-func (supporter *BoosterSupporter) Cancel() {
-	supporter.stop = true
-}
-
-func (supporter *BoosterSupporter) Canceled() bool {
-	return supporter.stop
-}
-
-func (supporter *BoosterSupporter) Init(maxdepth int, nbtips int) {
-	supporter.stop = false
-	supporter.mutex = &sync.RWMutex{}
-	supporter.currentTree = 0
-}
-
-func minTransferDist(refEdge *tree.Edge, refTree, bootTree *tree.Tree, ntips int, bootEdges []*tree.Edge) (dist int) {
-	numBootEdges := len(bootEdges)
-	ones := make([]int, numBootEdges)
+// This function computes the min transfer distance between the refedge and the bootstrap tree.
+// If "absent" is true, then we know that the ref branch is not present in the bootstrap tree (it is faster to compute then), and we stop if dist == 1
+// Else: we do not know, then the branch is tested until we fund a dist == 0
+func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int, bootedges []*tree.Edge, absent bool) (dist int, minedge *tree.Edge, speciestoadd, speciestoremove []string) {
+	numbootedges := len(bootedges)
+	ones := make([]int, numbootedges)
 	//fmt.Fprintf(os.Stderr, "r=%s\n", refEdge.DumpBitSet())
-	p, _ := refEdge.TopoDepth()
+	p, _ := refedge.TopoDepth()
 	dist = p - 1
-	minTransferDistRecur(refTree, ntips, bootTree.Root(), nil, nil, refEdge, p, ones, &dist)
-	//fmt.Fprintf(os.Stderr, "Final d=%d\n", dist)
+
+	stop := false
+	minTransferDistRecur(reftree, ntips, boottree.Root(), nil, nil, refedge, p, ones, &dist, &minedge, absent, &stop)
+
+	distcutoff := 0.7
+	norm := float64(dist) * 1.0 / (float64(p) - 1.0)
+	mindepth := int(math.Ceil(1.0/distcutoff + 1.0))
+	//fmt.Printf("Dist : %d, p : %d\n", dist, p)
+	if p > mindepth && norm >= distcutoff {
+		// computing species to move
+		/////////////////////////////////////////
+		//fmt.Printf("p= %d, d=%d\n", p, dist)
+		n_subtree, _ := minedge.NumTipsRight()
+		ones_subtree := ones[minedge.Id()]
+		zeros_subtree := n_subtree - ones_subtree
+		ones_total := ntips - p
+		zeros_total := p
+
+		/* move ones into subtree, zeros outside subtree? */
+		ops_ones_in_subtree := zeros_subtree + (ones_total - ones_subtree)
+		/* move zeros into subtree, ones outside subtree? */
+		ops_zeros_in_subtree := ones_subtree + (zeros_total - zeros_subtree)
+
+		want_ones_outside := ops_zeros_in_subtree < ops_ones_in_subtree
+
+		speciestoadd = make([]string, 0, 10)
+		speciestoremove = make([]string, 0, 10)
+		speciesToMoveRecursive(minedge, boottree.Root(), nil, nil, ones, want_ones_outside, &speciestoadd, &speciestoremove)
+	}
 	return
 }
 
-func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, curEdge, refEdge *tree.Edge, p int, ones []int, dist *int) (stop bool) {
+func speciesToMoveRecursive(bootedge *tree.Edge, cur, prev *tree.Node, edge *tree.Edge, ones []int, want_ones_now bool, speciestoadd, speciestoremove *[]string) {
+	if cur.Tip() {
+		if want_ones_now && ones[edge.Id()] == 0 {
+			*speciestoadd = append(*speciestoadd, cur.Name())
+		}
+		if !want_ones_now && ones[edge.Id()] == 1 {
+			*speciestoadd = append(*speciestoadd, cur.Name())
+		}
+	}
+	if edge == bootedge {
+		want_ones_now = !want_ones_now
+	}
+
+	if edge != nil {
+		subtreesize, _ := edge.NumTipsRight()
+		if (want_ones_now && ones[edge.Id()] == subtreesize) || (!want_ones_now && ones[edge.Id()] == 0) {
+			return
+		}
+	}
+
+	for i, c := range cur.Neigh() {
+		if c != prev {
+			speciesToMoveRecursive(bootedge, c, cur, cur.Edges()[i], ones, want_ones_now, speciestoadd, speciestoremove)
+		}
+	}
+}
+
+func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, curEdge, refEdge *tree.Edge, p int, ones []int, dist *int, minedge **tree.Edge, absent bool, stop *bool) {
+	if *stop {
+		return
+	}
+	curOnes := 0
 	if cur.Tip() {
 		tipIndex, _ := refTree.TipIndex(cur.Name())
 		light := refEdge.TipPresent(tipIndex)
 		if r, _ := refEdge.NumTipsRight(); r > ntips/2 {
 			light = !light
 		}
-		if light {
-			ones[curEdge.Id()] = 0
-		} else {
-			ones[curEdge.Id()] = 1
+		if !light {
+			curOnes = 1
 		}
 	} else {
-		curOnes := 0
 		for i, n := range cur.Neigh() {
 			if n != prev {
 				nextEdge := cur.Edges()[i]
-				if minTransferDistRecur(refTree, ntips, n, cur, nextEdge, refEdge, p, ones, dist) {
-					return true
-				}
+				minTransferDistRecur(refTree, ntips, n, cur, nextEdge, refEdge, p, ones, dist, minedge, absent, stop)
 				curOnes += ones[nextEdge.Id()]
-			}
-		}
-		if curEdge != nil {
-			//fmt.Fprintf(os.Stderr, "b=%s\n", curEdge.DumpBitSet())
-			ones[curEdge.Id()] = curOnes
-			r, _ := curEdge.NumTipsRight()
-			zero := r - curOnes
-			d := p - zero + ones[curEdge.Id()]
-			//fmt.Fprintf(os.Stderr, "d=%d\n", d)
-			if d > ntips/2 {
-				d = ntips - d
-			}
-			//fmt.Fprintf(os.Stderr, "d=%d\n", d)
-			if d < *dist {
-				*dist = d
-				if d == 1 {
-					return true
+				if *stop {
+					return
 				}
 			}
 		}
-		//fmt.Fprintf(os.Stderr, "%d\n", curOnes)
 	}
 
-	return false
+	if curEdge != nil {
+		ones[curEdge.Id()] = curOnes
+		r, _ := curEdge.NumTipsRight()
+		zero := r - curOnes
+		d := p - zero + curOnes
+		//fmt.Fprintf(os.Stderr, "d=%d, ones=%d, r=%d, zero=%d, ntips=%d\n", d, curOnes, r, zero, ntips)
+		if d > ntips/2 {
+			d = ntips - d
+		}
+		// <= because even if d==p-1 (max dist)
+		// we want to output a min dist edge
+		if d <= *dist {
+			//fmt.Fprintf(os.Stderr, "d=%d, dist=%d, p=%d\n", d, *dist, p)
+			*dist = d
+			*minedge = curEdge
+			if (d == 1 && absent) || d == 0 {
+				(*stop) = true
+			}
+		}
+	}
 }
 
-// Thread that takes bootstrap trees from the channel,
 // computes the transfer dist for each edges of the ref tree
-// and send it to the result channel
-// At the end, returns the number of treated trees
-func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edges []*tree.Edge,
-	bootTreeChannel <-chan tree.Trees, valChan chan<- bootval, speciesChannel chan<- speciesmoved,
-	taxPerBranchChannel chan<- []*list.List) error {
-	tips := refTree.Tips()
-	//var movedSpecies []int = make([]int, len(tips))
-	// List of moved species per reference branches
-	// It is initialized at each new bootstrap tree
-	// It is to the taxperbranch channel reciever
-	// to clear all lists
-	var taxaTransferedPerBranch []*list.List
+// outrawtree: if tree with average transfer distance (non normalized) must be computed
+// if false: then output rawtree is null
+func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int, outrawtree bool) (rawtree *tree.Tree, err error) {
+	tips := reftree.Tips()
 
 	//vals := make([]int, len(edges))
 	// Number of branches that have a normalized similarity (1- (min_dist/(n-1)) to
 	// bootstrap trees > 0.8
 	//var nb_branches_close int
-	var err error
 
-	for bootTree := range bootTreeChannel {
-		if bootTree.Err != nil {
-			io.LogError(bootTree.Err)
-			err = bootTree.Err
+	var edges []*tree.Edge = reftree.Edges()
+
+	var nboot int = 0
+
+	for i, e := range edges {
+		e.SetId(i)
+	}
+
+	for boot := range boottrees {
+		if boot.Err != nil {
+			io.LogError(boot.Err)
+			err = boot.Err
 		} else {
-			bootTree.Tree.ReinitIndexes()
-			err = refTree.CompareTipIndexes(bootTree.Tree)
+			boot.Tree.ReinitIndexes()
+			err = reftree.CompareTipIndexes(boot.Tree)
 			if err == nil {
 				//nb_branches_close = 0
-				if !supporter.silent {
-					fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, bootTree.Id)
-				}
-				bootEdges := bootTree.Tree.Edges()
-				bootEdgeIndex := tree.NewEdgeIndex(uint64(len(bootEdges)*2), 0.75)
-				taxaTransferedPerBranch = make([]*list.List, len(edges))
+				fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, boot.Id)
+				bootedges := boot.Tree.Edges()
+				bootedgeindex := tree.NewEdgeIndex(uint64(len(bootedges)*2), 0.75)
 
-				for i, e := range bootEdges {
+				for i, e := range bootedges {
 					e.SetId(i)
 					if !e.Right().Tip() {
 						e.Right().SetName("")
@@ -203,124 +167,44 @@ func (supporter *BoosterSupporter) ComputeValue(refTree *tree.Tree, cpu int, edg
 					if !e.Left().Tip() {
 						e.Left().SetName("")
 					}
-					bootEdgeIndex.PutEdgeValue(e, i, e.Length())
+					bootedgeindex.PutEdgeValue(e, i, e.Length())
 				}
 
-				for i, e := range edges {
-					if e.Right().Tip() {
-						taxaTransferedPerBranch[i] = list.New()
-						continue
-					}
-
-					if _, ok := bootEdgeIndex.Value(e); ok {
-						valChan <- bootval{
-							0,
-							i,
-							false,
+				var wg sync.WaitGroup
+				for c := 0; c < cpu; c++ {
+					wg.Add(1)
+					go func() {
+						for _, e := range edges {
+							if p, _ := e.TopoDepth(); p > 1 {
+								if _, ok := bootedgeindex.Value(e); ok {
+									e.IncrementSupport(0.0)
+								} else if p == 2 {
+									e.IncrementSupport(1.0)
+								} else {
+									dist, _, _, _ := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, true)
+									//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
+									e.IncrementSupport(float64(dist))
+								}
+							}
 						}
-					} else if p, _ := e.TopoDepth(); p == 2 {
-						valChan <- bootval{
-							1,
-							i,
-							false,
-						}
-					} else {
-						valChan <- bootval{
-							minTransferDist(e, refTree, bootTree.Tree, len(tips), bootEdges),
-							i,
-							false,
-						}
-					}
-
-					// vals[i] = int(min_dist[i])
-					// if supporter.computeMovedSpecies || supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
-					// 	td, err := e.TopoDepth()
-					// 	if err != nil {
-					// 		io.LogError(err)
-					// 		return err
-					// 	}
-					// 	be := bootEdges[min_dist_edge[i]]
-					// 	norm := float64(vals[i]) / (float64(td) - 1.0)
-					// 	mindepth := int(math.Ceil(1.0/supporter.movedSpeciesCutoff + 1.0))
-					// 	if sm, er := speciesToMove(e, be, vals[i]); er != nil {
-					// 		io.LogError(er)
-					// 		return er
-					// 	} else {
-					// 		if supporter.computeMovedSpecies && norm <= supporter.movedSpeciesCutoff && td >= mindepth {
-					// 			for e := sm.Front(); e != nil; e = e.Next() {
-					// 				movedSpecies[e.Value.(uint)]++
-					// 			}
-					// 			nb_branches_close++
-					// 		}
-					// 		if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
-					// 			// The list of taxons that move around branch i in that bootstrap tree
-					// 			taxaTransferedPerBranch[i] = sm
-					// 		} else {
-					// 			sm.Init() // Clear List
-					// 		}
-					// 	}
-					//}
+						wg.Done()
+					}()
 				}
-
-				// if supporter.computeMovedSpecies {
-				// 	for sp, nb := range movedSpecies {
-				// 		speciesChannel <- speciesmoved{
-				// 			uint(sp),
-				// 			float64(nb) / float64(nb_branches_close),
-				// 		}
-				// 		movedSpecies[sp] = 0
-				// 	}
-				// }
-				// if supporter.computeTransferPerBranches || supporter.computeHighTransferPerBranches {
-				// 	taxPerBranchChannel <- taxaTransferedPerBranch
-				// }
-				supporter.NewBootTreeComputed()
-				if supporter.stop {
-					break
-				}
+				wg.Wait()
 			}
 		}
-		bootTree.Tree.Delete()
-	}
-	return err
-}
 
-func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, logfile *os.File, silent, computeMovedSpecies, computeTransferPerBranches, computeHighTransferPerBranches bool, movedSpeciedCutoff float64, normalizedByExpected bool, cpus int) error {
-	var supporter *BoosterSupporter = NewBoosterSupporter(silent, computeMovedSpecies, computeTransferPerBranches, computeHighTransferPerBranches, movedSpeciedCutoff, normalizedByExpected)
-	return ComputeSupport(reftree, boottrees, logfile, cpus, supporter)
-}
+		nboot++
+		boot.Tree.Delete()
+	}
 
-// Returns the list of species to move to go from one branch to the other
-// Its length should correspond to given dist
-// If not, exit with an error
-func speciesToMove(e, be *tree.Edge, dist int) (*list.List, error) {
-	var i uint
-	diff := list.New()
-	equ := list.New()
+	if outrawtree {
+		rawtree = reftree.Clone()
+		ReformatAvgDistance(rawtree)
+	}
+	NormalizeTransferDistancesByDepth(edges, nboot)
 
-	for i = 0; i < e.Bitset().Len(); i++ {
-		if e.Bitset().Test(i) != be.Bitset().Test(i) {
-			diff.PushBack(i)
-		} else {
-			equ.PushBack(i)
-		}
-	}
-	if diff.Len() < equ.Len() {
-		if diff.Len() != dist {
-			er := errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", diff.Len(), dist))
-			io.LogError(er)
-			return nil, er
-		}
-		equ.Init()
-		return diff, nil
-	}
-	if equ.Len() != dist {
-		er := errors.New(fmt.Sprintf("Length of moved species array (%d) is not equal to the minimum distance found (%d)", equ.Len(), dist))
-		io.LogError(er)
-		return nil, er
-	}
-	diff.Init()
-	return equ, nil
+	return
 }
 
 // This function writes on the child node name the string: "branch_id|avg_dist|depth"
@@ -339,12 +223,12 @@ func ReformatAvgDistance(t *tree.Tree) {
 // transfer distances over bootstrap trees), normalizes them by the depth and
 // convert them to similarity, i.e:
 //     1-avg_dist/(depth-1)
-func NormalizeTransferDistancesByDepth(t *tree.Tree) {
-	for _, e := range t.Edges() {
-		avgdist := e.Support()
-		if avgdist != tree.NIL_SUPPORT {
+func NormalizeTransferDistancesByDepth(edges []*tree.Edge, nboot int) {
+	for _, e := range edges {
+		if e.Support() != tree.NIL_SUPPORT {
+			avgdist := e.Support() / float64(nboot)
 			td, _ := e.TopoDepth()
-			e.SetSupport(float64(1) - avgdist/float64(td-1))
+			e.SetSupport(1.0 - avgdist/float64(td-1))
 		}
 	}
 }

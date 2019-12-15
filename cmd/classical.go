@@ -51,13 +51,11 @@ to quickly create a Cobra application.`,
 		}
 		defer boottreefile.Close()
 
-		var supporter *support.ClassicalSupporter = support.NewClassicalSupporter(false)
-		err = support.ComputeSupport(refTree, boottreechan, nil, rootCpus, supporter)
-		//e := support.Classical(refTree, boottreechan, rootCpus)
-		if err != nil {
+		if err = support.Classical(refTree, boottreechan, rootCpus); err != nil {
 			io.LogError(err)
 			return
 		}
+
 		supportOut.WriteString(refTree.Newick() + "\n")
 		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
 		return
