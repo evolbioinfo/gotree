@@ -40,7 +40,12 @@ Then: One line per branch, and 0/1
 				io.LogError(t.Err)
 				return t.Err
 			}
-			t.Tree.ReinitIndexes()
+
+			if err = t.Tree.ReinitIndexes(); err != nil {
+				io.LogError(err)
+				return
+			}
+
 			f.WriteString("Tree\t")
 			names := t.Tree.SortedTips()
 			for i := len(names) - 1; i >= 0; i-- {
