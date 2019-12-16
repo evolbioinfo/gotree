@@ -139,8 +139,8 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int, outrawtre
 
 	var nboot int = 0
 
-	for i, e := range edges {
-		e.SetId(i)
+	for _, e := range edges {
+		e.SetSupport(tree.NIL_SUPPORT)
 	}
 
 	for boot := range boottrees {
@@ -154,44 +154,45 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int, outrawtre
 				return
 			}
 			if err = reftree.CompareTipIndexes(boot.Tree); err != nil {
-				//nb_branches_close = 0
-				fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, boot.Id)
-				bootedges := boot.Tree.Edges()
-				bootedgeindex := tree.NewEdgeIndex(uint64(len(bootedges)*2), 0.75)
+				io.LogError(err)
+			}
+			//nb_branches_close = 0
+			fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, boot.Id)
+			bootedges := boot.Tree.Edges()
+			bootedgeindex := tree.NewEdgeIndex(uint64(len(bootedges)*2), 0.75)
 
-				for i, e := range bootedges {
-					e.SetId(i)
-					if !e.Right().Tip() {
-						e.Right().SetName("")
-					}
-					if !e.Left().Tip() {
-						e.Left().SetName("")
-					}
-					bootedgeindex.PutEdgeValue(e, i, e.Length())
+			for i, e := range bootedges {
+				e.SetId(i)
+				if !e.Right().Tip() {
+					e.Right().SetName("")
 				}
+				if !e.Left().Tip() {
+					e.Left().SetName("")
+				}
+				bootedgeindex.PutEdgeValue(e, i, e.Length())
+			}
 
-				var wg sync.WaitGroup
-				for c := 0; c < cpu; c++ {
-					wg.Add(1)
-					go func() {
-						for _, e := range edges {
-							if p, _ := e.TopoDepth(); p > 1 {
-								if _, ok := bootedgeindex.Value(e); ok {
-									e.IncrementSupport(0.0)
-								} else if p == 2 {
-									e.IncrementSupport(1.0)
-								} else {
-									dist, _, _, _ := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, true)
-									//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
-									e.IncrementSupport(float64(dist))
-								}
+			var wg sync.WaitGroup
+			for c := 0; c < cpu; c++ {
+				wg.Add(1)
+				go func() {
+					for _, e := range edges {
+						if p, _ := e.TopoDepth(); p > 1 {
+							if _, ok := bootedgeindex.Value(e); ok {
+								e.IncrementSupport(0.0)
+							} else if p == 2 {
+								e.IncrementSupport(1.0)
+							} else {
+								dist, _, _, _ := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, true)
+								//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
+								e.IncrementSupport(float64(dist))
 							}
 						}
-						wg.Done()
-					}()
-				}
-				wg.Wait()
+					}
+					wg.Done()
+				}()
 			}
+			wg.Wait()
 		}
 
 		nboot++
@@ -200,7 +201,7 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int, outrawtre
 
 	if outrawtree {
 		rawtree = reftree.Clone()
-		ReformatAvgDistance(rawtree)
+		ReformatAvgDistance(rawtree, nboot)
 	}
 	NormalizeTransferDistancesByDepth(edges, nboot)
 
@@ -209,11 +210,11 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int, outrawtre
 
 // This function writes on the child node name the string: "branch_id|avg_dist|depth"
 // and removes support information from each branch
-func ReformatAvgDistance(t *tree.Tree) {
+func ReformatAvgDistance(t *tree.Tree, nboot int) {
 	for i, e := range t.Edges() {
 		if e.Support() != tree.NIL_SUPPORT {
 			td, _ := e.TopoDepth()
-			e.Right().SetName(fmt.Sprintf("%d|%s|%d", i, e.SupportString(), td))
+			e.Right().SetName(fmt.Sprintf("%d|%.6f|%d", i, e.Support()/float64(nboot), td))
 			e.SetSupport(tree.NIL_SUPPORT)
 		}
 	}

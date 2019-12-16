@@ -71,7 +71,7 @@ func (e *Edge) SetSupport(support float64) {
 // Increments the branch support by the given support
 func (e *Edge) IncrementSupport(support float64) {
 	if e.support == NIL_SUPPORT {
-		e.support = 0
+		e.support = 0.0
 	}
 	e.support += support
 }
