@@ -84,7 +84,12 @@ The tree after "repopulate" command may contain polytomies.
 				io.LogError(tr.Err)
 				return tr.Err
 			}
-			tr.Tree.UpdateTipIndex()
+
+			if err = tr.Tree.UpdateTipIndex(); err != nil {
+				io.LogError(err)
+				return
+			}
+
 			if err = tr.Tree.InsertIdenticalTips(identicalgroups); err != nil {
 				io.LogError(err)
 				return

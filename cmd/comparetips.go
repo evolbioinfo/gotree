@@ -65,7 +65,11 @@ should produce the following output:
 			io.LogError(err)
 			return
 		}
-		refTree.UpdateTipIndex()
+
+		if err = refTree.UpdateTipIndex(); err != nil {
+			io.LogError(err)
+			return
+		}
 
 		if intree2file != "none" {
 			// We compare with a tree
@@ -94,7 +98,11 @@ should produce the following output:
 					io.LogError(compTree.Err)
 					return compTree.Err
 				}
-				compTree.Tree.UpdateTipIndex()
+
+				if err = compTree.Tree.UpdateTipIndex(); err != nil {
+					io.LogError(err)
+					return
+				}
 
 				eq := 0
 				for _, t := range refTree.Tips() {

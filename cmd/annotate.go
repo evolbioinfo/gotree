@@ -91,7 +91,11 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 				io.LogError(err)
 				return
 			}
-			compTree.ReinitIndexes()
+			if err = compTree.ReinitIndexes(); err != nil {
+				io.LogError(err)
+				return
+			}
+
 			edges2 := compTree.Edges()
 			for i, e := range edges2 {
 				e.SetId(i)
@@ -103,7 +107,12 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 					io.LogError(t.Err)
 					return t.Err
 				}
-				t.Tree.ReinitIndexes()
+
+				if err = t.Tree.ReinitIndexes(); err != nil {
+					io.LogError(err)
+					return
+				}
+
 				edges1 := t.Tree.Edges()
 				var min_dist []uint16
 				var min_dist_edges []int

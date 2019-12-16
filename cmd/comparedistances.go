@@ -50,7 +50,10 @@ and for each internal edge ec of the compared tree, this command will print in t
 			io.LogError(err)
 			return
 		}
-		refTree.ReinitIndexes()
+		if err = refTree.ReinitIndexes(); err != nil {
+			io.LogError(err)
+			return
+		}
 		names := refTree.SortedTips()
 
 		edges1 := refTree.Edges()
@@ -65,7 +68,10 @@ and for each internal edge ec of the compared tree, this command will print in t
 				io.LogError(t2.Err)
 				return t2.Err
 			}
-			t2.Tree.ReinitIndexes()
+			if err = t2.Tree.ReinitIndexes(); err != nil {
+				io.LogError(err)
+				return
+			}
 
 			edges2 := t2.Tree.Edges()
 			var min_dist []uint16

@@ -278,7 +278,10 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 			}
 			return nil, curtree.Err
 		}
-		curtree.Tree.ReinitIndexes()
+
+		if err = curtree.Tree.ReinitIndexes(); err != nil {
+			return nil, err
+		}
 
 		// If the star tree is not initialized, we create it with the tips of the first tree
 		if startree == nil {
@@ -286,7 +289,10 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 			if startree, err = StarTreeFromTree(curtree.Tree); err != nil {
 				return nil, err
 			}
-			startree.UpdateTipIndex()
+			if err = startree.UpdateTipIndex(); err != nil {
+				return nil, err
+			}
+
 			nbtips = len(alltips)
 			// We first build the node index
 			if nodeindex, err = NewNodeIndex(startree); err != nil {
@@ -361,7 +367,9 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 		}
 	}
 
-	startree.ReinitIndexes()
+	if err = startree.ReinitIndexes(); err != nil {
+		return nil, err
+	}
 	return startree, nil
 }
 
@@ -461,7 +469,9 @@ func (t *Tree) RerootOutGroup(removeoutgroup, strict bool, tips ...string) error
 		return err
 	}
 	if removeoutgroup {
-		t.UpdateTipIndex()
+		if err = t.UpdateTipIndex(); err != nil {
+			return err
+		}
 	}
 	t.ReinitInternalIndexes()
 	return nil
@@ -637,12 +647,16 @@ type BipartitionStats struct {
 // It First Initializes bitsets of the reference tree
 func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical bool, cpus int) (<-chan BipartitionStats, error) {
 	var edges []*Edge
+	var err error
+
 	stats := make(chan BipartitionStats)
 
 	if refTree == nil {
 		return nil, errors.New("Tree 1 in comparison is null")
 	}
-	refTree.ReinitIndexes()
+	if err = refTree.ReinitIndexes(); err != nil {
+		return nil, err
+	}
 	edges = refTree.Edges()
 	index := NewEdgeIndex(uint64(len(edges)*2), 0.75)
 	total := 0
@@ -660,32 +674,33 @@ func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical b
 			for treeV := range compTrees {
 				total2 := 0
 				common := 0
-				var err error
-				err = treeV.Err
+				var inerr error
+				inerr = treeV.Err
 				// Check wether the 2 trees have the same set of tip names
 				// Else an error is included in the stats
 				sametree := false
-				if err == nil {
-					treeV.Tree.ReinitIndexes()
-					edges2 := treeV.Tree.Edges()
-					if err = refTree.CompareTipIndexes(treeV.Tree); err == nil {
-						sametree = true
-						for _, e2 := range edges2 {
-							ok := true
-							if tips || !e2.Right().Tip() {
-								total2++
-							}
-							if !e2.Right().Tip() {
-								_, ok = index.Value(e2)
-							}
-							if !ok {
-								sametree = false
-								if comparetreeidentical {
-									break
+				if inerr == nil {
+					if inerr = treeV.Tree.ReinitIndexes(); inerr == nil {
+						edges2 := treeV.Tree.Edges()
+						if inerr = refTree.CompareTipIndexes(treeV.Tree); err == nil {
+							sametree = true
+							for _, e2 := range edges2 {
+								ok := true
+								if tips || !e2.Right().Tip() {
+									total2++
 								}
-							}
-							if ok && (tips || !e2.Right().Tip()) {
-								common++
+								if !e2.Right().Tip() {
+									_, ok = index.Value(e2)
+								}
+								if !ok {
+									sametree = false
+									if comparetreeidentical {
+										break
+									}
+								}
+								if ok && (tips || !e2.Right().Tip()) {
+									common++
+								}
 							}
 						}
 					}
@@ -696,7 +711,7 @@ func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical b
 					total2 - common,
 					common,
 					sametree,
-					err,
+					inerr,
 				}
 			}
 			wg.Done()

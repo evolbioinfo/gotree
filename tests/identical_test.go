@@ -19,7 +19,10 @@ func TestAddIdenticalTip(t *testing.T) {
 	}
 
 	groups := [][]string{[]string{"Tip2", "Tip5", "Tip6", "Tip7"}, []string{"Tip4", "Tip8"}}
-	tr.UpdateTipIndex()
+	if err = tr.UpdateTipIndex(); err != nil {
+		t.Error(err)
+		return
+	}
 
 	if err = tr.InsertIdenticalTips(groups); err != nil {
 		t.Error(err)
@@ -28,7 +31,11 @@ func TestAddIdenticalTip(t *testing.T) {
 		t.Errorf("Tree with identical tips is not as expected: \n%s vs.\n%s\n", tr.Newick(), expectednewick)
 	}
 
-	tr.UpdateTipIndex()
+	if err = tr.UpdateTipIndex(); err != nil {
+		t.Error(err)
+		return
+	}
+
 	if err = tr.ClearBitSets(); err != nil {
 		t.Error(err)
 	}

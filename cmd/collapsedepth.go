@@ -44,11 +44,15 @@ will be collapsed.
 		defer treefile.Close()
 
 		for t := range treechan {
-			t.Tree.ReinitIndexes()
 			if t.Err != nil {
 				io.LogError(t.Err)
 				return t.Err
 			}
+			if err = t.Tree.ReinitIndexes(); err != nil {
+				io.LogError(err)
+				return
+			}
+
 			t.Tree.CollapseTopoDepth(mindepthThreshold, maxdepthThreshold)
 			f.WriteString(t.Tree.Newick() + "\n")
 		}

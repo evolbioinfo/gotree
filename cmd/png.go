@@ -54,7 +54,11 @@ var pngCmd = &cobra.Command{
 				return
 			}
 			if pngradial {
-				t.Tree.ReinitIndexes()
+				if err = t.Tree.ReinitIndexes(); err != nil {
+					io.LogError(err)
+					return
+				}
+
 				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else if pngcircular {

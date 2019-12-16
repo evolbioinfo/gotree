@@ -15,15 +15,19 @@ import (
 
 func TestEdgeIndex(t *testing.T) {
 	var treestring2 string = "(Tip2:1.00000,Node0:1.0000,((Tip7:1.00000,((Tip9:1.00000,Tip6:1.0000):1.0000,(Tip5:1.00000,Tip3:1.0000):1.0000):1.00):1.00,(Tip4:1.00000,(Tip8:1.00000,Tip1:1.000):0.126):0.127):0.125);"
+	var err error
+	var tr *tree.Tree
 
-	tr, err2 := newick.NewParser(strings.NewReader(treestring2)).Parse()
-
-	if err2 != nil {
-		t.Error(err2)
+	if tr, err = newick.NewParser(strings.NewReader(treestring2)).Parse(); err != nil {
+		t.Error(err)
 	}
+
 	edges := tr.Edges()
 	edgeindex := tree.NewEdgeIndex(128, .75)
-	tr.ReinitIndexes()
+	if err = tr.ReinitIndexes(); err != nil {
+		t.Error(err)
+	}
+
 	for i := 1; i <= 10000; i++ {
 		for _, e := range edges {
 			edgeindex.AddEdgeCount(e)
@@ -52,7 +56,9 @@ func TestEdgeIndex2(t *testing.T) {
 	nbtrees := 1
 	numLoops := 10
 	for tr := range trees {
-		tr.Tree.ReinitIndexes()
+		if err = tr.Tree.ReinitIndexes(); err != nil {
+			t.Error(err)
+		}
 		edges := tr.Tree.Edges()
 		for i := 1; i <= numLoops; i++ {
 			for _, e := range edges {

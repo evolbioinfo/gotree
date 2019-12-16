@@ -49,7 +49,12 @@ or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 			io.LogError(err)
 			return
 		}
-		tr.UpdateTipIndex()
+
+		if err = tr.UpdateTipIndex(); err != nil {
+			io.LogError(err)
+			return
+		}
+
 		if tipfile != "none" {
 			if tipNames, err = parseTipsFile(tipfile); err != nil {
 				io.LogError(err)

@@ -80,7 +80,7 @@ func (p *PhyloXML) FirstTree() (t *tree.Tree, err error) {
 func phylogenyToTree(p *Phylogeny, t *tree.Tree) (err error) {
 	var nedges, nnodes int = 0, 0
 	err = cladeToTree(&p.Root, t, nil, &nedges, &nnodes)
-	t.ReinitIndexes()
+	//t.ReinitIndexes()
 	return
 }
 

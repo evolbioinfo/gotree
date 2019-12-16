@@ -66,7 +66,10 @@ gotree stats edges -i t.nw
 				io.LogError(t.Err)
 				return t.Err
 			}
-			t.Tree.ReinitIndexes()
+			if err = t.Tree.ReinitIndexes(); err != nil {
+				io.LogError(err)
+				return err
+			}
 			t.Tree.ComputeDepths()
 			for i, e := range t.Tree.Edges() {
 				f.WriteString(

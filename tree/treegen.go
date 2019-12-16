@@ -294,7 +294,9 @@ func StarTreeFromTree(t *Tree) (*Tree, error) {
 			te.Right().SetName(edges[i].Right().Name())
 			te.SetLength(edges[i].Length())
 		}
-		star.ReinitIndexes()
+		if err = star.ReinitIndexes(); err != nil {
+			return nil, err
+		}
 		return star, nil
 	}
 }
@@ -382,7 +384,9 @@ func BipartitionTree(leftTips []string, rightTips []string) (*Tree, error) {
 		etmp := bipartitionTree.ConnectNodes(n, ntmp)
 		etmp.SetLength(1.0)
 	}
-	bipartitionTree.ReinitIndexes()
+	if err := bipartitionTree.ReinitIndexes(); err != nil {
+		return nil, err
+	}
 	return bipartitionTree, nil
 }
 

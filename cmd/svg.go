@@ -53,7 +53,11 @@ var svgCmd = &cobra.Command{
 				return
 			}
 			if svgradial {
-				t.Tree.ReinitIndexes()
+				if err = t.Tree.ReinitIndexes(); err != nil {
+					io.LogError(err)
+					return
+				}
+
 				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 				l.SetDisplayInternalNodes(drawInternalNodeSymbols)

@@ -38,8 +38,17 @@ Edges connecting new root with old roots have length of 1.0.
 			io.LogError(err)
 			return
 		}
-		reftree.UpdateTipIndex()
-		comptree.UpdateTipIndex()
+
+		if err = reftree.UpdateTipIndex(); err != nil {
+			io.LogError(err)
+			return
+		}
+
+		if err = comptree.UpdateTipIndex(); err != nil {
+			io.LogError(err)
+			return
+		}
+
 		if err = reftree.Merge(comptree); err != nil {
 			io.LogError(err)
 			return

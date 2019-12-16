@@ -28,7 +28,12 @@ func TestQuartets(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	quartet.UpdateTipIndex()
+
+	if err = quartet.UpdateTipIndex(); err != nil {
+		t.Error(err)
+		return
+	}
+
 	nbspec, nbtotal := 0, 0
 	quartet.Quartets(true, func(q *tree.Quartet) {
 		nbspec++
@@ -206,7 +211,10 @@ func TestIndexQuartets3(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	quartet.UpdateTipIndex()
+
+	if err = quartet.UpdateTipIndex(); err != nil {
+		t.Error(err)
+	}
 
 	index := quartet.IndexQuartets(false)
 

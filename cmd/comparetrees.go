@@ -3,9 +3,10 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
 	goio "io"
 	"runtime"
+
+	"github.com/spf13/cobra"
 
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/tree"
@@ -53,7 +54,11 @@ For each trees in the compared tree file, it will print tab separated values wit
 			io.LogError(err)
 			return
 		}
-		refTree.ReinitIndexes()
+
+		if err = refTree.ReinitIndexes(); err != nil {
+			io.LogError(err)
+		}
+
 		if treefile, treechan, err = readTrees(intree2file); err != nil {
 			io.LogError(err)
 			return

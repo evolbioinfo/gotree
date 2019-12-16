@@ -31,7 +31,11 @@ The resulting trees are star trees to which we added one biparition. All branch 
 			io.LogError(err)
 			return
 		}
-		t.ReinitIndexes()
+		if err = t.ReinitIndexes(); err != nil {
+			io.LogError(err)
+			return
+		}
+
 		alltips := t.AllTipNames()
 		edges := make(chan EdgeStruct, 1000)
 
