@@ -32,7 +32,10 @@ If the compared tree file contains several trees, it will take the first one onl
 			io.LogError(err)
 			return
 		}
-		refTree.ReinitIndexes()
+		if err = refTree.ReinitIndexes(); err != nil {
+			io.LogError(err)
+			return
+		}
 		names := refTree.SortedTips()
 
 		edges1 := refTree.Edges()
@@ -50,7 +53,14 @@ If the compared tree file contains several trees, it will take the first one onl
 				io.LogError(t2.Err)
 				return t2.Err
 			}
-			t2.Tree.ReinitIndexes()
+
+			if err = t2.Tree.ReinitIndexes(); err != nil {
+				io.LogError(err)
+			}
+
+			if err = refTree.CompareTipIndexes(t2.Tree); err != nil {
+				return
+			}
 
 			edges2 := t2.Tree.Edges()
 			for i, e1 := range edges1 {

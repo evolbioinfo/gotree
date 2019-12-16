@@ -14,7 +14,9 @@ Computes bootstrap supports of reftree branches, given trees in boottrees channe
 func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error {
 	var err error
 
-	reftree.ReinitIndexes()
+	if err = reftree.ReinitIndexes(); err != nil {
+		return err
+	}
 
 	maxcpus := runtime.NumCPU()
 	if cpus > maxcpus {
@@ -40,21 +42,27 @@ func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error 
 	for cpu := 0; cpu < cpus; cpu++ {
 		wg.Add(1)
 		go func(cpu int) {
+			var inerr error
 			for treeV := range boottrees {
 				if treeV.Err != nil {
 					err = treeV.Err
+					return
 				} else {
-					treeV.Tree.ReinitIndexes()
-					err = reftree.CompareTipIndexes(treeV.Tree)
-					if err == nil {
-						atomic.AddInt32(&ntrees, 1)
-						edges2 := treeV.Tree.Edges()
-						for _, e2 := range edges2 {
-							if !e2.Right().Tip() {
-								val, ok := edgeIndex.Value(e2)
-								if ok {
-									foundEdges <- val.Count
-								}
+					if inerr = treeV.Tree.ReinitIndexes(); err != nil {
+						err = inerr
+						return
+					}
+					if inerr = reftree.CompareTipIndexes(treeV.Tree); err != nil {
+						err = inerr
+						return
+					}
+					atomic.AddInt32(&ntrees, 1)
+					edges2 := treeV.Tree.Edges()
+					for _, e2 := range edges2 {
+						if !e2.Right().Tip() {
+							val, ok := edgeIndex.Value(e2)
+							if ok {
+								foundEdges <- val.Count
 							}
 						}
 					}

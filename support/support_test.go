@@ -40,13 +40,19 @@ func TestMinDist(t *testing.T) {
 			t.Errorf("Tree %d ERROR: %s\n", i, err.Error())
 			return
 		}
-		reftree.ReinitIndexes()
+		if err = reftree.ReinitIndexes(); err != nil {
+			t.Error(err)
+			return
+		}
 		// parse comptree
 		if comptree, err = newick.NewParser(strings.NewReader(comptrees[i])).Parse(); err != nil {
 			t.Errorf("Tree %d ERROR: %s\n", i, err.Error())
 			return
 		}
-		comptree.ReinitIndexes()
+		if err = comptree.ReinitIndexes(); err != nil {
+			t.Error(err)
+			return
+		}
 
 		ntips := len(reftree.Tips())
 		compedges := comptree.Edges()

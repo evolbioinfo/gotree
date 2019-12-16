@@ -2,7 +2,6 @@ package support
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"sync"
 
@@ -12,7 +11,7 @@ import (
 
 // This function computes the min transfer distance between the refedge and the bootstrap tree.
 // If "absent" is true, then we know that the ref branch is not present in the bootstrap tree (it is faster to compute then), and we stop if dist == 1
-// Else: we do not know, then the branch is tested until we fund a dist == 0
+// Else: we do not know, we do the full postorder traversal, and speciestoadd && speciestoremove are filled
 func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int, bootedges []*tree.Edge, absent bool) (dist int, minedge *tree.Edge, speciestoadd, speciestoremove []string) {
 	numbootedges := len(bootedges)
 	ones := make([]int, numbootedges)
@@ -23,14 +22,12 @@ func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int
 	stop := false
 	minTransferDistRecur(reftree, ntips, boottree.Root(), nil, nil, refedge, p, ones, &dist, &minedge, absent, &stop)
 
-	distcutoff := 0.7
-	norm := float64(dist) * 1.0 / (float64(p) - 1.0)
-	mindepth := int(math.Ceil(1.0/distcutoff + 1.0))
-	//fmt.Printf("Dist : %d, p : %d\n", dist, p)
-	if p > mindepth && norm >= distcutoff {
+	speciestoadd = make([]string, 0, 10)
+	speciestoremove = make([]string, 0, 10)
+
+	if !absent {
 		// computing species to move
 		/////////////////////////////////////////
-		//fmt.Printf("p= %d, d=%d\n", p, dist)
 		n_subtree, _ := minedge.NumTipsRight()
 		ones_subtree := ones[minedge.Id()]
 		zeros_subtree := n_subtree - ones_subtree
@@ -44,24 +41,24 @@ func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int
 
 		want_ones_outside := ops_zeros_in_subtree < ops_ones_in_subtree
 
-		speciestoadd = make([]string, 0, 10)
-		speciestoremove = make([]string, 0, 10)
 		speciesToMoveRecursive(minedge, boottree.Root(), nil, nil, ones, want_ones_outside, &speciestoadd, &speciestoremove)
 	}
 	return
 }
 
 func speciesToMoveRecursive(bootedge *tree.Edge, cur, prev *tree.Node, edge *tree.Edge, ones []int, want_ones_now bool, speciestoadd, speciestoremove *[]string) {
+
+	if edge == bootedge {
+		want_ones_now = !want_ones_now
+	}
+
 	if cur.Tip() {
 		if want_ones_now && ones[edge.Id()] == 0 {
 			*speciestoadd = append(*speciestoadd, cur.Name())
 		}
 		if !want_ones_now && ones[edge.Id()] == 1 {
-			*speciestoadd = append(*speciestoadd, cur.Name())
+			*speciestoremove = append(*speciestoremove, cur.Name())
 		}
-	}
-	if edge == bootedge {
-		want_ones_now = !want_ones_now
 	}
 
 	if edge != nil {
@@ -120,7 +117,7 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 			//fmt.Fprintf(os.Stderr, "d=%d, dist=%d, p=%d\n", d, *dist, p)
 			*dist = d
 			*minedge = curEdge
-			if (d == 1 && absent) || d == 0 {
+			if d == 1 && absent {
 				(*stop) = true
 			}
 		}
@@ -150,10 +147,13 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int, outrawtre
 		if boot.Err != nil {
 			io.LogError(boot.Err)
 			err = boot.Err
+			return
 		} else {
-			boot.Tree.ReinitIndexes()
-			err = reftree.CompareTipIndexes(boot.Tree)
-			if err == nil {
+			if err = boot.Tree.ReinitIndexes(); err != nil {
+				io.LogError(err)
+				return
+			}
+			if err = reftree.CompareTipIndexes(boot.Tree); err != nil {
 				//nb_branches_close = 0
 				fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, boot.Id)
 				bootedges := boot.Tree.Edges()

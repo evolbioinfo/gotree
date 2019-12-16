@@ -431,14 +431,19 @@ func (t *Tree) Nexus() string {
 // Bitset indexes correspond to the position
 // of the tip in the alphabetically ordered tip
 // name list
-func (t *Tree) UpdateTipIndex() {
+func (t *Tree) UpdateTipIndex() (err error) {
 	names := t.SortedTips()
 	for k := range t.tipIndex {
 		delete(t.tipIndex, k)
 	}
 	for i, n := range names {
+		if _, ok := t.tipIndex[n]; ok {
+			err = errors.New("Cannot create a tip index when several tips have the same name")
+			return
+		}
 		t.tipIndex[n] = uint(i)
 	}
+	return
 }
 
 /* Tips, sorted by their order in the bitsets*/
@@ -547,12 +552,16 @@ func (t *Tree) ClearBitSets() error {
 //	* bitset indexes
 //	* Tipindex
 //	* And computes node depths
-func (t *Tree) ReinitIndexes() {
-	t.UpdateTipIndex()
+func (t *Tree) ReinitIndexes() (err error) {
+	if err = t.UpdateTipIndex(); err != nil {
+		return
+	}
+
 	t.ClearBitSets()
 	t.UpdateBitSet()
 	t.ComputeEdgeHashes(nil, nil, nil)
 	t.ComputeDepths()
+	return
 }
 
 // This Function initializes or reinitializes
@@ -1373,7 +1382,9 @@ func (t *Tree) Rename(namemap map[string]string) error {
 	// After we update bitsets if any, and node indexes
 	//t.ReinitIndexes()
 
-	t.UpdateTipIndex()
+	if err = t.UpdateTipIndex(); err != nil {
+		return err
+	}
 	// err = t.ClearBitSets()
 	// if err != nil {
 	// 	return err
@@ -1414,7 +1425,9 @@ func (t *Tree) RenameAuto(internals, tips bool, length int, curid *int, namemap 
 	}
 	// After we update bitsets if any, and node indexes
 	//t.ReinitIndexes()
-	t.UpdateTipIndex()
+	if err := t.UpdateTipIndex(); err != nil {
+		return err
+	}
 	// err := t.ClearBitSets()
 	// if err != nil {
 	// 	return err
@@ -1444,7 +1457,9 @@ func (t *Tree) RenameRegexp(internals, tips bool, regex, replace string, namemap
 	}
 	// After we update bitsets if any, and node indexes
 	//t.ReinitIndexes()
-	t.UpdateTipIndex()
+	if err = t.UpdateTipIndex(); err != nil {
+		return err
+	}
 	// err = t.ClearBitSets()
 	// if err != nil {
 	// 	return err
@@ -1569,7 +1584,11 @@ func (t *Tree) Merge(t2 *Tree) error {
 	t.ConnectNodes(newroot, t.Root())
 	t.ConnectNodes(newroot, t2.Root())
 	t.SetRoot(newroot)
-	t.ReinitIndexes()
+
+	if err := t.ReinitIndexes(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1817,7 +1836,9 @@ func (t *Tree) InsertIdenticalTips(identicalgroups [][]string) (err error) {
 			}
 		}
 	}
-	t.ReinitIndexes()
+	if err = t.ReinitIndexes(); err != nil {
+		return err
+	}
 	return
 }
 
