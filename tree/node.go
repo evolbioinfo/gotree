@@ -15,7 +15,8 @@ type Node struct {
 	neigh   []*Node  // neighbors array
 	br      []*Edge  // Branches array (same order than neigh)
 	depth   int      // Depth of the node
-	id      int      // this field is used at discretion of the user to store information
+	id      int      // This field is used at discretion of the user to store information
+	tipid   int      // This is used by TipIndex to match tip names of different trees
 }
 
 // Uninitialized depth is coded as -1
@@ -85,6 +86,12 @@ func (n *Node) Id() int {
 // Sets the id of the node
 func (n *Node) SetId(id int) {
 	n.id = id
+}
+
+// Returns the Tip Id of the node. TipId==NIL_TIPIDINDEX means that
+// it is not a tip or tipindex has not been initialized (use ReinitIndexes)
+func (n *Node) TipIndex() int {
+	return n.tipid
 }
 
 // Returns the depth of the node. Returns an error if the depth has

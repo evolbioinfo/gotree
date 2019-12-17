@@ -47,12 +47,12 @@ Then: One line per branch, and 0/1
 			}
 
 			f.WriteString("Tree\t")
-			names := t.Tree.SortedTips()
-			for i := len(names) - 1; i >= 0; i-- {
-				if i < len(names)-1 {
+			tips := t.Tree.SortedTips()
+			for i := len(tips) - 1; i >= 0; i-- {
+				if i < len(tips)-1 {
 					f.WriteString("|")
 				}
-				f.WriteString(names[i])
+				f.WriteString(tips[i].Name())
 			}
 			f.WriteString("\n")
 			for _, e := range t.Tree.Edges() {

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	goio "io"
+	"os"
 	"time"
 
 	"github.com/evolbioinfo/gotree/io"
@@ -22,6 +23,7 @@ var boosterCmd = &cobra.Command{
 		var rawtree *tree.Tree
 		var boottreefile goio.Closer
 		var boottreechan <-chan tree.Trees
+		var f *os.File
 
 		writeLogBooster()
 		if refTree, err = readTree(supportIntree); err != nil {

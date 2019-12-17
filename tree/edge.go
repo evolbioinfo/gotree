@@ -35,7 +35,8 @@ const (
 	NIL_SUPPORT = -1.0
 	NIL_LENGTH  = -1.0
 	NIL_PVALUE  = -1.0
-	NIL_ID      = -1.0
+	NIL_ID      = -1
+	NIL_TIPID   = 0
 )
 
 /* Edge functions */
@@ -136,9 +137,6 @@ func (e *Edge) Bitset() *bitset.BitSet {
 //
 // Returns an error if not initialized.
 func (e *Edge) Id() int {
-	if e.id == NIL_ID {
-		io.ExitWithMessage(errors.New("Id has not been set"))
-	}
 	return e.id
 }
 
@@ -258,23 +256,17 @@ func (e *Edge) TipPresent(id uint) bool {
 // Number of tips on the right side of the bipartition
 // Used by "TopoDepth" function for example.
 //
-// Bitsets must be initialized, otherwise returns an error.
-func (e *Edge) NumTipsRight() (int, error) {
-	if e.bitset == nil {
-		return -1, errors.New("Cannot count right tips, subtree sizes not initialized")
-	}
-	return e.ntaxright, nil
+// Must Be initialized with ComputeEdgeHashes.
+func (e *Edge) NumTipsRight() int {
+	return e.ntaxright
 }
 
 // Number of tips on the left side of the bipartition
 // Used by "TopoDepth" function for example.
 //
-// Bitsets must be initialized, otherwise returns an error.
-func (e *Edge) NumTipsLeft() (int, error) {
-	if e.ntaxleft == 0 {
-		return -1, errors.New("Cannot count left tips, subtree sizes not initialized ")
-	}
-	return e.ntaxleft, nil
+// Must be initialized with ComputeEdgeHashes.
+func (e *Edge) NumTipsLeft() int {
+	return e.ntaxleft
 }
 
 // Return the given edge in the array of edges comparing bitsets fields

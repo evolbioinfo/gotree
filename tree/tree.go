@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/mutils"
@@ -21,8 +22,8 @@ import (
 
 // Tree structure having a root and a tip index, that maps tip names to their index
 type Tree struct {
-	root     *Node           // root node: If the tree is unrooted the root node should have 3 children
-	tipIndex map[string]uint // Map between tip name and bitset index
+	root     *Node            // root node: If the tree is unrooted the root node should have 3 children
+	tipIndex map[string]*Node // Map between tip name and Node
 }
 
 // Type for channel of trees
@@ -36,7 +37,7 @@ type Trees struct {
 func NewTree() *Tree {
 	return &Tree{
 		root:     nil,
-		tipIndex: make(map[string]uint, 0),
+		tipIndex: make(map[string]*Node, 0),
 	}
 }
 
@@ -49,6 +50,7 @@ func (t *Tree) NewNode() *Node {
 		br:      make([]*Edge, 0, 3),
 		depth:   NIL_DEPTH,
 		id:      NIL_ID,
+		tipid:   NIL_TIPID,
 	}
 }
 
@@ -432,40 +434,46 @@ func (t *Tree) Nexus() string {
 // of the tip in the alphabetically ordered tip
 // name list
 func (t *Tree) UpdateTipIndex() (err error) {
-	names := t.SortedTips()
+	tips := t.SortedTips()
 	for k := range t.tipIndex {
 		delete(t.tipIndex, k)
 	}
-	for i, n := range names {
-		if _, ok := t.tipIndex[n]; ok {
+	for i, tip := range tips {
+		if _, ok := t.tipIndex[tip.Name()]; ok {
 			err = errors.New("Cannot create a tip index when several tips have the same name")
 			return
 		}
-		t.tipIndex[n] = uint(i)
+		t.tipIndex[tip.Name()] = tip
+		tip.tipid = i
 	}
 	return
 }
 
 /* Tips, sorted by their order in the bitsets*/
-func (t *Tree) SortedTips() []string {
-	names := t.AllTipNames()
-	sort.Strings(names)
-	return names
+func (t *Tree) SortedTips() []*Node {
+	tips := t.Tips()
+	sort.Slice(tips, func(i, j int) bool {
+		return strings.Compare(tips[i].Name(), tips[j].Name()) < 0
+	})
+	return tips
 }
 
 // Returns the bitset index of the tree in the Tree
 // Returns an error if the node is not a tip
-func (t *Tree) tipIndexNode(n *Node) (uint, error) {
+func (t *Tree) tipIndexNode(n *Node) (id int, err error) {
+	id = 0
 	if len(n.neigh) != 1 {
-		return 0, errors.New("Cannot get bitset index of a non tip node")
+		err = errors.New("Cannot get bitset index of a non tip node")
+	} else {
+		id = n.tipid
 	}
-	return t.TipIndex(n.name)
+	return
 }
 
 // Return the tip index if the tip with given name exists in the tree
 // May return an error if tip index has not been initialized
 // With UpdateTipIndex or if the tip does not exist
-func (t *Tree) TipIndex(name string) (uint, error) {
+func (t *Tree) TipIndex(name string) (int, error) {
 	if len(t.tipIndex) == 0 {
 		return 0, errors.New("No tips in the index, tip name index is not initialized")
 	}
@@ -473,7 +481,20 @@ func (t *Tree) TipIndex(name string) (uint, error) {
 	if !ok {
 		return 0, errors.New("No tip named " + name + " in the index")
 	}
-	return v, nil
+	return v.tipid, nil
+}
+
+// Return the tip Node if the tip with given name exists in the tree
+// May return an error if tip index has not been initialized
+// With UpdateTipIndex or if the tip does not exist
+func (t *Tree) TipNode(name string) (tip *Node, err error) {
+	var ok bool
+	if len(t.tipIndex) == 0 {
+		err = errors.New("No tips in the index, tip name index is not initialized")
+	} else if tip, ok = t.tipIndex[name]; !ok {
+		err = errors.New("No tip named " + name + " in the index")
+	}
+	return
 }
 
 // Return true if the tip with given name exists in the tree
@@ -626,7 +647,7 @@ func (t *Tree) fillRightBitSet(currentEdge *Edge, rightEdges *[]*Edge) error {
 			return err
 		}
 		for _, e := range *rightEdges {
-			e.bitset.Set(i)
+			e.bitset.Set(uint(i))
 		}
 	} else {
 		// Else
@@ -1926,7 +1947,9 @@ func (t *Tree) InsertIdenticalTip(n *Node, newTipName string) (newtipnode *Node,
 		n.neigh[n_ind] = newinternal
 		n.br[n_ind] = newedge1
 	}
-	t.tipIndex[newTipName] = uint(len(t.tipIndex))
+	t.tipIndex[newTipName] = newtipnode
+	newtipnode.tipid = len(t.tipIndex)
+
 	return
 }
 

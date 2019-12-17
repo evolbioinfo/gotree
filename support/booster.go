@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"sync"
 
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/tree"
@@ -14,21 +13,29 @@ import (
 // If "absent" is true, then we know that the ref branch is not present in the bootstrap tree (it is faster to compute then), and we stop if dist == 1
 // Else: we do not know, we do the full postorder traversal, and speciestoadd && speciestoremove are filled
 func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int, bootedges []*tree.Edge, absent bool) (dist int, minedge *tree.Edge, speciestoadd, speciestoremove []*tree.Node) {
-	numbootedges := len(bootedges)
-	ones := make([]int, numbootedges)
+	ones := make([]int, len(bootedges))
 	p, _ := refedge.TopoDepth()
 	dist = p - 1
+	speciestoadd = make([]*tree.Node, 0, 10)
+	speciestoremove = make([]*tree.Node, 0, 10)
+
+	// If ref edge is a terminal edge
+	if p == 1 {
+		tip := refedge.Right()
+		boottip, _ := boottree.TipNode(tip.Name())
+		if boottip != nil {
+			minedge = boottip.Edges()[0]
+		}
+		return
+	}
 
 	stop := false
 	minTransferDistRecur(reftree, ntips, boottree.Root(), nil, nil, refedge, p, ones, &dist, &minedge, absent, &stop)
 
-	speciestoadd = make([]*tree.Node, 0, 10)
-	speciestoremove = make([]*tree.Node, 0, 10)
-
 	if !absent {
 		// computing species to move
 		/////////////////////////////////////////
-		n_subtree, _ := minedge.NumTipsRight()
+		n_subtree := minedge.NumTipsRight()
 		ones_subtree := ones[minedge.Id()]
 		zeros_subtree := n_subtree - ones_subtree
 		ones_total := ntips - p
@@ -62,7 +69,7 @@ func speciesToMoveRecursive(bootedge *tree.Edge, cur, prev *tree.Node, edge *tre
 	}
 
 	if edge != nil {
-		subtreesize, _ := edge.NumTipsRight()
+		subtreesize := edge.NumTipsRight()
 		if (want_ones_now && ones[edge.Id()] == subtreesize) || (!want_ones_now && ones[edge.Id()] == 0) {
 			return
 		}
@@ -81,9 +88,9 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 	}
 	curOnes := 0
 	if cur.Tip() {
-		tipIndex, _ := refTree.TipIndex(cur.Name())
-		light := refEdge.TipPresent(tipIndex)
-		if r, _ := refEdge.NumTipsRight(); r > ntips/2 {
+		tipIndex := cur.TipIndex()
+		light := refEdge.TipPresent(uint(tipIndex))
+		if r := refEdge.NumTipsRight(); r > ntips/2 {
 			light = !light
 		}
 		if !light {
@@ -104,7 +111,7 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 
 	if curEdge != nil {
 		ones[curEdge.Id()] = curOnes
-		r, _ := curEdge.NumTipsRight()
+		r := curEdge.NumTipsRight()
 		zero := r - curOnes
 		d := p - zero + curOnes
 		if d > ntips/2 {
@@ -144,14 +151,14 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 	var mindepth int = int(math.Ceil(1.0/distcutoff + 1.0)) // For taxa move computation
 
 	if computeavgtaxa {
-		movedspecies = make([]float64, len(edges)+1)
-		movedspeciestmp = make([]int, len(edges)+1)
+		movedspecies = make([]float64, len(tips))
+		movedspeciestmp = make([]int, len(tips))
 	}
 
 	if computeperbranchtaxa {
 		movedperbranch = make([][]int, len(edges))
 		for i, _ := range edges {
-			movedperbranch[i] = make([]int, len(edges)+1)
+			movedperbranch[i] = make([]int, len(tips))
 		}
 	}
 
@@ -176,7 +183,6 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 			fmt.Fprintf(os.Stderr, "CPU : %02d - Bootstrap tree %d\r", cpu, boot.Id)
 			bootedges := boot.Tree.Edges()
 			bootedgeindex := tree.NewEdgeIndex(uint64(len(bootedges)*2), 0.75)
-
 			for i, e := range bootedges {
 				e.SetId(i)
 				if !e.Right().Tip() {
@@ -187,41 +193,43 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 				}
 				bootedgeindex.PutEdgeValue(e, i, e.Length())
 			}
-
-			var wg sync.WaitGroup
-			wg.Add(len(edges))
-			edgechan := make(chan *tree.Edge, cpu)
-			for _, tmpe := range edges {
-				edgechan <- tmpe
-				go func() {
-					e := <-edgechan
-					if p, _ := e.TopoDepth(); p > 1 {
-						if _, ok := bootedgeindex.Value(e); ok {
-							if p >= mindepth {
-								nbranchclose++
-							}
-							e.IncrementSupport(0.0)
-						} else if p == 2 {
-							e.IncrementSupport(1.0)
-						} else {
-							dist, minedge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
-							//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
-							e.IncrementSupport(float64(dist))
+			//var wg sync.WaitGroup
+			//wg.Add(len(edges))
+			//edgechan := make(chan *tree.Edge, cpu)
+			for _, e := range edges {
+				//edgechan <- tmpe
+				//go func() {
+				//e := <-edgechan
+				//e := tmpe
+				if p, _ := e.TopoDepth(); p > 1 {
+					if _, ok := bootedgeindex.Value(e); ok {
+						if p >= mindepth {
+							nbranchclose++
+						}
+						e.IncrementSupport(0.0)
+					} else if p == 2 {
+						e.IncrementSupport(1.0)
+					} else {
+						dist, minedge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
+						//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
+						e.IncrementSupport(float64(dist))
+						if computeavgtaxa || computeperbranchtaxa {
 							UpdateTaxaMoveArrays(e, minedge, dist, p,
 								movedspeciestmp, movedperbranch, &nbranchclose,
 								sptoadd, sptoremove, distcutoff, mindepth,
 								computeavgtaxa, computeperbranchtaxa)
 						}
 					}
-					wg.Done()
-				}()
+				}
+				//wg.Done()
+				//}()
 			}
-			wg.Wait()
+			//wg.Wait()
 		}
 		if computeavgtaxa || computeperbranchtaxa {
 			for _, t := range tips {
-				movedspecies[t.Id()] += float64(movedspeciestmp[t.Id()]) / float64(nbranchclose)
-				movedspeciestmp[t.Id()] = 0
+				movedspecies[t.TipIndex()] += float64(movedspeciestmp[t.TipIndex()]) / float64(nbranchclose)
+				movedspeciestmp[t.TipIndex()] = 0
 			}
 		}
 		nboot++
@@ -307,20 +315,20 @@ func UpdateTaxaMoveArrays(ref, boot *tree.Edge, dist, p int,
 
 	if computeavgtaxa && norm <= distcutoff && p >= mindepth {
 		for _, t := range speciestoadd {
-			moved_species[t.Id()]++
+			moved_species[t.TipIndex()]++
 		}
 		for _, t := range speciestoremove {
-			moved_species[t.Id()]++
+			moved_species[t.TipIndex()]++
 		}
 		(*nb_branches_close)++
 	}
 	if computeperbranchtaxa {
 		for _, t := range speciestoadd {
-			moved_species_per_branch[ref.Id()][t.Id()]++
+			moved_species_per_branch[ref.Id()][t.TipIndex()]++
 		}
 
 		for _, t := range speciestoremove {
-			moved_species_per_branch[ref.Id()][t.Id()]++
+			moved_species_per_branch[ref.Id()][t.TipIndex()]++
 		}
 	}
 }

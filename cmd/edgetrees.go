@@ -74,7 +74,7 @@ The resulting trees are star trees to which we added one biparition. All branch 
 					if !edgeS.e.Right().Tip() {
 						var edgeOut *os.File
 						var err2 error
-						var bitsetindex uint
+						var bitsetindex int
 
 						if outtreefile == "stdout" || outtreefile == "-" {
 							if edgeOut, err2 = openWriteFile("stdout"); err2 != nil {
@@ -98,7 +98,7 @@ The resulting trees are star trees to which we added one biparition. All branch 
 									err = err2
 									return
 								}
-								if edgeS.e.TipPresent(bitsetindex) {
+								if edgeS.e.TipPresent(uint(bitsetindex)) {
 									if leftnb > 0 {
 										leftbuffer.WriteRune(',')
 									}

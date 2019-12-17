@@ -74,7 +74,7 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 		for num, child := range node.Neigh() {
 			if child != prev {
 
-				numT, _ := node.Edges()[num].NumTipsRight()
+				numT := node.Edges()[num].NumTipsRight()
 				leafCounts = append(leafCounts, numT)
 				sumLeafCount += numT
 				i++

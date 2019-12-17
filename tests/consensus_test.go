@@ -144,7 +144,7 @@ func TestConsensus2(t *testing.T) {
 	}
 
 	go func() {
-		trees <- tree.Trees{randtree1, 1, nil}
+		trees <- tree.Trees{Tree: randtree1, Id: 1, Err: nil}
 		close(trees)
 	}()
 	consens, err := tree.Consensus(trees, 0.5)
@@ -168,9 +168,9 @@ func TestConsensus2(t *testing.T) {
 	}
 
 	go func() {
-		trees2 <- tree.Trees{randtree1, 1, nil}
-		trees2 <- tree.Trees{randtree2, 2, nil}
-		trees2 <- tree.Trees{randtree3, 3, nil}
+		trees2 <- tree.Trees{Tree: randtree1, Id: 1, Err: nil}
+		trees2 <- tree.Trees{Tree: randtree2, Id: 2, Err: nil}
+		trees2 <- tree.Trees{Tree: randtree3, Id: 3, Err: nil}
 		close(trees2)
 	}()
 	consens, err = tree.Consensus(trees2, 1)

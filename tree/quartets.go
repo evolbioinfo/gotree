@@ -2,6 +2,7 @@ package tree
 
 import (
 	"errors"
+
 	"github.com/evolbioinfo/gotree/hashmap"
 	"github.com/evolbioinfo/gotree/io"
 )
@@ -238,7 +239,7 @@ func postOrderQuartetSet(t *Tree, n *Node, prev *Node, right [][]uint) []uint {
 		if err != nil {
 			io.ExitWithMessage(err)
 		}
-		output = append(output, taxindex)
+		output = append(output, uint(taxindex))
 	} else {
 		for _, next := range n.Neigh() {
 			if next != prev {

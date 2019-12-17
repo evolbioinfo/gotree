@@ -326,7 +326,7 @@ func EdgeTree(t *Tree, e *Edge, alltips []string) *Tree {
 			ntmp := edgeTree.NewNode()
 			ntmp.SetName(name)
 			// Right
-			if e.Bitset().Test(idx) {
+			if e.Bitset().Test(uint(idx)) {
 				etmp := edgeTree.ConnectNodes(n, ntmp)
 				etmp.SetLength(1.0)
 			} else {

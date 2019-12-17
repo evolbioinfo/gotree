@@ -329,7 +329,7 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 			if idx, err := startree.TipIndex(n); err != nil {
 				return nil, err
 			} else {
-				if bs.key.Bitset().Test(idx) {
+				if bs.key.Bitset().Test(uint(idx)) {
 					names = append(names, n)
 				}
 			}
