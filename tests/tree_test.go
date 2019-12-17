@@ -149,7 +149,7 @@ func TestBipartitionTree(t *testing.T) {
 		t.Error(fmt.Sprintf("Tree should have 1 internal Edge but have %d", nbInternal))
 	}
 
-	if n, _ := internal.NumTipsRight(); n != 4 {
+	if n := internal.NumTipsRight(); n != 4 {
 		t.Error(fmt.Sprintf("Number of tips on the rightSide of the internal edge should be 4, but is %d", n))
 	}
 }
