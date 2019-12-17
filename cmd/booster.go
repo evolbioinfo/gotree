@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	goio "io"
+	"log"
 	"os"
+	"runtime/pprof"
 	"time"
 
 	"github.com/evolbioinfo/gotree/io"
@@ -24,6 +26,16 @@ var boosterCmd = &cobra.Command{
 		var boottreefile goio.Closer
 		var boottreechan <-chan tree.Trees
 		var f *os.File
+
+		f, err = os.Create("cpuprof")
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
 
 		writeLogBooster()
 		if refTree, err = readTree(supportIntree); err != nil {

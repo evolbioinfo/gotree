@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sync"
 
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/tree"
@@ -193,38 +194,47 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 				}
 				bootedgeindex.PutEdgeValue(e, i, e.Length())
 			}
-			//var wg sync.WaitGroup
-			//wg.Add(len(edges))
-			//edgechan := make(chan *tree.Edge, cpu)
-			for _, e := range edges {
-				//edgechan <- tmpe
-				//go func() {
-				//e := <-edgechan
-				//e := tmpe
-				if p, _ := e.TopoDepth(); p > 1 {
-					if _, ok := bootedgeindex.Value(e); ok {
-						if p >= mindepth {
-							nbranchclose++
-						}
-						e.IncrementSupport(0.0)
-					} else if p == 2 {
-						e.IncrementSupport(1.0)
-					} else {
-						dist, minedge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
-						//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
-						e.IncrementSupport(float64(dist))
-						if computeavgtaxa || computeperbranchtaxa {
-							UpdateTaxaMoveArrays(e, minedge, dist, p,
-								movedspeciestmp, movedperbranch, &nbranchclose,
-								sptoadd, sptoremove, distcutoff, mindepth,
-								computeavgtaxa, computeperbranchtaxa)
+
+			var wg sync.WaitGroup
+			var mux sync.Mutex
+			wg.Add(cpu)
+			edgechan := make(chan *tree.Edge, cpu*10)
+
+			go func() {
+				for _, e := range edges {
+					edgechan <- e
+				}
+				close(edgechan)
+			}()
+
+			for c := 0; c < cpu; c++ {
+				go func() {
+					for e := range edgechan {
+						if p, _ := e.TopoDepth(); p > 1 {
+							if _, ok := bootedgeindex.Value(e); ok {
+								if p >= mindepth {
+									nbranchclose++
+								}
+								e.IncrementSupport(0.0)
+							} else if p == 2 {
+								e.IncrementSupport(1.0)
+							} else {
+								dist, minedge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
+								//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
+								e.IncrementSupport(float64(dist))
+								if computeavgtaxa || computeperbranchtaxa {
+									UpdateTaxaMoveArrays(e, minedge, dist, p,
+										movedspeciestmp, movedperbranch, &nbranchclose,
+										sptoadd, sptoremove, distcutoff, mindepth,
+										computeavgtaxa, computeperbranchtaxa, &mux)
+								}
+							}
 						}
 					}
-				}
-				//wg.Done()
-				//}()
+					wg.Done()
+				}()
 			}
-			//wg.Wait()
+			wg.Wait()
 		}
 		if computeavgtaxa || computeperbranchtaxa {
 			for _, t := range tips {
@@ -240,15 +250,13 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 		rawtree = reftree.Clone()
 		ReformatAvgDistance(rawtree, nboot)
 	}
-
 	NormalizeTransferDistancesByDepth(edges, nboot)
-
 	// Write in log file
 	if computeavgtaxa || computeperbranchtaxa {
 		if computeavgtaxa {
 			fmt.Fprintf(logfile, "Taxon\ttIndex\n")
 			for _, t := range tips {
-				movedtaxaindex := movedspecies[t.Id()] * 100.0 / float64(nboot)
+				movedtaxaindex := movedspecies[t.TipIndex()] * 100.0 / float64(nboot)
 				fmt.Fprintf(logfile, "%s\t%f\n", t.Name(), movedtaxaindex)
 			}
 		}
@@ -265,11 +273,10 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 				}
 				fmt.Fprintf(logfile, "%d\t%s\t%s", e.Id(), e.LengthString(), e.SupportString())
 				for _, t := range tips {
-					fmt.Fprintf(logfile, "\t%f", float64(movedperbranch[e.Id()][t.Id()])*1.0/float64(nboot))
+					fmt.Fprintf(logfile, "\t%f", float64(movedperbranch[e.Id()][t.TipIndex()])*1.0/float64(nboot))
 				}
 				fmt.Fprintf(logfile, "\n")
 			}
-			logfile.Close()
 		}
 	}
 
@@ -309,10 +316,11 @@ func NormalizeTransferDistancesByDepth(edges []*tree.Edge, nboot int) {
 func UpdateTaxaMoveArrays(ref, boot *tree.Edge, dist, p int,
 	moved_species []int, moved_species_per_branch [][]int, nb_branches_close *int,
 	speciestoadd, speciestoremove []*tree.Node, distcutoff float64, mindepth int,
-	computeavgtaxa, computeperbranchtaxa bool) {
+	computeavgtaxa, computeperbranchtaxa bool, mux *sync.Mutex) {
 
 	norm := float64(dist) / (float64(p) - 1.0)
 
+	mux.Lock()
 	if computeavgtaxa && norm <= distcutoff && p >= mindepth {
 		for _, t := range speciestoadd {
 			moved_species[t.TipIndex()]++
@@ -322,6 +330,8 @@ func UpdateTaxaMoveArrays(ref, boot *tree.Edge, dist, p int,
 		}
 		(*nb_branches_close)++
 	}
+	mux.Unlock()
+
 	if computeperbranchtaxa {
 		for _, t := range speciestoadd {
 			moved_species_per_branch[ref.Id()][t.TipIndex()]++
