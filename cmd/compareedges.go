@@ -88,14 +88,14 @@ If the compared tree file contains several trees, it will take the first one onl
 						movedtaxabuf.WriteRune(',')
 					}
 					movedtaxabuf.WriteRune('+')
-					movedtaxabuf.WriteString(sp)
+					movedtaxabuf.WriteString(sp.Name())
 				}
 				for k, sp := range speciestoremove {
 					if k > 0 || (k == 0 && len(speciestoadd) > 0) {
 						movedtaxabuf.WriteRune(',')
 					}
 					movedtaxabuf.WriteRune('-')
-					movedtaxabuf.WriteString(sp)
+					movedtaxabuf.WriteString(sp.Name())
 				}
 				if closeedge != nil {
 					nodename = closeedge.Name(t2.Tree.Rooted())

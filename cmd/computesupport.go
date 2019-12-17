@@ -12,8 +12,8 @@ var supportBoottrees string
 var supportOutFile string
 var supportLogFile string
 var movedtaxa bool
-var taxperbranches bool     // If we should compute all avg tax transfers per branches
-var hightaxperbranches bool // If we should compute all avg tax transfers per branches
+var taxperbranches bool // If we should compute all avg tax transfers per branches
+//var hightaxperbranches bool // If we should compute all avg tax transfers per branches
 
 // For booster computation : output tree with raw avg distances as supports
 // in the form: branchid|avg_distance|depth
