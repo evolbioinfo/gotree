@@ -40,9 +40,9 @@ If the compared tree file contains several trees, it will take the first one onl
 		edges1 := refTree.Edges()
 		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
 		if transferdist {
-			fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport")
+			fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth")
 		} else {
-			fmt.Printf("\tcomparednodename\tcomparedlength\tcomparedsupport")
+			fmt.Printf("\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth")
 		}
 		fmt.Printf("\n")
 		if treefile, treechan, err = readTrees(intree2file); err != nil {
@@ -87,12 +87,15 @@ If the compared tree file contains several trees, it will take the first one onl
 				found := false
 				comparelength := "N/A"
 				comparedsupport := "N/A"
+				comparedtopodepth := -1
+
 				for _, e2 := range edges2 {
 					if e1.SameBipartition(e2) {
 						nodename = e2.Name(t2.Tree.Rooted())
 						found = true
 						comparelength = e2.LengthString()
 						comparedsupport = e2.SupportString()
+						comparedtopodepth, _ = e2.TopoDepth()
 						break
 					}
 				}
@@ -100,8 +103,8 @@ If the compared tree file contains several trees, it will take the first one onl
 
 				if transferdist {
 					var movedtaxabuf bytes.Buffer
+					be := edges2[min_dist_edges[i]]
 					if movedtaxa {
-						be := edges2[min_dist_edges[i]]
 						if plus, minus, err = speciesToMove(e1, be, int(min_dist[i])); err != nil {
 							io.LogError(err)
 							return
@@ -120,14 +123,16 @@ If the compared tree file contains several trees, it will take the first one onl
 							movedtaxabuf.WriteRune('-')
 							movedtaxabuf.WriteString(names[sp])
 						}
-						nodename = be.Name(t2.Tree.Rooted())
 					} else {
 						movedtaxabuf.WriteRune('-')
 					}
-
-					fmt.Printf("\t%d\t%s\t%s\t%s\t%s", min_dist[e1.Id()], movedtaxabuf.String(), nodename, comparelength, comparedsupport)
+					nodename = be.Name(t2.Tree.Rooted())
+					comparelength = be.LengthString()
+					comparedsupport = be.SupportString()
+					comparedtopodepth, _ = be.TopoDepth()
+					fmt.Printf("\t%d\t%s\t%s\t%s\t%s\t%d", min_dist[e1.Id()], movedtaxabuf.String(), nodename, comparelength, comparedsupport, comparedtopodepth)
 				} else {
-					fmt.Printf("\t%s\t%s\t%s", nodename, comparelength, comparedsupport)
+					fmt.Printf("\t%s\t%s\t%s\t%d", nodename, comparelength, comparedsupport, comparedtopodepth)
 				}
 				fmt.Printf("\n")
 			}
