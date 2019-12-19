@@ -41,7 +41,7 @@ If the compared tree file contains several trees, it will take the first one onl
 		edges1 := refTree.Edges()
 
 		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
-		fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth")
+		fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth\tcomparedid")
 
 		fmt.Printf("\n")
 		if treefile, treechan, err = readTrees(intree2file); err != nil {
@@ -71,11 +71,13 @@ If the compared tree file contains several trees, it will take the first one onl
 				comparelength := "N/A"
 				comparedsupport := "N/A"
 				comparedtopodepth := -1
+				comparedid := -1
 
 				if closeedge != nil {
 					nodename = closeedge.Name(t2.Tree.Rooted())
 					comparelength = closeedge.LengthString()
 					comparedtopodepth, _ = closeedge.TopoDepth()
+					comparedid = closeedge.Id()
 				}
 
 				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(false), found)
@@ -94,7 +96,7 @@ If the compared tree file contains several trees, it will take the first one onl
 					movedtaxabuf.WriteRune('-')
 					movedtaxabuf.WriteString(sp.Name())
 				}
-				fmt.Printf("\t%d\t%s\t%s\t%s\t%s\t%d\n", dist, movedtaxabuf.String(), nodename, comparelength, comparedsupport, comparedtopodepth)
+				fmt.Printf("\t%d\t%s\t%s\t%s\t%s\t%d\t%d\n", dist, movedtaxabuf.String(), nodename, comparelength, comparedsupport, comparedtopodepth, comparedid)
 			}
 		}
 		return
