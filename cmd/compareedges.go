@@ -77,6 +77,7 @@ If the compared tree file contains several trees, it will take the first one onl
 					nodename = closeedge.Name(t2.Tree.Rooted())
 					comparelength = closeedge.LengthString()
 					comparedtopodepth, _ = closeedge.TopoDepth()
+					comparedsupport = closeedge.SupportString()
 					comparedid = closeedge.Id()
 				}
 
