@@ -7,9 +7,9 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/fredericlemoine/bitset"
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/mutils"
+	"github.com/fredericlemoine/bitset"
 )
 
 // Structure of an edge
@@ -45,6 +45,14 @@ func (e *Edge) setLeft(left *Node) {
 // Sets right node (child)
 func (e *Edge) setRight(right *Node) {
 	e.right = right
+}
+
+// Inverse Edge orientation:
+// left becomes right and
+// right becomes left
+func (e *Edge) Inverse() {
+	e.left, e.right = e.right, e.left
+
 }
 
 // Sets the pvalue of this edge (if not null, pvalue
