@@ -1,5 +1,3 @@
-// +build ignore
-
 package cmd
 
 import (
@@ -114,32 +112,17 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 				}
 
 				edges1 := t.Tree.Edges()
-				var min_dist []uint16
-				var min_dist_edges []int
 				tips := t.Tree.Tips()
-				min_dist = make([]uint16, len(edges1))
-				min_dist_edges = make([]int, len(edges1))
-				var i_matrix [][]uint16 = make([][]uint16, len(edges1))
-				var c_matrix [][]uint16 = make([][]uint16, len(edges1))
-				var hamming [][]uint16 = make([][]uint16, len(edges1))
 
 				for i, e := range edges1 {
 					e.SetId(i)
-					min_dist[i] = uint16(len(tips))
-					i_matrix[i] = make([]uint16, len(edges2))
-					c_matrix[i] = make([]uint16, len(edges2))
-					hamming[i] = make([]uint16, len(edges2))
 				}
-				support.Update_all_i_c_post_order_ref_tree(t.Tree, &edges1, compTree, &edges2, &i_matrix, &c_matrix)
-				support.Update_all_i_c_post_order_boot_tree(t.Tree, uint(len(tips)), &edges1, compTree, &edges2, &i_matrix, &c_matrix, &hamming, &min_dist, &min_dist_edges)
+
 				for _, e1 := range edges1 {
 					if !e1.Right().Tip() {
-						e2 := edges2[min_dist_edges[e1.Id()]]
-						dist := min_dist[e1.Id()]
-						depth, _ := e1.NumTipsRight()
-						if dist > uint16(len(tips))/2 {
-							dist = uint16(len(tips)) - dist
-						}
+
+						dist, e2, _, _ := support.MinTransferDist(e1, t.Tree, compTree, len(tips), edges2, false)
+						depth := e1.NumTipsRight()
 
 						// If root edge and rooted tree, we take the closest branch
 						if e2.Left().Nneigh() == 2 {
@@ -150,21 +133,9 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 								e3 = e2.Left().Edges()[1]
 							}
 
-							if t3, err = e3.NumTipsRight(); err != nil {
-								io.LogError(err)
-								return
-							}
-							if t2, err = e2.NumTipsRight(); err != nil {
-								io.LogError(err)
-								return
-							}
-							if t1, err = e1.NumTipsRight(); err != nil {
-								io.LogError(err)
-								return
-							}
-							fmt.Println(t1)
-							fmt.Println(t2)
-							fmt.Println(t3)
+							t3 = e3.NumTipsRight()
+							t2 = e2.NumTipsRight()
+							t1 = e1.NumTipsRight()
 
 							if mutils.Abs(t3-t1) < mutils.Abs(t2-t1) {
 								e2 = e3
