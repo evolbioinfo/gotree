@@ -460,6 +460,8 @@ echo "->gotree compute classical bootstrap"
 cat > expected <<EOF
 (Tip0,(Tip4,(Tip7,Tip2)1)1,((Tip9,(Tip8,Tip3)0.87)1,(Tip1,(Tip6,Tip5)0.65)0.97)0.67);
 EOF
+${GOTREE} compute support fbp -i ${TESTDATA}/bootstap_inferred_test.nw.gz -b ${TESTDATA}/bootstap_test.nw.gz  2>/dev/null | ${GOTREE} brlen clear > result
+diff -q -b expected result
 ${GOTREE} compute support classical -i ${TESTDATA}/bootstap_inferred_test.nw.gz -b ${TESTDATA}/bootstap_test.nw.gz  2>/dev/null | ${GOTREE} brlen clear > result
 diff -q -b expected result
 rm -f expected result
@@ -470,6 +472,8 @@ cat > expected <<EOF
 (Tip0,(Tip4,(Tip7,Tip2)1)1,((Tip9,(Tip8,Tip3)0.87)1,(Tip1,(Tip6,Tip5)0.65)0.985)0.89);
 EOF
 ${GOTREE} compute support booster -i ${TESTDATA}/bootstap_inferred_test.nw.gz -b ${TESTDATA}/bootstap_test.nw.gz --silent -l /dev/null | ${GOTREE} brlen clear > result
+diff -q -b expected result
+${GOTREE} compute support tbe -i ${TESTDATA}/bootstap_inferred_test.nw.gz -b ${TESTDATA}/bootstap_test.nw.gz --silent -l /dev/null | ${GOTREE} brlen clear > result
 diff -q -b expected result
 rm -f expected result
 
