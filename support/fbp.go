@@ -11,7 +11,7 @@ import (
 /*
 Computes bootstrap supports of reftree branches, given trees in boottrees channel
 */
-func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int, sup *Supporter) error {
+func FBP(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int, sup *Supporter) error {
 	var err error
 
 	if err = reftree.ReinitIndexes(); err != nil {

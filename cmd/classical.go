@@ -25,45 +25,63 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// classicalCmd represents the classical command
+// boosterCmd represents the booster command
+// Just to keep the alias
+var fbpCmd = &cobra.Command{
+	Hidden: true,
+	Use:    "classical",
+	Short:  "Compute FBP supports",
+	Long: `Compute classical FBP Support
+
+	For more information, See:
+	Lemoine, F. and Domelevo Entfellner, J.-B. and Wilkinson, E. and Correia, D. and Dávila Felipe, M. and De Oliveira, T. and Gascuel, O.
+	Renewing Felsenstein’s phylogenetic bootstrap in the era of big data. Nature, 556:452–456
+`,
+	RunE: classical,
+}
+
+// fbpCmd represents the FBP computation command
 var classicalCmd = &cobra.Command{
-	Use:   "classical",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "fbp",
+	Short: "Compute FBP supports",
+	Long: `Compute classical FBP Support
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		var refTree *tree.Tree
-		var boottreefile goio.Closer
-		var boottreechan <-chan tree.Trees
+	For more information, See:
+	Lemoine, F. and Domelevo Entfellner, J.-B. and Wilkinson, E. and Correia, D. and Dávila Felipe, M. and De Oliveira, T. and Gascuel, O.
+	Renewing Felsenstein’s phylogenetic bootstrap in the era of big data. Nature, 556:452–456
+`,
+	RunE: classical,
+}
 
-		writeLogClassical()
-		if refTree, err = readTree(supportIntree); err != nil {
-			io.LogError(err)
-			return
-		}
-		if boottreefile, boottreechan, err = readTrees(supportBoottrees); err != nil {
-			io.LogError(err)
-			return
-		}
-		defer boottreefile.Close()
+func classical(cmd *cobra.Command, args []string) (err error) {
+	var refTree *tree.Tree
+	var boottreefile goio.Closer
+	var boottreechan <-chan tree.Trees
 
-		if err = support.Classical(refTree, boottreechan, rootCpus, nil); err != nil {
-			io.LogError(err)
-			return
-		}
-
-		supportOut.WriteString(refTree.Newick() + "\n")
-		supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
+	writeLogClassical()
+	if refTree, err = readTree(supportIntree); err != nil {
+		io.LogError(err)
 		return
-	},
+	}
+	if boottreefile, boottreechan, err = readTrees(supportBoottrees); err != nil {
+		io.LogError(err)
+		return
+	}
+	defer boottreefile.Close()
+
+	if err = support.FBP(refTree, boottreechan, rootCpus, nil); err != nil {
+		io.LogError(err)
+		return
+	}
+
+	supportOut.WriteString(refTree.Newick() + "\n")
+	supportLog.WriteString(fmt.Sprintf("End         : %s\n", time.Now().Format(time.RFC822)))
+	return
 }
 
 func init() {
 	computesupportCmd.AddCommand(classicalCmd)
+	computesupportCmd.AddCommand(fbpCmd)
 }
 
 func writeLogClassical() {

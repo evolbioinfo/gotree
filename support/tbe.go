@@ -133,7 +133,7 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 // computes the transfer dist for each edges of the ref tree
 // outrawtree: if tree with average transfer distance (non normalized) must be computed
 // if false: then output rawtree is null
-func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
+func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 	outrawtree bool, computeavgtaxa, computeperbranchtaxa bool, distcutoff float64,
 	logfile *os.File, sup *Supporter) (rawtree *tree.Tree, err error) {
 	tips := reftree.Tips()
