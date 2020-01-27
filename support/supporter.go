@@ -6,6 +6,14 @@ type Supporter struct {
 }
 
 // Returns the progress of the analysis
+func NewSupporter() *Supporter {
+	return &Supporter{
+		progress: 0,
+		stop:     false,
+	}
+}
+
+// Returns the progress of the analysis
 func (sup *Supporter) Progress() int {
 	return sup.progress
 }
