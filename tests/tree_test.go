@@ -592,12 +592,20 @@ func TestNNI(t *testing.T) {
 	if nni2, err = newick.NewParser(strings.NewReader("(n1_1,n2_2,(n2_1,n1_2)n2)n1;")).Parse(); err != nil {
 		t.Error(err)
 	}
-	tr.ReinitIndexes()
-	nni1.ReinitIndexes()
-	nni2.ReinitIndexes()
 
+	if err = tr.ReinitIndexes(); err != nil {
+		t.Error(err)
+	}
+	if err = nni1.ReinitIndexes(); err != nil {
+		t.Error(err)
+	}
+	if err = nni2.ReinitIndexes(); err != nil {
+		t.Error(err)
+	}
 	copy = tr.Clone()
-	copy.ReinitIndexes()
+	if err = copy.ReinitIndexes(); err != nil {
+		t.Error(err)
+	}
 
 	r := &tree.NNIRearranger{}
 
@@ -610,9 +618,7 @@ func TestNNI(t *testing.T) {
 			t.Error(err)
 			return false
 		}
-		tr.ClearBitSets()
-		tr.UpdateBitSet()
-
+		tr.ReinitInternalIndexes()
 		if _, common1, err = nni1.CommonEdges(tr, false); err != nil {
 			t.Error(err)
 			return false
@@ -621,6 +627,7 @@ func TestNNI(t *testing.T) {
 			t.Error(err)
 			return false
 		}
+
 		if !((common1 == 1 && common2 == 0) || (common1 == 0 && common2 == 1)) {
 			t.Error(fmt.Errorf("Tree after applying NNI does not correspond to any expected tree (%d and %d edges in common)", common1, common2))
 			return false
@@ -634,8 +641,7 @@ func TestNNI(t *testing.T) {
 			t.Error(err)
 			return false
 		}
-		tr.ClearBitSets()
-		tr.UpdateBitSet()
+		tr.ReinitInternalIndexes()
 
 		if _, common1, err = copy.CommonEdges(tr, false); common1 != 1 {
 			t.Error(fmt.Errorf("Tree after undoing NNI does not correspond to the initial tree (%d edges in common): %s / %s", common1, copy.Newick(), tr.Newick()))
@@ -680,14 +686,12 @@ func TestNNI2(t *testing.T) {
 			t.Error(err)
 			return false
 		}
-		fmt.Println("NNI")
 		if err = tr.CheckTreePostOrder(); err != nil {
 			t.Error(err)
 			return false
 		}
-		tr.ClearBitSets()
-		tr.UpdateBitSet()
 
+		tr.ReinitInternalIndexes()
 		totalid = 0
 		for _, nnit := range nnitrees {
 			if _, common, err = nnit.CommonEdges(tr, false); err != nil {
@@ -712,8 +716,7 @@ func TestNNI2(t *testing.T) {
 			t.Error(err)
 			return false
 		}
-		tr.ClearBitSets()
-		tr.UpdateBitSet()
+		tr.ReinitInternalIndexes()
 
 		if _, common, err = copy.CommonEdges(tr, false); common != 2 {
 			t.Error(fmt.Errorf("Tree after undoing NNI does not correspond to the initial tree (%d edges in common): %s / %s", common, copy.Newick(), tr.Newick()))
@@ -748,8 +751,7 @@ func TestNNI3(t *testing.T) {
 			t.Error(err)
 			return false
 		}
-		tr.ClearBitSets()
-		tr.UpdateBitSet()
+		tr.ReinitInternalIndexes()
 		if _, common, err = copy.CommonEdges(tr, false); common != ntips-3-1 {
 			t.Error(fmt.Errorf("Tree after NNI does not have %d common internal edges with initial tree but %d", ntips-3-1, common))
 			return false
@@ -762,8 +764,7 @@ func TestNNI3(t *testing.T) {
 			t.Error(err)
 			return false
 		}
-		tr.ClearBitSets()
-		tr.UpdateBitSet()
+		tr.ReinitInternalIndexes()
 		if _, common, err = copy.CommonEdges(tr, false); common != ntips-3 {
 			t.Error(fmt.Errorf("Tree after NNI does not have %d common internal edges with initial tree but %d", ntips-3-1, common))
 			return false

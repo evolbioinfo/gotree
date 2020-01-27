@@ -578,8 +578,12 @@ func (t *Tree) ReinitIndexes() (err error) {
 		return
 	}
 
-	t.ClearBitSets()
-	t.UpdateBitSet()
+	if err = t.ClearBitSets(); err != nil {
+		return
+	}
+	if err = t.UpdateBitSet(); err != nil {
+		return
+	}
 	t.ComputeEdgeHashes(nil, nil, nil)
 	t.ComputeDepths()
 	return
@@ -683,10 +687,9 @@ func (t *Tree) CommonEdges(t2 *Tree, tipEdges bool) (tree1 int, common int, err 
 
 	edges1 := t.Edges()
 	edges2 := t2.Edges()
-
 	tree1, common, err = CommonEdges(edges1, edges2, tipEdges)
 
-	return tree1, common, nil
+	return tree1, common, err
 }
 
 // This function compares 2 trees and returns the number of edges in common.

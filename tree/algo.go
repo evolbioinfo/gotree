@@ -554,9 +554,7 @@ func (t *Tree) RerootMidPoint() error {
 	e2.SetSupport(b)
 
 	t.Reroot(newroot)
-	t.ClearBitSets()
-	t.UpdateBitSet()
-	t.ComputeDepths()
+	t.ReinitInternalIndexes()
 	return nil
 }
 
