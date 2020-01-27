@@ -51,7 +51,7 @@ to quickly create a Cobra application.`,
 		}
 		defer boottreefile.Close()
 
-		if err = support.Classical(refTree, boottreechan, rootCpus); err != nil {
+		if err = support.Classical(refTree, boottreechan, rootCpus, nil); err != nil {
 			io.LogError(err)
 			return
 		}

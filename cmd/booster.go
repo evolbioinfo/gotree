@@ -54,7 +54,7 @@ var boosterCmd = &cobra.Command{
 		}
 
 		// Compute average supports (non normalized, e.g normalizedByExpected=false)
-		if rawtree, err = support.Booster(refTree, boottreechan, rootCpus, rawSupportOutputFile != "none", movedtaxa, taxperbranches, cutoff, supportLog); err != nil {
+		if rawtree, err = support.Booster(refTree, boottreechan, rootCpus, rawSupportOutputFile != "none", movedtaxa, taxperbranches, cutoff, supportLog, nil); err != nil {
 			io.LogError(err)
 			return
 		}

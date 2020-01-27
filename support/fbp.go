@@ -11,11 +11,15 @@ import (
 /*
 Computes bootstrap supports of reftree branches, given trees in boottrees channel
 */
-func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error {
+func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int, sup *Supporter) error {
 	var err error
 
 	if err = reftree.ReinitIndexes(); err != nil {
 		return err
+	}
+
+	if sup == nil {
+		sup = &Supporter{}
 	}
 
 	maxcpus := runtime.NumCPU()
@@ -44,6 +48,9 @@ func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error 
 		go func(cpu int) {
 			var inerr error
 			for treeV := range boottrees {
+				if sup.Canceled() {
+					break
+				}
 				if treeV.Err != nil {
 					err = treeV.Err
 					return
@@ -67,6 +74,7 @@ func Classical(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int) error 
 						}
 					}
 				}
+				sup.IncrementProgress()
 			}
 			wg.Done()
 		}(cpu)

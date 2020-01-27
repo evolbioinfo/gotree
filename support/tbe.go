@@ -135,7 +135,7 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 // if false: then output rawtree is null
 func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 	outrawtree bool, computeavgtaxa, computeperbranchtaxa bool, distcutoff float64,
-	logfile *os.File) (rawtree *tree.Tree, err error) {
+	logfile *os.File, sup *Supporter) (rawtree *tree.Tree, err error) {
 	tips := reftree.Tips()
 
 	//vals := make([]int, len(edges))
@@ -150,6 +150,10 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 	var nbranchclose int = 0
 	var nboot int = 0
 	var mindepth int = int(math.Ceil(1.0/distcutoff + 1.0)) // For taxa move computation
+
+	if sup == nil {
+		sup = &Supporter{}
+	}
 
 	if computeavgtaxa {
 		movedspecies = make([]float64, len(tips))
@@ -168,6 +172,9 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 	}
 
 	for boot := range boottrees {
+		if sup.Canceled() {
+			break
+		}
 		if boot.Err != nil {
 			io.LogError(boot.Err)
 			err = boot.Err
@@ -244,6 +251,7 @@ func Booster(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 		}
 		nboot++
 		boot.Tree.Delete()
+		sup.IncrementProgress()
 	}
 
 	if outrawtree {

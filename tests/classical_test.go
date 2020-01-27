@@ -38,7 +38,7 @@ func TestClassicalSupport_1(t *testing.T) {
 	}
 
 	// Computing fbp
-	err = support.Classical(reftree, trees, 1)
+	err = support.Classical(reftree, trees, 1, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -78,7 +78,7 @@ func TestClassicalSupport_2(t *testing.T) {
 	}
 
 	// Computing fbp
-	err = support.Classical(reftree, trees, 1)
+	err = support.Classical(reftree, trees, 1, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -117,7 +117,7 @@ func TestClassicalSupport_3(t *testing.T) {
 	}
 
 	// Computing fbp
-	err = support.Classical(reftree, trees, 1)
+	err = support.Classical(reftree, trees, 1, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -156,7 +156,7 @@ func TestClassicalSupport_4(t *testing.T) {
 	}
 
 	// Computing fbp
-	err = support.Classical(reftree, trees, 1)
+	err = support.Classical(reftree, trees, 1, nil)
 	if err != nil {
 		t.Error(err)
 	}
