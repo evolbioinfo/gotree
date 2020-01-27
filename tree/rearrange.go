@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Particulat rearrangement (NNI, SPR, etc.)
+// Particular rearrangement (NNI, SPR, etc.)
 type Rearrangement interface {
 	Apply() error
 	Undo() error
