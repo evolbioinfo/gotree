@@ -52,6 +52,14 @@ func (e *Edge) setRight(right *Node) {
 	e.right = right
 }
 
+// Inverse Edge orientation:
+// left becomes right and
+// right becomes left
+func (e *Edge) Inverse() {
+	e.left, e.right = e.right, e.left
+
+}
+
 // Sets the pvalue of this edge (if not null, pvalue
 // is stored/parsed as "/pvalue" in the bootstrap value
 // field.

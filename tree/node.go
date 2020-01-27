@@ -123,17 +123,17 @@ func (n *Node) Edges() []*Edge {
 	return n.br
 }
 
-// deletes the given neighbor n2 of this node n.
+// deletes the given neighbor n2 of this node n
 //
 // If n2 is not a neighbor of n, then returns an error.
-func (n *Node) delNeighbor(n2 *Node) error {
-	i, err := n.NodeIndex(n2)
-	if err != nil {
-		return err
+func (n *Node) delNeighbor(n2 *Node) (err error) {
+	var i int
+	if i, err = n.NodeIndex(n2); err != nil {
+		return
 	}
 	n.br = append(n.br[0:i], n.br[i+1:]...)
 	n.neigh = append(n.neigh[0:i], n.neigh[i+1:]...)
-	return nil
+	return
 }
 
 // Retrieve the parent node
@@ -202,6 +202,16 @@ func (n *Node) NodeIndex(next *Node) (int, error) {
 		}
 	}
 	return -1, errors.New("The Node is not in the neighbors of node")
+}
+
+// Returns if a node "next" is connected to "n" in the tree
+func (n *Node) IsConnected(next *Node) bool {
+	for i := 0; i < len(n.neigh); i++ {
+		if n.neigh[i] == next {
+			return true
+		}
+	}
+	return false
 }
 
 // Randomly rotates order of neighbor nodes and edges
