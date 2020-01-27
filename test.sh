@@ -1525,3 +1525,235 @@ ${GOTREE} generate startree -l 11 -n 3 | ${GOTREE} brlen clear -o output
 diff -q -b output expected
 
 rm -f expected output
+
+#gotree monophyletic
+echo "->gotree stats monophyletic"
+cat > input <<EOF
+(6,7,((1,2),((3,4),5)));
+(6,2,((1,7),((3,5),4)));
+(6,7,((1,4),((3,2),5)));
+EOF
+cat > expected <<EOF
+Tree	Monophyletic
+0	true
+1	true
+2	false
+EOF
+
+cat > tipfile <<EOF
+6
+7
+EOF
+
+cat > expected2 <<EOF
+Tree	Monophyletic
+0	true
+1	false
+2	true
+EOF
+
+${GOTREE} stats monophyletic -i input -o result 3 4 5 
+diff -q -b result expected
+
+${GOTREE} stats monophyletic -i input -o result -l tipfile
+diff -q -b result expected2
+
+rm -f expected result input
+
+#gotree monophyletic
+echo "->gotree stats monophyletic /2"
+cat > input <<EOF
+(Tip68,Tip0,((((Tip51,(Tip71,Tip40)),Tip16),(Tip18,(Tip21,(Tip36,Tip9)))),(((((Tip31,((Tip63,((Tip79,Tip69),Tip32)),(((((Tip92,Tip58),Tip50),(Tip56,Tip41)),Tip33),((Tip96,Tip89),Tip15)))),(Tip70,(Tip90,(Tip93,Tip5)))),(((Tip49,Tip17),Tip7),(Tip27,(((Tip88,Tip57),(Tip97,Tip35)),((Tip53,Tip47),Tip3))))),(((((Tip25,(Tip87,(Tip99,Tip19))),(Tip59,(Tip61,Tip14))),(Tip30,((((Tip80,(Tip82,Tip66)),(Tip81,Tip46)),Tip43),Tip10))),(Tip37,Tip8)),((((Tip45,(Tip83,Tip44)),((Tip64,Tip60),Tip26)),Tip11),(((Tip78,(Tip84,Tip62)),Tip24),(Tip73,(Tip74,Tip2)))))),((((((Tip77,Tip65),(Tip94,Tip52)),Tip12),Tip6),((((Tip67,Tip54),(Tip85,Tip23)),(Tip76,Tip22)),(Tip34,(Tip38,Tip4)))),(((((Tip91,Tip75),Tip39),(Tip86,(Tip95,Tip29))),Tip13),((((Tip72,Tip55),(Tip98,Tip42)),(Tip48,Tip20)),(Tip28,Tip1)))))));
+(Tip68,Tip0,((((Tip51,(Tip71,Tip40)),Tip16),(Tip18,(Tip21,(Tip36,Tip9)))),(((((Tip31,((Tip63,((Tip79,Tip69),Tip32)),(((((Tip92,Tip58),Tip49),(Tip56,Tip41)),Tip33),((Tip96,Tip89),Tip15)))),(Tip70,(Tip90,(Tip93,Tip5)))),(((Tip50,Tip17),Tip7),(Tip27,(((Tip88,Tip57),(Tip97,Tip35)),((Tip53,Tip47),Tip3))))),(((((Tip25,(Tip87,(Tip99,Tip19))),(Tip59,(Tip61,Tip14))),(Tip30,((((Tip80,(Tip82,Tip66)),(Tip81,Tip46)),Tip43),Tip10))),(Tip37,Tip8)),((((Tip45,(Tip83,Tip44)),((Tip64,Tip60),Tip26)),Tip11),(((Tip78,(Tip84,Tip62)),Tip24),(Tip73,(Tip74,Tip2)))))),((((((Tip77,Tip65),(Tip94,Tip52)),Tip12),Tip6),((((Tip67,Tip54),(Tip85,Tip23)),(Tip76,Tip22)),(Tip34,(Tip38,Tip4)))),(((((Tip91,Tip75),Tip39),(Tip86,(Tip95,Tip29))),Tip13),((((Tip72,Tip55),(Tip98,Tip42)),(Tip48,Tip20)),(Tip28,Tip1)))))));
+(Tip68,Tip0,((((Tip51,(Tip71,Tip40)),Tip16),(Tip18,(Tip21,(Tip36,Tip9)))),(((((Tip31,((Tip63,((Tip79,Tip69),Tip32)),(((((Tip92,Tip58),Tip50),(Tip56,Tip41)),Tip33),((Tip96,Tip89),Tip15)))),(Tip70,(Tip90,(Tip93,Tip5)))),(((Tip1,Tip17),Tip7),(Tip27,(((Tip88,Tip57),(Tip97,Tip35)),((Tip53,Tip47),Tip3))))),(((((Tip25,(Tip87,(Tip99,Tip19))),(Tip59,(Tip61,Tip14))),(Tip30,((((Tip80,(Tip82,Tip66)),(Tip81,Tip46)),Tip43),Tip10))),(Tip37,Tip8)),((((Tip45,(Tip83,Tip44)),((Tip64,Tip60),Tip26)),Tip11),(((Tip78,(Tip84,Tip62)),Tip24),(Tip73,(Tip74,Tip2)))))),((((((Tip77,Tip65),(Tip94,Tip52)),Tip12),Tip6),((((Tip67,Tip54),(Tip85,Tip23)),(Tip76,Tip22)),(Tip34,(Tip38,Tip4)))),(((((Tip91,Tip75),Tip39),(Tip86,(Tip95,Tip29))),Tip13),((((Tip72,Tip55),(Tip98,Tip42)),(Tip48,Tip20)),(Tip28,Tip49)))))));
+EOF
+cat > expected <<EOF
+Tree	Monophyletic
+0	true
+1	true
+2	false
+EOF
+
+cat > tipfile <<EOF
+Tip7
+Tip49
+Tip17
+Tip27
+Tip3
+Tip53
+Tip47
+Tip88
+Tip57
+Tip97
+Tip35
+Tip70
+Tip90
+Tip93
+Tip5
+Tip31
+Tip63
+Tip32
+Tip79
+Tip69
+Tip15
+Tip96
+Tip89
+Tip33
+Tip56
+Tip41
+Tip50
+Tip92
+Tip58
+EOF
+
+
+${GOTREE} stats monophyletic -i input -o result -l tipfile
+diff -q -b result expected
+
+rm -rf tipfile input expected result
+
+echo "->gotree stats monophyletic rooted /1"
+cat > input <<EOF
+(((((Tip30,(((Tip69,Tip52),(Tip57,Tip50)),(Tip66,Tip28))),(Tip54,Tip3)),(Tip5,(((Tip60,Tip10),((Tip39,Tip12),(Tip59,(Tip82,(Tip86,Tip9))))),Tip2))),(((Tip11,(((Tip83,(Tip94,Tip24)),Tip22),(Tip38,(((Tip74,Tip49),(Tip58,(Tip63,Tip46))),Tip6)))),((Tip68,((Tip92,(Tip98,Tip85)),Tip17)),(((Tip88,(Tip99,Tip73)),Tip42),(Tip77,Tip4)))),(((((Tip72,Tip37),Tip34),(Tip75,Tip18)),(((Tip84,Tip70),Tip19),(((Tip90,Tip23),Tip20),(((Tip93,Tip65),(Tip81,Tip31)),(Tip78,Tip14))))),((Tip21,((Tip87,Tip47),Tip16)),((Tip51,Tip25),((Tip43,Tip26),Tip1)))))),(((Tip36,(Tip53,(Tip61,Tip15))),((Tip35,(Tip97,Tip33)),((Tip96,Tip40),((Tip48,(Tip55,(Tip71,Tip45))),((Tip79,Tip76),Tip7))))),(Tip8,(((Tip41,(((Tip91,Tip62),((Tip89,Tip80),Tip56)),(Tip64,((Tip95,Tip67),Tip29)))),(Tip44,Tip13)),((Tip32,Tip27),Tip0)))));
+EOF
+cat > expected <<EOF
+Tree	Monophyletic
+0	true
+EOF
+
+cat > tipfile <<EOF
+Tip36
+Tip53
+Tip61
+Tip15
+Tip35
+Tip97
+Tip33
+Tip96
+Tip40
+Tip7
+Tip79
+Tip76
+Tip48
+Tip55
+Tip71
+Tip45
+EOF
+
+
+${GOTREE} stats monophyletic -i input -o result -l tipfile
+diff -q -b result expected
+
+rm -rf tipfile input expected result
+
+echo "->gotree stats monophyletic rooted /2"
+cat > input <<EOF
+(((((Tip30,(((Tip69,Tip52),(Tip57,Tip50)),(Tip66,Tip28))),(Tip54,Tip3)),(Tip5,(((Tip60,Tip10),((Tip39,Tip12),(Tip59,(Tip82,(Tip86,Tip9))))),Tip2))),(((Tip11,(((Tip83,(Tip94,Tip24)),Tip22),(Tip38,(((Tip74,Tip49),(Tip58,(Tip63,Tip46))),Tip6)))),((Tip68,((Tip92,(Tip98,Tip85)),Tip17)),(((Tip88,(Tip99,Tip73)),Tip42),(Tip77,Tip4)))),(((((Tip72,Tip37),Tip34),(Tip75,Tip18)),(((Tip84,Tip70),Tip19),(((Tip90,Tip23),Tip20),(((Tip93,Tip65),(Tip81,Tip31)),(Tip78,Tip14))))),((Tip21,((Tip87,Tip47),Tip16)),((Tip51,Tip25),((Tip43,Tip26),Tip1)))))),(((Tip36,(Tip53,(Tip61,Tip15))),((Tip35,(Tip97,Tip33)),((Tip96,Tip40),((Tip48,(Tip55,(Tip71,Tip45))),((Tip79,Tip76),Tip7))))),(Tip8,(((Tip41,(((Tip91,Tip62),((Tip89,Tip80),Tip56)),(Tip64,((Tip95,Tip67),Tip29)))),(Tip44,Tip13)),((Tip32,Tip27),Tip0)))));
+EOF
+cat > expected <<EOF
+Tree	Monophyletic
+0	false
+EOF
+
+# Missing Tip7 to be a monophyletic group
+cat > tipfile <<EOF
+Tip36
+Tip53
+Tip61
+Tip15
+Tip35
+Tip97
+Tip33
+Tip96
+Tip40
+Tip79
+Tip76
+Tip48
+Tip55
+Tip71
+Tip45
+EOF
+
+
+${GOTREE} stats monophyletic -i input -o result -l tipfile
+diff -q -b result expected
+
+rm -rf tipfile input expected result
+
+
+echo "->gotree stats monophyletic rooted /3"
+cat > input <<EOF
+(((((Tip30,(((Tip69,Tip52),(Tip57,Tip50)),(Tip66,Tip28))),(Tip54,Tip3)),(Tip5,(((Tip60,Tip10),((Tip39,Tip12),(Tip59,(Tip82,(Tip86,Tip9))))),Tip2))),(((Tip11,(((Tip83,(Tip94,Tip24)),Tip22),(Tip38,(((Tip74,Tip49),(Tip58,(Tip63,Tip46))),Tip6)))),((Tip68,((Tip92,(Tip98,Tip85)),Tip17)),(((Tip88,(Tip99,Tip73)),Tip42),(Tip77,Tip4)))),(((((Tip72,Tip37),Tip34),(Tip75,Tip18)),(((Tip84,Tip70),Tip19),(((Tip90,Tip23),Tip20),(((Tip93,Tip65),(Tip81,Tip31)),(Tip78,Tip14))))),((Tip21,((Tip87,Tip47),Tip16)),((Tip51,Tip25),((Tip43,Tip26),Tip1)))))),(((Tip36,(Tip53,(Tip61,Tip15))),((Tip35,(Tip97,Tip33)),((Tip96,Tip40),((Tip48,(Tip55,(Tip71,Tip45))),((Tip79,Tip76),Tip7))))),(Tip8,(((Tip41,(((Tip91,Tip62),((Tip89,Tip80),Tip56)),(Tip64,((Tip95,Tip67),Tip29)))),(Tip44,Tip13)),((Tip32,Tip27),Tip0)))));
+EOF
+
+cat > expected <<EOF
+Tree	Monophyletic
+0	false
+EOF
+
+cat > expected2 <<EOF
+Tree	Monophyletic
+0	true
+EOF
+
+cat > tipfile <<EOF
+Tip36
+Tip53
+Tip61
+Tip15
+Tip35
+Tip97
+Tip33
+Tip96
+Tip40
+Tip7
+Tip79
+Tip76
+Tip48
+Tip55
+Tip71
+Tip45
+Tip8
+Tip0
+Tip32
+Tip27
+Tip44
+Tip13
+Tip41
+Tip64
+Tip29
+Tip95
+Tip67
+Tip91
+Tip62
+Tip56
+Tip89
+Tip80
+Tip54
+Tip3
+Tip30
+Tip66
+Tip28
+Tip69
+Tip52
+Tip57
+Tip50
+Tip5
+Tip2
+Tip60
+Tip10
+Tip39
+Tip12
+Tip59
+Tip82
+Tip86
+Tip9
+EOF
+
+${GOTREE} stats monophyletic -i input -o result -l tipfile
+diff -q -b result expected
+
+${GOTREE} unroot -i input | ${GOTREE} stats monophyletic -o result -l tipfile
+diff -q -b result expected2
+
+rm -rf tipfile input expected expected2 result
