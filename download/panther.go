@@ -30,7 +30,7 @@ func (p *PantherTreeDownloader) Download(id string) (t *tree.Tree, err error) {
 	geturl := fmt.Sprintf("%s/%s?family=%s", p.server, p.path, id)
 	var getresponse *http.Response
 	var responsebody []byte
-	var answer *PantherAnswer
+	var answer PantherAnswer
 
 	if getresponse, err = http.Get(geturl); err != nil {
 		return
@@ -41,17 +41,17 @@ func (p *PantherTreeDownloader) Download(id string) (t *tree.Tree, err error) {
 		return
 	}
 
-	if err = json.Unmarshal(responsebody, answer); err != nil {
+	if err = json.Unmarshal(responsebody, &answer); err != nil {
 		err = fmt.Errorf("%s (%s)", err.Error(), string(responsebody))
 		return
 	}
 
-	if answer.Error != "" {
-		err = errors.New(string(answer.Error))
+	if answer.Search.Error != "" {
+		err = errors.New(string(answer.Search.Error))
 		return
 	}
 
-	if t, err = p.treeFromPantherAnswer(answer); err != nil {
+	if t, err = p.treeFromPantherAnswer(&answer); err != nil {
 		return
 	}
 
@@ -60,17 +60,16 @@ func (p *PantherTreeDownloader) Download(id string) (t *tree.Tree, err error) {
 
 // PantherAnswer is the root of Panther JSON answer
 type PantherAnswer struct {
-	Search       PantherAnswerSearch       `json:"search"`
-	TreeTopology PantherAnswerTreeTopology `json:"tree_topology"`
-	Error        string                    `json:"error"`
-	SearchType   string                    `json:"search_type"`
+	Search PantherAnswerSearch `json:"search"`
 }
 
 // PantherAnswerSearch defines information on answer search
 type PantherAnswerSearch struct {
-	Product    PantherAnswerProduct    `json:"product"`
-	SearchType string                  `json:"search_type"`
-	Parameters PantherAnswerParameters `json:"parameters"`
+	Product      PantherAnswerProduct      `json:"product"`
+	SearchType   string                    `json:"search_type"`
+	Parameters   PantherAnswerParameters   `json:"parameters"`
+	TreeTopology PantherAnswerTreeTopology `json:"tree_topology"`
+	Error        string                    `json:"error"`
 }
 
 // PantherAnswerProduct defines information version and source of the answer
@@ -118,7 +117,7 @@ func (p *PantherTreeDownloader) treeFromPantherAnswer(answer *PantherAnswer) (t 
 	var nedges, nnodes int = 0, 0
 
 	t = tree.NewTree()
-	err = p.annotationNodeToTree(&answer.TreeTopology.AnnotationNode, t, nil, &nedges, &nnodes)
+	err = p.annotationNodeToTree(&answer.Search.TreeTopology.AnnotationNode, t, nil, &nedges, &nnodes)
 	return
 }
 
@@ -136,12 +135,27 @@ func (p *PantherTreeDownloader) annotationNodeToTree(an *PantherAnswerAnnotation
 			e.SetLength(an.BranchLength)
 		}
 	}
-	if an.Species != "" {
-		newNode.SetName(an.Species)
+	if an.TreeNodeType == "LEAF" {
+		if an.NodeName != "" {
+			newNode.SetName(an.NodeName)
+		} else {
+			err = fmt.Errorf("One tip has no name -%s-", an.SfID)
+		}
+	} else {
+		if len(an.Children.AnnotationNode) == 0 {
+			err = fmt.Errorf("One internal node has 0 children -%s-", an.SfID)
+		}
+		if an.Species != "" {
+			newNode.SetName(an.Species)
+		}
 	}
 
 	if an.EventType != "" {
 		newNode.AddComment(an.EventType)
+	}
+
+	if an.GeneSymbol != "" {
+		newNode.AddComment(an.GeneSymbol)
 	}
 
 	if an.Organism != "" {
@@ -156,10 +170,6 @@ func (p *PantherTreeDownloader) annotationNodeToTree(an *PantherAnswerAnnotation
 		if err = p.annotationNodeToTree(&cl, t, newNode, nedges, nnodes); err != nil {
 			return
 		}
-	}
-
-	if len(an.Children.AnnotationNode) == 0 && an.GeneSymbol == "" {
-		err = fmt.Errorf("One tip has no gene symbol")
 	}
 
 	return
