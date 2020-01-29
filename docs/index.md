@@ -103,6 +103,7 @@ Command                                                            | Subcommand 
 --                                                                 | setrand           | Assigns a random support to edges of input trees
 [stats](commands/stats.md) ([api](api/stats.md))                   |                   | Prints statistics about the tree, its edges, its nodes, if it is rooted, and its tips
 --                                                                 | edges             | Prints informations about all the edges
+--                                                                 | monophyletic      | Tells wether input tips form a monophyletic group in input trees
 --                                                                 | nodes             | Prints informations about all the nodes
 --                                                                 | rooted            | Tells if the tree is rooted or not
 --                                                                 | tips              | Prints informations about all the tips

@@ -46,6 +46,10 @@ This commands display informations about trees, edges, nodes or tips. Several su
    3. Number of neighbors (always 1...)
    4. Name of the tip
 
+* `gotree stats monophyletic` : Tells wether a set of tips form a monophyletic clade in the given trees. Output is in tab delimited format, with columns:
+   1. Tree id (input file order)
+   2. Monophyletic (true/false)
+
 #### Usage
 
 General command
@@ -55,11 +59,12 @@ Usage:
   gotree stats [command]
 
 Available Commands:
-  edges       Displays statistics on edges of input tree
-  nodes       Displays statistics on nodes of input tree
-  rooted      Tells wether the tree is rooted or unrooted
-  splits      Prints all the splits from an input tree
-  tips        Displays statistics on tips of input tree
+  edges        Displays statistics on edges of input tree
+  monophyletic Tells wether input tips form a monophyletic group in each of the input trees
+  nodes        Displays statistics on nodes of input tree
+  rooted       Tells wether the tree is rooted or unrooted
+  splits       Prints all the splits from an input tree
+  tips         Displays statistics on tips of input tree
 
 Flags:
   -i, --input string    Input tree (default "stdin")
@@ -103,3 +108,30 @@ and
 |0     |  15    |  0.1120177846434196    |  N/A      |  true      |  0      |  1          |  Tip5       |
 |0     |  16    |  0.239082088939295     |  N/A      |  true      |  0      |  1          |  Tip1       |
 
+* Check wether a set of tips form a monophyletic clade
+
+tips.txt:
+```
+T1
+T2
+T3
+```
+
+tree.nw
+```
+((T1,T2),(T3,T4),(T5,T6,(T7,T8)));
+```
+
+Then
+```
+> gotree stats monophyletic -i tree.nw -l tips.txt
+Tree	Monophyletic
+0	false
+```
+
+Or
+```
+> echo "((T1,T2),(T3,T4),(T5,T6,(T7,T8)));" | gotree stats monophyletic T5 T6 T7 T8
+Tree	Monophyletic
+0	true
+```
