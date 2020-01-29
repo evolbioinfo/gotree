@@ -138,7 +138,7 @@ should produce the following output:
 				}
 			}
 
-			for k, _ := range tips {
+			for k := range tips {
 				if ok, err = refTree.ExistsTip(k); err != nil {
 					io.LogError(err)
 					return

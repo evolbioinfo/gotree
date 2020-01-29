@@ -3,7 +3,6 @@ package cmd
 import (
 	"bufio"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	goio "io"
 	"os"
@@ -195,15 +194,15 @@ func readAnnotateNameMap(annotateInputMap string) ([][]string, error) {
 	for e == nil {
 		cols := strings.Split(line, ":")
 		if len(cols) != 2 {
-			return outmap, errors.New(fmt.Sprintf("Map file does not have 2 fields separated by \":\" at line: %d", nl))
+			return outmap, fmt.Errorf("Map file does not have 2 fields separated by \":\" at line: %d", nl)
 		}
 		if len(cols[0]) == 0 {
-			return outmap, errors.New(fmt.Sprintf("Internal node name must have length > 0 at line : %d", nl))
+			return outmap, fmt.Errorf("Internal node name must have length > 0 at line : %d", nl)
 		}
 
 		cols2 := strings.Split(cols[1], ",")
 		if len(cols2) < 1 {
-			return outmap, errors.New(fmt.Sprintf("More than one taxon must be given for an ancestral node: node %s at line: %d", cols[0], nl))
+			return outmap, fmt.Errorf("More than one taxon must be given for an ancestral node: node %s at line: %d", cols[0], nl)
 		}
 		cols2 = append([]string{cols[0]}, cols2...)
 		outmap = append(outmap, cols2)

@@ -74,7 +74,7 @@ For each trees in the compared tree file, it will print tab separated values wit
 			for st := range stats {
 				if st.Err != nil {
 					/* We empty the channel if needed*/
-					for _ = range stats {
+					for range stats {
 					}
 					io.LogError(st.Err)
 					return st.Err
@@ -86,7 +86,7 @@ For each trees in the compared tree file, it will print tab separated values wit
 			for st := range stats {
 				if st.Err != nil {
 					/* We empty the channel if needed*/
-					for _ = range stats {
+					for range stats {
 					}
 					io.LogError(st.Err)
 					return st.Err

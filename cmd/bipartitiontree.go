@@ -72,7 +72,7 @@ or gotree compute bipartitiontree -i tree.nw -o outtree.nw tip1 tip2 tip3
 				return
 			}
 			if !existTip {
-				io.LogWarning(errors.New(fmt.Sprintf("Tip %s does not exist in the tree", t)))
+				io.LogWarning(fmt.Errorf("Tip %s does not exist in the tree", t))
 			} else {
 				leftTipsMap[t] = true
 				leftTips = append(leftTips, t)

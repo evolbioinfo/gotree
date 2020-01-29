@@ -6,6 +6,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version defines the version of gotree
+// It is initialized during compilation
+// with -ldflags "-X github.com/evolbioinfo/gotree/cmd.Version=Major.Minor..."
 var Version string
 
 // versionCmd represents the version command

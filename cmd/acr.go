@@ -133,9 +133,8 @@ func parseTipStates(file string) (states map[string]string, err error) {
 	if strings.HasSuffix(file, ".gz") {
 		if gr, err = gzip.NewReader(f); err != nil {
 			return
-		} else {
-			r = bufio.NewReader(gr)
 		}
+		r = bufio.NewReader(gr)
 	} else {
 		r = bufio.NewReader(f)
 	}

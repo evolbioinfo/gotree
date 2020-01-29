@@ -41,7 +41,7 @@ var matrixCmd = &cobra.Command{
 			mat := t.Tree.ToDistanceMatrix()
 			for i, t := range tips {
 				f.WriteString(t.Name())
-				for j, _ := range tips {
+				for j := range tips {
 					f.WriteString("\t" + fmt.Sprintf("%.12f", mat[i][j]))
 				}
 				f.WriteString("\n")

@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type EdgeStruct struct {
+type edgeStruct struct {
 	e   *tree.Edge
 	idx int
 }
@@ -37,7 +37,7 @@ The resulting trees are star trees to which we added one biparition. All branch 
 		}
 
 		alltips := t.AllTipNames()
-		edges := make(chan EdgeStruct, 1000)
+		edges := make(chan edgeStruct, 1000)
 
 		go func() {
 			if deepestedge {
@@ -57,10 +57,10 @@ The resulting trees are star trees to which we added one biparition. All branch 
 						}
 					}
 				}
-				edges <- EdgeStruct{maxedge, maxid}
+				edges <- edgeStruct{maxedge, maxid}
 			} else {
 				for i, e := range t.Edges() {
-					edges <- EdgeStruct{e, i}
+					edges <- edgeStruct{e, i}
 				}
 			}
 			close(edges)

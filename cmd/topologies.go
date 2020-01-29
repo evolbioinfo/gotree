@@ -41,16 +41,15 @@ var topologiesCmd = &cobra.Command{
 		if trees, err = tree.AllTopologies(generateNbTips, generateRooted, tipNames...); err != nil {
 			io.LogError(err)
 			return
-		} else {
-			if f, err = openWriteFile(generateOutputfile); err != nil {
-				io.LogError(err)
-				return
-			}
-			for _, t := range trees {
-				f.WriteString(t.Newick() + "\n")
-			}
-			closeWriteFile(f, generateOutputfile)
 		}
+		if f, err = openWriteFile(generateOutputfile); err != nil {
+			io.LogError(err)
+			return
+		}
+		for _, t := range trees {
+			f.WriteString(t.Newick() + "\n")
+		}
+		closeWriteFile(f, generateOutputfile)
 		return
 	},
 }
