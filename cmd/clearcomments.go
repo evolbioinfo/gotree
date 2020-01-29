@@ -43,7 +43,10 @@ If both or none are given, will remove every comments.
 		}
 		defer closeWriteFile(f, outtreefile)
 
-		treefile, treechan, err = readTrees(intreefile)
+		if treefile, treechan, err = readTrees(intreefile); err != nil {
+			io.LogError(err)
+			return
+		}
 		defer treefile.Close()
 		for t := range treechan {
 			if t.Err != nil {
