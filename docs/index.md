@@ -80,6 +80,7 @@ Command                                                            | Subcommand 
 --                                                                 | yuletree          | Randomly generates Yule-Harding trees
 [matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
 [merge](commands/merge.md) ([api](api/merge.md))                   |                   | Merges two rooted trees
+[nni](commands/nni.md) ([api](api/nni.md))                   |                   | Generates all NNI neighbors from a given tree
 [prune](commands/prune.md) ([api](api/prune.md))                   |                   | Removes tips of input trees
 [reformat](commands/reformat.md) ([api](api/reformat.md))          |                   | Reformats input file
 --                                                                 | newick            | Reformats input file (nexus, newick, phyloxml) into newick
