@@ -23,6 +23,16 @@ var dlitolCmd = &cobra.Command{
 Option -c allows to give a configuration file having tab separated key value pairs, 
 as defined here:
 https://itol.embl.de/help.cgi#bExOpt
+
+Output format (--format) can be:
+
+pdf (default),
+png, 
+eps, 
+svg, 
+newick, 
+nexus and
+phyloxml
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var b []byte
