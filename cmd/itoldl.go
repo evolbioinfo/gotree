@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"errors"
-	"io/ioutil"
+	"os"
 
 	"github.com/evolbioinfo/gotree/download"
 	"github.com/evolbioinfo/gotree/io"
@@ -26,23 +26,27 @@ https://itol.embl.de/help.cgi#bExOpt
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var b []byte
+		var f *os.File
 
-		if dloutput == "" {
-			err = errors.New("Output file must be specified")
-			io.LogError(err)
-			return
-		}
 		if dltreeid == "" {
 			err = errors.New("Tree id must be specified")
 			io.LogError(err)
 			return
 		}
 		format := download.Format(dlformat)
-		if format == download.FORMAT_UNKNOWN {
+		switch format {
+		case download.IMGFORMAT_PNG, download.IMGFORMAT_EPS, download.IMGFORMAT_PDF:
+			if dloutput == "stdout" || dloutput == "-" {
+				err = errors.New("Cannot write tree image on STDOUT")
+				io.LogError(err)
+				return
+			}
+		case download.FORMAT_UNKNOWN:
 			err = errors.New("Unkown format: " + dlformat)
 			io.LogError(err)
 			return
 		}
+
 		var config map[string]string
 		if dlconfig != "" {
 			if config, err = readMapFile(dlconfig, false); err != nil {
@@ -58,7 +62,14 @@ https://itol.embl.de/help.cgi#bExOpt
 			io.LogError(err)
 			return
 		}
-		ioutil.WriteFile(dloutput, b, 0644)
+
+		if f, err = openWriteFile(dloutput); err != nil {
+			io.LogError(err)
+			return
+		}
+		f.Write(b)
+		f.WriteString("\n")
+		closeWriteFile(f, dloutput)
 		return
 	},
 }
@@ -67,6 +78,6 @@ func init() {
 	downloadCmd.AddCommand(dlitolCmd)
 	dlitolCmd.PersistentFlags().StringVarP(&dlconfig, "config", "c", "", "Itol image config file")
 	dlitolCmd.PersistentFlags().StringVarP(&dltreeid, "tree-id", "i", "", "Tree id to download")
-	dlitolCmd.PersistentFlags().StringVarP(&dlformat, "format", "f", "pdf", "Image format (png, pdf, eps, svg, newick, nexus, phyloxml)")
-	dlitolCmd.PersistentFlags().StringVarP(&dloutput, "output", "o", "", "Image output file")
+	dlitolCmd.PersistentFlags().StringVarP(&dlformat, "format", "f", "pdf", "Tree output format (png, pdf, eps, svg, newick, nexus, phyloxml)")
+	dlitolCmd.PersistentFlags().StringVarP(&dloutput, "output", "o", "stdout", "Tree output file")
 }
