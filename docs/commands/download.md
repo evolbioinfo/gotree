@@ -124,3 +124,53 @@ It should give a tree like that:
 +---------|                                                                                                   
           +---------------------------------------------------------------------------------------- Bos_taurus
 ```
+
+* Download a panther database tree:
+
+
+```bash
+gotree download panther -f PTHR10000 -o p.nw
+gotree draw text -w 100 --with-node-comment -i p.nw 
+```
+
+It should give a tree like that:
+```
+                                 +------------- SCHPO|PomBase=SPAC25B8.12c|UniProtKB=Q9UTA6[SPAC25B8.12c,Schiz
+                    +------------|[DUPLICATION,PTN004118869]                                                  
+                    |            +------------ SCHPO|PomBase=SPBC215.10|UniProtKB=O94314[SPBC215.10,Schizosacc
+                    |                                                                                         
+                    |               +---------------------- ENTHI|EnsemblGenome=EHI_168190|UniProtKB=C4M4Q5[EH
+                +---|[SPECIATION,PTN004118868]                                                                
+                |   |               |---------------------------- ENTHI|EnsemblGenome=EHI_151930|UniProtKB=C4L
+                |   |          +----|[DUPLICATION,PTN000000087]                                               
+                |   |          |    |-------------------------- ENTHI|EnsemblGenome=EHI_149870|UniProtKB=C4M9D
+                |   |          |    |                                                                         
+                |   +----------|[SPECIATION,PTN000796678]-- ENTHI|EnsemblGenome=EHI_003000|UniProtKB=C4M9L1[EH
+  +-------------|[SPECIATION,PTN002558008]                                                                    
+  |             |              |         +--- DICDI|dictyBase=DDB_G0277745|UniProtKB=Q86KT5[DDB0169374,Dictyos
+  |             |              +---------|[SPECIATION,PTN000796680]                                           
+  |             |                        +--- DICPU|Gene=DICPUDRAFT_76364|UniProtKB=F0ZDE0[DICPUDRAFT_76364,Di
+  |             |                                                                                             
+  |             |  +---------------------------- PLAF7|EnsemblGenome=PFL1260w|UniProtKB=Q8I5F6[PF3D7_1226100,P
+  |             +--|[SPECIATION,PTN004118870]                                                                 
++-|[SPECIATION,PTN004118867]---------------- THAPS|EnsemblGenome=THAPS_23626|UniProtKB=B5YNW5[THAPS_23626,Thal
+| |                                                                                                           
+| |          +--------------------- GLOVI|Gene=BAC90721|UniProtKB=Q7NGV7[gll2780,Gloeobacter violaceus,PTN0015
+| |          |                                                                                                
+| |          |                   +------------- NITMS|EnsemblGenome=Nmar_0685|UniProtKB=A9A492[Nmar_0685,Nitro
+| |          |                   |                                                                            
+| +----------|[HORIZ_TRANSFER,PTN004118871]-------------- SULSO|EnsemblGenome=SSO0094|UniProtKB=P95967[SSO0094
+|            |       +-----------|[SPECIATION,PTN004118873]4118875]                                           
+|            |       |           |       +----------------- PYRAE|EnsemblGenome=PAE3495|UniProtKB=Q8ZT04[PAE34
+|            |       |           |                                                                            
+|            |       |           |      +--------- METAC|EnsemblGenome=MA_3544|UniProtKB=Q8TK72[MA_3544,Methan
+|            +-------|[DUPLICATION,PTN004118872]                                                              
+|                    |           +------|[SPECIATION,PTN004118876]mblGenome=VNG_0718C|UniProtKB=Q9HRF9[VNG_071
+|                    |                  |                                                                     
+|                    |                  +----------- THEKO|EnsemblGenome=TK2301|UniProtKB=Q5JDB7[TK2301,Thermo
+|                    |                                                                                        
+|                    +------------------ SULSO|EnsemblGenome=SSO2157|UniProtKB=P95931[SSO2157,Sulfolobus solfa
+...
+```
+
+

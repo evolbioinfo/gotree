@@ -65,6 +65,7 @@ Command                                                            | Subcommand 
 [download](commands/download.md) ([api](api/download.md))          |                   | Downloads trees from a server
 --                                                                 | itol              | Downloads a tree image from iTOL, with given image options
 --                                                                 | ncbitax           | Downloads the full ncbi taxonomy from NCBI ftp server and cinverts it in Newick
+--                                                                 | panther           | Downloads a tree from Panther database (http://pantherdb.org/)
 [draw](commands/draw.md) ([api](api/draw.md))                      |                   | Draws tree(s) with different layouts
 --                                                                 | text              | Draws tree(s) in text/ascii format
 --                                                                 | png               | Draws tree(s) in png format

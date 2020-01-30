@@ -91,3 +91,25 @@ func main(){
 	f.Close()
 }
 ```
+
+
+#### Download a tree from Panther database
+
+```go
+package main
+
+import (
+	"github.com/evolbioinfo/gotree/download"
+)
+
+func main(){
+
+	dl := download.NewPantherTreeDownloader()
+	if t, err := dl.Download("PTHR10000"); err != nil {
+		panic(err)
+	}
+	f := openWriteFile("ncbi.nw")
+	f.WriteString(t.Newick() + "\n")
+	f.Close()
+}
+```
