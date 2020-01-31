@@ -179,12 +179,13 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * consensus: Compute the consensus from a set of input trees
     * edgetrees: Write one output tree per branch of the input tree, with only one branch
     * support: Compute bootstrap supports
-      * classical ([Felsenstein Bootstrap](https://www.jstor.org/stable/2408678))
-      * booster ([Transfer Bootstrap](https://www.nature.com/articles/s41586-018-0043-0))
+      * fbp ([Felsenstein Bootstrap](https://www.jstor.org/stable/2408678))
+      * tbe ([Transfer Bootstrap](https://www.nature.com/articles/s41586-018-0043-0))
 *  divide:      Divide an input tree file into several tree files
 *  download:     Download a tree image from a server
     * itol: download a tree image from iTOL, with given image options
     * ncbitax: Download the full ncbi taxonomy in newick format
+	* panther: Download a tree from Panther database (http://pantherdb.org/)
 *  draw: Draw tree(s) with different layouts
     * text: Display tree(s) in ASCII text format
     * png : Draw tree(s) in png format, with normal, radial/unrooted or circular layout
@@ -199,6 +200,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * yuletree
 *  matrix:      Print (patristic) distance matrix associated to the input tree
 *  merge:       Merges two rooted trees
+*  nni:         Generate all NNI neighbors from a given tree
 *  prune:       Remove tips of the input tree that are not in the compared tree, or that are given on the command line
 *  reformat: Convert input file between nexus and newick formats
     * newick
@@ -222,6 +224,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * scale       Scale branch supports from input trees by a given factor
 *  stats:       Print statistics about the tree, its edges, its nodes, if it is rooted, and its tips
     * edges
+	* monophyletic : Print wether input tips form a monophyletic group in each of the input trees
     * nodes
     * rooted
     * tips
