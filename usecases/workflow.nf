@@ -1,158 +1,192 @@
-params.dataurl="http://evolution.gs.washington.edu/book/primates.dna"
 params.nboot = 100
 params.seed=2000
 params.outpath="results"
 params.itolconfig= "data/itol_image_config.txt"
-params.mapfile="data/mapfile.txt"
+//params.mapfile="data/mapfile.txt"
 
-dataurl=params.dataurl
 nboot = params.nboot
 seed = params.seed
 outpath = file(params.outpath)
 itolconfig=file(params.itolconfig)
-mapfile=file(params.mapfile)
+//mapfile=file(params.mapfile)
 
-/**********************************/
-/*     General tree inferences    */
-/**********************************/
-
-process downloadAlignment{
-	input:
-	val dataurl
+/************************************/
+/*       Get OrthoDB sequences      */
+/* That are present in all primates */
+/*      and unique (no paralogs)    */
+/*   with "ribosomal" keyword       */
+/*         199 Proteins             */
+/************************************/
+process getOrthoDBIds{
+	publishDir "${outpath}", mode: 'copy'
 
 	output:
-	file "primates.phy" into truealign, truealigncopy
-
+	file "ids.txt" into allorthoids
+	
 	shell:
 	'''
-	wget -O primates_tmp.phy !{dataurl}
-	goalign reformat phylip -p -i primates_tmp.phy --input-strict > primates.phy
+	wget -O orthoids.json "https://v100.orthodb.org/search?query=ribosomal&level=9443&species=9443&universal=1&singlecopy=1"
+	jq '.data | join(",")' orthoids.json | sed 's/"//g' | sed 's/,/\\n/g' | sort > ids.txt
 	'''
 }
 
-process inferTrueTree{
+/* Split line by line */
+protids = allorthoids.splitText().map{ it -> it.trim() }
+
+/***********************************/
+/* Download sequences and metadata */
+/***********************************/
+process downloadSequences{
+	maxForks 1
+	tag "${id}"
+
 	input:
-	file align from truealign
-	val seed
-
-	output:
-	file "truetree.nw" into truetree, truetree2, truetreedraw, truetreecopy
-
-	shell:
-	outfile="truetree.nw"
-	template 'phyml.sh'
-}
-
-process simulAlign {
-	input:
-	file tree from truetree
-	val seed
-
-	output:
-	file "align.phy" into simualign
-
-	shell:
-	'''
-	#!/usr/bin/env bash
-	seq-gen -l 50 -mLG -z !{seed} !{tree}  > align.phy
-	'''
-}
-
-process reformatPhylip {
-	input:
-	file align from simualign
-
-	output:
-	file "align_clean.phy" into simualignphylip
-
-	shell:
-	'''
-	#!/usr/bin/env bash
-	goalign reformat phylip -p --input-strict -i !{align} > align_clean.phy
-	'''
-}
-
-simualignphylip.into{refalign1; refalign2}
-
-process inferReferenceTree{
-	input:
-	file align from refalign1
-	val seed
-
-	output:
-	file "reftree.nw" into reftree
-
-	shell:
-	outfile="reftree.nw"
-	template 'phyml.sh'
-}
-
-
-process seqBoots {
-	input:
-	file align from refalign2
-	val nboot
-	val seed
-
-	output:
-	file "bootalign_*" into bootaligns mode flatten
-
-	shell:
-	'''
-	#!/usr/bin/env bash
-
-	# Will generate 1 outfile containing all alignments
-	goalign build seqboot -n !{nboot} -i !{align} -p -o bootalign_ -S -s !{seed}
-	'''
-}
-
-process inferBootstrapTrees{
-	input:
-	file align from bootaligns
-	val seed
+	val id from protids
 	
 	output:
-	file "boot.nw" into boottree
+	set val(id), file("sequences.fasta") into sequences
 
 	shell:
-	outfile="boot.nw"
-	template 'phyml.sh'
+	template "dl_seq.sh"
 }
 
-boottree.collectFile(name: 'boottrees.nw').into{boottrees1; boottrees2; boottrees3}
+process getMapTable{
+	maxForks 1
+	tag "${id}"
 
-/**********************************/
-/*      Consensus computation     */
-/**********************************/
-process consensus {
 	input:
-	file boot from boottrees1
+	set val(id), file(seq) from sequences
 
 	output:
-	file "consensus.nw" into consensuscopy,consensusdraw
+	set val(id), file(seq), file("map.txt") into mapfile
+	file "gene.txt" into genefile
 
 	shell:
 	'''
-	#!/usr/bin/env bash
-	gotree compute consensus -f 0.5 -i !{boot} -o consensus.nw
+	wget -O align.tab https://v100.orthodb.org/tab?query=!{id}
+	cut -f 5,6 align.tab > map.txt
+	cut -f 1,2 align.tab | tail -n+2 | sort -u > gene.txt
 	'''
 }
 
-/**********************************/
-/*      Bootstrap supports        */
-/**********************************/
-process supports {
+genefile.collectFile(name: 'genes.txt').subscribe{file -> file.copyTo(outpath.resolve(file.name))}
+
+/***************************/
+/*  Cleaning, reformating  */
+/* and aligning sequences  */
+/***************************/
+process renameSequences{
+	tag "${id}"
+
 	input:
-	file ref from reftree
-	file boot from boottrees2
+	set val(id), file(sequences), file(mapfile) from mapfile
 
 	output:
-	file "support.nw" into supportcopy, supportdraw, supportannot
+	file "renamed.fasta" into renamed
 
 	shell:
 	'''
-	#!/usr/bin/env bash
-	gotree compute support classical -i !{ref} -b !{boot} -o support.nw
+	goalign rename -r -m !{mapfile} -i !{sequences} --unaligned | goalign rename --regexp " " --replace "_" --unaligned  > renamed.fasta
+	'''
+}
+
+process cleanSequences{
+	input:
+	file(sequences) from renamed
+
+	output:
+	file "cleaned.fasta" into cleaned
+
+	shell:
+	'''
+	goalign replace -s U -n X -i !{sequences} -o cleaned.fasta --unaligned
+	'''
+}
+
+process alignSequences{
+	input:
+	file cleaned
+
+	output:
+	file "aligned.fasta" into alignment
+
+	shell:
+	'''
+	mafft --quiet !{cleaned} > aligned.fasta
+	'''
+}
+
+process concatSequences {
+	input:
+	file 'align_fasta' from alignment.toList()
+
+	output:
+	file "concat.fasta" into concat
+
+	shell:
+	'''
+	goalign concat -o concat.fasta -i none align_fasta*
+	'''
+}
+
+process cleanAlign {
+	input:
+	file align from concat
+
+	output:
+	file "cleanalign.fasta" into cleanalign
+
+	shell:
+	'''
+	BMGE -i !{align} -t AA -m BLOSUM62 -w 3 -g 0.2 -h 0.5  -b 5 -of cleanalign.fasta
+	'''
+}
+
+process reformatAlignment{
+	input:
+	file cleanalign
+
+	output:
+	file "aligned.phylip" into alignmentphylip
+
+	shell:
+	'''
+	goalign reformat phylip -i !{cleanalign} -o aligned.phylip
+	'''
+}
+
+/***************************/
+/*     Inferring tree      */
+/***************************/
+process inferTrueTree{
+	publishDir "${outpath}", mode: 'copy'
+
+	input:
+	file align from alignmentphylip
+	val seed
+
+	output:
+	file "tree.nw" into tree, tree2
+
+	shell:
+	'''
+	iqtree -s !{align} -seed !{seed} -m MFP -b 100 -nt !{task.cpus}
+	mv *.treefile tree.nw
+	'''
+}
+
+process rerootTree{
+	publishDir "${outpath}", mode: 'copy'
+
+	input:
+	file tree from tree2
+
+	output:
+	file "rerooted.nw" into reroottree1, reroottree2
+
+	shell:
+	'''
+	gotree reroot outgroup -i !{tree} -o rerooted.nw Otolemur_garnettii Microcebus_murinus Propithecus_coquereli 
 	'''
 }
 
@@ -170,39 +204,10 @@ process downloadNewickTaxonomy {
 	'''
 }
 
-process rerootSupport{
-	input:
-	file support from supportannot
-
-	output:
-	file "rerooted_support.nw" into rerootedsupportncbi
-
-	shell:
-	'''
-	#!/usr/bin/env bash
-	gotree reroot outgroup -i !{support} Mouse Bovine > rerooted_support.nw
-	'''
-}
-
-process renameSupport {
-	input:
-	file tree from rerootedsupportncbi
-	file mapfile from mapfile
-	
-	output:
-	file "renamed_support.nw" into renamedsupport1, renamedsupport2
-
-	shell:
-	'''
-	#!/usr/bin/env bash	
-	gotree rename -i !{tree} -m !{mapfile} -o renamed_support.nw
-	'''
-}
-
 process pruneNCBITax {
 
 	input:
-	file tree from renamedsupport1
+	file tree from tree
 	file ncbi from ncbitax
 
 	output:
@@ -215,132 +220,79 @@ process pruneNCBITax {
 	'''
 }
 
-process annotateSupportTree{
+process rerootNCBITax {
+
 	input:
-	file renamed from renamedsupport2
-	file ncbi from ncbipruned
+	file tree from ncbipruned
 
 	output:
-	file "annotated_support.nw" into annotatedsupport, annotatedsupportcopy
+	file "ncbi_rerooted.nw" into ncbirerooted1, ncbirerooted2
 
 	shell:
 	'''
 	#!/usr/bin/env bash
-	gotree annotate -i !{renamed} -c !{ncbi} -o annotated_support.nw
+	gotree reroot outgroup -i !{tree} -o ncbi_rerooted.nw Otolemur_garnettii Microcebus_murinus Propithecus_coquereli 
 	'''
 }
 
+process annotateTree{
+	publishDir "${outpath}", mode: 'copy'
 
-/***********************************/
-/* Comparison of bootstrap trees   */
-/*       With reference tree       */
-/***********************************/
-process compareTrees {
 	input:
-	file ref from truetree2
-	file boot from boottrees3
+	file tree from reroottree1
+	file ncbi from ncbirerooted1
 
 	output:
-	file "common.txt" into compare
+	file "annotated.nw" into annotated
 
 	shell:
 	'''
 	#!/usr/bin/env bash
-	gotree compare trees -i !{ref} -c !{boot} > common.txt
+	gotree annotate -i !{tree} -c !{ncbi} -o annotated.nw
 	'''
 }
 
-process histCommonbranches {
+process compareTrees{
+	publishDir "${outpath}", mode: 'copy'
+
 	input:
-	file compare 
+	file tree from reroottree2
+	file ncbi from ncbirerooted2
 
 	output:
-	file "*.svg" into comparehist
-
-	shell:
-	'''
-	#!/usr/bin/env Rscript
-
-	comp=read.table("!{compare}",header=T)
-	svg("common.svg",width=14,height=7)
-	hist(100-comp$common*100/(comp$common+comp$reference),main="Distribution of distances",xlab="% Common branches")
-	dev.off()
-	'''
-}
-
-
-/**********************************************/
-/*               Tree drawing                 */
-/**********************************************/
-
-// Reroot the trees to draw using an outgroup
-process reroot{
-	input:
-	file tree from truetreedraw.mix(consensusdraw, supportdraw)
-
-	output:
-	file "${tree.baseName}_reroot.nw" into treestodraw, treestodrawitol
-
-	shell:
-	'''
-	#/usr/bin/env bash
-	gotree reroot outgroup -i !{tree} Mouse Bovine > !{tree.baseName}_reroot.nw
-	'''
-}
-
-process drawTree {
-	input:
-	file tree from treestodraw.mix(annotatedsupport)
-
-	output:
-	file "*.svg" into treeimages
+	file "tree_comparison.txt" into comparison
 
 	shell:
 	'''
 	#!/usr/bin/env bash
-	gotree draw svg -i !{tree} -w 1000 -H 1000 --with-branch-support --with-node-labels --support-cutoff 0.7 -o !{tree}.svg
+	gotree compare trees -i !{tree} -c !{ncbi} > tree_comparison.txt
 	'''
 }
 
-process uploadiTOL{
+
+/**********************************/
+/*      Uploading tree to ITol    */
+/*       Downloading the image    */
+/**********************************/
+process uploadTree{
+	publishDir "${outpath}", mode: 'copy'
+
 	input:
-	file tree from treestodrawitol
+	file tree from annotated
 	file itolconfig
 
 	output:
-	file "*.txt" into iTOLurl
-	file "*.svg" into iTOLimage
+	file "tree_url.txt" into iTOLurl
+	file "tree_image.svg" into iTOLimage
 
 	shell:
 	'''
 	#!/usr/bin/env bash
 	# Upload the tree
-	gotree upload itol --name "consensustree" -i !{tree} > !{tree}_url.txt
+	gotree upload itol --name "AnnotatedTree" -i !{tree} > tree_url.txt
 	# We get the iTOL id
-	ID=$(basename $(cat !{tree}_url.txt ))
+	ID=$(basename $(cat tree_url.txt ))
 	# We Download the image with options defined in data/itol_image_config.txt
-	gotree download itol -c !{itolconfig} -f svg -o !{tree}_itol.svg -i $ID
+	gotree download itol -c !{itolconfig} -f svg -o tree_image.svg -i $ID
 	'''
-}
-
-/*********************************************/
-/*                File  COPY                 */
-/*********************************************/
-truetreecopy.mix(consensuscopy, supportcopy, annotatedsupportcopy, truealigncopy).subscribe{
-	f -> f.copyTo(outpath.resolve(f.name))
-}
-treeimages.subscribe{
-	f -> f.copyTo(outpath.resolve(f.name))
-}
-
-iTOLurl.subscribe{
-	f -> f.copyTo(outpath.resolve(f.name))
-}
-
-iTOLimage.subscribe{
-	f -> f.copyTo(outpath.resolve(f.name))
-}
-
-comparehist.subscribe{
-	f -> f.copyTo(outpath.resolve(f.name))
 }

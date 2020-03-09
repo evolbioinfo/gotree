@@ -5,13 +5,7 @@ ignore_branch_length	0
 vertical_shift_factor	1
 horizontal_scale_factor	1
 bootstrap_display	1
-bootstrap_type	1
-bootstrap_symbol	1
-bootstrap_slider_min	0.7
-bootstrap_slider_max	1
-bootstrap_symbol_min	15
-bootstrap_symbol_max	15
-bootstrap_symbol_color	#c8c7fc
+bootstrap_type	2
 current_font_size	20
 line_width	4
 inverted	0
