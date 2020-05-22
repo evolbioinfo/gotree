@@ -30,16 +30,12 @@ func FBP(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int, sup *Support
 	var ntrees int32 = 0
 	foundEdges := make(chan int, 100)
 	foundBoot := make([]int, len(edges))
-	edgeIndex := tree.NewEdgeIndex(uint64(len(edges)*2), 0.75)
-	for i, e := range edges {
+	for _, e := range edges {
 		if !e.Right().Tip() {
 			e.Right().SetName("")
 		}
 		if !e.Left().Tip() {
 			e.Left().SetName("")
-		}
-		if err = edgeIndex.PutEdgeValue(e, i, e.Length()); err != nil {
-			return err
 		}
 	}
 	var wg sync.WaitGroup
@@ -48,6 +44,7 @@ func FBP(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int, sup *Support
 		go func(cpu int) {
 			var inerr error
 			for treeV := range boottrees {
+				edgeIndex := tree.NewEdgeIndex(uint64(len(edges)*2), 0.75)
 				if sup.Canceled() {
 					break
 				}
@@ -65,12 +62,18 @@ func FBP(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int, sup *Support
 					}
 					atomic.AddInt32(&ntrees, 1)
 					edges2 := treeV.Tree.Edges()
-					for _, e2 := range edges2 {
+					for i, e2 := range edges2 {
 						if !e2.Right().Tip() {
-							val, ok := edgeIndex.Value(e2)
-							if ok {
-								foundEdges <- val.Count
+							if inerr = edgeIndex.PutEdgeValue(e2, i, e2.Length()); inerr != nil {
+								err = inerr
+								return
 							}
+						}
+					}
+					for i, e := range edges {
+						_, ok := edgeIndex.Value(e)
+						if ok {
+							foundEdges <- i
 						}
 					}
 				}
@@ -85,12 +88,13 @@ func FBP(reftree *tree.Tree, boottrees <-chan tree.Trees, cpus int, sup *Support
 		close(foundEdges)
 	}()
 
-	for edge_i := range foundEdges {
-		foundBoot[edge_i]++
+	for edgeI := range foundEdges {
+		foundBoot[edgeI]++
 	}
 
 	for i, count := range foundBoot {
 		if !edges[i].Right().Tip() {
+			//fmt.Printf("%d: %d/%d\n", i, count, ntrees)
 			edges[i].SetSupport(float64(count) / float64(ntrees))
 		}
 	}
