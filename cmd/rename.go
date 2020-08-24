@@ -14,6 +14,8 @@ var autorename bool
 var autorenamelength int
 var renameInternalNodes bool
 var renameTips bool
+var removeQuotes bool
+var addQuotes bool
 var renameRegex string
 var renameReplaceBy string
 
@@ -63,6 +65,9 @@ var renameCmd = &cobra.Command{
   this will replace all matches of 'Tip(\d+)' with 'Leaf$1', with $1 being the matched string 
   inside ().
 
+* If --add-quotes is specified, then output names will be surrounded by ''
+
+* If --rm-quotes is specified, starting or ending quotes are removed.
 
 Warning: If after this rename, several tips/nodes have the same name, subsequent commands may 
 fail.
@@ -91,7 +96,12 @@ If --internal is specified, then internal nodes are renamed;
 			return
 		}
 
-		if !autorename && !setregex {
+		if autorename || setregex || removeQuotes || addQuotes {
+			if autorenamelength < 5 {
+				autorenamelength = 5
+			}
+			namemap = make(map[string]string)
+		} else {
 			// Read map file
 			if mapfile == "none" {
 				err = errors.New("map file is not given")
@@ -103,11 +113,6 @@ If --internal is specified, then internal nodes are renamed;
 				io.LogError(err)
 				return
 			}
-		} else {
-			if autorenamelength < 5 {
-				autorenamelength = 5
-			}
-			namemap = make(map[string]string)
 		}
 
 		if f, err = openWriteFile(outtreefile); err != nil {
@@ -140,6 +145,16 @@ If --internal is specified, then internal nodes are renamed;
 					io.LogError(err)
 					return
 				}
+			} else if addQuotes {
+				if err = tr.Tree.AddQuotes(renameInternalNodes, renameTips, namemap); err != nil {
+					io.LogError(err)
+					return
+				}
+			} else if removeQuotes {
+				if err = tr.Tree.RemoveQuotes(renameInternalNodes, renameTips, namemap); err != nil {
+					io.LogError(err)
+					return
+				}
 			} else {
 				if err = tr.Tree.Rename(namemap); err != nil {
 					io.LogError(err)
@@ -150,7 +165,7 @@ If --internal is specified, then internal nodes are renamed;
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 
-		if (autorename || setregex) && mapfile != "none" {
+		if (autorename || setregex || removeQuotes || addQuotes) && mapfile != "none" {
 			if err = writeNameMap(namemap, mapfile); err != nil {
 				io.LogError(err)
 				return
@@ -166,6 +181,8 @@ func init() {
 	renameCmd.Flags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	renameCmd.Flags().BoolVar(&renameInternalNodes, "internal", false, "Internal nodes are taken into account")
 	renameCmd.Flags().BoolVar(&renameTips, "tips", true, "Tips are taken into account (--tips=false to cancel)")
+	renameCmd.Flags().BoolVar(&addQuotes, "add-quotes", false, "Add quotes arround tip/node names")
+	renameCmd.Flags().BoolVar(&removeQuotes, "rm-quotes", false, "Remove quotes arround tip/node names (priority over --rm-quotes)")
 	renameCmd.Flags().StringVarP(&mapfile, "map", "m", "none", "Tip name map file")
 	renameCmd.Flags().StringVarP(&renameRegex, "regexp", "e", "none", "Regexp to get matching tip/node names")
 	renameCmd.Flags().StringVarP(&renameReplaceBy, "replace", "b", "none", "String replacement to the given regexp")

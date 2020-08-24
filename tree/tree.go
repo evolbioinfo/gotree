@@ -1492,6 +1492,84 @@ func (t *Tree) RenameRegexp(internals, tips bool, regex, replace string, namemap
 	return nil
 }
 
+// RemoveQuotes removes potential single and double quotes surrounding tip and/or internal node names
+//
+// internals: Remove quotes at internal nodes names
+// tips: Remove quotes at tips names
+func (t *Tree) RemoveQuotes(internals, tips bool, namemap map[string]string) error {
+	for _, n := range t.Nodes() {
+		if (tips && n.Tip()) || (internals && !n.Tip()) {
+			name := n.Name()
+			first := name[0]
+			last := name[len(name)-1]
+			firstpos := 0
+			lastpos := len(name)
+			if first == '\'' || first == '"' {
+				firstpos = 1
+			}
+			if last == '\'' || last == '"' {
+				lastpos = lastpos - 1
+			}
+			newname := name[firstpos:lastpos]
+			n.SetName(newname)
+			namemap[name] = newname
+		}
+	}
+	// After we update bitsets if any, and node indexes
+	//t.ReinitIndexes()
+	if err := t.UpdateTipIndex(); err != nil {
+		return err
+	}
+	// err := t.ClearBitSets()
+	// if err != nil {
+	// 	return err
+	// }
+	// t.UpdateBitSet()
+	return nil
+}
+
+// AddQuotes adds quotes arround tip and/or internal node names.
+//
+// If a single quote is already present at the beginning or at the end, it
+// leaves it unchanged.
+//
+// If a double quote is already present at the bebinning or at the end, it
+// is replaced by a single quote
+//
+// internals: Adds quotes at internal nodes
+// tips: Adds quotes at tips
+func (t *Tree) AddQuotes(internals, tips bool, namemap map[string]string) error {
+	for _, n := range t.Nodes() {
+		if (tips && n.Tip()) || (internals && !n.Tip()) {
+			name := n.Name()
+			first := name[0]
+			last := name[len(name)-1]
+			firstpos := 0
+			lastpos := len(name)
+			if first == '\'' || first == '"' {
+				firstpos = 1
+			}
+			if last == '\'' || last == '"' {
+				lastpos = lastpos - 1
+			}
+			newname := fmt.Sprintf("'%s'", name[firstpos:lastpos])
+			n.SetName(newname)
+			namemap[name] = newname
+		}
+	}
+	// After we update bitsets if any, and node indexes
+	//t.ReinitIndexes()
+	if err := t.UpdateTipIndex(); err != nil {
+		return err
+	}
+	// err := t.ClearBitSets()
+	// if err != nil {
+	// 	return err
+	// }
+	// t.UpdateBitSet()
+	return nil
+}
+
 // Clone the given node, copy attributes of the given
 // node into a new node
 func (t *Tree) CopyNode(n *Node) *Node {
@@ -1559,7 +1637,7 @@ func (t *Tree) copyTreeRecur(copytree *Tree, copynode, node *Node, edge *Edge) {
 	}
 }
 
-// Assumes that the tree is rooted.
+// SubTree Assumes that the tree is rooted.
 //
 // Otherwise, will consider the pseudo root
 // defined by the initial newick file
@@ -1576,7 +1654,7 @@ func (t *Tree) SubTree(n *Node) *Tree {
 	return (subtree)
 }
 
-// Merges Two rooted trees t and t2 in t by adding a new root node with two children
+// Merge merges Two rooted trees t and t2 in t by adding a new root node with two children
 // Corresponding to the roots of the 2 trees.
 //
 // If one of the tree is not rooted, returns an error.
@@ -1616,7 +1694,7 @@ func (t *Tree) Merge(t2 *Tree) error {
 	return nil
 }
 
-// Returns the deepest edge of the tree (considered unrooted)
+// DeepestEdge returns the deepest edge of the tree (considered unrooted)
 // in terms of number of tips on the light side of it.
 //
 // It does not use bitsets, thus they may be uninitialized.
