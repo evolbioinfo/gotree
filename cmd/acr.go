@@ -18,6 +18,7 @@ import (
 
 var acrstates string
 var acrrandomresolve bool // Resolve ambiguities randomly in the downpass/deltran/acctran algo
+var outstepfile string
 
 // acrCmd represents the acr command
 var acrCmd = &cobra.Command{
@@ -46,7 +47,9 @@ randomly before going deeper in the tree.
 		var resfile *os.File
 		var treefile goio.Closer
 		var treechan <-chan tree.Trees
+		var nsteps int
 		var f *os.File
+		var outstepsf *os.File
 
 		switch strings.ToLower(parsimonyAlgo) {
 		case "acctran":
@@ -80,6 +83,11 @@ randomly before going deeper in the tree.
 			return
 		}
 		defer closeWriteFile(f, outtreefile)
+		if outstepsf, err = openWriteFile(outstepfile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(outstepsf, outstepfile)
 
 		if outresfile != "none" {
 			if resfile, err = openWriteFile(outresfile); err != nil {
@@ -89,12 +97,13 @@ randomly before going deeper in the tree.
 			defer closeWriteFile(resfile, outresfile)
 		}
 		for t := range treechan {
-			statemap, err = acr.ParsimonyAcr(t.Tree, tipstates, algo, acrrandomresolve)
+			statemap, nsteps, err = acr.ParsimonyAcr(t.Tree, tipstates, algo, acrrandomresolve)
 			if err != nil {
 				io.LogError(err)
 				return
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
+			fmt.Fprintf(outstepsf, "steps %d\n", nsteps)
 			if outresfile != "none" {
 				for k, v := range statemap {
 					resfile.WriteString(fmt.Sprintf("%s,%s\n", k, v))
@@ -111,6 +120,7 @@ func init() {
 	acrCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	acrCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
 	acrCmd.PersistentFlags().StringVar(&outresfile, "out-states", "none", "Output mapping file between node names and states")
+	acrCmd.PersistentFlags().StringVar(&outstepfile, "out-steps", "stdout", "Output file with number of parsimony steps")
 	acrCmd.PersistentFlags().StringVar(&parsimonyAlgo, "algo", "acctran", "Parsimony algorithm for resolving ambiguities: acctran, deltran, or downpass")
 	acrCmd.PersistentFlags().BoolVar(&acrrandomresolve, "random-resolve", false, "Random resolve states when several possibilities in: acctran, deltran, or downpass")
 }

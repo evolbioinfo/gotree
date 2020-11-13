@@ -2,7 +2,6 @@ package asr
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"math/rand"
 
@@ -22,8 +21,7 @@ const (
 // Computed using parsimony
 // Sequences will be located in the comment field of each node
 // at the first index
-func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool) error {
-	var err error
+func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool) (nsteps []int, err error) {
 	var nodes []*tree.Node = t.Nodes()
 	var seqs []*AncestralSequence = make([]*AncestralSequence, len(nodes))
 	var upseqs []*AncestralSequence = make([]*AncestralSequence, len(nodes)) // Upside seqs of each  node
@@ -34,21 +32,23 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool)
 		charToIndex[c] = i
 	}
 
+	nsteps = make([]int, a.Length())
+
 	// We initialize all ancestral sequences
 	// And sequences at tips
 	for i, n := range nodes {
 		n.SetId(i)
 		if seqs[i], err = NewAncestralSequence(a.Length(), len(a.AlphabetCharacters())); err != nil {
-			return err
+			return nil, err
 		}
 		if upseqs[i], err = NewAncestralSequence(a.Length(), len(a.AlphabetCharacters())); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	err = parsimonyUPPASS(t.Root(), nil, a, seqs, charToIndex)
+	err = parsimonyUPPASS(t.Root(), nil, a, seqs, nsteps, charToIndex)
 	if err != nil {
-		return err
+		return
 	}
 
 	switch algo {
@@ -60,36 +60,38 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool)
 	case ALGO_ACCTRAN:
 		parsimonyACCTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve)
 	default:
-		return fmt.Errorf("Parsimony algorithm %d unkown", algo)
+		err = fmt.Errorf("Parsimony algorithm %d unkown", algo)
+		return
 	}
 
 	assignSequencesToTree(t, seqs, a.AlphabetCharacters())
-	return nil
+	return
 }
 
 // First step of the parsimony computatation: From tips to root
-func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int) error {
+func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, nsteps []int, charToIndex map[rune]int) (err error) {
 	// If it is a tip, we initialize the ancestral sequences using the current
 	// Sequence in the alignment. If no such sequence exists in the alignment,
 	// then returns an error
 	if cur.Tip() {
 		seq, ok := a.GetSequenceChar(cur.Name())
 		if !ok {
-			return errors.New(fmt.Sprintf("Sequence %s does not exist in the alignment", cur.Name()))
+			err = fmt.Errorf("Sequence %s does not exist in the alignment", cur.Name())
+			return
 		}
 		for j, c := range seq {
 			charindex, ok := charToIndex[c]
 			if ok {
 				seqs[cur.Id()].seq[j].counts[charindex] = 1
 			} else {
-				io.LogWarning(errors.New(fmt.Sprintf("Character %c does not exist in the alphabet, ignoring the state", c)))
+				io.LogWarning(fmt.Errorf("Character %c does not exist in the alphabet, ignoring the state", c))
 			}
 		}
 	} else {
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				if err := parsimonyUPPASS(child, cur, a, seqs, charToIndex); err != nil {
-					return err
+				if err = parsimonyUPPASS(child, cur, a, seqs, nsteps, charToIndex); err != nil {
+					return
 				}
 			}
 		}
@@ -108,11 +110,25 @@ func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralS
 					nchild++
 				}
 			}
-
+			maxState := 0
+			max := 0.0
+			for k, c := range seqs[cur.Id()].seq[j].counts {
+				if c > max {
+					maxState = k
+					max = c
+				}
+			}
 			computeParsimony(ances, ances, nchild)
+			for _, child := range cur.Neigh() {
+				if child != prev {
+					if seqs[child.Id()].seq[j].counts[maxState] == 0 {
+						nsteps[j]++
+					}
+				}
+			}
 		}
 	}
-	return nil
+	return
 }
 
 // Second step of the parsimony computatation: From root to tips
@@ -201,14 +217,8 @@ func computeParsimony(neighborStates AncestralState, currentStates AncestralStat
 		}
 	}
 	for k, c := range neighborStates.counts {
-		if int(max) == nchild && c == max {
+		if c == max {
 			// We have a characters shared by all neighbors and parent: Intersection ok
-			currentStates.counts[k] = 1
-		} else if int(max) == 1 && c > 0 {
-			// Else we have no intersection between any children: take union
-			currentStates.counts[k] = 1
-		} else if int(max) < nchild && c > 1 {
-			// Else we have a character shared by at least 2 children: OK
 			currentStates.counts[k] = 1
 		} else {
 			// Else we do not take it

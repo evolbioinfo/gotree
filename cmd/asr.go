@@ -21,6 +21,7 @@ var asralign string
 var asrphylip bool
 var asrinputstrict bool
 var asrrandomresolve bool // Resolve ambiguities randomly in the downpass/deltran/acctran algo
+var outlogfile string
 
 // asrCmd represents the asr command
 var asrCmd = &cobra.Command{
@@ -50,6 +51,8 @@ randomly before going deeper in the tree.
 		var treefile goio.Closer
 		var treechan <-chan tree.Trees
 		var f *os.File
+		var logf *os.File
+		var nsteps []int
 
 		switch strings.ToLower(parsimonyAlgo) {
 		case "acctran":
@@ -100,13 +103,23 @@ randomly before going deeper in the tree.
 			return
 		}
 		defer closeWriteFile(f, outtreefile)
+		if logf, err = openWriteFile(outlogfile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(logf, outlogfile)
 
 		for t := range treechan {
-			err = asr.ParsimonyAsr(t.Tree, align, algo, asrrandomresolve)
+			nsteps, err = asr.ParsimonyAsr(t.Tree, align, algo, asrrandomresolve)
 			if err != nil {
 				io.LogError(err)
 				return
 			}
+			fmt.Fprintf(logf, "steps")
+			for _, s := range nsteps {
+				fmt.Fprintf(logf, " %d", s)
+			}
+			fmt.Fprintf(logf, "\n")
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		return
@@ -120,6 +133,7 @@ func init() {
 	asrCmd.PersistentFlags().BoolVar(&asrinputstrict, "input-strict", false, "Strict phylip input format (only used with -p)")
 	asrCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	asrCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
+	asrCmd.PersistentFlags().StringVar(&outlogfile, "log", "stdout", "Output log file")
 	asrCmd.PersistentFlags().StringVar(&parsimonyAlgo, "algo", "acctran", "Parsimony algorithm for resolving ambiguities: acctran, deltran, or downpass")
 	asrCmd.PersistentFlags().BoolVar(&asrrandomresolve, "random-resolve", false, "Random resolve states when several possibilities in: acctran, deltran, or downpass")
 }

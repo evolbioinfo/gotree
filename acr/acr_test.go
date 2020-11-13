@@ -54,9 +54,13 @@ func TestACRDELTRANParsimony(t *testing.T) {
 	}
 
 	// Test UPPASS
-	err = parsimonyUPPASS(tr.Root(), nil, tipstates, states, stateIndices)
+	nsteps := 0
+	nsteps, err = parsimonyUPPASS(tr.Root(), nil, tipstates, states, stateIndices)
 	if err != nil {
 		t.Error(err)
+	}
+	if nsteps != 4 {
+		t.Error(fmt.Errorf("Number of pars steps id %d and should be %d", nsteps, 4))
 	}
 	testCheckStates(t, 2, ni, "t1", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t2", states, stateIndices, "A")
@@ -172,10 +176,15 @@ func TestACRACCTRANParsimony(t *testing.T) {
 	}
 
 	// Test UPPASS
-	err = parsimonyUPPASS(tr.Root(), nil, tipstates, states, stateIndices)
+	nsteps := 0
+	nsteps, err = parsimonyUPPASS(tr.Root(), nil, tipstates, states, stateIndices)
 	if err != nil {
 		t.Error(err)
 	}
+	if nsteps != 4 {
+		t.Error(fmt.Errorf("Number of pars steps id %d and should be %d", nsteps, 4))
+	}
+
 	testCheckStates(t, 2, ni, "t1", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t2", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t3", states, stateIndices, "B")
@@ -255,10 +264,13 @@ func TestALLDELTRAN(t *testing.T) {
 		t.Error(err)
 	}
 
-	statemap, err := ParsimonyAcr(tr, tipstates, ALGO_DELTRAN, false)
+	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_DELTRAN, false)
 
 	if err != nil {
 		t.Error(err)
+	}
+	if nsteps != 4 {
+		t.Error(fmt.Errorf("Number of pars steps id %d and should be %d", nsteps, 4))
 	}
 	testCheckMap(t, "t6", statemap, "A")
 	testCheckMap(t, "t7", statemap, "A")
@@ -303,9 +315,12 @@ func TestALLDOWNPASS(t *testing.T) {
 		t.Error(err)
 	}
 
-	statemap, err := ParsimonyAcr(tr, tipstates, ALGO_DOWNPASS, false)
+	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_DOWNPASS, false)
 	if err != nil {
 		t.Error(err)
+	}
+	if nsteps != 4 {
+		t.Error(fmt.Errorf("Number of pars steps id %d and should be %d", nsteps, 4))
 	}
 	testCheckMap(t, "t6", statemap, "A", "B")
 	testCheckMap(t, "t7", statemap, "A", "B")
@@ -351,9 +366,12 @@ func TestALLACCTRAN(t *testing.T) {
 		t.Error(err)
 	}
 
-	statemap, err := ParsimonyAcr(tr, tipstates, ALGO_ACCTRAN, false)
+	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_ACCTRAN, false)
 	if err != nil {
 		t.Error(err)
+	}
+	if nsteps != 4 {
+		t.Error(fmt.Errorf("Number of pars steps id %d and should be %d", nsteps, 4))
 	}
 	testCheckMap(t, "t6", statemap, "B")
 	testCheckMap(t, "t7", statemap, "B")

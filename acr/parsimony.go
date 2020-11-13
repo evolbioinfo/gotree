@@ -2,7 +2,6 @@ package acr
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -29,9 +28,9 @@ const (
 // If ALGO_ACCTRAN, then executes UPPASS and ACCTRAN
 // Returns a map with the states of all nodes. If a node has a name, key is its name, if a node has no name,
 // the key will be its id in the deep first traversal of the tree.
+// Also returns the number of parsimony steps
 // if randomResolve is true, then in the second pass, each ambiguities will be resolved randomly
-func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, randomResolve bool) (map[string]string, error) {
-	var err error
+func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, randomResolve bool) (nametostates map[string]string, nsteps int, err error) {
 	var nodes []*tree.Node = t.Nodes()
 	var states []AncestralState = make([]AncestralState, len(nodes))   // Downside states of each node
 	var upstates []AncestralState = make([]AncestralState, len(nodes)) // Upside states of each  node
@@ -54,9 +53,9 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 		upstates[i] = make(AncestralState, len(alphabet))
 	}
 
-	err = parsimonyUPPASS(t.Root(), nil, tipCharacters, states, stateIndices)
+	nsteps, err = parsimonyUPPASS(t.Root(), nil, tipCharacters, states, stateIndices)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	switch algo {
@@ -70,36 +69,40 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 	case ALGO_NONE:
 		// No pass after uppass
 	default:
-		return nil, fmt.Errorf("Parsimony algorithm %d unkown", algo)
+		err = fmt.Errorf("Parsimony algorithm %d unkown", algo)
+		return
 	}
 
-	nametostates := buildInternalNamesToStatesMap(t, states, alphabet)
+	nametostates = buildInternalNamesToStatesMap(t, states, alphabet)
 	assignStatesToTree(t, states, alphabet)
-	return nametostates, nil
+	return
 }
 
 // First step of the parsimony computatation: From tips to root
-func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, states []AncestralState, stateIndices map[string]int) error {
+func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, states []AncestralState, stateIndices map[string]int) (nsteps int, err error) {
+	nsteps = 0
+	tempsteps := 0
 	// If it is a tip, we initialize the ancestral state using the current
 	// state in the alignment. If no such tip name exists in the mapping file,
 	// then returns an error
 	if cur.Tip() {
 		state, ok := tipCharacters[cur.Name()]
 		if !ok {
-			return errors.New(fmt.Sprintf("Tip %s does not exist in the tip/state mapping file", cur.Name()))
+			return 0, fmt.Errorf("Tip %s does not exist in the tip/state mapping file", cur.Name())
 		}
 		stateindex, ok := stateIndices[state]
 		if ok {
 			states[cur.Id()][stateindex] = 1
 		} else {
-			return errors.New(fmt.Sprintf("State %s does not exist in the alphabet, ignoring the state", state))
+			return 0, fmt.Errorf("State %s does not exist in the alphabet, ignoring the state", state)
 		}
 	} else {
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				if err := parsimonyUPPASS(child, cur, tipCharacters, states, stateIndices); err != nil {
-					return err
+				if tempsteps, err = parsimonyUPPASS(child, cur, tipCharacters, states, stateIndices); err != nil {
+					return 0, err
 				}
+				nsteps += tempsteps
 			}
 		}
 
@@ -117,9 +120,27 @@ func parsimonyUPPASS(cur, prev *tree.Node, tipCharacters map[string]string, stat
 				nchild++
 			}
 		}
+		maxState := 0
+		max := 0.0
+		for k, c := range states[cur.Id()] {
+			if c > max {
+				maxState = k
+				max = c
+			}
+		}
 		computeParsimony(states[cur.Id()], states[cur.Id()], nchild)
+		// We keep one of the states having the max occurence
+		// We sum the number of children that does not have this state
+		// it will give the additionnal number of parsimony steps
+		for _, child := range cur.Neigh() {
+			if child != prev {
+				if states[child.Id()][maxState] == 0 {
+					nsteps++
+				}
+			}
+		}
 	}
-	return nil
+	return nsteps, nil
 }
 
 // Second step of the parsimony computation: From root to tips
@@ -194,7 +215,8 @@ func parsimonyDOWNPASS(cur, prev *tree.Node,
 
 // Will set the most parsimonious states in the "currentStates" slice
 // using the neighbor states "neighborStates", and the number of neighbors
-func computeParsimony(neighborStates AncestralState, currentStates AncestralState, nchild int) {
+func computeParsimony(neighborStates AncestralState, currentStates AncestralState, nchild int) (nsteps int) {
+
 	// If intersection of states of children and parent is emtpy:
 	// then State of cur node ==  Union of intersection of nodes 2 by 2
 	// If state is still empty, then state of cur node is union of all states
@@ -205,20 +227,15 @@ func computeParsimony(neighborStates AncestralState, currentStates AncestralStat
 		}
 	}
 	for k, c := range neighborStates {
-		if int(max) == nchild && c == max {
+		if c == max {
 			// We have a characters shared by all neighbors and parent: Intersection ok
-			currentStates[k] = 1
-		} else if int(max) == 1 && c > 0 {
-			// Else we have no intersection between any children: take union
-			currentStates[k] = 1
-		} else if int(max) < nchild && c > 1 {
-			// Else we have a character shared by at least 2 children: OK
 			currentStates[k] = 1
 		} else {
 			// Else we do not take it
 			currentStates[k] = 0
 		}
 	}
+	return
 }
 
 // Third step of the parsimony computation for resolving ambiguities
