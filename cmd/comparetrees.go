@@ -13,6 +13,7 @@ import (
 )
 
 var comparetreeidentical bool
+var comparetreerf bool
 
 // compareCmd represents the compare command
 var compareTreesCmd = &cobra.Command{
@@ -33,6 +34,8 @@ For each trees in the compared tree file, it will print tab separated values wit
 3) The number of branches that are common to both trees
 4) The number of branches that are specific to the compared tree
 
+If --rf is given, it only computes the Robinson-Foulds distance, as the sum of 
+reference + compared specific branches.
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var treefile goio.Closer
@@ -81,6 +84,17 @@ For each trees in the compared tree file, it will print tab separated values wit
 				}
 				fmt.Printf("%d\t%v\n", st.Id, st.Sametree)
 			}
+		} else if comparetreerf {
+			for st := range stats {
+				if st.Err != nil {
+					/* We empty the channel if needed*/
+					for range stats {
+					}
+					io.LogError(st.Err)
+					return st.Err
+				}
+				fmt.Printf("%d\n", st.Tree1+st.Tree2)
+			}
 		} else {
 			fmt.Printf("tree\treference\tcommon\tcompared\n")
 			for st := range stats {
@@ -102,4 +116,5 @@ func init() {
 	compareCmd.AddCommand(compareTreesCmd)
 	compareTreesCmd.Flags().BoolVarP(&compareTips, "tips", "l", false, "Include tips in the comparison")
 	compareTreesCmd.Flags().BoolVar(&comparetreeidentical, "binary", false, "If true, then just print true (identical tree) or false (different tree) for each compared tree")
+	compareTreesCmd.Flags().BoolVar(&comparetreerf, "rf", false, "If true, outputs Robinson-Foulds distance, as the sum of reference + compared specific branches")
 }

@@ -22,7 +22,7 @@ This command compares a reference tree -given with `-i` with a set of compared t
   * For each missing tip in the compared tree, will print: `(Tree <id>) < TipName`,
   * For each missing tip in the reference tree, will print: `(Tree <id>) > TipName`,
   * Then print the number of common tips: `(Tree <id>) = <nb common>`,
-* `gotree compare trees`: Compares the reference tree with all the compared trees, in terms of common bi-partitions. Output is tab separated with:
+* `gotree compare trees`: Compares the reference tree with all the compared trees, in terms of common bi-partitions. If `--rf` option is given, only "number of branches specific to reference tree" + "number of branches specific to compared tree" is given. Otherwise, the output is tab separated with the following columns:
  1. Compared tree index;
  2. Number of branches specific to the reference tree;
  3. Number of common branches between reference and compared trees;
@@ -77,6 +77,7 @@ Usage:
 Flags:
       --binary   If true, then just print true (identical tree) or false (different tree) for each compared tree
   -l, --tips     Include tips in the comparison
+  --rf           If true, outputs Robinson-Foulds distance, as the sum of reference + compared specific branches
 
 Global Flags:
   -c, --compared string   Compared trees input file (default "none")
