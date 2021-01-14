@@ -1000,7 +1000,7 @@ func (t *Tree) sortNeighbors(cur, prev *Node) int {
 
 // Collapses (removes) the branches having
 // length <= length threshold
-func (t *Tree) CollapseShortBranches(length float64) {
+func (t *Tree) CollapseShortBranches(length float64, removeRoot, removeTips bool) {
 	edges := t.Edges()
 	shortbranches := make([]*Edge, 0, 1000)
 	for _, e := range edges {
@@ -1008,12 +1008,12 @@ func (t *Tree) CollapseShortBranches(length float64) {
 			shortbranches = append(shortbranches, e)
 		}
 	}
-	t.RemoveEdges(shortbranches...)
+	t.RemoveEdges(removeRoot, removeTips, shortbranches...)
 }
 
 // Collapses (removes) the branches having
 // support < support threshold && support != NIL_SUPPORT (exists)
-func (t *Tree) CollapseLowSupport(support float64) {
+func (t *Tree) CollapseLowSupport(support float64, removeRoot bool) {
 	edges := t.Edges()
 	lowsupportbranches := make([]*Edge, 0, 1000)
 	for _, e := range edges {
@@ -1021,25 +1021,25 @@ func (t *Tree) CollapseLowSupport(support float64) {
 			lowsupportbranches = append(lowsupportbranches, e)
 		}
 	}
-	t.RemoveEdges(lowsupportbranches...)
+	t.RemoveEdges(removeRoot, false, lowsupportbranches...)
 }
 
-// Collapses (removes) the branches having their depth d
+// CollapseTopoDepth Collapses (removes) the branches having their depth d
 // (# taxa on the lightest side of the bipartition) such that
 // mindepththreshold<=d<=maxdepththreshold
-func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int) error {
+func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int, removeRoot, removeTips bool) (err error) {
+	var d int
 	edges := t.Edges()
 	depthbranches := make([]*Edge, 0, 1000)
 	for _, e := range edges {
-		if d, err := e.TopoDepth(); err != nil {
+		if d, err = e.TopoDepth(); err != nil {
 			return err
-		} else {
-			if d >= mindepthThreshold && d <= maxdepthThreshold {
-				depthbranches = append(depthbranches, e)
-			}
+		}
+		if d >= mindepthThreshold && d <= maxdepthThreshold {
+			depthbranches = append(depthbranches, e)
 		}
 	}
-	t.RemoveEdges(depthbranches...)
+	t.RemoveEdges(removeRoot, removeTips, depthbranches...)
 	return nil
 }
 
@@ -1257,20 +1257,25 @@ func (t *Tree) ClearEdgeComments() {
 	}
 }
 
-// Removes the given branches from the tree if they are not
-// tip edges and if they do not connect to the root of a rooted tree.
+// RemoveEdges removes the given branches from the tree if they are not
+// tip edges.
+// If removeRoot is true: In the case of rooted tree, branches
+// can be removed also.
 //
 // Merges the 2 nodes and creates multifurcations.
 //
 // At the end, bitsets should not need to be updated
-func (t *Tree) RemoveEdges(edges ...*Edge) {
+func (t *Tree) RemoveEdges(removeRoot, removeTips bool, edges ...*Edge) {
 	for _, e := range edges {
 		// Tip node
 		if e.Right().Tip() {
+			if removeTips {
+				e.SetLength(0.0)
+			}
 			continue
 		}
 		// Root node
-		if e.Right().Nneigh() == 2 || e.Left().Nneigh() == 2 {
+		if !removeRoot && (e.Right().Nneigh() == 2 || e.Left().Nneigh() == 2) {
 			continue
 		}
 		// Remove the edge from left and right node

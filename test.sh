@@ -245,6 +245,32 @@ ${GOTREE} generate yuletree --seed 10 | ${GOTREE} collapse length -l 0.05 | ${GO
 diff -q -b result expected
 rm -f expected result
 
+echo "->gotree collapse support root + tips"
+cat > expected <<EOF
+(A:1,B:1,C:1,D:1);
+EOF
+echo "((A:1,B:1)0.2:1,(C:1,D:1)0.1:1);" | ${GOTREE} collapse support -s 1 --root > result
+diff -q -b result expected
+rm -f expected result
+
+
+echo "->gotree collapse length root + tips"
+cat > expected <<EOF
+(A:0,B:0,C:0,D:0);
+EOF
+echo "((A:1,B:1)0.2:1,(C:1,D:1)0.1:1);" | ${GOTREE} collapse length  -l 2 --root --tips > result
+diff -q -b result expected
+rm -f expected result
+
+
+echo "->gotree collapse depth root + tips"
+cat > expected <<EOF
+(A:0,B:0,C:0,D:0);
+EOF
+echo "((A:1,B:1)0.2:1,(C:1,D:1)0.1:1);" | ${GOTREE} collapse depth  -m 0 -M 10 --root --tips > result
+diff -q -b result expected
+rm -f expected result
+
 
 # gotree collapse support
 echo "->gotree collapse support"

@@ -82,7 +82,7 @@ func TestCollapseDepth(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = tr.CollapseTopoDepth(2, 3); err != nil {
+	if err = tr.CollapseTopoDepth(2, 3, false, false); err != nil {
 		t.Error(err)
 	}
 	if tr.Newick() != "(Tip4,Tip0,Tip3,Tip2,Tip1);" {
@@ -96,7 +96,7 @@ func TestCollapseLength(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	tr.CollapseShortBranches(0.01)
+	tr.CollapseShortBranches(0.01, false, false)
 	if tr.Newick() != "(Tip4:0.1,Tip0:0.1,(Tip3:0.1,Tip2:0.2,Tip1:0.2):0.4);" {
 		t.Error(fmt.Sprintf("Tree after collapse lengths is not valid: %s", tr.Newick()))
 	}
@@ -108,7 +108,7 @@ func TestCollapseSupport(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	tr.CollapseLowSupport(0.7)
+	tr.CollapseLowSupport(0.7, false)
 	if tr.Newick() != "(Tip4,Tip0,(Tip3,Tip2,Tip1)0.9);" {
 		t.Error(fmt.Sprintf("Tree after collapse support is not valid: %s", tr.Newick()))
 	}

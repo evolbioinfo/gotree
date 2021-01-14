@@ -3,7 +3,7 @@
 ## Commands
 
 ### collapse
-This command removes branches from a set of input trees. Three subcommands :
+This command removes branches from a set of input trees.  They apply only to internal branches, and not to branches connected to the root (for rooted trees). Three subcommands :
 * `gotree collapse length`  will remove branches whose length is less than or equal to the specified length;
 * `gotree collapse support` will remove branches whose support is less than the specified support;
 * `gotree collapse depth` will remove branches whose depth is between (or equal to) given min and max depths. Here, depth is defined as the number of taxa on the lightest side of the branch.
@@ -16,6 +16,9 @@ This command removes branches from a set of input trees. Three subcommands :
            \	       \
             t2          t2
 ```
+
+- If option `--tips` is given, length of tips matching the threshold will be set to 0.0 (for `depth` and `length` commands).
+- If option `--root` is given, branches connected to the root (in the case of rooted trees) and matching the threshold will be removed (for `depth`, `length`, and `support` commands). Resulting tree may be unrooted. Also, so far the two branches connected to the root are considered independently whereas it may be more useful to consider them as a single bipartition if the tree is going to be unrooted.
 
 #### Usage
 

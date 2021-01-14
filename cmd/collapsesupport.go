@@ -10,6 +10,7 @@ import (
 )
 
 var lowSupportThreshold float64
+var supportRemoveRoot bool
 
 // collapsesupportCmd represents the collapsesupport command
 var collapsesupportCmd = &cobra.Command{
@@ -17,9 +18,13 @@ var collapsesupportCmd = &cobra.Command{
 	Short: "Collapse lowly supported branches of the input tree",
 	Long: `Collapse lowly supported branches of the input tree.
 
-Lowly supported branches are defined by a threshold (-s). All branches 
-with support < threshold are removed.
-`,
+Lowly supported branches are defined by a threshold (-s). All internal branches 
+with support < threshold and that are not connected to the root in case of rooted tree
+ are removed.
+
+ If --root is given, then it applies also to internal branches connected to the root in the case 
+ of rooted trees. This may unroot the tree.
+ `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
 		var treefile goio.Closer
@@ -38,7 +43,7 @@ with support < threshold are removed.
 				io.LogError(t.Err)
 				return t.Err
 			}
-			t.Tree.CollapseLowSupport(lowSupportThreshold)
+			t.Tree.CollapseLowSupport(lowSupportThreshold, supportRemoveRoot)
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		return
@@ -48,4 +53,6 @@ with support < threshold are removed.
 func init() {
 	collapseCmd.AddCommand(collapsesupportCmd)
 	collapsesupportCmd.Flags().Float64VarP(&lowSupportThreshold, "support", "s", 0.0, "Support cutoff to collapse branches")
+	collapsesupportCmd.Flags().BoolVar(&supportRemoveRoot, "root", false, "Applies also to branches connected to the root (may unroot the tree)")
+
 }
