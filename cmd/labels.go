@@ -10,6 +10,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var labelsNodes bool
+var labelsTips bool
+
 // labelsCmd represents the labels command
 var labelsCmd = &cobra.Command{
 	Use:   "labels",
@@ -44,8 +47,11 @@ If several trees are given in the input file, labels of all trees are listed.
 				io.LogError(t.Err)
 				return t.Err
 			}
-			for _, n := range t.Tree.Tips() {
-				f.WriteString(fmt.Sprintln(n.Name()))
+			for _, n := range t.Tree.Nodes() {
+				if (n.Tip() && labelsTips) || (!n.Tip() && labelsNodes && n.Name() != "") {
+					f.WriteString(fmt.Sprintln(n.Name()))
+
+				}
 			}
 		}
 		return
@@ -53,5 +59,7 @@ If several trees are given in the input file, labels of all trees are listed.
 }
 
 func init() {
+	labelsCmd.Flags().BoolVar(&labelsNodes, "internal", false, "Internal node labels are listed")
+	labelsCmd.Flags().BoolVar(&labelsTips, "tips", true, "Tip labels are listed (--tips=false to cancel)")
 	RootCmd.AddCommand(labelsCmd)
 }

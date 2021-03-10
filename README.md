@@ -39,9 +39,13 @@ root            +---------------- 2
 
 ```
 
-$ echo "(1,(2,(3,4,5,6)polytomy)internal)root;" | gotree labels
+```
+$ echo "(1,(2,(3,4,5,6)polytomy)internal)root;" | gotree labels --internal --tips
+root
 1
+internal
 2
+polytomy
 3
 4
 5

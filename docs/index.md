@@ -78,7 +78,7 @@ Command                                                            | Subcommand 
 --                                                                 | topologies        | Generates all possible tree topologies
 --                                                                 | uniformtree       | Randomly generates uniform trees
 --                                                                 | yuletree          | Randomly generates Yule-Harding trees
-[labels](commands/labels.md) ([api](api/labels.md))                |                   | Lists labels of tree tips
+[labels](commands/labels.md)                                       |                   | Lists labels of tree tips
 [matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
 [merge](commands/merge.md) ([api](api/merge.md))                   |                   | Merges two rooted trees
 [nni](commands/nni.md) ([api](api/nni.md))                   |                   | Generates all NNI neighbors from a given tree

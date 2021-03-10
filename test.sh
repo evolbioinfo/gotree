@@ -954,6 +954,24 @@ ${GOTREE} generate yuletree --seed 10 -n 2 | ${GOTREE} labels > result
 diff -q -b expected result
 rm -f expected result
 
+
+echo "->gotree internal labels"
+cat > expected <<EOF
+root
+1
+internal
+2
+polytomy
+3
+4
+5
+6
+EOF
+
+echo "(1,(2,(3,4,5,6)polytomy)internal)root;" | ${GOTREE} labels --internal > result
+diff -q -b expected result
+rm -f expected result
+
 echo "->gotree unroot"
 cat > expected <<EOF
 ((Tip9,Tip2),(Tip3,((((Tip8,Tip6),Tip5),Tip4),Tip1)),(Tip7,Tip0));
