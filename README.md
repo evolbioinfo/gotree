@@ -39,6 +39,16 @@ root            +---------------- 2
 
 ```
 
+$ echo "(1,(2,(3,4,5,6)polytomy)internal)root;" | gotree labels
+1
+2
+3
+4
+5
+6
+```
+
+
 ```[bash]
 $ gotree generate uniformtree -l 100 -n 10 | gotree stats
 
@@ -198,6 +208,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * topologies: all possible topologies
     * uniformtree
     * yuletree
+*  labels: Lists labels (names) of all tips
 *  matrix:      Print (patristic) distance matrix associated to the input tree
 *  merge:       Merges two rooted trees
 *  nni:         Generate all NNI neighbors from a given tree
