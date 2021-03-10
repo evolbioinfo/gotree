@@ -927,6 +927,32 @@ ${GOTREE} generate yuletree --seed 10 | ${GOTREE} stats tips > result
 diff -q -b expected result
 rm -f expected result
 
+echo "->gotree labels"
+cat > expected <<EOF
+Tip4
+Tip7
+Tip2
+Tip0
+Tip8
+Tip9
+Tip3
+Tip6
+Tip5
+Tip1
+Tip5
+Tip0
+Tip6
+Tip7
+Tip4
+Tip2
+Tip8
+Tip9
+Tip3
+Tip1
+EOF
+${GOTREE} generate yuletree --seed 10 -n 2 | ${GOTREE} labels > result
+diff -q -b expected result
+rm -f expected result
 
 echo "->gotree unroot"
 cat > expected <<EOF

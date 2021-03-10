@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	goio "io"
 	"os"
 
@@ -44,7 +45,7 @@ If several trees are given in the input file, labels of all trees are listed.
 				return t.Err
 			}
 			for _, n := range t.Tree.Tips() {
-				f.WriteString(n.Name())
+				f.WriteString(fmt.Sprintln(n.Name()))
 			}
 		}
 		return
@@ -52,5 +53,5 @@ If several trees are given in the input file, labels of all trees are listed.
 }
 
 func init() {
-	statsCmd.AddCommand(labelsCmd)
+	RootCmd.AddCommand(labelsCmd)
 }
