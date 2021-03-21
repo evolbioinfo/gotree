@@ -59,7 +59,8 @@ If several trees are given in the input file, labels of all trees are listed.
 }
 
 func init() {
+	RootCmd.AddCommand(labelsCmd)
+	labelsCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	labelsCmd.Flags().BoolVar(&labelsNodes, "internal", false, "Internal node labels are listed")
 	labelsCmd.Flags().BoolVar(&labelsTips, "tips", true, "Tip labels are listed (--tips=false to cancel)")
-	RootCmd.AddCommand(labelsCmd)
 }
