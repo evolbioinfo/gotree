@@ -25,23 +25,25 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool)
 	var nodes []*tree.Node = t.Nodes()
 	var seqs []*AncestralSequence = make([]*AncestralSequence, len(nodes))
 	var upseqs []*AncestralSequence = make([]*AncestralSequence, len(nodes)) // Upside seqs of each  node
+	var alphabet []uint8 = a.AlphabetCharacters()
+
+	alphabet = append(alphabet, '-')
 
 	// Initialize indices of characters
-	var charToIndex map[rune]int = make(map[rune]int)
-	for i, c := range a.AlphabetCharacters() {
+	var charToIndex map[uint8]int = make(map[uint8]int)
+	for i, c := range alphabet {
 		charToIndex[c] = i
 	}
-
-	nsteps = make([]int, a.Length())
+	nsteps = make([]int, a.Length()+1)
 
 	// We initialize all ancestral sequences
 	// And sequences at tips
 	for i, n := range nodes {
 		n.SetId(i)
-		if seqs[i], err = NewAncestralSequence(a.Length(), len(a.AlphabetCharacters())); err != nil {
+		if seqs[i], err = NewAncestralSequence(a.Length(), len(charToIndex)); err != nil {
 			return nil, err
 		}
-		if upseqs[i], err = NewAncestralSequence(a.Length(), len(a.AlphabetCharacters())); err != nil {
+		if upseqs[i], err = NewAncestralSequence(a.Length(), len(charToIndex)); err != nil {
 			return nil, err
 		}
 	}
@@ -60,31 +62,39 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool)
 	case ALGO_ACCTRAN:
 		parsimonyACCTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve)
 	default:
-		err = fmt.Errorf("Parsimony algorithm %d unkown", algo)
+		err = fmt.Errorf("parsimony algorithm %d unkown", algo)
 		return
 	}
 
-	assignSequencesToTree(t, seqs, a.AlphabetCharacters())
+	assignSequencesToTree(t, seqs, alphabet)
 	return
 }
 
 // First step of the parsimony computatation: From tips to root
-func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, nsteps []int, charToIndex map[rune]int) (err error) {
+func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, nsteps []int, charToIndex map[uint8]int) (err error) {
 	// If it is a tip, we initialize the ancestral sequences using the current
 	// Sequence in the alignment. If no such sequence exists in the alignment,
 	// then returns an error
 	if cur.Tip() {
 		seq, ok := a.GetSequenceChar(cur.Name())
 		if !ok {
-			err = fmt.Errorf("Sequence %s does not exist in the alignment", cur.Name())
+			err = fmt.Errorf("sequence %s does not exist in the alignment", cur.Name())
 			return
 		}
 		for j, c := range seq {
-			charindex, ok := charToIndex[c]
-			if ok {
-				seqs[cur.Id()].seq[j].counts[charindex] = 1
+			possibilities := make([]uint8, 0)
+			if a.Alphabet() == align.NUCLEOTIDS {
+				possibilities = align.IupacCode[c]
 			} else {
-				io.LogWarning(fmt.Errorf("Character %c does not exist in the alphabet, ignoring the state", c))
+				possibilities = append(possibilities, c)
+			}
+			for _, c2 := range possibilities {
+				charindex, ok := charToIndex[c2]
+				if ok {
+					seqs[cur.Id()].seq[j].counts[charindex] = 1
+				} else {
+					io.LogWarning(fmt.Errorf("character %c does not exist in the alphabet, ignoring the state", c2))
+				}
 			}
 		}
 	} else {
@@ -134,7 +144,7 @@ func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralS
 // Second step of the parsimony computatation: From root to tips
 func parsimonyDOWNPASS(cur, prev *tree.Node, a align.Alignment,
 	seqs []*AncestralSequence, upseqs []*AncestralSequence,
-	charToIndex map[rune]int, randomResolve bool) {
+	charToIndex map[uint8]int, randomResolve bool) {
 	// If it is not a tip and not the root
 	if !cur.Tip() {
 		// We compute the up sequence states for each children of
@@ -228,7 +238,7 @@ func computeParsimony(neighborStates AncestralState, currentStates AncestralStat
 }
 
 // Third step of the parsimony computation for resolving ambiguities
-func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int, randomResolve bool) {
+func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[uint8]int, randomResolve bool) {
 	// If it is not a tip
 	if !cur.Tip() {
 		// If it is not the root
@@ -276,7 +286,7 @@ func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestral
 }
 
 // Second step of the parsimony computation (instead of DOWNPASS) for resolving ambiguities
-func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[rune]int, randomResolve bool) {
+func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[uint8]int, randomResolve bool) {
 	// If it is not a tip
 	if !cur.Tip() {
 		// We resolve ambiguities if randomResolve
@@ -350,7 +360,7 @@ func randomlyResolveNodeStates(node *tree.Node, seqs []*AncestralSequence) {
 	}
 }
 
-func assignSequencesToTree(t *tree.Tree, seqs []*AncestralSequence, alphabet []rune) {
+func assignSequencesToTree(t *tree.Tree, seqs []*AncestralSequence, alphabet []uint8) {
 	var buffer bytes.Buffer
 	var subbuffer bytes.Buffer
 
@@ -362,7 +372,7 @@ func assignSequencesToTree(t *tree.Tree, seqs []*AncestralSequence, alphabet []r
 			nb := 0
 			for i, c := range state.counts {
 				if c > 0 {
-					subbuffer.WriteRune(alphabet[i])
+					subbuffer.WriteByte(alphabet[i])
 					nb++
 				}
 			}

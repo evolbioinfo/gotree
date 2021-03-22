@@ -64,7 +64,7 @@ randomly before going deeper in the tree.
 		case "none":
 			algo = asr.ALGO_NONE
 		default:
-			err = fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo)
+			err = fmt.Errorf("unkown parsimony algorithm: %s", parsimonyAlgo)
 			io.LogError(err)
 			return
 		}
