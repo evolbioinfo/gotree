@@ -28,6 +28,7 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool)
 	var alphabet []uint8 = a.AlphabetCharacters()
 
 	alphabet = append(alphabet, '-')
+	alphabet = append(alphabet, '*')
 
 	// Initialize indices of characters
 	var charToIndex map[uint8]int = make(map[uint8]int)
@@ -86,7 +87,14 @@ func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralS
 			if a.Alphabet() == align.NUCLEOTIDS {
 				possibilities = align.IupacCode[c]
 			} else {
-				possibilities = append(possibilities, c)
+				if c == align.ALL_AMINO {
+					for k := range charToIndex {
+						possibilities = append(possibilities, k)
+					}
+					possibilities = possibilities[:len(possibilities)-2]
+				} else {
+					possibilities = append(possibilities, c)
+				}
 			}
 			for _, c2 := range possibilities {
 				charindex, ok := charToIndex[c2]
@@ -389,7 +397,6 @@ func assignSequencesToTree(t *tree.Tree, seqs []*AncestralSequence, alphabet []u
 				buffer.WriteRune('}')
 			}
 		}
-		n.ClearComments()
 		n.AddComment(buffer.String())
 	}
 }
