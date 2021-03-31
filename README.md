@@ -1,5 +1,5 @@
 # Gotree
-[![build](https://travis-ci.org/evolbioinfo/gotree.svg?branch=master)](https://travis-ci.org/evolbioinfo/gotree) [![Anaconda-Server Badge](https://anaconda.org/bioconda/gotree/badges/installer/conda.svg)](https://anaconda.org/bioconda/gotree)  [![Docker hub](https://img.shields.io/docker/build/evolbioinfo/gotree.svg)](https://hub.docker.com/r/evolbioinfo/gotree/builds/)
+[![build](https://github.com/evolbioinfo/gotree/actions/workflows/go.yml/badge.svg)](https://github.com/evolbioinfo/gotree/actions) [![Anaconda-Server Badge](https://anaconda.org/bioconda/gotree/badges/installer/conda.svg)](https://anaconda.org/bioconda/gotree)  [![Docker hub](https://img.shields.io/docker/cloud/build/evolbioinfo/gotree)](https://hub.docker.com/r/evolbioinfo/gotree/builds/)
 
 ![Gotree Logo](images/logo.png)
 
