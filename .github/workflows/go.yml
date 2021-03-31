@@ -24,4 +24,4 @@ jobs:
       run: make
 
     - name: Test
-      run: make && make test && make install
+      run: make && make test && make testcommands

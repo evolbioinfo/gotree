@@ -1,6 +1,0 @@
-language: go
-
-go:
-  - 1.13.6
-
-script: make && make install
