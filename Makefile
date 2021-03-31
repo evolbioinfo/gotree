@@ -16,7 +16,7 @@ install: testcommands
 	rm -f ${GOPATH}/bin/${NAME}
 	${GO_EXECUTABLE} install -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
-test:
+test: dep
 	${GO_EXECUTABLE} test ${PACKAGE}/...
 
 testcommands:
