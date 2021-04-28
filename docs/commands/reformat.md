@@ -9,6 +9,7 @@ So far, formats can be :
 - Input formats: Newick, Nexus, PhyloXML
 - Output formats: Newick, Nexus, PhyloXML.
 
+The additionnal `--translate` option is available for `gotree reformat nexus` command. It replaces tip names by indices, and prints a translation table in the output nexus format.
 
 #### Usage
 

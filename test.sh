@@ -1033,7 +1033,7 @@ cat > expected <<EOF
 #NEXUS
 BEGIN TAXA;
  DIMENSIONS NTAX=4;
- TAXLABELS fish frog snake mouse;
+ TAXLABELS fish frog mouse snake;
 END;
 BEGIN TREES;
   TREE tree0 = (fish,(frog,(snake,mouse)));
@@ -1043,6 +1043,36 @@ BEGIN TREES;
 END;
 EOF
 ${GOTREE} reformat nexus -i newick -f newick -o result
+diff -q -b expected result
+rm -f expected result newick
+
+echo "->gotree reformat nexus --translate"
+cat > newick <<EOF
+(fish, (frog, (snake, mouse)));
+(fish, (snake, (frog, mouse)));
+(fish, (mouse, (snake, frog)));
+(mouse, (frog, (snake, fish)));
+EOF
+cat > expected <<EOF
+#NEXUS
+BEGIN TAXA;
+ DIMENSIONS NTAX=4;
+ TAXLABELS fish frog mouse snake;
+END;
+BEGIN TREES;
+  TRANSLATE
+   0 fish
+   1 frog
+   3 mouse
+   2 snake
+  ;
+  TREE tree0 = (0,(1,(2,3)));
+  TREE tree1 = (0,(2,(1,3)));
+  TREE tree2 = (0,(3,(2,1)));
+  TREE tree3 = (3,(1,(2,0)));
+END;
+EOF
+${GOTREE} reformat nexus --translate -i newick -f newick -o result
 diff -q -b expected result
 rm -f expected result newick
 
@@ -1090,6 +1120,46 @@ END;
 
 BEGIN TREES;
       Tree best=(fish, (frog, (snake, mouse)));
+END;
+EOF
+cat > expected <<EOF
+(fish,(frog,(snake,mouse)));
+EOF
+${GOTREE} reformat newick -i nexus -f nexus -o result
+diff -q -b expected result
+rm -f expected result nexus
+
+echo "->gotree reformat nexus -> newick / translate"
+cat > nexus <<EOF
+#NEXUS
+BEGIN TAXA;
+      DIMENSIONS NTAX=4;
+      TaxLabels fish frog snake mouse;
+END;
+
+BEGIN CHARACTERS;
+      Dimensions NChar=40;
+      Format DataType=DNA;
+      Matrix
+        fish   ACATA GAGGG TACCT CTAAA
+        frog   ACATA GAGGG TACCT CTAAC
+        snake  ACATA GAGGG TACCT CTAAG
+        mouse  ACATA GAGGG TACCT CTAAT
+
+        fish   ACATA GAGGG TACCT CTAAG
+        frog   CCATA GAGGG TACCT CTAAG
+        snake  GCATA GAGGG TACCT CTAAG
+        mouse  TCATA GAGGG TACCT CTAAG
+;
+END;
+
+BEGIN TREES;
+      TRANSLATE
+	0 fish,
+	1 frog,
+	2 snake,
+	3 mouse;
+      Tree best=(0, (1, (2, 3)));
 END;
 EOF
 cat > expected <<EOF
@@ -1162,7 +1232,7 @@ echo "->gotree reformat newick 3"
 cat > nexus <<EOF
 #NEXUS
 BEGIN TAXA;
-      TaxLabels fish frog snake mouse;
+      TaxLabels fish frog mouse snake;
 END;
 
 BEGIN CHARACTERS;

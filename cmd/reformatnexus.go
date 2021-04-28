@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var nexusTranslate bool
+
 // nexusCmd represents the nexus command
 var nexusCmd = &cobra.Command{
 	Use:   "nexus",
@@ -35,7 +37,7 @@ var nexusCmd = &cobra.Command{
 			return
 		}
 		defer treefile.Close()
-		if nex, err = nexus.WriteNexus(treechan); err != nil {
+		if nex, err = nexus.WriteNexus(treechan, nexusTranslate); err != nil {
 			io.LogError(err)
 			return
 		}
@@ -46,4 +48,5 @@ var nexusCmd = &cobra.Command{
 
 func init() {
 	reformatCmd.AddCommand(nexusCmd)
+	nexusCmd.PersistentFlags().BoolVar(&nexusTranslate, "translate", false, "Renames tip names with indices and add a translate table to the Nexus format")
 }

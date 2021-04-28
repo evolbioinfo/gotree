@@ -2,6 +2,8 @@ package nexus
 
 import (
 	"bytes"
+	"fmt"
+	"sort"
 	"strconv"
 
 	"github.com/evolbioinfo/goalign/align"
@@ -66,37 +68,68 @@ func (n *Nexus) NTrees() int {
 	return len(n.trees)
 }
 
-// Generates a Nexus string from a tree channel.
-func WriteNexus(tchan <-chan tree.Trees) (string, error) {
-	var buffer bytes.Buffer
-	buffer.WriteString("#NEXUS\n")
-	taxlabels := false
+// WriteNexus generates a Nexus string from a tree channel
+// if translate is true, then it replaces all tip names by indices and
+// generates a translate block.
+func WriteNexus(tchan <-chan tree.Trees, translate bool) (string, error) {
+	var treeBuffer bytes.Buffer
+	var fullBuffer bytes.Buffer
+
+	var taxLabelsMap map[string]string = make(map[string]string)
+	var taxLabelsSlice []string = make([]string, 0)
+	var nbTax int = 0
+
 	for t := range tchan {
 		if t.Err != nil {
 			return "", t.Err
 		}
 
-		if !taxlabels {
-			buffer.WriteString("BEGIN TAXA;\n")
-			tips := t.Tree.Tips()
-			buffer.WriteString(" DIMENSIONS NTAX=")
-			buffer.WriteString(strconv.Itoa(len(tips)))
-			buffer.WriteString(";\n")
-			buffer.WriteString(" TAXLABELS")
-			for _, tip := range tips {
-				buffer.WriteString(" " + tip.Name())
+		for _, tip := range t.Tree.AllTipNames() {
+			if _, ok := taxLabelsMap[tip]; !ok {
+				taxLabelsMap[tip] = fmt.Sprintf("%d", nbTax)
+				taxLabelsSlice = append(taxLabelsSlice, tip)
+				nbTax++
 			}
-			buffer.WriteString(";\n")
-			buffer.WriteString("END;\n")
-			buffer.WriteString("BEGIN TREES;\n")
-			taxlabels = true
 		}
-		buffer.WriteString("  TREE tree")
-		buffer.WriteString(strconv.Itoa(t.Id))
-		buffer.WriteString(" = ")
-		buffer.WriteString(t.Tree.Newick())
-		buffer.WriteString("\n")
+		sort.Strings(taxLabelsSlice)
+
+		renameTree := t.Tree
+		if translate {
+			renameTree = t.Tree.Clone()
+			renameTree.Rename(taxLabelsMap)
+		}
+		treeBuffer.WriteString("  TREE tree")
+		treeBuffer.WriteString(strconv.Itoa(t.Id))
+		treeBuffer.WriteString(" = ")
+		treeBuffer.WriteString(renameTree.Newick())
+		treeBuffer.WriteString("\n")
 	}
-	buffer.WriteString("END;\n")
-	return buffer.String(), nil
+
+	fullBuffer.WriteString("#NEXUS\n")
+	fullBuffer.WriteString("BEGIN TAXA;\n")
+	fullBuffer.WriteString(" DIMENSIONS NTAX=")
+	fullBuffer.WriteString(strconv.Itoa(len(taxLabelsMap)))
+	fullBuffer.WriteString(";\n")
+	fullBuffer.WriteString(" TAXLABELS")
+
+	for _, tip := range taxLabelsSlice {
+		fullBuffer.WriteString(" " + tip)
+	}
+
+	fullBuffer.WriteString(";\n")
+	fullBuffer.WriteString("END;\n")
+	fullBuffer.WriteString("BEGIN TREES;\n")
+
+	if translate {
+		fullBuffer.WriteString("  TRANSLATE\n")
+		for _, tip := range taxLabelsSlice {
+			fullBuffer.WriteString(fmt.Sprintf("   %s %s\n", taxLabelsMap[tip], tip))
+		}
+		fullBuffer.WriteString("  ;\n")
+	}
+
+	fullBuffer.Write(treeBuffer.Bytes())
+	fullBuffer.WriteString("END;\n")
+
+	return fullBuffer.String(), nil
 }
