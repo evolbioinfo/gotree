@@ -813,12 +813,17 @@ rm -f expected result
 echo "->gotree stats"
 cat > expected <<EOF
 tree	nodes	tips	edges	meanbrlen	sumbrlen	meansupport	mediansupport	rooted	nbcherries	colless	sackin
-0	18	10	17	0.14334492	2.43686361	NaN	NaN	unrooted	3	7	35
+0	18	10	17	0.14334492	2.43686361	NaN	NaN	unrooted	3	-	-
+EOF
+cat > expected2 <<EOF
+tree	nodes	tips	edges	meanbrlen	sumbrlen	meansupport	mediansupport	rooted	nbcherries	colless	sackin
+0	19	10	18	0.13538131	2.43686361	NaN	NaN	rooted	3	10	36
 EOF
 ${GOTREE} generate yuletree --seed 10 | ${GOTREE} stats > result
 diff -q -b expected result
-rm -f expected result
-
+${GOTREE} generate yuletree --seed 10 | ${GOTREE} reroot midpoint | ${GOTREE} stats > result
+diff -q -b expected2 result
+rm -f expected expected2 result
 
 echo "->gotree stats edges"
 cat > expected <<EOF
