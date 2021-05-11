@@ -60,8 +60,13 @@ For example:
 				f.WriteString(fmt.Sprintf("\tunrooted"))
 			}
 			f.WriteString(fmt.Sprintf("\t%d", t.Tree.NbCherries()))
-			f.WriteString(fmt.Sprintf("\t%d", t.Tree.CollessIndex()))
-			f.WriteString(fmt.Sprintf("\t%d\n", t.Tree.SackinIndex()))
+			if t.Tree.Rooted() {
+				f.WriteString(fmt.Sprintf("\t%d", t.Tree.CollessIndex()))
+				f.WriteString(fmt.Sprintf("\t%d\n", t.Tree.SackinIndex()))
+			} else {
+				f.WriteString("\t-")
+				f.WriteString("\t-\n")
+			}
 		}
 		return
 	},
