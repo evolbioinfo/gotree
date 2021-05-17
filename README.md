@@ -3,7 +3,7 @@
 
 ![Gotree Logo](images/logo.png)
 
-GoTree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
+Gotree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
 
 The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wiki/Newick_format), Nexus and PhyloXML formats, through several basic commands. Each command may print result (a tree for example) in the standard output, and thus can be piped to the standard input of the next gotree command.
 
@@ -104,20 +104,18 @@ conda install -c bioconda gotree
 ```
 
 ### From sources
-In order to compile gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system ($>=1.10$).
+In order to build gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system ($1.16.4$).
 
 Then you just have to type :
 ```
 go get github.com/evolbioinfo/gotree/
-go get -u github.com/golang/dep/cmd/dep
 ```
-This will download GoTree sources from github, and all its dependencies.
+This will download Gotree sources from github.
 
 You can then build it with:
 ```
 cd $GOPATH/src/github.com/evolbioinfo/gotree/
-dep ensure
-make
+make && make install
 ```
 
 The `gotree` executable should be located in the `$GOPATH/bin` folder.
