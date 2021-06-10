@@ -12,6 +12,7 @@ import (
 	"github.com/golang/freetype/truetype"
 	"github.com/llgcode/draw2d"
 	"github.com/llgcode/draw2d/draw2dimg"
+	"github.com/llgcode/draw2d/draw2dkit"
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/gofont/goitalic"
 	"golang.org/x/image/font/gofont/gomono"
@@ -22,7 +23,7 @@ import (
 TextTreeDrawer initializer. TextTreeDraws draws tree as ASCII on stdout or any file.
 So far: Does not take into account branch lengths.
 */
-func NewPngTreeDrawer(w io.Writer, width, height int, leftmargin, rightmargin, topmargin, bottommargin int) TreeDrawer {
+func NewPngTreeDrawer(w io.Writer, width, height int, leftmargin, rightmargin, topmargin, bottommargin int, fillbackground bool) TreeDrawer {
 	ptd := &pngTreeDrawer{
 		w,
 		width,
@@ -41,6 +42,11 @@ func NewPngTreeDrawer(w io.Writer, width, height int, leftmargin, rightmargin, t
 	}
 	ptd.img = image.NewRGBA(image.Rect(0, 0, width+leftmargin+rightmargin, height+bottommargin+topmargin))
 	ptd.gc = draw2dimg.NewGraphicContext(ptd.img)
+	if fillbackground {
+		ptd.gc.SetFillColor(color.White)
+		draw2dkit.Rectangle(ptd.gc, 0, 0, float64(width+leftmargin+rightmargin), float64(height+bottommargin+topmargin))
+		ptd.gc.Fill()
+	}
 	ptd.initFonts()
 	ptd.gc.SetFontData(draw2d.FontData{Name: "goregular"})
 	ptd.gc.SetFontSize(10.0)

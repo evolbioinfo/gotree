@@ -16,6 +16,7 @@ var pngwidth int
 var pngheight int
 var pngradial bool
 var pngcircular bool
+var pngfillbackground bool
 
 // pngCmd represents the png command
 var pngCmd = &cobra.Command{
@@ -59,13 +60,13 @@ var pngCmd = &cobra.Command{
 					return
 				}
 
-				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
+				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30, pngfillbackground)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else if pngcircular {
-				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), 30, 30, 30, 30)
+				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), 30, 30, 30, 30, pngfillbackground)
 				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else {
-				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30)
+				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30, pngfillbackground)
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
 			l.SetDisplayInternalNodes(drawInternalNodeSymbols)
@@ -84,5 +85,6 @@ func init() {
 	pngCmd.PersistentFlags().IntVarP(&pngwidth, "width", "w", 200, "Width of png image in pixels")
 	pngCmd.PersistentFlags().IntVarP(&pngheight, "height", "H", 200, "Height of png image in pixels")
 	pngCmd.PersistentFlags().BoolVarP(&pngradial, "radial", "r", false, "Radial layout (default : normal)")
+	pngCmd.PersistentFlags().BoolVar(&pngfillbackground, "fill-background", false, "If true, then background is white, otherwise transparent")
 	pngCmd.PersistentFlags().BoolVarP(&pngcircular, "circular", "c", false, "Circular/Polar layout (default : normal)")
 }
