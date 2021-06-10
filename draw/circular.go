@@ -60,9 +60,9 @@ func (layout *circularLayout) DrawTree(t *tree.Tree) error {
 	root := t.Root()
 	ntips := len(t.Tips())
 	curNbTips := 0
-	maxLength := layout.maxLength(t)
-	layout.drawTreeRecur(root, nil, tree.NIL_SUPPORT, 0, 0, maxLength, &curNbTips, ntips)
-	layout.drawTree()
+	_, maxNameLength := maxLength(t, layout.hasBranchLengths, layout.hasTipLabels, layout.hasNodeComments)
+	layout.drawTreeRecur(root, nil, tree.NIL_SUPPORT, 0, 0, &curNbTips, ntips)
+	layout.drawTree(maxNameLength)
 	layout.drawer.Write()
 	return err
 }
@@ -70,7 +70,7 @@ func (layout *circularLayout) DrawTree(t *tree.Tree) error {
 /*
 Recursive function that draws the tree. Returns the angle of the current node
 */
-func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, support, prevDistToRoot, distToRoot float64, maxLength float64, curtip *int, nbtips int) float64 {
+func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, support, prevDistToRoot, distToRoot float64, curtip *int, nbtips int) float64 {
 	angle := 0.0
 	if n.Tip() {
 		angle = float64(*curtip)*2*math.Pi/float64(nbtips) + math.Pi/2
@@ -89,7 +89,7 @@ func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, suppo
 				if !layout.hasBranchLengths || len == tree.NIL_LENGTH {
 					len = 1.0
 				}
-				tempangle := layout.drawTreeRecur(child, n, supp, distToRoot, distToRoot+len, maxLength, curtip, nbtips)
+				tempangle := layout.drawTreeRecur(child, n, supp, distToRoot, distToRoot+len, curtip, nbtips)
 				if minangle == -1 || minangle > tempangle {
 					minangle = tempangle
 				}
@@ -116,30 +116,7 @@ func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, suppo
 	return angle
 }
 
-func (layout *circularLayout) maxLength(t *tree.Tree) float64 {
-	maxlength := 0.0
-	curlength := 0.0
-	root := t.Root()
-	layout.maxLengthRecur(root, nil, curlength, &maxlength)
-	return maxlength
-}
-
-func (layout *circularLayout) maxLengthRecur(n *tree.Node, prev *tree.Node, curlength float64, maxlength *float64) {
-	if curlength > *maxlength {
-		*maxlength = curlength
-	}
-	for i, child := range n.Neigh() {
-		if child != prev {
-			brlen := n.Edges()[i].Length()
-			if brlen == tree.NIL_LENGTH || !layout.hasBranchLengths {
-				brlen = 1.0
-			}
-			layout.maxLengthRecur(child, n, curlength+brlen, maxlength)
-		}
-	}
-}
-
-func (layout *circularLayout) drawTree() {
+func (layout *circularLayout) drawTree(maxNameLength int) {
 	xmin, ymin, xmax, ymax := layout.cache.borders()
 	xoffset := 0.0
 	if xmin < 0 {
@@ -151,43 +128,44 @@ func (layout *circularLayout) drawTree() {
 	}
 
 	max := math.Max(xmax+xoffset, ymax+yoffset)
+	layout.drawer.SetMaxValues(max, max, maxNameLength, maxNameLength)
 
 	for _, l := range layout.cache.branchPaths {
-		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset, max, max)
+		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset)
 	}
 	for _, c := range layout.cache.curvePaths {
-		layout.drawer.DrawCurve(c.center.x+xoffset, c.center.y+yoffset, c.middlepoint.x+xoffset, c.middlepoint.y+yoffset, c.radius, c.startAngle, c.endAngle, max, max)
+		layout.drawer.DrawCurve(c.center.x+xoffset, c.center.y+yoffset, c.middlepoint.x+xoffset, c.middlepoint.y+yoffset, c.radius, c.startAngle, c.endAngle)
 	}
 
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
 			if layout.hasNodeComments {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, max, max, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, p.brAngle)
 			} else {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, max, max, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, p.brAngle)
 			}
 		}
 	}
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, max, max, p.brAngle)
+			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, p.brAngle)
 		}
 	} else if layout.hasNodeComments {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.comment, max, max, p.brAngle)
+			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.comment, p.brAngle)
 		}
 	}
 
 	if layout.hasInternalNodeSymbols {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset, max, max)
+			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset)
 		}
 	}
 	for _, l := range layout.cache.branchPaths {
 		middlex := (l.p1.x + l.p2.x + 2*xoffset) / 2.0
 		middley := (l.p1.y + l.p2.y + 2*yoffset) / 2.0
 		if layout.hasSupport && l.support != tree.NIL_SUPPORT && l.support >= layout.supportCutoff {
-			layout.drawer.DrawCircle(middlex, middley, max, max)
+			layout.drawer.DrawCircle(middlex, middley)
 		}
 	}
 }

@@ -52,20 +52,28 @@ var svgCmd = &cobra.Command{
 				io.LogError(err)
 				return
 			}
+
+			margin := 30
+			// for _, n := range t.Tree.AllTipNames() {
+			// 	if len(n)*10 > margin {
+			// 		margin = len(n) * 8
+			// 	}
+			// }
+
 			if svgradial {
 				if err = t.Tree.ReinitIndexes(); err != nil {
 					io.LogError(err)
 					return
 				}
 
-				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
+				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, margin, margin, margin, margin)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 				l.SetDisplayInternalNodes(drawInternalNodeSymbols)
 			} else if svgcircular {
-				d = draw.NewSvgTreeDrawer(f, min(svgwidth, svgheight), min(svgwidth, svgheight), 30, 30, 30, 30)
+				d = draw.NewSvgTreeDrawer(f, min(svgwidth, svgheight), min(svgwidth, svgheight), margin, margin, margin, margin)
 				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else {
-				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, 30, 30, 30)
+				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, margin, 30, 30)
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
 			l.SetDisplayInternalNodes(drawInternalNodeSymbols)

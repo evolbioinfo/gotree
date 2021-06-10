@@ -50,9 +50,10 @@ func (layout *normalLayout) DrawTree(t *tree.Tree) error {
 	root := t.Root()
 	ntips := len(t.Tips())
 	curNbTips := 0
-	maxLength := layout.maxLength(t)
+	maxLength, maxName := maxLength(t, layout.hasBranchLengths, layout.hasTipLabels, layout.hasNodeComments)
+	layout.drawer.SetMaxValues(maxLength, float64(ntips), maxName, 0)
 	layout.drawTreeRecur(root, nil, tree.NIL_SUPPORT, 0, 0, &curNbTips)
-	layout.drawTree(maxLength, ntips)
+	layout.drawTree()
 	layout.drawer.Write()
 	return err
 }
@@ -105,65 +106,42 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, support
 	return ypos
 }
 
-func (layout *normalLayout) maxLength(t *tree.Tree) float64 {
-	maxlength := 0.0
-	curlength := 0.0
-	root := t.Root()
-	layout.maxLengthRecur(root, nil, curlength, &maxlength)
-	return maxlength
-}
-
-func (layout *normalLayout) maxLengthRecur(n *tree.Node, prev *tree.Node, curlength float64, maxlength *float64) {
-	if curlength > *maxlength {
-		*maxlength = curlength
-	}
-	for i, child := range n.Neigh() {
-		if child != prev {
-			brlen := n.Edges()[i].Length()
-			if brlen == tree.NIL_LENGTH || !layout.hasBranchLengths {
-				brlen = 1.0
-			}
-			layout.maxLengthRecur(child, n, curlength+brlen, maxlength)
-		}
-	}
-}
-
-func (layout *normalLayout) drawTree(maxLength float64, ntips int) {
+func (layout *normalLayout) drawTree() {
 	for _, l := range layout.cache.horizontalPaths {
-		layout.drawer.DrawHLine(l.x1, l.x2, l.y, maxLength, float64(ntips))
+		layout.drawer.DrawHLine(l.x1, l.x2, l.y)
 	}
 	for _, l := range layout.cache.verticalPaths {
-		layout.drawer.DrawVLine(l.x, l.y1, l.y2, maxLength, float64(ntips))
+		layout.drawer.DrawVLine(l.x, l.y1, l.y2)
 	}
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
 			if layout.hasNodeComments {
-				layout.drawer.DrawName(p.x, p.y, p.name+p.comment, maxLength, float64(ntips), 0.0)
+				layout.drawer.DrawName(p.x, p.y, p.name+p.comment, 0.0)
 			} else {
-				layout.drawer.DrawName(p.x, p.y, p.name, maxLength, float64(ntips), 0.0)
+				layout.drawer.DrawName(p.x, p.y, p.name, 0.0)
 			}
 		}
 	}
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawName(p.x, p.y, p.name, maxLength, float64(ntips), 0.0)
+			layout.drawer.DrawName(p.x, p.y, p.name, 0.0)
 		}
 	} else if layout.hasNodeComments {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawName(p.x, p.y, p.comment, maxLength, float64(ntips), 0.0)
+			layout.drawer.DrawName(p.x, p.y, p.comment, 0.0)
 		}
 	}
 
 	if layout.hasInternalNodeSymbols {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawCircle(p.x, p.y, maxLength, float64(ntips))
+			layout.drawer.DrawCircle(p.x, p.y)
 		}
 	}
 	for _, l := range layout.cache.horizontalPaths {
 		middlex := (l.x1 + l.x2) / 2.0
 		middley := (l.y + l.y) / 2.0
 		if layout.hasSupport && l.support != tree.NIL_SUPPORT && l.support >= layout.supportCutoff {
-			layout.drawer.DrawCircle(middlex, middley, maxLength, float64(ntips))
+			layout.drawer.DrawCircle(middlex, middley)
 		}
 	}
 }

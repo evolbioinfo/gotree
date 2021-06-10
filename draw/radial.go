@@ -55,7 +55,8 @@ func (layout *radialLayout) DrawTree(t *tree.Tree) error {
 	root := t.Root()
 	layout.spread = 0.0
 	layout.constructNode(t, root, nil, 0.0, 0.0, math.Pi*2, 0.0, 0.0, 0.0)
-	layout.drawTree()
+	_, maxNameLength := maxLength(t, layout.hasBranchLengths, layout.hasTipLabels, layout.hasNodeComments)
+	layout.drawTree(maxNameLength)
 	layout.drawer.Write()
 	return nil
 }
@@ -117,7 +118,7 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 	return nodePoint
 }
 
-func (layout *radialLayout) drawTree() {
+func (layout *radialLayout) drawTree(maxNameLength int) {
 	xmin, ymin, xmax, ymax := layout.cache.borders()
 	xoffset := 0.0
 	if xmin < 0 {
@@ -128,32 +129,34 @@ func (layout *radialLayout) drawTree() {
 		yoffset = -ymin
 	}
 
+	layout.drawer.SetMaxValues(xmax+xoffset, ymax+yoffset, maxNameLength, maxNameLength)
+
 	for _, l := range layout.cache.branchPaths {
-		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset, xmax+xoffset, ymax+yoffset)
+		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset)
 	}
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
 			if layout.hasNodeComments {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, xmax+xoffset, ymax+yoffset, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, p.brAngle)
 			} else {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, p.brAngle)
 			}
 		}
 	}
 
 	if layout.hasInternalNodeLabels {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, xmax+xoffset, ymax+yoffset, p.brAngle)
+			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, p.brAngle)
 		}
 	} else if layout.hasNodeComments {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.comment, xmax+xoffset, ymax+yoffset, p.brAngle)
+			layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.comment, p.brAngle)
 		}
 	}
 
 	if layout.hasInternalNodeSymbol {
 		for _, p := range layout.cache.nodePoints {
-			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset, xmax+xoffset, ymax+yoffset)
+			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset)
 		}
 	}
 
@@ -161,7 +164,7 @@ func (layout *radialLayout) drawTree() {
 		middlex := (l.p1.x + l.p2.x + 2*xoffset) / 2.0
 		middley := (l.p1.y + l.p2.y + 2*yoffset) / 2.0
 		if layout.hasSupport && l.support != tree.NIL_SUPPORT && l.support >= layout.supportCutoff {
-			layout.drawer.DrawCircle(middlex, middley, xmax+xoffset, ymax+yoffset)
+			layout.drawer.DrawCircle(middlex, middley)
 		}
 	}
 }
