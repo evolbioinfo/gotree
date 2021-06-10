@@ -39,7 +39,7 @@ var textCmd = &cobra.Command{
 				io.LogError(t.Err)
 				return t.Err
 			}
-			d = draw.NewTextTreeDrawer(f, termwidth, len(t.Tree.Tips())*2, 10)
+			d = draw.NewTextTreeDrawer(f, termwidth, len(t.Tree.Tips())*2, 0)
 			l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			l.SetDisplayNodeComments(drawNodeComment)
 			l.SetSupportCutoff(drawSupportCutoff)
