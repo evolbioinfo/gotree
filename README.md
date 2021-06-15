@@ -72,6 +72,14 @@ $ gotree generate uniformtree -l 100 -n 10 | gotree stats
 ```
 This will generate 10 random unrooted uniform binary trees, each having 100 tips, and print statistics about them.
 
+## Reference
+
+```
+Gotree/Goalign : Toolkit and Go API to facilitate the development of phylogenetic workflows
+Frédéric Lemoine, Olivier Gascuel
+bioRxiv 2021.06.09.447704; doi: https://doi.org/10.1101/2021.06.09.447704
+```
+
 ## Installation
 ### Easy way: Binaries
 You can download ready to run binaries for the latest release in the [release](https://github.com/evolbioinfo/gotree/releases) section.
