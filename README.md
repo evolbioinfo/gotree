@@ -74,10 +74,11 @@ This will generate 10 random unrooted uniform binary trees, each having 100 tips
 
 ## Reference
 
+If you use Gotree or Goalign, please cite:
 ```
-Gotree/Goalign : Toolkit and Go API to facilitate the development of phylogenetic workflows
 Frédéric Lemoine, Olivier Gascuel
-bioRxiv 2021.06.09.447704; doi: https://doi.org/10.1101/2021.06.09.447704
+Gotree/Goalign: toolkit and Go API to facilitate the development of phylogenetic workflows,
+NAR Genomics and Bioinformatics, Volume 3, Issue 3, September 2021, lqab075, https://doi.org/10.1093/nargab/lqab075 
 ```
 
 ## Installation
