@@ -44,6 +44,19 @@ var rootInputFormat string
 var removeoutgroup bool
 var rerootstrict bool
 
+var helptemplate string = `{{with or .Long .Short }}{{. | trim}}
+
+{{end}}Version: ` + Version + `
+
+{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}
+
+If you use the Gotree/Goalign toolkit, please cite:
+Lemoine F, Gascuel O. 
+Gotree/Goalign: toolkit and Go API to facilitate the development of phylogenetic workflows. 
+NAR Genom Bioinform. 2021 Aug 11;3(3):lqab075.
+doi: 10.1093/nargab/lqab075. PMID: 34396097; PMCID: PMC8356961.
+`
+
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "gotree",
@@ -102,6 +115,7 @@ func init() {
 	RootCmd.PersistentFlags().Int64Var(&seed, "seed", -1, "Random Seed: -1 = nano seconds since 1970/01/01 00:00:00")
 	RootCmd.PersistentFlags().IntVarP(&rootCpus, "threads", "t", 1, "Number of threads (Max="+strconv.Itoa(maxcpus)+")")
 	RootCmd.PersistentFlags().StringVar(&rootInputFormat, "format", "newick", "Input tree format (newick, nexus, or phyloxml)")
+	RootCmd.SetHelpTemplate(helptemplate)
 }
 
 // initConfig reads in config file and ENV variables if set.
