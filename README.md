@@ -78,7 +78,7 @@ If you use Gotree or Goalign, please cite:
 ```
 Frédéric Lemoine, Olivier Gascuel
 Gotree/Goalign: toolkit and Go API to facilitate the development of phylogenetic workflows,
-NAR Genomics and Bioinformatics, Volume 3, Issue 3, September 2021, lqab075, https://doi.org/10.1093/nargab/lqab075 
+NAR Genomics and Bioinformatics, Volume 3, Issue 3, September 2021, lqab075, [doi](https://doi.org/10.1093/nargab/lqab075)
 ```
 
 ## Installation
