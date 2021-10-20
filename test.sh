@@ -1902,3 +1902,21 @@ ${GOTREE} unroot -i input | ${GOTREE} stats monophyletic -o result -l tipfile
 diff -q -b result expected2
 
 rm -rf tipfile input expected expected2 result
+
+
+echo "->gotree graft"
+cat > input.t1 <<EOF
+(l1:0.1,l2:0.2,l3:0.3);
+EOF
+cat > input.t2 <<EOF
+(l4:0.1,l5:0.2,l6:0.3);
+EOF
+
+cat > expected <<EOF
+((l4:0.1,l5:0.2,l6:0.3):0.1,l2:0.2,l3:0.3);
+EOF
+
+${GOTREE} graft -i input.t1 -c input.t2 -l l1 -o result
+diff -q -b result expected
+
+rm -rf input.t1 input.t2 expected result

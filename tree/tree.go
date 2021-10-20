@@ -2039,6 +2039,49 @@ func (t *Tree) InsertIdenticalTip(n *Node, newTipName string) (newtipnode *Node,
 	return
 }
 
+// GraftTreeOnTip takes a tip name of the tree and graft a given tree
+// in place of this tip.
+// If useful, call
+// t.ReinitIndexes()
+// after this function, to update branch bitsets.
+func (t *Tree) GraftTreeOnTip(tip string, graft *Tree) (err error) {
+	var tn, tr, parN *Node
+	var parE *Edge
+	var idx int
+
+	// We get the Node corresponding to the given tip name
+	// in the reference tree
+	if tn, err = t.TipNode(tip); err != nil {
+		return
+	}
+	// We get the root node of the tree to graft
+	tr = graft.Root()
+
+	// We get the edge leading to the tip node
+	if parE, err = tn.ParentEdge(); err != nil {
+		return
+	}
+	// We get the parent node of the tip node
+	parN = parE.Left()
+	// We get the index of the tip node in the neighbors of
+	//its parent
+	if idx, err = parN.NodeIndex(tn); err != nil {
+		return
+	}
+	// we replae the tip node by the root node of the graft
+	// in the edge
+	parE.setRight(tr)
+	// we replace the tip node by the root node in the neighbors
+	// of its parent
+	parN.neigh[idx] = tr
+	// we add the parent node of the tip node as a neighbor of
+	// the root node of the graft
+	tr.addChild(parN, parE)
+	t.UpdateTipIndex()
+
+	return
+}
+
 // Check that tree is well structured, with the
 // right child, parent, edges, and node pointers
 func (t *Tree) CheckTree() bool {
