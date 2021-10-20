@@ -84,3 +84,30 @@ func main() {
 	// Should print (Tip4,Tip0,Tip3,Tip2,Tip1);
 }
 ```
+
+Collapse a clade
+
+```go
+package main
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
+)
+
+func main() {
+	var treeString string
+	var t *tree.Tree
+	var err error
+	treeString = "((l4:0.1,((l5:0.2,l7:0.3):0.3,l6:0.3):0.1):0.1,(l2:0.2,l3:0.3):0.1);"
+	t, err = newick.NewParser(strings.NewReader(treeString)).Parse()
+	if err != nil {
+		panic(err)
+	}
+	t.CollapseClade(false, "l1", "l4", "6")
+	fmt.Println(t.Newick())
+}
+```

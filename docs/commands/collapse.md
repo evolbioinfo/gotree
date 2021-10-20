@@ -28,6 +28,7 @@ Usage:
   gotree collapse [command]
 
 Available Commands:
+  clade       Collaps the clade defined by the given tip names
   depth       Collapse branches having a given depth
   length      Collapse short branches of the input tree
   single      Collapse branches that connect single nodes
@@ -96,6 +97,23 @@ Global Flags:
   -o, --output string   Collapsed tree output file (default "stdout")
 ```
 
+clade sub-command
+```
+Usage:
+  gotree collapse clade [flags]
+
+Flags:
+  -h, --help              help for clade
+      --strict            Enforce the outgroup to be monophyletic (else throw an error)
+  -l, --tip-file string   File containing names of tips of the outgroup (default "none")
+  -n, --tip-name string   Name of the tip that will replace the clade (default "none")
+
+Global Flags:
+      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+  -i, --input string    Input tree (default "stdin")
+  -o, --output string   Collapsed tree output file (default "stdout")
+```
+
 #### Examples
 
 1. Removing branches with length < 0.05
@@ -140,3 +158,44 @@ echo "((((A,B)),((C))),(D,(E)));" | gotree collapse single | gotree draw svg -w 
 Original tree                       |             Collapsed tree
 ------------------------------------|---------------------------------------
 ![Original tree](collapse_single.svg)| ![Collapsed tree](collapse_single_out.svg)
+
+4. Collapsing a clade
+
+tree
+```
+      +----- l4                                   
+      |                                           
++-----|                       +---------- l5      
+|     |     +---------------- |                   
+|     +-----|                 +----------------- l7
+|           |                                     
+|           +---------------- l6                  
+|                                                 
+|     +---------- l2                              
++-----|                                           
+      +----------------- l3                       
+```
+
+```
+$ gotree collapse clade -i tree.nw -n new l5 l7
+
+      +----- l4                    
++-----|                            
+|     |     +------------------ new
+|     +-----|                      
+|           +------------------ l6 
+|                                  
+|     +------------ l2             
++-----|                            
+      +------------------ l3       
+```
+
+```
+$ gotree collapse clade -i tree.nw -n new l4 l6
+
++----- new                    
+|                             
+|     +------------- l2       
++-----|                       
+      +------------------- l3 
+```

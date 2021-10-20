@@ -44,6 +44,7 @@ Command                                                            | Subcommand 
 --                                                                 | setmin            | Sets a min branch length to all branches with length < cutoff
 --                                                                 | setrand           | Assigns a random length to edges of input trees
 [collapse](commands/collapse.md) ([api](api/collapse.md))          |                   | Collapses/Removes branches of input trees
+--                                                                 | clade             | Collapses a clade and replace it ith a tip
 --                                                                 | depth             | Collapses/Removes branches of input trees having a given depth
 --                                                                 | length            | Collapses/Removes short branches of input trees
 --                                                                 | single            | Collapses/Removes branches that connect single internal nodes (linear paths)

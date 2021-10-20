@@ -1920,3 +1920,44 @@ ${GOTREE} graft -i input.t1 -c input.t2 -l l1 -o result
 diff -q -b result expected
 
 rm -rf input.t1 input.t2 expected result
+
+
+echo "->gotree collapse clade"
+cat > input.t1 <<EOF
+((l4:0.1,l5:0.2,l6:0.3):0.1,l2:0.2,l3:0.3);
+EOF
+
+cat > input.t2 <<EOF
+((l4:0.1,(l5:0.2,l7:04):0.5,l6:0.3):0.1,l2:0.2,l3:0.3);
+EOF
+
+cat > input.tips <<EOF
+l4
+l5
+EOF
+
+cat > expected <<EOF
+(l1:0.1,l2:0.2,l3:0.3);
+EOF
+
+cat > expected2 <<EOF
+((l1:0.1,l5:0.2,l6:0.3):0.1,l2:0.2,l3:0.3);
+EOF
+
+cat > expected3 <<EOF
+(l1:0.1,l2:0.2,l3:0.3);
+EOF
+
+${GOTREE} collapse clade -i input.t1 -l input.tips -n l1 -o result
+diff -q -b result expected
+
+${GOTREE} collapse clade -i input.t1 -n l1 -o result l4 l5 l6
+diff -q -b result expected
+
+${GOTREE} collapse clade -i input.t1 -n l1 -o result l4
+diff -q -b result expected2
+
+${GOTREE} collapse clade -i input.t2 -n l1 -o result l5 l4
+diff -q -b result expected3
+
+rm -rf input.t1 input.tips input.t2 expected expected2 expected3 result
