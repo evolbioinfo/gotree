@@ -186,7 +186,8 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * scale:       Scale lengths from input trees by a given factor
 	* setmin:      Set a min branch length to all branches with length < cutoff
 	* setrand:     Assign a random length to edges of input trees
-*  collapse:    Collapse branches of input trees
+*  collapse:    Collapse branches or clades of input trees
+    * clades
     * depth
     * length
     * support
@@ -220,6 +221,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * topologies: all possible topologies
     * uniformtree
     * yuletree
+*  graft: Graft a tree on an input tree in place of a given tip
 *  labels: Lists labels (names) of all tips
 *  matrix:      Print (patristic) distance matrix associated to the input tree
 *  merge:       Merges two rooted trees
