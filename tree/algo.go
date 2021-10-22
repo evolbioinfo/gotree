@@ -375,9 +375,10 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 
 // CollapseClade takes a list of tips, and collapses the last common ancestor of these tips
 // i.e. it removes all the descendants of that node and considers it as a tip.
+// It returns the collapsed clade as a new Tree
 //
 // The tree is considered rooted
-func (t *Tree) CollapseClade(strict bool, name string, tips ...string) (err error) {
+func (t *Tree) CollapseClade(strict bool, name string, tips ...string) (clade *Tree, err error) {
 	var n, p, tip *Node
 	var e *Edge
 	var idx int
@@ -388,7 +389,8 @@ func (t *Tree) CollapseClade(strict bool, name string, tips ...string) (err erro
 	}
 	if !monophyletic {
 		if strict {
-			return errors.New("the given outgroup is not monophyletic, cannot reroot")
+			err = errors.New("the given outgroup is not monophyletic, cannot reroot")
+			return
 		}
 		log.Println("warning: The given outgroup is not Monophyloetic, and may result in inappropriate rerooting")
 	}
@@ -411,7 +413,18 @@ func (t *Tree) CollapseClade(strict bool, name string, tips ...string) (err erro
 	e.setRight(tip)
 	tip.addChild(p, e)
 	t.UpdateTipIndex()
-	return nil
+
+	// We build a new tree from the clade
+	if idx, err = n.NodeIndex(p); err != nil {
+		return
+	}
+	// We remove p from neighbors of n
+	n.delNeighbor(p)
+	clade = NewTree()
+	clade.SetRoot(n)
+	clade.UpdateTipIndex()
+
+	return
 }
 
 // This function first unroots the input tree and reroots it using the outgroup in argument.

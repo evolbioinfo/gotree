@@ -1620,7 +1620,7 @@ diff -q -b expectedcompare outputcompare
 # Compare all branches with lengths, etc.
 ${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$13){exit 1};if($9!="true"){exit 1};if($8!=$12){exit 1}}'
 
-rm -f expected output input outputcompare expectedcompare
+rm -f expected output input outputcompare expectedcompare id_groups
 
 #gotree repopulate
 echo "->gotree repopulate / 2"
@@ -1928,7 +1928,7 @@ cat > input.t1 <<EOF
 EOF
 
 cat > input.t2 <<EOF
-((l4:0.1,(l5:0.2,l7:04):0.5,l6:0.3):0.1,l2:0.2,l3:0.3);
+((l4:0.1,(l5:0.2,l7:0.4):0.5,l6:0.3):0.1,l2:0.2,l3:0.3);
 EOF
 
 cat > input.tips <<EOF
@@ -1940,24 +1940,42 @@ cat > expected <<EOF
 (l1:0.1,l2:0.2,l3:0.3);
 EOF
 
+cat > expected.clade <<EOF
+(l4:0.1,l5:0.2,l6:0.3);
+EOF
+
+
 cat > expected2 <<EOF
 ((l1:0.1,l5:0.2,l6:0.3):0.1,l2:0.2,l3:0.3);
 EOF
+
+cat > expected2.clade <<EOF
+l4;
+EOF
+
 
 cat > expected3 <<EOF
 (l1:0.1,l2:0.2,l3:0.3);
 EOF
 
-${GOTREE} collapse clade -i input.t1 -l input.tips -n l1 -o result
-diff -q -b result expected
+cat > expected3.clade <<EOF
+(l4:0.1,(l5:0.2,l7:0.4):0.5,l6:0.3);
+EOF
 
-${GOTREE} collapse clade -i input.t1 -n l1 -o result l4 l5 l6
+${GOTREE} collapse clade -i input.t1 -l input.tips -n l1 -c result.clade -o result
 diff -q -b result expected
+diff -q -b result.clade expected.clade
 
-${GOTREE} collapse clade -i input.t1 -n l1 -o result l4
+${GOTREE} collapse clade -i input.t1 -n l1 -c result.clade -o result  l4 l5 l6
+diff -q -b result expected
+diff -q -b result.clade expected.clade
+
+${GOTREE} collapse clade -i input.t1 -n l1 -c result.clade -o result l4
 diff -q -b result expected2
+diff -q -b result.clade expected2.clade
 
-${GOTREE} collapse clade -i input.t2 -n l1 -o result l5 l4
+${GOTREE} collapse clade -i input.t2 -n l1 -c result.clade  -o result l5 l4
 diff -q -b result expected3
+diff -q -b result.clade expected3.clade
 
-rm -rf input.t1 input.tips input.t2 expected expected2 expected3 result
+rm -rf input.t1 input.tips input.t2 expected expected2 expected3 result result.clade expected3.clade expected2.clade expected.clade

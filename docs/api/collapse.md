@@ -100,14 +100,20 @@ import (
 
 func main() {
 	var treeString string
-	var t *tree.Tree
+	var t, clade *tree.Tree
 	var err error
 	treeString = "((l4:0.1,((l5:0.2,l7:0.3):0.3,l6:0.3):0.1):0.1,(l2:0.2,l3:0.3):0.1);"
-	t, err = newick.NewParser(strings.NewReader(treeString)).Parse()
-	if err != nil {
+	if t, err = newick.NewParser(strings.NewReader(treeString)).Parse();err!=nil{
 		panic(err)
 	}
-	t.CollapseClade(false, "l1", "l4", "6")
+
+	if clade, err = t.CollapseClade(false, "l1", "l4", "6");err!=nil{
+		panic(err)
+	}
+	
+	// Print the tree with the collapsed clade
 	fmt.Println(t.Newick())
+	// Print the clade only 
+	fmt.Println(clade.Newick())
 }
 ```
