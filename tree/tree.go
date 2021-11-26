@@ -369,7 +369,7 @@ func (t *Tree) removeTip(tip *Node) error {
 				e = t.ConnectNodes(n2, n1)
 				t.SetRoot(n2)
 			} else if len(n2.neigh) == 1 || len(n1.neigh) == 1 {
-				return fmt.Errorf("After removing the tip %s connected to the root, RemoveTip could not find a new node to set as a root (the children of the root are either tips or single nodes", tip.Name())
+				return fmt.Errorf("After removing the tip %s connected to the root, RemoveTip could not find a new node to set as a root (the children of the root are either tips or single nodes). You can run gotree collapse single or call RemoveSingleNodes.", tip.Name())
 			} else {
 				return fmt.Errorf("The tree after tip removal is only made of two tips after removing tip %s", tip.Name())
 			}
