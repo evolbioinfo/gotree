@@ -296,22 +296,36 @@ func (t *Tree) removeTip(tip *Node) error {
 	}
 	t.delNode(tip)
 
-	// Then 3 solutions :
-	// 1 - Internal node is now terminal : it means it was the root of a rooted tree : we delete it and new root is its child
-	// 2 - Internal node is now a bifurcation : we do not want to keep it thus we will delete it and connect the two neighbors
+	// Then 3 main cases :
+	// 1 - Internal node has degree 1
+	//   1a : Internal node is the root : it means it was the root of a rooted tree : we delete it and new root is its child
+	//   1b : Internal node is not the root: it means it was a single node (with only one parent and one child): We remove the single node path iteratively and go to cases 1a, 2 or 3
+	// 2 - Internal node is now a bifurcation: we do not want to keep it thus we will delete it and connect the two neighbors
 	// 3 - Internal node still has a degree > 2 : We do not do anything => the node should remain
 
 	// Case 1
 	if len(internal.neigh) == 1 {
-		if t.Root() != internal {
-			return errors.New("After tip removal, this node should not have degre 1 without being the root")
+		// Case 1a
+		for t.Root() != internal && len(internal.neigh) == 1 {
+			internal.neigh = nil
+			internalparent := internal.br[0].left
+			if err := internalparent.delNeighbor(internal); err != nil {
+				return err
+			}
+			t.delNode(internal)
+			internal = internalparent
 		}
-		t.root = internal.neigh[0]
-		if err := t.root.delNeighbor(internal); err != nil {
-			return err
+		//return errors.New("After tip removal, this node should not have degre 1 without being the root. It means your tree contains single node paths. To remove them, you can run gotree collapse single, or the function RemoveSingleNodes.")
+		// It was the root of a rooted tree
+		// Case 1b
+		if t.Root() == internal && len(internal.neigh) == 1 {
+			t.root = internal.neigh[0]
+			if err := t.root.delNeighbor(internal); err != nil {
+				return err
+			}
+			t.delNode(internal)
+			return nil
 		}
-		t.delNode(internal)
-		return nil
 	}
 
 	// Case 2: We remove the node
@@ -346,23 +360,21 @@ func (t *Tree) removeTip(tip *Node) error {
 			e = t.ConnectNodes(n2, n1)
 		} else if !dir1 && dir2 { // 3
 			if t.Root() != internal {
-				return errors.New("The tree root is not the internal node, but it should be")
+				return fmt.Errorf("The tree root is not the internal node, but it should be, while removing tip %s", tip.Name())
 			}
 			if len(n1.neigh) > 1 { // Not a tip
 				e = t.ConnectNodes(n1, n2)
 				t.SetRoot(n1)
-			} else if len(n1.neigh) == 1 {
-				return errors.New("The neighbor n1 should not have only one neighbor")
 			} else if len(n2.neigh) > 1 { // Not a tip
 				e = t.ConnectNodes(n2, n1)
 				t.SetRoot(n2)
-			} else if len(n2.neigh) == 1 {
-				return errors.New("The neighbor n2 should not have only one neighbor")
+			} else if len(n2.neigh) == 1 || len(n1.neigh) == 1 {
+				return fmt.Errorf("After removing the tip %s connected to the root, RemoveTip could not find a new node to set as a root (the children of the root are either tips or single nodes", tip.Name())
 			} else {
-				return errors.New("The tree after tip removal is only made of two tips")
+				return fmt.Errorf("The tree after tip removal is only made of two tips after removing tip %s", tip.Name())
 			}
 		} else {
-			return errors.New("Branches of internal node are not oriented as they should be")
+			return fmt.Errorf("Branches of internal node are not oriented as they should be while removing tip %s", tip.Name())
 		}
 
 		if length1 != NIL_LENGTH || length2 != NIL_LENGTH {
