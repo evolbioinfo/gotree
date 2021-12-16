@@ -21,6 +21,6 @@ var generateCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(generateCmd)
 	generateCmd.PersistentFlags().IntVarP(&generateNbTrees, "nbtrees", "n", 1, "Number of trees to generate")
-	generateCmd.PersistentFlags().StringVarP(&generateOutputfile, "output", "o", "stdout", "Number of tips of the tree to generate")
+	generateCmd.PersistentFlags().StringVarP(&generateOutputfile, "output", "o", "stdout", "Tree output file")
 	generateCmd.PersistentFlags().BoolVarP(&generateRooted, "rooted", "r", false, "Generate rooted trees")
 }
