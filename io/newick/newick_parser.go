@@ -164,8 +164,10 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 				return
 			}
 			// Add comment to edge if comment located after branch length
-			if prevTok == STARTLEN {
+			if prevTok == STARTLEN && edge != nil {
 				edge.AddComment(comment)
+			} else if prevTok == STARTLEN && edge == nil && node != nil {
+				node.AddComment(comment)
 			} else if (prevTok == CLOSEPAR || prevTok == IDENT || prevTok == NUMERIC || prevTok == CLOSEBRACK) && node != nil {
 				// Else we add comment to node
 				node.AddComment(comment)
