@@ -10,6 +10,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func tipInfoRecur(t *tree.Tree, f *os.File, id int, cur *tree.Node, prev *tree.Node, prevEdge *tree.Edge, height float64) {
+	if cur == nil {
+		cur = t.Root()
+	}
+	if cur.Tip() {
+		f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\t%.8f\t%.8f\n", id, cur.Id(), cur.Nneigh(), cur.Name(), prevEdge.Length(), height))
+	}
+	for i, n := range cur.Neigh() {
+		if n != prev {
+			e := cur.Edges()[i]
+			tipInfoRecur(t, f, id, n, cur, e, height+e.Length())
+		}
+	}
+}
+
 // tipsCmd represents the tips command
 var tipsCmd = &cobra.Command{
 	Use:   "tips",
@@ -37,7 +52,7 @@ gotree stats tips -i t.mw
 		}
 		defer closeWriteFile(f, outtreefile)
 
-		f.WriteString("tree\tid\tnneigh\tname\n")
+		f.WriteString("tree\tid\tnneigh\tname\tExternalBranch\tRootToTip\n")
 		if treefile, treechan, err = readTrees(intreefile); err != nil {
 			io.LogError(err)
 			return
@@ -48,11 +63,7 @@ gotree stats tips -i t.mw
 				io.LogError(t.Err)
 				return t.Err
 			}
-			for i, n := range t.Tree.Nodes() {
-				if n.Nneigh() == 1 {
-					f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\n", t.Id, i, n.Nneigh(), n.Name()))
-				}
-			}
+			tipInfoRecur(t.Tree, f, t.Id, nil, nil, nil, 0.0)
 		}
 		return
 	},
