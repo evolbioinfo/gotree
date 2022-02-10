@@ -45,6 +45,8 @@ This commands display informations about trees, edges, nodes or tips. Several su
    2. tip id (same as its node id in `gotree stats nodes`)
    3. Number of neighbors (always 1...)
    4. Name of the tip
+   5. Length of the external branch leading to the tip
+   6. Sum of branch lengths from the root to the tip
 
 * `gotree stats monophyletic` : Tells wether a set of tips form a monophyletic clade in the given trees. Output is in tab delimited format, with columns:
    1. Tree id (input file order)
