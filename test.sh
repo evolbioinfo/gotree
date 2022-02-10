@@ -916,17 +916,17 @@ rm -f expected result
 
 echo "->gotree stats tips"
 cat > expected <<EOF
-tree	id	nneigh	name
-0	2	1	Tip4
-0	4	1	Tip7
-0	5	1	Tip2
-0	6	1	Tip0
-0	9	1	Tip8
-0	11	1	Tip9
-0	12	1	Tip3
-0	15	1	Tip6
-0	16	1	Tip5
-0	17	1	Tip1
+tree	id	nneigh	name	ExternalBranch	RootToTip
+0	2	1	Tip4	0.02061621	0.20308460
+0	4	1	Tip7	0.09740195	0.53866318
+0	5	1	Tip2	0.01545067	0.45671191
+0	6	1	Tip0	0.25919866	0.25919866
+0	9	1	Tip8	0.02784599	0.26588089
+0	11	1	Tip9	0.13492605	0.38322677
+0	12	1	Tip3	0.10309294	0.35139365
+0	15	1	Tip6	0.37798978	0.78360812
+0	16	1	Tip5	0.11201778	0.51763612
+0	17	1	Tip1	0.23908209	0.58652504
 EOF
 ${GOTREE} generate yuletree --seed 10 | ${GOTREE} stats tips > result
 diff -q -b expected result
