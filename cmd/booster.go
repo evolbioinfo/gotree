@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var boosterdistcutoff float64
+
 // boosterCmd represents the booster command
 // Just to keep the alias
 var boosterCmd = &cobra.Command{
@@ -76,7 +78,7 @@ func booster(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	// Compute average supports (non normalized, e.g normalizedByExpected=false)
-	if rawtree, err = support.TBE(refTree, boottreechan, rootCpus, rawSupportOutputFile != "none", movedtaxa, taxperbranches, cutoff, supportLog, nil); err != nil {
+	if rawtree, err = support.TBE(refTree, boottreechan, rootCpus, rawSupportOutputFile != "none", movedtaxa, taxperbranches, boosterdistcutoff, supportLog, nil); err != nil {
 		io.LogError(err)
 		return
 	}
@@ -95,7 +97,7 @@ func addTBEFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVar(&taxperbranches, "per-branches", false, "If true, will print in log file (-l) average taxa transfers for all taxa per banches of the reference tree")
 	//boosterCmd.PersistentFlags().BoolVar(&hightaxperbranches, "highest-per-branches", false, "If true, will print in log file (-l) average taxa transfers for highly transfered taxa per banches of the reference tree (i.e. the x most transfered, with x~ average distance)")
 	cmd.PersistentFlags().StringVarP(&rawSupportOutputFile, "out-raw", "r", "none", "If given, then prints the same tree with non normalized supports (average transfer distance) as branch names, in the form branch_id|avg_distance|branch_depth")
-	cmd.PersistentFlags().Float64Var(&cutoff, "dist-cutoff", 0.3, "If --moved-taxa, then this is the distance cutoff to consider a branch for moving taxa computation. It is the normalized distance to the current bootstrap tree (e.g. 0.05). Must be between 0 and 1, otherwise set to 0")
+	cmd.PersistentFlags().Float64Var(&boosterdistcutoff, "dist-cutoff", 0.3, "If --moved-taxa, then this is the distance cutoff to consider a branch for moving taxa computation. It is the normalized distance to the current bootstrap tree (e.g. 0.05). Must be between 0 and 1, otherwise set to 0")
 }
 
 func init() {
