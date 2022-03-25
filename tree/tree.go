@@ -1156,7 +1156,7 @@ func (t *Tree) ResolveNamedInternalNodes() {
 }
 
 // Recursive function to resolve
-// multifurcating nodes (see Resolve).
+// internal named nodes (see ResolveNamedInternalNodes).
 //
 // Post order: We first resolve neighbors,
 // and then resolve the current node.
