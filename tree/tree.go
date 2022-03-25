@@ -1145,6 +1145,45 @@ func (t *Tree) resolveRecur(current, previous *Node) {
 	}
 }
 
+// Resolves named internal nodes into tips
+//
+func (t *Tree) ResolveNamedInternalNodes() {
+	root := t.Root()
+
+	t.resolveNamedInternalNodesRecur(root, nil)
+	t.UpdateTipIndex()
+	t.ReinitInternalIndexes()
+}
+
+// Recursive function to resolve
+// multifurcating nodes (see Resolve).
+//
+// Post order: We first resolve neighbors,
+// and then resolve the current node.
+//
+// This function does not update bitsets on edges:
+// The calling function must do it with:
+//	err := t.ClearBitSets()
+//	if err != nil {
+//		return err
+//	}
+//	t.UpdateBitSet()
+func (t *Tree) resolveNamedInternalNodesRecur(current, previous *Node) {
+	// Resolve neighbors
+	for _, n := range current.Neigh() {
+		if n != previous && !n.Tip() {
+			t.resolveNamedInternalNodesRecur(n, current)
+		}
+	}
+	// Resolve the current named node
+	if !current.Tip() && current.Name() != "" {
+		newNode := t.NewNode()
+		newNode.SetName(current.Name())
+		e := t.ConnectNodes(current, newNode)
+		e.SetLength(0)
+	}
+}
+
 // Removes Edges for which the left node has a unique child:
 //
 // Example:

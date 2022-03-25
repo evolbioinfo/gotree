@@ -788,6 +788,14 @@ ${GOTREE} generate yuletree --seed 10 | ${GOTREE} collapse length -l 0.05 | ${GO
 diff -q -b expected result
 rm -f expected result
 
+echo "->gotree resolve named"
+cat > expected <<EOF
+(T1:1,((T2:1,T3:1,N1:0)N1,T4:1,N2:0)N2:1,T5:1);
+EOF
+echo "(T1:1,((T2:1,T3:1)N1,T4:1)N2:1,T5:1);" | ${GOTREE} resolve named > result
+diff -q -b expected result
+rm -f expected result
+
 
 echo "->gotree shuffletips"
 cat > expected <<EOF

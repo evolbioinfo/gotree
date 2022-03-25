@@ -35,3 +35,39 @@ Initial random Tree             | Collapsed Tree                     | Resolved 
 --------------------------------|------------------------------------|---------------------------------
 ![Random Tree 1](resolve_1.svg) | ![Collapsed tree](resolve_2.svg)   | ![Resolved Supports](resolve_3.svg)
 
+
+### resolve named
+This command resolves internal named nodes as new tips with 0 length branches
+
+#### Usage
+
+General command
+```
+Usage:
+  gotree resolve named [flags]
+
+Flags:
+  -h, --help   help for named
+
+Global Flags:
+      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+  -i, --input string    Input tree(s) file (default "stdin")
+  -o, --output string   Resolved tree(s) output file (default "stdout")
+```
+
+#### Examples
+
+* resolving internal named nodes on a simple tree:
+
+```
+> echo "(T1:1,T2:1,T3:1)N1;" | gotree resolve named
+(T1:1,T2:1,T3:1,N1:0)N1;
+```
+
+```
+ 	      -------T1             -------T1
+	      |                     |
+	T3----*N1        =>   T3----*N1---N1
+	      |                     |
+	      -------T2             -------T2 
+```

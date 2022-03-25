@@ -98,6 +98,7 @@ Command                                                            | Subcommand 
 --                                                                 | sort              | Sort neighbors of internal nodes by ascending number of tips
 --                                                                 | rand              | Randomly reorders neighbors of internal nodes 
 [resolve](commands/resolve.md) ([api](api/resolve.md))             |                   | Resolves multifurcations by adding 0 length branches
+--                                                                 | named             | Resolves internal named nodes as new tips with 0 length branches
 [sample](commands/sample.md)                                       |                   | Samples trees from a set of input trees
 [shuffletips](commands/shuffletips.md) ([api](api/shuffletips.md)) |                   | Shuffles tip names of an input tree
 [subtree](commands/subtree.md) ([api](api/subtree.md))             |                   | Extracts a subtree starting at a given node
