@@ -53,7 +53,7 @@ gotree stats edges -i t.nw
 		}
 		defer closeWriteFile(f, outtreefile)
 
-		f.WriteString("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tcomments\tleftname\trightcomment\tleftcomment")
+		f.WriteString("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trootdepth\trightname\tcomments\tleftname\trightcomment\tleftcomment")
 		f.WriteString("\n")
 		if treefile, treechan, err = readTrees(intreefile); err != nil {
 			io.LogError(err)

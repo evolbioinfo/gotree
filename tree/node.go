@@ -10,13 +10,14 @@ import (
 
 // Node structure
 type Node struct {
-	name    string   // Name of the node
-	comment []string // Comment if any in the newick file
-	neigh   []*Node  // neighbors array
-	br      []*Edge  // Branches array (same order than neigh)
-	depth   int      // Depth of the node
-	id      int      // This field is used at discretion of the user to store information
-	tipid   int      // This is used by TipIndex to match tip names of different trees
+	name      string   // Name of the node
+	comment   []string // Comment if any in the newick file
+	neigh     []*Node  // neighbors array
+	br        []*Edge  // Branches array (same order than neigh)
+	depth     int      // Depth of the node (path to the closest tip)
+	rootdepth int      // Length of the path to the root (rooted tree)
+	id        int      // This field is used at discretion of the user to store information
+	tipid     int      // This is used by TipIndex to match tip names of different trees
 }
 
 // Uninitialized depth is coded as -1
