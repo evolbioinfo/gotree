@@ -1641,7 +1641,7 @@ ${GOTREE} repopulate -i input -g id_groups -o output
 ${GOTREE} compare trees -i output -c expected > outputcompare
 diff -q -b expectedcompare outputcompare
 # Compare all branches with lengths, etc.
-${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$13){exit 1};if($9!="true"){exit 1};if($8!=$12){exit 1}}'
+${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$14){exit 1};if($10!="true"){exit 1};if($9!=$13){exit 1}}'
 
 rm -f expected output input outputcompare expectedcompare id_groups
 
@@ -1677,7 +1677,7 @@ ${GOTREE} repopulate -i input -g id_groups -o output
 ${GOTREE} compare trees -i output -c expected > outputcompare
 diff -q -b expectedcompare outputcompare
 # Compare all branches with lengths, etc.
-${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$13){exit 1};if($9!="true"){exit 1};if($8!=$12){exit 1}}'
+${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$14){exit 1};if($10!="true"){exit 1};if($9!=$13){exit 1}}'
 
 rm -f expected output input outputcompare expectedcompare
 
