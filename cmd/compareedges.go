@@ -40,7 +40,7 @@ If the compared tree file contains several trees, it will take the first one onl
 
 		edges1 := refTree.Edges()
 
-		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trightname\tfound")
+		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trootdepth\trightname\tfound")
 		fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth\tcomparedid")
 
 		fmt.Printf("\n")

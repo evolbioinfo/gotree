@@ -201,18 +201,19 @@ Tab delimited:
 	3 - istip?
 	4 - depth
 	5 - topo depth
+	6 - root depth
 	6 - name of right node if any
-        7 - comments associated to the edge
-        8 - name of left node if any
-        9 - comment of right node if any
-       10 - comment of left node if any
+	7 - comments associated to the edge
+	8 - name of left node if any
+	9 - comment of right node if any
+	10 - comment of left node if any
 */
 func (e *Edge) ToStatsString(withedgecomments bool) string {
 	var err error
 	length := e.LengthString()
 	support := e.SupportString()
 
-	var depth, leftdepth, rightdepth int
+	var depth, leftdepth, rightdepth, rootdepth int
 
 	if leftdepth, err = e.Left().Depth(); err != nil {
 		io.ExitWithMessage(err)
@@ -221,6 +222,7 @@ func (e *Edge) ToStatsString(withedgecomments bool) string {
 		io.ExitWithMessage(err)
 	}
 	depth = mutils.Min(leftdepth, rightdepth)
+	rootdepth = e.Right().rootdepth
 	var topodepth int
 	topodepth, err = e.TopoDepth()
 	if err != nil {
@@ -237,9 +239,9 @@ func (e *Edge) ToStatsString(withedgecomments bool) string {
 		comment = "\t" + e.CommentsString() + "\t" + leftname + "\t" + rightcomment + "\t" + leftcomment
 	}
 
-	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%s%s",
+	return fmt.Sprintf("%s\t%s\t%t\t%d\t%d\t%d\t%s%s",
 		length, support, e.Right().Tip(),
-		depth, topodepth, rightname, comment)
+		depth, topodepth, rootdepth, rightname, comment)
 }
 
 // Returns true if this edge defines the same biparition of the tips

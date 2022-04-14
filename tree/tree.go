@@ -44,13 +44,14 @@ func NewTree() *Tree {
 // Initialize a new empty Node
 func (t *Tree) NewNode() *Node {
 	return &Node{
-		name:    "",
-		comment: make([]string, 0),
-		neigh:   make([]*Node, 0, 3),
-		br:      make([]*Edge, 0, 3),
-		depth:   NIL_DEPTH,
-		id:      NIL_ID,
-		tipid:   NIL_TIPID,
+		name:      "",
+		comment:   make([]string, 0),
+		neigh:     make([]*Node, 0, 3),
+		br:        make([]*Edge, 0, 3),
+		depth:     NIL_DEPTH,
+		rootdepth: NIL_DEPTH,
+		id:        NIL_ID,
+		tipid:     NIL_TIPID,
 	}
 }
 
@@ -889,22 +890,24 @@ func (t *Tree) GraftTipOnEdge(n *Node, e *Edge) (*Edge, *Edge, *Node, error) {
 // Depth is then accessible by n.Depth() for any node n.
 func (t *Tree) ComputeDepths() {
 	if t.Rooted() {
-		t.computeDepthRecurRooted(t.Root(), nil)
+		t.computeDepthRecurRooted(t.Root(), nil, nil, 0)
 	} else {
 		t.computeDepthUnRooted()
 	}
 }
 
 // Recursive function to compute depths for a rooted tree
-func (t *Tree) computeDepthRecurRooted(n *Node, prev *Node) int {
+func (t *Tree) computeDepthRecurRooted(n *Node, prev *Node, br *Edge, rootdepth int) int {
+	n.rootdepth = rootdepth
 	if n.Tip() {
 		n.depth = 0
 		return n.depth
 	} else {
 		mindepth := NIL_DEPTH
-		for _, next := range n.neigh {
+		for i, next := range n.neigh {
 			if next != prev {
-				depth := t.computeDepthRecurRooted(next, n)
+				e := n.br[i]
+				depth := t.computeDepthRecurRooted(next, n, e, rootdepth+1)
 				if mindepth == NIL_DEPTH || depth < mindepth {
 					mindepth = depth
 				}
