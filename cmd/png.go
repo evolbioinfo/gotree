@@ -30,6 +30,17 @@ var pngCmd = &cobra.Command{
 
 		var d draw.TreeDrawer
 		var l draw.TreeLayout
+
+		var tipColors map[string][]uint8
+
+		if annotFile != "" {
+			tipColors, err = parseAnnot(annotFile)
+			if err != nil {
+				io.LogError(err)
+				return err
+			}
+		}
+
 		ntree := 0
 		if treefile, treechan, err = readTrees(intreefile); err != nil {
 			io.LogError(err)
@@ -72,6 +83,9 @@ var pngCmd = &cobra.Command{
 			l.SetDisplayInternalNodes(drawInternalNodeSymbols)
 			l.SetDisplayNodeComments(drawNodeComment)
 			l.SetSupportCutoff(drawSupportCutoff)
+			if len(tipColors) > 0 {
+				l.SetTipColors(tipColors)
+			}
 			l.DrawTree(t.Tree)
 			closeWriteFile(f, fname)
 			ntree++
