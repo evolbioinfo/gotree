@@ -38,7 +38,7 @@ func init() {
 	drawCmd.PersistentFlags().BoolVar(&drawSupport, "with-branch-support", false, "Highlight highly supported branches")
 	drawCmd.PersistentFlags().Float64Var(&drawSupportCutoff, "support-cutoff", 0.7, "Cutoff for highlithing supported branches")
 	drawCmd.PersistentFlags().BoolVar(&drawNodeComment, "with-node-comments", false, "Draw the tree with internal node comments (if --with-node-labels is not set)")
-	drawCmd.PersistentFlags().StringVarP(&annotFile, "annotate", "a", "", "Annotation file to add color to tip nodes. 1 tip per line with tip name and R G B color components (tab separated)")
+	drawCmd.PersistentFlags().StringVarP(&annotFile, "annotation-file", "f", "", "Annotation file to add colored circles to tip nodes (svg & png).\nTab separated, with <tip-name  Red  Green  Blue> on each line")
 }
 
 // Parse tab separated value file to add colored nodes to specific tips
