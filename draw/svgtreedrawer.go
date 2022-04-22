@@ -1,6 +1,7 @@
 package draw
 
 import (
+	"fmt"
 	"io"
 	"math"
 
@@ -102,6 +103,12 @@ func (svgtd *svgTreeDrawer) DrawCircle(x, y float64) {
 	centerx2 := x*float64(svgtd.width-svgtd.maxNameLength)/svgtd.maxLength + float64(svgtd.topmargin)
 	centery2 := y*float64(svgtd.height-svgtd.maxNameHeight)/svgtd.maxHeight + float64(svgtd.leftmargin)
 	svgtd.canvas.Circle(round(centerx2), round(centery2), 5, "stroke-width:1; fill:orange;stroke: black;")
+}
+
+func (svgtd *svgTreeDrawer) DrawColoredCircle(x, y float64, r, g, b, a uint8) {
+	centerx2 := x*float64(svgtd.width-svgtd.maxNameLength)/svgtd.maxLength + float64(svgtd.topmargin)
+	centery2 := y*float64(svgtd.height-svgtd.maxNameHeight)/svgtd.maxHeight + float64(svgtd.leftmargin)
+	svgtd.canvas.Circle(round(centerx2), round(centery2), 5, fmt.Sprintf("stroke-width:1;fill: #%02x%02x%02x%02x;stroke: black;", r, g, b, a))
 }
 
 /* angle:  incoming branch angle */

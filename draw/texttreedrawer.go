@@ -97,6 +97,10 @@ func (ttd *textTreeDrawer) DrawCircle(x, y float64) {
 	ttd.textCanvas[int(ypos)][int(xpos)] = '*'
 }
 
+func (ttd *textTreeDrawer) DrawColoredCircle(x, y float64, r, g, b, a uint8) {
+	ttd.DrawCircle(x, y)
+}
+
 func (ttd *textTreeDrawer) DrawName(x, y float64, name string, angle float64) {
 	ypos := float64(ttd.height-ttd.maxNameHeight) * y / ttd.maxHeight
 	xpos := float64(ttd.width-ttd.maxNameLength) * x / ttd.maxLength
