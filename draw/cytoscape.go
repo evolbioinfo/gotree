@@ -27,6 +27,9 @@ func (layout *cytoscapeLayout) SetDisplayInternalNodes(s bool) {
 func (layout *cytoscapeLayout) SetDisplayNodeComments(s bool) {
 }
 
+func (layout *cytoscapeLayout) SetTipColors(m map[string][]uint8) {
+}
+
 /*
 Draw the tree on the specific drawer. Does not close the file. The caller must do it.
 */

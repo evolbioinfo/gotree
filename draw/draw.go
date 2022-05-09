@@ -27,6 +27,7 @@ type TreeDrawer interface {
 	DrawLine(x1, y1, x2, y2 float64)
 	DrawCurve(centerx, centery float64, middlex, middley float64, radius float64, startAngle, endAngle float64)
 	DrawCircle(x, y float64)
+	DrawColoredCircle(x, y float64, r, g, b, a uint8)
 	/* angle : angle of the tip incoming branch */
 	DrawName(x, y float64, name string, angle float64)
 	Write()
@@ -44,6 +45,7 @@ type TreeLayout interface {
 	SetSupportCutoff(float64)
 	SetDisplayInternalNodes(bool)
 	SetDisplayNodeComments(bool)
+	SetTipColors(map[string][]uint8)
 }
 
 func maxLength(t *tree.Tree, hasBranchLengths, hasTipNames, hasNodeComments bool) (float64, int) {

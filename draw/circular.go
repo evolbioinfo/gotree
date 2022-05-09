@@ -11,12 +11,14 @@ type circularLayout struct {
 	drawer                 TreeDrawer
 	hasBranchLengths       bool
 	hasTipLabels           bool
+	hasTipSymbols          bool
 	hasInternalNodeLabels  bool
 	hasInternalNodeSymbols bool
 	hasNodeComments        bool
 	hasSupport             bool
 	supportCutoff          float64
 	cache                  *layoutCache
+	tipColors              map[string][]uint8
 }
 
 /*
@@ -31,12 +33,14 @@ func NewCircularLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInte
 		td,
 		withBranchLengths,
 		withTipLabels,
+		true,
 		withInternalNodeLabel,
 		false,
 		false,
 		withSupportCircles,
 		0.7,
 		newLayoutCache(),
+		make(map[string][]uint8),
 	}
 }
 
@@ -50,6 +54,11 @@ func (layout *circularLayout) SetDisplayInternalNodes(s bool) {
 
 func (layout *circularLayout) SetDisplayNodeComments(s bool) {
 	layout.hasNodeComments = s
+}
+
+func (layout *circularLayout) SetTipColors(colors map[string][]uint8) {
+	layout.hasTipSymbols = true
+	layout.tipColors = colors
 }
 
 /*
@@ -139,10 +148,18 @@ func (layout *circularLayout) drawTree(maxNameLength int) {
 
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
+			// Add space to label so it's not hidden by node symbol
+			// There is probably a better way to do this
+			spc := ""
+			if layout.hasTipSymbols {
+				if _, ok := layout.tipColors[p.name]; ok {
+					spc = " "
+				}
+			}
 			if layout.hasNodeComments {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, spc+p.name+p.comment+spc, p.brAngle)
 			} else {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, spc+p.name+spc, p.brAngle)
 			}
 		}
 	}
@@ -161,6 +178,15 @@ func (layout *circularLayout) drawTree(maxNameLength int) {
 			layout.drawer.DrawCircle(p.x+xoffset, p.y+yoffset)
 		}
 	}
+
+	if layout.hasTipSymbols {
+		for _, p := range layout.cache.tipLabelPoints {
+			if col, ok := layout.tipColors[p.name]; ok {
+				layout.drawer.DrawColoredCircle(p.x+xoffset, p.y+yoffset, col[0], col[1], col[2], 0xff)
+			}
+		}
+	}
+
 	for _, l := range layout.cache.branchPaths {
 		middlex := (l.p1.x + l.p2.x + 2*xoffset) / 2.0
 		middley := (l.p1.y + l.p2.y + 2*yoffset) / 2.0

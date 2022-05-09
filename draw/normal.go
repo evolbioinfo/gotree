@@ -8,12 +8,14 @@ type normalLayout struct {
 	drawer                 TreeDrawer
 	hasBranchLengths       bool
 	hasTipLabels           bool
+	hasTipSymbols          bool
 	hasInternalNodeLabels  bool
 	hasInternalNodeSymbols bool
 	hasNodeComments        bool
 	hasSupport             bool
 	supportCutoff          float64
 	cache                  *layoutCache
+	tipColors              map[string][]uint8
 }
 
 func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel, withSupportCircles bool) TreeLayout {
@@ -21,12 +23,14 @@ func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withIntern
 		td,
 		withBranchLengths,
 		withTipLabels,
+		false,
 		withInternalNodeLabel,
 		false,
 		false,
 		withSupportCircles,
 		0.7,
 		newLayoutCache(),
+		make(map[string][]uint8),
 	}
 }
 
@@ -40,6 +44,11 @@ func (layout *normalLayout) SetDisplayInternalNodes(s bool) {
 
 func (layout *normalLayout) SetDisplayNodeComments(s bool) {
 	layout.hasNodeComments = s
+}
+
+func (layout *normalLayout) SetTipColors(colors map[string][]uint8) {
+	layout.hasTipSymbols = true
+	layout.tipColors = colors
 }
 
 /*
@@ -137,6 +146,15 @@ func (layout *normalLayout) drawTree() {
 			layout.drawer.DrawCircle(p.x, p.y)
 		}
 	}
+
+	if layout.hasTipSymbols {
+		for _, p := range layout.cache.tipLabelPoints {
+			if col, ok := layout.tipColors[p.name]; ok {
+				layout.drawer.DrawColoredCircle(p.x, p.y, col[0], col[1], col[2], 0xff)
+			}
+		}
+	}
+
 	for _, l := range layout.cache.horizontalPaths {
 		middlex := (l.x1 + l.x2) / 2.0
 		middley := (l.y + l.y) / 2.0
