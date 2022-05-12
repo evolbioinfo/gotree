@@ -13,12 +13,13 @@ import (
 // This function computes the min transfer distance between the refedge and the bootstrap tree.
 // If "absent" is true, then we know that the ref branch is not present in the bootstrap tree (it is faster to compute then), and we stop if dist == 1
 // Else: we do not know, we do the full postorder traversal, and speciestoadd && speciestoremove are filled
-func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int, bootedges []*tree.Edge, absent bool) (dist int, minedge *tree.Edge, speciestoadd, speciestoremove []*tree.Node) {
+func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int, bootedges []*tree.Edge, absent bool) (dist int, minedge *tree.Edge, nbminedges int, speciestoadd, speciestoremove []*tree.Node) {
 	ones := make([]int, len(bootedges))
 	p, _ := refedge.TopoDepth()
 	dist = p - 1
 	speciestoadd = make([]*tree.Node, 0, 10)
 	speciestoremove = make([]*tree.Node, 0, 10)
+	nbminedges = 0
 
 	// If ref edge is a terminal edge
 	if p == 1 {
@@ -31,7 +32,7 @@ func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int
 	}
 
 	stop := false
-	minTransferDistRecur(reftree, ntips, boottree.Root(), nil, nil, refedge, p, ones, &dist, &minedge, absent, &stop)
+	minTransferDistRecur(reftree, ntips, boottree.Root(), nil, nil, refedge, p, ones, &dist, &minedge, &nbminedges, absent, &stop)
 
 	if !absent {
 		// computing species to move
@@ -83,7 +84,7 @@ func speciesToMoveRecursive(bootedge *tree.Edge, cur, prev *tree.Node, edge *tre
 	}
 }
 
-func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, curEdge, refEdge *tree.Edge, p int, ones []int, dist *int, minedge **tree.Edge, absent bool, stop *bool) {
+func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, curEdge, refEdge *tree.Edge, p int, ones []int, dist *int, minedge **tree.Edge, nbminedges *int, absent bool, stop *bool) {
 	if *stop {
 		return
 	}
@@ -101,7 +102,7 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 		for i, n := range cur.Neigh() {
 			if n != prev {
 				nextEdge := cur.Edges()[i]
-				minTransferDistRecur(refTree, ntips, n, cur, nextEdge, refEdge, p, ones, dist, minedge, absent, stop)
+				minTransferDistRecur(refTree, ntips, n, cur, nextEdge, refEdge, p, ones, dist, minedge, nbminedges, absent, stop)
 				curOnes += ones[nextEdge.Id()]
 				if *stop {
 					return
@@ -120,8 +121,12 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 		}
 		// <= because even if d==p-1 (max dist)
 		// we want to output a min dist edge
+		if d < *dist {
+			*nbminedges = 0
+		}
 		if d <= *dist {
 			*dist = d
+			*nbminedges++
 			*minedge = curEdge
 			if d == 1 && absent {
 				(*stop) = true
@@ -226,7 +231,7 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 							} else if p == 2 {
 								e.IncrementSupport(1.0)
 							} else {
-								dist, minedge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
+								dist, minedge, _, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
 								//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
 								e.IncrementSupport(float64(dist))
 								if computeavgtaxa || computeperbranchtaxa {
