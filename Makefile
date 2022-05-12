@@ -24,7 +24,7 @@ testcommands:
 
 .PHONY: deploy deploydir deploywinamd deploywin386 deploylinuxamd deploylinux386 deploydarwinamd deploydarwin386
 
-deploy: deploywinamd deploywin386 deploylinuxamd deploylinux386 deploydarwinamd deploydarwin386
+deploy: deploywinamd deploywin386 deploylinuxamd deploylinux386 deploydarwinamd
 	tar -czvf deploy/${VERSION}.tar.gz --directory="deploy" ${VERSION}
 
 deploydir:
