@@ -236,6 +236,30 @@ ${GOTREE} comment clear --edges-only -i input > result
 diff -q -b result expected
 rm -f expected result input
 
+# gotree comment transfer
+echo "->gotree comment transfer"
+cat > input <<EOF
+(t1:1,t2:1,(t3:1,t4:1)n5:1);
+EOF
+cat > expected <<EOF
+(t1:1,t2:1,(t3:1,t4:1)[n5]:1);
+EOF
+${GOTREE} comment transfer -i input > result
+diff -q -b result expected
+rm -f expected result input
+
+# gotree comment transfer --reverse
+echo "->gotree comment transfer --reverse"
+cat > input <<EOF
+(t1:1,t2:1,(t3:1,t4:1)[n5]:1);
+EOF
+cat > expected <<EOF
+(t1:1,t2:1,(t3:1,t4:1)n5:1);
+EOF
+${GOTREE} comment transfer --reverse -i input > result
+diff -q -b result expected
+rm -f expected result input
+
 # gotree collapse length
 echo "->gotree collapse length"
 cat > expected <<EOF

@@ -51,6 +51,7 @@ Command                                                            | Subcommand 
 --                                                                 | support           | Collapses/Removes lowly supported branches of input trees 
 [comment](commands/comment.md) ([api](api/comment.md))             |                   | Modifies branch/node comments
 --                                                                 | clear             | Clears branch/node comments from input trees
+--                                                                 | transfer          | Transfers node names to comments
 [compare](commands/compare.md) ([api](api/compare.md))             |                   | Compares full trees, edges, or tips
 --                                                                 | edges             | Individually compares edges of the reference tree to a compared tree
 --                                                                 | tips              | Compares the set of tips of the reference tree to a compared tree

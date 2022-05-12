@@ -169,6 +169,12 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 
 	for _, e := range edges {
 		e.SetSupport(tree.NIL_SUPPORT)
+		if !e.Right().Tip() {
+			e.Right().SetName("")
+		}
+		if !e.Left().Tip() {
+			e.Left().SetName("")
+		}
 	}
 
 	for boot := range boottrees {

@@ -11,20 +11,29 @@ If the tree has no branch lengths, it is not possible to differentiate them, thu
 
 #### Usage
 
-```
+Modify branch/node comments
+
+Version:
+
 Usage:
   gotree comment [command]
 
 Available Commands:
   clear       Removes node/tip comments
+  transfer    Transfers node names to comments
 
 Flags:
   -h, --help            help for comment
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Cleared tree output file (default "stdout")
-```
 
-clear subcommand
+Global Flags:
+      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --seed int        Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
+  -t, --threads int     Number of threads (Max=4) (default 1)
+  ```
+
+transfer subcommand
 ```
 Usage:
   gotree comment clear [flags]
@@ -38,6 +47,21 @@ Global Flags:
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Cleared tree output file (default "stdout")
 ```
+
+clear subcommand
+```
+Usage:
+  gotree comment transfer [flags]
+
+Flags:
+  -h, --help   help for transfer
+  --reverse    
+
+Global Flags:
+  -i, --input string    Input tree (default "stdin")
+  -o, --output string   Cleared tree output file (default "stdout")
+```
+
 
 #### Examples
 
@@ -70,3 +94,24 @@ Should print:
 ```
 (t1:1,t2:1,(t3:1,t4:1):1);
 ```
+
+* Transfering node names to node comments:
+```
+echo "(t1:1,t2:1,(t3:1,t4:1)n5:1);" | gotree comment transfer
+```
+
+Should print:
+```
+(t1:1,t2:1,(t3:1,t4:1)[n5]:1);
+```
+
+* Transfering node comment to node name:
+```
+echo "(t1:1,t2:1,(t3:1,t4:1)[n5]:1);" | gotree comment transfer --reverse
+```
+
+Should print:
+```
+(t1:1,t2:1,(t3:1,t4:1)n5:1);
+```
+
