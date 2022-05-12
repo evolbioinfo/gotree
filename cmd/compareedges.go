@@ -65,7 +65,7 @@ If the compared tree file contains several trees, it will take the first one onl
 
 			edges2 := t2.Tree.Edges()
 			for i, e1 := range edges1 {
-				dist, closeedge, speciestoadd, speciestoremove := support.MinTransferDist(e1, refTree, t2.Tree, len(names), edges2, false)
+				dist, closeedges, speciestoadd, speciestoremove := support.MinTransferDist(e1, refTree, t2.Tree, len(names), edges2, false)
 				var nodename string = "-"
 				found := (dist == 0)
 				comparelength := "N/A"
@@ -73,12 +73,12 @@ If the compared tree file contains several trees, it will take the first one onl
 				comparedtopodepth := -1
 				comparedid := -1
 
-				if closeedge != nil {
-					nodename = closeedge.Name(t2.Tree.Rooted())
-					comparelength = closeedge.LengthString()
-					comparedtopodepth, _ = closeedge.TopoDepth()
-					comparedsupport = closeedge.SupportString()
-					comparedid = closeedge.Id()
+				if len(closeedges) > 0 {
+					nodename = closeedges[0].Name(t2.Tree.Rooted())
+					comparelength = closeedges[0].LengthString()
+					comparedtopodepth, _ = closeedges[0].TopoDepth()
+					comparedsupport = closeedges[0].SupportString()
+					comparedid = closeedges[0].Id()
 				}
 
 				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(false), found)
