@@ -237,6 +237,7 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 									nbranchclose++
 								}
 								e.IncrementSupport(0.0)
+								sumNbClosestBranches[e.Id()] += 1.0
 								//} else if p == 2 {
 								//} else if p == 2 {
 								//e.IncrementSupport(1.0)
