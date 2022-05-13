@@ -74,28 +74,32 @@ If the compared tree file contains several trees, it will take the first one onl
 				comparedid := -1
 
 				if len(closeedges) > 0 {
-					nodename = closeedges[0].Name(t2.Tree.Rooted())
-					comparelength = closeedges[0].LengthString()
-					comparedtopodepth, _ = closeedges[0].TopoDepth()
-					comparedsupport = closeedges[0].SupportString()
-					comparedid = closeedges[0].Id()
+					nodename = closeedges[len(closeedges)-1].Name(t2.Tree.Rooted())
+					comparelength = closeedges[len(closeedges)-1].LengthString()
+					comparedtopodepth, _ = closeedges[len(closeedges)-1].TopoDepth()
+					comparedsupport = closeedges[len(closeedges)-1].SupportString()
+					comparedid = closeedges[len(closeedges)-1].Id()
 				}
 
 				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(false), found)
 				var movedtaxabuf bytes.Buffer
-				for k, sp := range speciestoadd {
-					if k > 0 {
-						movedtaxabuf.WriteRune(',')
+				if len(speciestoadd) > 0 {
+					for k, sp := range speciestoadd[len(speciestoadd)-1] {
+						if k > 0 {
+							movedtaxabuf.WriteRune(',')
+						}
+						movedtaxabuf.WriteRune('+')
+						movedtaxabuf.WriteString(sp.Name())
 					}
-					movedtaxabuf.WriteRune('+')
-					movedtaxabuf.WriteString(sp.Name())
 				}
-				for k, sp := range speciestoremove {
-					if k > 0 || (k == 0 && len(speciestoadd) > 0) {
-						movedtaxabuf.WriteRune(',')
+				if len(speciestoremove) > 0 {
+					for k, sp := range speciestoremove[len(speciestoremove)-1] {
+						if k > 0 || (k == 0 && len(speciestoadd[len(speciestoadd)-1]) > 0) {
+							movedtaxabuf.WriteRune(',')
+						}
+						movedtaxabuf.WriteRune('-')
+						movedtaxabuf.WriteString(sp.Name())
 					}
-					movedtaxabuf.WriteRune('-')
-					movedtaxabuf.WriteString(sp.Name())
 				}
 				fmt.Printf("\t%d\t%s\t%s\t%s\t%s\t%d\t%d\n", dist, movedtaxabuf.String(), nodename, comparelength, comparedsupport, comparedtopodepth, comparedid)
 			}
