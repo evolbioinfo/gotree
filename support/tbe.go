@@ -238,6 +238,7 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 								}
 								e.IncrementSupport(0.0)
 								//} else if p == 2 {
+								//} else if p == 2 {
 								//e.IncrementSupport(1.0)
 							} else {
 								dist, minedges, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
@@ -284,7 +285,7 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 		}
 
 		if computeperbranchtaxa {
-			fmt.Fprintf(logfile, "Edge\tLength\tSupport\tAvgNbClosestBranches")
+			fmt.Fprintf(logfile, "Edge\tLength\tP\tSupport\tAvgNbClosestBranches")
 			for _, t := range tips {
 				fmt.Fprintf(logfile, "\t%s", t.Name())
 			}
@@ -293,7 +294,8 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 				if e.Right().Tip() {
 					continue
 				}
-				fmt.Fprintf(logfile, "%d\t%s\t%s\t%f", e.Id(), e.LengthString(), e.SupportString(), sumNbClosestBranches[e.Id()]/float64(nboot))
+				d, _ := e.TopoDepth()
+				fmt.Fprintf(logfile, "%d\t%s\t%d\t%s\t%f", e.Id(), e.LengthString(), d, e.SupportString(), sumNbClosestBranches[e.Id()]/float64(nboot))
 				for _, t := range tips {
 					fmt.Fprintf(logfile, "\t%f", float64(movedperbranch[e.Id()][t.TipIndex()])*1.0/float64(nboot))
 				}
