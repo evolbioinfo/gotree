@@ -237,8 +237,8 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 									nbranchclose++
 								}
 								e.IncrementSupport(0.0)
-							} else if p == 2 {
-								e.IncrementSupport(1.0)
+								//} else if p == 2 {
+								//e.IncrementSupport(1.0)
 							} else {
 								dist, minedges, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
 								//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
