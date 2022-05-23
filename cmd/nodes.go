@@ -38,7 +38,7 @@ gotree stats nodes -i t.nw
 		}
 		defer closeWriteFile(f, outtreefile)
 
-		f.WriteString("tree\tnid\tnneigh\tname\tdepth\tcomments\n")
+		f.WriteString("tree\tnid\tnneigh\tname\tdepth\tcomments\tupnames\tdownnames\n")
 		var depth int
 		if treefile, treechan, err = readTrees(intreefile); err != nil {
 			io.LogError(err)
@@ -57,7 +57,25 @@ gotree stats nodes -i t.nw
 					io.LogError(err)
 					return
 				}
-				f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\t%d\t%s\n", t.Id, i, n.Nneigh(), n.Name(), depth, n.CommentsString()))
+				p, _ := n.Parent()
+				parentName := ""
+				childName := ""
+				if p != nil {
+					parentName = p.Name()
+				} else {
+					parentName = "-"
+				}
+				j := 0
+				for _, n := range n.Neigh() {
+					if n != p {
+						if j > 0 {
+							childName += ","
+						}
+						j++
+						childName += n.Name()
+					}
+				}
+				f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\t%d\t%s\t%s\t%s\n", t.Id, i, n.Nneigh(), n.Name(), depth, n.CommentsString(), parentName, childName))
 			}
 		}
 		return
