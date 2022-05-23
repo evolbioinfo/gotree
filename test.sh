@@ -900,25 +900,25 @@ rm -f expected result
 
 echo "->gotree stats nodes"
 cat > expected <<EOF
-tree	nid	nneigh	name	depth	comments
-0	0	3		1	[]
-0	1	3		1	[]
-0	2	1	Tip4	0	[]
-0	3	3		1	[]
-0	4	1	Tip7	0	[]
-0	5	1	Tip2	0	[]
-0	6	1	Tip0	0	[]
-0	7	3		2	[]
-0	8	3		1	[]
-0	9	1	Tip8	0	[]
-0	10	3		1	[]
-0	11	1	Tip9	0	[]
-0	12	1	Tip3	0	[]
-0	13	3		1	[]
-0	14	3		1	[]
-0	15	1	Tip6	0	[]
-0	16	1	Tip5	0	[]
-0	17	1	Tip1	0	[]
+tree	nid	nneigh	name	depth	comments	upnames	downnames
+0	0	3		1	[]	-	Tip0
+0	1	3		1	[]		Tip4
+0	2	1	Tip4	0	[]		
+0	3	3		1	[]		Tip7,Tip2
+0	4	1	Tip7	0	[]		
+0	5	1	Tip2	0	[]		
+0	6	1	Tip0	0	[]		
+0	7	3		2	[]		
+0	8	3		1	[]		Tip8
+0	9	1	Tip8	0	[]		
+0	10	3		1	[]		Tip9,Tip3
+0	11	1	Tip9	0	[]		
+0	12	1	Tip3	0	[]		
+0	13	3		1	[]		Tip1
+0	14	3		1	[]		Tip6,Tip5
+0	15	1	Tip6	0	[]		
+0	16	1	Tip5	0	[]		
+0	17	1	Tip1	0	[]		
 EOF
 ${GOTREE} generate yuletree --seed 10 | ${GOTREE} stats nodes > result
 diff -q -b expected result
