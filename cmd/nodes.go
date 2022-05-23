@@ -67,7 +67,7 @@ gotree stats nodes -i t.nw
 				}
 				j := 0
 				for _, n := range n.Neigh() {
-					if n != p {
+					if n != p && n.Name() != "" {
 						if j > 0 {
 							childName += ","
 						}
