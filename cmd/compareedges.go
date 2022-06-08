@@ -40,8 +40,8 @@ If the compared tree file contains several trees, it will take the first one onl
 
 		edges1 := refTree.Edges()
 
-		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trootdepth\trightname\tfound")
-		fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth\tcomparedid")
+		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trootdepth\trightname\tfound\tcomment")
+		fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth\tcomparedid\tcomparedcomment")
 
 		fmt.Printf("\n")
 		if treefile, treechan, err = readTrees(intree2file); err != nil {
@@ -70,18 +70,21 @@ If the compared tree file contains several trees, it will take the first one onl
 				found := (dist == 0)
 				comparelength := "N/A"
 				comparedsupport := "N/A"
+				comparedcomment := "N/A"
 				comparedtopodepth := -1
 				comparedid := -1
+				comment := e1.CommentsString()
 
 				if len(closeedges) > 0 {
 					nodename = closeedges[len(closeedges)-1].Name(t2.Tree.Rooted())
 					comparelength = closeedges[len(closeedges)-1].LengthString()
 					comparedtopodepth, _ = closeedges[len(closeedges)-1].TopoDepth()
+					comparedcomment = closeedges[len(closeedges)-1].CommentsString()
 					comparedsupport = closeedges[len(closeedges)-1].SupportString()
 					comparedid = closeedges[len(closeedges)-1].Id()
 				}
 
-				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(false), found)
+				fmt.Printf("%d\t%d\t%s\t%t\t%s", t2.Id, i, e1.ToStatsString(false), found, comment)
 				var movedtaxabuf bytes.Buffer
 				if len(speciestoadd) > 0 {
 					for k, sp := range speciestoadd[len(speciestoadd)-1] {
@@ -101,7 +104,7 @@ If the compared tree file contains several trees, it will take the first one onl
 						movedtaxabuf.WriteString(sp.Name())
 					}
 				}
-				fmt.Printf("\t%d\t%s\t%s\t%s\t%s\t%d\t%d\n", dist, movedtaxabuf.String(), nodename, comparelength, comparedsupport, comparedtopodepth, comparedid)
+				fmt.Printf("\t%d\t%s\t%s\t%s\t%s\t%d\t%d\t%s\n", dist, movedtaxabuf.String(), nodename, comparelength, comparedsupport, comparedtopodepth, comparedid, comparedcomment)
 			}
 		}
 		return
