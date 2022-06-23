@@ -57,10 +57,10 @@ func TestMinDist(t *testing.T) {
 		ntips := len(reftree.Tips())
 		compedges := comptree.Edges()
 		for _, e1 := range reftree.Edges() {
-			dist, minedge, _, _ := support.MinTransferDist(e1, reftree, comptree, ntips, compedges, false)
+			dist, minedges, _, _ := support.MinTransferDist(e1, reftree, comptree, ntips, compedges, false)
 			p, _ := e1.TopoDepth()
 			if dist != int(e1.Length()) {
-				bp, _ := minedge.TopoDepth()
+				bp, _ := minedges[0].TopoDepth()
 				t.Errorf("Tree %d: (p=%d, s=%f, bp=%d) Min dist ERROR: dist is %d, should be %d\n%s\n%s", i, p, e1.Support(), bp, dist, int(e1.Length()), reftree.Newick(), comptree.Newick())
 				return
 			}

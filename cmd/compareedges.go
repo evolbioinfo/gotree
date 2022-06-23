@@ -40,8 +40,8 @@ If the compared tree file contains several trees, it will take the first one onl
 
 		edges1 := refTree.Edges()
 
-		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trootdepth\trightname\tfound")
-		fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth\tcomparedid")
+		fmt.Printf("tree\tbrid\tlength\tsupport\tterminal\tdepth\ttopodepth\trootdepth\trightname\tfound\tcomment")
+		fmt.Printf("\ttransfer\ttaxatomove\tcomparednodename\tcomparedlength\tcomparedsupport\tcomparedtopodepth\tcomparedid\tcomparedcomment")
 
 		fmt.Printf("\n")
 		if treefile, treechan, err = readTrees(intree2file); err != nil {
@@ -65,39 +65,46 @@ If the compared tree file contains several trees, it will take the first one onl
 
 			edges2 := t2.Tree.Edges()
 			for i, e1 := range edges1 {
-				dist, closeedge, speciestoadd, speciestoremove := support.MinTransferDist(e1, refTree, t2.Tree, len(names), edges2, false)
+				dist, closeedges, speciestoadd, speciestoremove := support.MinTransferDist(e1, refTree, t2.Tree, len(names), edges2, false)
 				var nodename string = "-"
 				found := (dist == 0)
 				comparelength := "N/A"
 				comparedsupport := "N/A"
+				comparedcomment := "N/A"
 				comparedtopodepth := -1
 				comparedid := -1
+				comment := e1.CommentsString()
 
-				if closeedge != nil {
-					nodename = closeedge.Name(t2.Tree.Rooted())
-					comparelength = closeedge.LengthString()
-					comparedtopodepth, _ = closeedge.TopoDepth()
-					comparedsupport = closeedge.SupportString()
-					comparedid = closeedge.Id()
+				if len(closeedges) > 0 {
+					nodename = closeedges[len(closeedges)-1].Name(t2.Tree.Rooted())
+					comparelength = closeedges[len(closeedges)-1].LengthString()
+					comparedtopodepth, _ = closeedges[len(closeedges)-1].TopoDepth()
+					comparedcomment = closeedges[len(closeedges)-1].CommentsString()
+					comparedsupport = closeedges[len(closeedges)-1].SupportString()
+					comparedid = closeedges[len(closeedges)-1].Id()
 				}
 
-				fmt.Printf("%d\t%d\t%s\t%t", t2.Id, i, e1.ToStatsString(false), found)
+				fmt.Printf("%d\t%d\t%s\t%t\t%s", t2.Id, i, e1.ToStatsString(false), found, comment)
 				var movedtaxabuf bytes.Buffer
-				for k, sp := range speciestoadd {
-					if k > 0 {
-						movedtaxabuf.WriteRune(',')
+				if len(speciestoadd) > 0 {
+					for k, sp := range speciestoadd[len(speciestoadd)-1] {
+						if k > 0 {
+							movedtaxabuf.WriteRune(',')
+						}
+						movedtaxabuf.WriteRune('+')
+						movedtaxabuf.WriteString(sp.Name())
 					}
-					movedtaxabuf.WriteRune('+')
-					movedtaxabuf.WriteString(sp.Name())
 				}
-				for k, sp := range speciestoremove {
-					if k > 0 || (k == 0 && len(speciestoadd) > 0) {
-						movedtaxabuf.WriteRune(',')
+				if len(speciestoremove) > 0 {
+					for k, sp := range speciestoremove[len(speciestoremove)-1] {
+						if k > 0 || (k == 0 && len(speciestoadd[len(speciestoadd)-1]) > 0) {
+							movedtaxabuf.WriteRune(',')
+						}
+						movedtaxabuf.WriteRune('-')
+						movedtaxabuf.WriteString(sp.Name())
 					}
-					movedtaxabuf.WriteRune('-')
-					movedtaxabuf.WriteString(sp.Name())
 				}
-				fmt.Printf("\t%d\t%s\t%s\t%s\t%s\t%d\t%d\n", dist, movedtaxabuf.String(), nodename, comparelength, comparedsupport, comparedtopodepth, comparedid)
+				fmt.Printf("\t%d\t%s\t%s\t%s\t%s\t%d\t%d\t%s\n", dist, movedtaxabuf.String(), nodename, comparelength, comparedsupport, comparedtopodepth, comparedid, comparedcomment)
 			}
 		}
 		return

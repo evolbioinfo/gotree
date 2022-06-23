@@ -120,32 +120,35 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 				for _, e1 := range edges1 {
 					if !e1.Right().Tip() {
 
-						dist, e2, _, _ := support.MinTransferDist(e1, t.Tree, compTree, len(tips), edges2, false)
+						dist, minedges, _, _ := support.MinTransferDist(e1, t.Tree, compTree, len(tips), edges2, false)
 						depth := e1.NumTipsRight()
+						if len(minedges) > 0 {
+							// We take the first min dist edge
+							e2 := minedges[0]
+							// If root edge and rooted tree, we take the closest branch
+							if e2.Left().Nneigh() == 2 {
+								var t3, t2, t1 int
 
-						// If root edge and rooted tree, we take the closest branch
-						if e2.Left().Nneigh() == 2 {
-							var t3, t2, t1 int
+								e3 := e2.Left().Edges()[0]
+								if e3 == e2 {
+									e3 = e2.Left().Edges()[1]
+								}
 
-							e3 := e2.Left().Edges()[0]
-							if e3 == e2 {
-								e3 = e2.Left().Edges()[1]
+								t3 = e3.NumTipsRight()
+								t2 = e2.NumTipsRight()
+								t1 = e1.NumTipsRight()
+
+								if mutils.Abs(t3-t1) < mutils.Abs(t2-t1) {
+									e2 = e3
+								}
 							}
 
-							t3 = e3.NumTipsRight()
-							t2 = e2.NumTipsRight()
-							t1 = e1.NumTipsRight()
-
-							if mutils.Abs(t3-t1) < mutils.Abs(t2-t1) {
-								e2 = e3
-							}
-						}
-
-						if !e2.Right().Tip() {
-							if annotateComment {
-								e1.Right().AddComment(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
-							} else {
-								e1.Right().SetName(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+							if !e2.Right().Tip() {
+								if annotateComment {
+									e1.Right().AddComment(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+								} else {
+									e1.Right().SetName(fmt.Sprintf("%s_%d_%d", e2.Name(true), dist, depth))
+								}
 							}
 						}
 					}

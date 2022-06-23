@@ -13,43 +13,52 @@ import (
 // This function computes the min transfer distance between the refedge and the bootstrap tree.
 // If "absent" is true, then we know that the ref branch is not present in the bootstrap tree (it is faster to compute then), and we stop if dist == 1
 // Else: we do not know, we do the full postorder traversal, and speciestoadd && speciestoremove are filled
-func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int, bootedges []*tree.Edge, absent bool) (dist int, minedge *tree.Edge, speciestoadd, speciestoremove []*tree.Node) {
+// speciestoadd/speciestoremove: The list of species to add and remove, for each branch of the minedges slice. The size of the speciestoadd/speciestoremiove slices are the same as the minedges slice.
+func MinTransferDist(refedge *tree.Edge, reftree, boottree *tree.Tree, ntips int, bootedges []*tree.Edge, absent bool) (dist int, minedges []*tree.Edge, speciestoadd, speciestoremove [][]*tree.Node) {
 	ones := make([]int, len(bootedges))
 	p, _ := refedge.TopoDepth()
 	dist = p - 1
-	speciestoadd = make([]*tree.Node, 0, 10)
-	speciestoremove = make([]*tree.Node, 0, 10)
+	minedges = make([]*tree.Edge, 0, 2)
 
 	// If ref edge is a terminal edge
 	if p == 1 {
 		tip := refedge.Right()
 		boottip, _ := boottree.TipNode(tip.Name())
 		if boottip != nil {
-			minedge = boottip.Edges()[0]
+			minedges = append(minedges, boottip.Edges()[0])
 		}
 		return
 	}
 
 	stop := false
-	minTransferDistRecur(reftree, ntips, boottree.Root(), nil, nil, refedge, p, ones, &dist, &minedge, absent, &stop)
+	minTransferDistRecur(reftree, ntips, boottree.Root(), nil, nil, refedge, p, ones, &dist, &minedges, absent, &stop)
+
+	speciestoadd = make([][]*tree.Node, len(minedges))
+	speciestoremove = make([][]*tree.Node, len(minedges))
+	for i, _ := range minedges {
+		speciestoadd[i] = make([]*tree.Node, 0, 2)
+		speciestoremove[i] = make([]*tree.Node, 0, 2)
+	}
 
 	if !absent {
-		// computing species to move
-		/////////////////////////////////////////
-		n_subtree := minedge.NumTipsRight()
-		ones_subtree := ones[minedge.Id()]
-		zeros_subtree := n_subtree - ones_subtree
-		ones_total := ntips - p
-		zeros_total := p
+		for i, minedge := range minedges {
+			// computing species to move
+			/////////////////////////////////////////
+			n_subtree := minedge.NumTipsRight()
+			ones_subtree := ones[minedge.Id()]
+			zeros_subtree := n_subtree - ones_subtree
+			ones_total := ntips - p
+			zeros_total := p
 
-		/* move ones into subtree, zeros outside subtree? */
-		ops_ones_in_subtree := zeros_subtree + (ones_total - ones_subtree)
-		/* move zeros into subtree, ones outside subtree? */
-		ops_zeros_in_subtree := ones_subtree + (zeros_total - zeros_subtree)
+			/* move ones into subtree, zeros outside subtree? */
+			ops_ones_in_subtree := zeros_subtree + (ones_total - ones_subtree)
+			/* move zeros into subtree, ones outside subtree? */
+			ops_zeros_in_subtree := ones_subtree + (zeros_total - zeros_subtree)
 
-		want_ones_outside := ops_zeros_in_subtree < ops_ones_in_subtree
+			want_ones_outside := ops_zeros_in_subtree < ops_ones_in_subtree
 
-		speciesToMoveRecursive(minedge, boottree.Root(), nil, nil, ones, want_ones_outside, &speciestoadd, &speciestoremove)
+			speciesToMoveRecursive(minedge, boottree.Root(), nil, nil, ones, want_ones_outside, &speciestoadd[i], &speciestoremove[i])
+		}
 	}
 	return
 }
@@ -83,7 +92,7 @@ func speciesToMoveRecursive(bootedge *tree.Edge, cur, prev *tree.Node, edge *tre
 	}
 }
 
-func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, curEdge, refEdge *tree.Edge, p int, ones []int, dist *int, minedge **tree.Edge, absent bool, stop *bool) {
+func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, curEdge, refEdge *tree.Edge, p int, ones []int, dist *int, minedges *[]*tree.Edge, absent bool, stop *bool) {
 	if *stop {
 		return
 	}
@@ -101,7 +110,7 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 		for i, n := range cur.Neigh() {
 			if n != prev {
 				nextEdge := cur.Edges()[i]
-				minTransferDistRecur(refTree, ntips, n, cur, nextEdge, refEdge, p, ones, dist, minedge, absent, stop)
+				minTransferDistRecur(refTree, ntips, n, cur, nextEdge, refEdge, p, ones, dist, minedges, absent, stop)
 				curOnes += ones[nextEdge.Id()]
 				if *stop {
 					return
@@ -120,9 +129,12 @@ func minTransferDistRecur(refTree *tree.Tree, ntips int, cur, prev *tree.Node, c
 		}
 		// <= because even if d==p-1 (max dist)
 		// we want to output a min dist edge
+		if d < *dist {
+			*minedges = make([]*tree.Edge, 0, 2)
+		}
 		if d <= *dist {
 			*dist = d
-			*minedge = curEdge
+			*minedges = append(*minedges, curEdge)
 			if d == 1 && absent {
 				(*stop) = true
 			}
@@ -146,7 +158,8 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 	var edges []*tree.Edge = reftree.Edges()
 	var movedspeciestmp []int
 	var movedspecies []float64
-	var movedperbranch [][]int
+	var sumNbClosestBranches []float64 // Average number (over all the bootstrap trees) of branches having the minimum distance to this ref branch
+	var movedperbranch [][]float64
 	var nbranchclose int = 0
 	var nboot int = 0
 	var mindepth int = int(math.Ceil(1.0/distcutoff + 1.0)) // For taxa move computation
@@ -160,10 +173,11 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 		movedspeciestmp = make([]int, len(tips))
 	}
 
+	sumNbClosestBranches = make([]float64, len(edges))
 	if computeperbranchtaxa {
-		movedperbranch = make([][]int, len(edges))
+		movedperbranch = make([][]float64, len(edges))
 		for i, _ := range edges {
-			movedperbranch[i] = make([]int, len(tips))
+			movedperbranch[i] = make([]float64, len(tips))
 		}
 	}
 
@@ -229,16 +243,18 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 									nbranchclose++
 								}
 								e.IncrementSupport(0.0)
-							} else if p == 2 {
-								e.IncrementSupport(1.0)
+								sumNbClosestBranches[e.Id()] += 1.0
+								//} else if p == 2 {
+								//} else if p == 2 {
+								//e.IncrementSupport(1.0)
 							} else {
-								dist, minedge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
+								dist, minedges, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges, !(computeavgtaxa || computeperbranchtaxa))
 								//dist, edge, sptoadd, sptoremove := MinTransferDist(e, reftree, boot.Tree, len(tips), bootedges)
 								e.IncrementSupport(float64(dist))
 								if computeavgtaxa || computeperbranchtaxa {
-									UpdateTaxaMoveArrays(e, minedge, dist, p,
-										movedspeciestmp, movedperbranch, &nbranchclose,
-										sptoadd, sptoremove, distcutoff, mindepth,
+									UpdateTaxaMoveArrays(e, minedges, dist, p,
+										movedspeciestmp, movedperbranch, sumNbClosestBranches,
+										&nbranchclose, sptoadd, sptoremove, distcutoff, mindepth,
 										computeavgtaxa, computeperbranchtaxa, &mux)
 								}
 							}
@@ -276,7 +292,7 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 		}
 
 		if computeperbranchtaxa {
-			fmt.Fprintf(logfile, "Edge\tLength\tSupport")
+			fmt.Fprintf(logfile, "Edge\tLength\tP\tSupport\tAvgNbClosestBranches")
 			for _, t := range tips {
 				fmt.Fprintf(logfile, "\t%s", t.Name())
 			}
@@ -285,7 +301,8 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 				if e.Right().Tip() {
 					continue
 				}
-				fmt.Fprintf(logfile, "%d\t%s\t%s", e.Id(), e.LengthString(), e.SupportString())
+				d, _ := e.TopoDepth()
+				fmt.Fprintf(logfile, "%d\t%s\t%d\t%s\t%f", e.Id(), e.LengthString(), d, e.SupportString(), sumNbClosestBranches[e.Id()]/float64(nboot))
 				for _, t := range tips {
 					fmt.Fprintf(logfile, "\t%f", float64(movedperbranch[e.Id()][t.TipIndex()])*1.0/float64(nboot))
 				}
@@ -327,32 +344,42 @@ func NormalizeTransferDistancesByDepth(edges []*tree.Edge, nboot int) {
 // moved_species: array of size number of nodes in the tree
 // species_to_add & species_to_remove: Array of species (tree nodes) that move
 // distcutoff: if the bootstrap branch is too distant from the ref branch in terms of normalized transfer dist, then does not count
-func UpdateTaxaMoveArrays(ref, boot *tree.Edge, dist, p int,
-	moved_species []int, moved_species_per_branch [][]int, nb_branches_close *int,
-	speciestoadd, speciestoremove []*tree.Node, distcutoff float64, mindepth int,
-	computeavgtaxa, computeperbranchtaxa bool, mux *sync.Mutex) {
+func UpdateTaxaMoveArrays(ref *tree.Edge, boot []*tree.Edge, dist, p int,
+	moved_species []int, moved_species_per_branch [][]float64, sumNbClosestBranches []float64,
+	nb_branches_close *int, speciestoadd, speciestoremove [][]*tree.Node, distcutoff float64,
+	mindepth int, computeavgtaxa, computeperbranchtaxa bool, mux *sync.Mutex) {
 
 	norm := float64(dist) / (float64(p) - 1.0)
+	nbminedges := float64(len(boot))
 
 	mux.Lock()
 	if computeavgtaxa && norm <= distcutoff && p >= mindepth {
-		for _, t := range speciestoadd {
-			moved_species[t.TipIndex()]++
+		for _, spa := range speciestoadd {
+			for _, t := range spa {
+				moved_species[t.TipIndex()]++
+			}
 		}
-		for _, t := range speciestoremove {
-			moved_species[t.TipIndex()]++
+		for _, spr := range speciestoremove {
+			for _, t := range spr {
+				moved_species[t.TipIndex()]++
+			}
 		}
 		(*nb_branches_close)++
 	}
 	mux.Unlock()
 
+	sumNbClosestBranches[ref.Id()] += nbminedges
 	if computeperbranchtaxa {
-		for _, t := range speciestoadd {
-			moved_species_per_branch[ref.Id()][t.TipIndex()]++
+		for _, spa := range speciestoadd {
+			for _, t := range spa {
+				moved_species_per_branch[ref.Id()][t.TipIndex()] += (1.0 / nbminedges)
+			}
 		}
 
-		for _, t := range speciestoremove {
-			moved_species_per_branch[ref.Id()][t.TipIndex()]++
+		for _, spr := range speciestoremove {
+			for _, t := range spr {
+				moved_species_per_branch[ref.Id()][t.TipIndex()] += (1.0 / nbminedges)
+			}
 		}
 	}
 }
