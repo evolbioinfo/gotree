@@ -89,6 +89,7 @@ func (t *Tree) unconnectNode(n *Node) {
 func (t *Tree) NewEdge() *Edge {
 	return &Edge{
 		length:  NIL_LENGTH,
+		comment: make([]string, 0),
 		support: NIL_SUPPORT,
 		id:      NIL_ID,
 		pvalue:  NIL_PVALUE,
