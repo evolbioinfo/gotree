@@ -1,6 +1,5 @@
 # Gotree
-[![build](https://github.com/evolbioinfo/gotree/actions/workflows/go.yml/badge.svg)](https://github.com/evolbioinfo/gotree/actions) [![Anaconda-Server Badge](https://anaconda.org/bioconda/gotree/badges/installer/conda.svg)](https://anaconda.org/bioconda/gotree)  [![Docker hub](https://img.shields.io/docker/cloud/build/evolbioinfo/gotree)](https://hub.docker.com/r/evolbioinfo/gotree/builds/)
-[![DOI:10.1093/nargab/lqab075](https://zenodo.org/badge/DOI/10.1093/nargab/lqab075.svg)](https://doi.org/10.1093/nargab/lqab075)[![downloads](https://anaconda.org/bioconda/gotree/badges/downloads.svg)](https://anaconda.org/bioconda/gotree/)
+[![build](https://github.com/evolbioinfo/gotree/actions/workflows/go.yml/badge.svg)](https://github.com/evolbioinfo/gotree/actions) [![Anaconda-Server Badge](https://anaconda.org/bioconda/gotree/badges/installer/conda.svg)](https://anaconda.org/bioconda/gotree)  [![Docker hub](https://img.shields.io/docker/pulls/evolbioinfo/gotree)](https://hub.docker.com/r/evolbioinfo/gotree/tags/) [![downloads](https://anaconda.org/bioconda/gotree/badges/downloads.svg)](https://anaconda.org/bioconda/gotree/) [![DOI:10.1093/nargab/lqab075](https://zenodo.org/badge/DOI/10.1093/nargab/lqab075.svg)](https://doi.org/10.1093/nargab/lqab075)
 
 ![Gotree Logo](images/logo.png)
 
