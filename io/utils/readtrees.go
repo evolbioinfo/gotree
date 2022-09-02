@@ -7,6 +7,7 @@ import (
 
 	"github.com/evolbioinfo/gotree/io/fileutils"
 	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/io/nextstrain"
 	"github.com/evolbioinfo/gotree/io/nexus"
 	"github.com/evolbioinfo/gotree/io/phyloxml"
 	"github.com/evolbioinfo/gotree/tree"
@@ -16,6 +17,7 @@ const (
 	FORMAT_NEWICK = iota
 	FORMAT_NEXUS
 	FORMAT_PHYLOXML
+	FORMAT_NEXTSTRAIN
 )
 
 func ReadTree(inputfile string, format int) (*tree.Tree, error) {
@@ -68,6 +70,18 @@ func ReadTreeReader(reader *bufio.Reader, format int) (*tree.Tree, error) {
 				return nil, fmt.Errorf("No tree in the input PhyloXML file")
 			}
 		}
+	case FORMAT_NEXTSTRAIN:
+		if n, err4 := nextstrain.NewParser(reader).Parse(); err4 != nil {
+			return nil, err4
+		} else {
+			reftree, err = n.FirstTree()
+			if err != nil {
+				return nil, err
+			}
+			if reftree == nil {
+				return nil, fmt.Errorf("No tree in the input Nextstrain file")
+			}
+		}
 	default:
 		return nil, fmt.Errorf("Unsupported tree format: %q", format)
 	}
@@ -94,25 +108,25 @@ func ReadMultiTrees(reader *bufio.Reader, format int) <-chan tree.Trees {
 			line, e := fileutils.ReadUntilSemiColon(reader)
 			if e != nil {
 				compTrees <- tree.Trees{
-					nil,
-					id,
-					e,
+					Tree: nil,
+					Id:   id,
+					Err:  e,
 				}
 			}
 			for e == nil {
 				parser := newick.NewParser(strings.NewReader(line))
 				if compTree, err = parser.Parse(); err != nil {
 					compTrees <- tree.Trees{
-						nil,
-						id,
-						err,
+						Tree: nil,
+						Id:   id,
+						Err:  err,
 					}
 					break
 				} else {
 					compTrees <- tree.Trees{
-						compTree,
-						id,
-						nil,
+						Tree: compTree,
+						Id:   id,
+						Err:  nil,
 					}
 				}
 				id++
@@ -121,16 +135,16 @@ func ReadMultiTrees(reader *bufio.Reader, format int) <-chan tree.Trees {
 		case FORMAT_NEXUS:
 			if n, err := nexus.NewParser(reader).Parse(); err != nil {
 				compTrees <- tree.Trees{
-					nil,
-					id,
-					err,
+					Tree: nil,
+					Id:   id,
+					Err:  err,
 				}
 			} else {
 				n.IterateTrees(func(name string, t *tree.Tree) {
 					compTrees <- tree.Trees{
-						t,
-						id,
-						nil,
+						Tree: t,
+						Id:   id,
+						Err:  nil,
 					}
 					id++
 				})
@@ -138,25 +152,42 @@ func ReadMultiTrees(reader *bufio.Reader, format int) <-chan tree.Trees {
 		case FORMAT_PHYLOXML:
 			if p, err2 := phyloxml.NewParser(reader).Parse(); err2 != nil {
 				compTrees <- tree.Trees{
-					nil,
-					id,
-					err2,
+					Tree: nil,
+					Id:   id,
+					Err:  err2,
 				}
 			} else {
 				p.IterateTrees(func(t *tree.Tree, err error) {
 					compTrees <- tree.Trees{
-						t,
-						id,
-						err,
+						Tree: t,
+						Id:   id,
+						Err:  err,
 					}
 					id++
 				})
 			}
+		case FORMAT_NEXTSTRAIN:
+			if n, err3 := nextstrain.NewParser(reader).Parse(); err3 != nil {
+				compTrees <- tree.Trees{
+					Tree: nil,
+					Id:   id,
+					Err:  err3,
+				}
+			} else {
+				t, err := n.FirstTree()
+				compTrees <- tree.Trees{
+					Tree: t,
+					Id:   id,
+					Err:  err,
+				}
+				id++
+			}
+
 		default:
 			compTrees <- tree.Trees{
-				nil,
-				id,
-				fmt.Errorf("Unsupported tree format: %q", format),
+				Tree: nil,
+				Id:   id,
+				Err:  fmt.Errorf("Unsupported tree format: %q", format),
 			}
 		}
 		close(compTrees)

@@ -76,6 +76,8 @@ Different usages are implemented:
 			treeformat = utils.FORMAT_NEXUS
 		case "phyloxml":
 			treeformat = utils.FORMAT_PHYLOXML
+		case "nextstrain":
+			treeformat = utils.FORMAT_NEXTSTRAIN
 		default:
 			treeformat = utils.FORMAT_NEWICK
 		}
