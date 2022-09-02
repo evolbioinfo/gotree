@@ -12,7 +12,8 @@ import (
 
 // Structs for representation of the PhyloXML tree
 type Nextstrain struct {
-	Tree NsNode `json:"tree"`
+	Tree    NsNode `json:"tree"`
+	Version string `json:"version"`
 }
 
 type NsNode struct {
@@ -92,6 +93,9 @@ func (p *Parser) Parse() (ns *Nextstrain, err error) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(p.reader)
 	err = json.Unmarshal(buf.Bytes(), ns)
+	if err == nil && ns.Version != "v2" {
+		err = fmt.Errorf("format error : gotree only supports nextstrain v2 format")
+	}
 	return
 }
 
