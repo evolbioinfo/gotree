@@ -24,7 +24,7 @@ Available Commands:
   phyloxml    Reformats an input tree file into PhyloXML format
 
 Flags:
-  -f, --format string   Input format (newick, nexus, phyloxml) (default "newick")
+  -f, --format string   Input format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -h, --help            help for reformat
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Output file (default "stdout")

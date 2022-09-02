@@ -28,7 +28,7 @@ Flags:
   -o, --output string   Cleared tree output file (default "stdout")
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
       --seed int        Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
   -t, --threads int     Number of threads (Max=4) (default 1)
   ```

@@ -2,9 +2,9 @@
 ## Github repository
 [Gotree github repository](https://github.com/evolbioinfo/gotree).
 ## Introduction
-GoTree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
+Gotree is a set of command line tools to manipulate phylogenetic trees. It is implemented in [Go](https://golang.org/) language.
 
-The goal is to handle phylogenetic trees in [Newick](https://en.wikipedia.org/wiki/Newick_format) format, through several basic commands. Each command may print result (a tree for example) in the standard output, and thus can be piped to the standard input of the next gotree command.
+Gotree handles phylogenetic trees in [Newick](https://en.wikipedia.org/wiki/Newick_format), [Nexus](https://en.wikipedia.org/wiki/Nexus_file), [PhyloXML](http://www.phyloxml.org/) and [Nextstrain/Augur v2](https://docs.nextstrain.org/projects/augur/en/stable/usage/cli/export.html) format, through several basic commands. Each command may print result (a tree for example) in the standard output, and thus can be piped to the standard input of the next gotree command.
 
 ## Installation
 ### Binaries

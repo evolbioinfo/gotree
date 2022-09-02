@@ -17,7 +17,7 @@ Flags:
   -o, --output string   NNI output tree file (default "stdout")
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
 ```
 
 #### Example

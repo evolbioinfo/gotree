@@ -26,7 +26,7 @@ Flags:
       --tips       Tip labels are listed (--tips=false to cancel) (default true)
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
 ```
 
 #### Examples

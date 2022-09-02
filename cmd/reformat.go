@@ -17,7 +17,7 @@ So far, it can be :
 
 func init() {
 	RootCmd.AddCommand(reformatCmd)
-	reformatCmd.PersistentFlags().StringVarP(&rootInputFormat, "input-format", "f", "newick", "Input tree format (newick, nexus, or phyloxml), alias to --format")
+	reformatCmd.PersistentFlags().StringVarP(&rootInputFormat, "input-format", "f", "newick", "Input tree format (newick, nexus, phyloxml, or nextstrain), alias to --format")
 	reformatCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	reformatCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output file")
 

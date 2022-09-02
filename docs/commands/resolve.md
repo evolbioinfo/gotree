@@ -50,7 +50,7 @@ Flags:
   -h, --help   help for named
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -i, --input string    Input tree(s) file (default "stdin")
   -o, --output string   Resolved tree(s) output file (default "stdout")
 ```

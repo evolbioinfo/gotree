@@ -36,7 +36,7 @@ Available Commands:
   support     Collapse lowly supported branches of the input tree
 
 Flags:
-  --format string       Input tree format (newick, nexus, or phyloxml) (default "newick")
+  --format string       Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Collapsed tree output file (default "stdout")
 ```
@@ -51,7 +51,7 @@ Flags:
   -m, --min-depth int   Min depth cutoff to collapse branches
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Collapsed tree output file (default "stdout")
 ```
@@ -65,7 +65,7 @@ Flags:
   -l, --length float   Length cutoff to collapse branches
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Collapsed tree output file (default "stdout")
 ```
@@ -79,7 +79,7 @@ Flags:
   -s, --support float   Support cutoff to collapse branches
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Collapsed tree output file (default "stdout")
 ```
@@ -93,7 +93,7 @@ Flags:
   -h, --help   help for single
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Collapsed tree output file (default "stdout")
 ```
@@ -111,7 +111,7 @@ Flags:
   -n, --tip-name string       Name of the tip that will replace the clade (default "none")
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -i, --input string    Input tree (default "stdin")
   -o, --output string   Collapsed tree output file (default "stdout")
 ```

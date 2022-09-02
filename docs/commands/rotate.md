@@ -27,7 +27,7 @@ Flags:
   -o, --output string   Rotated tree output file (default "stdout")
 
 Global Flags:
-      --format string   Input tree format (newick, nexus, or phyloxml) (default "newick")
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
 ```
 
 Specificity of `rand` subcommand:
