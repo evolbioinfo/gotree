@@ -132,44 +132,9 @@ The `gotree` executable should be located in the `$GOPATH/bin` folder.
 
 ## Auto completion
 
-### Bash
-* Install bash-completion:
+gotree uses [cobra](https://github.com/spf13/cobra), and therefore proposes a command to generate auto completion scripts:
 ```
-# MacOS brew
-brew install bash-completion
-
-# MacOS port (do not forget to change
-# the path to bash command in terminal
-# preferences to /opt/local/bin/bash -l)
-sudo port install bash-completion
-
-# Linux /centos
-yum install bash-completion -y
-
-# Linux /ubuntu
-apt-get install bash-completion
-```
-
-* Activate gotree bash completion
-```
-# Once
-source <(gotree completion bash)
-# Permanently
-mkdir ~/.gotree
-gotree completion bash > ~/.gotree/completion.bash.inc
-printf "
-# gotree shell completion
-source '$HOME/.gotree/completion.bash.inc'
-" >> $HOME/.bashrc
-```
-
-### Zsh (not tested)
-
-```
-# Once
-source <(gotree completion zsh)
-# Permanently
-gotree completion zsh > "${fpath[1]}/_gotree"
+gotree completion -h
 ```
 
 ## Usage
