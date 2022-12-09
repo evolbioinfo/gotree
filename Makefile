@@ -24,7 +24,7 @@ testcommands:
 
 .PHONY: deploy deploydir deploywinamd deploywin386 deploylinuxamd deploylinux386 deploydarwinamd deploydarwin386
 
-deploy: deploywinamd deploywin386 deploylinuxamd deploylinux386 deploydarwinamd
+deploy: deploywinamd deploywin386 deploylinuxamd deploylinux386 deploydarwinamd deploydarwinarm
 	tar -czvf deploy/${VERSION}.tar.gz --directory="deploy" ${VERSION}
 
 deploydir:
@@ -33,17 +33,11 @@ deploydir:
 deploywinamd: deploydir dep
 	env GOOS=windows GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_amd64.exe -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
-deploywin386: deploydir dep
-	env GOOS=windows GOARCH=386 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_386.exe -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
-
 deploylinuxamd: deploydir dep
 	env GOOS=linux GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_amd64_linux -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
-
-deploylinux386: deploydir dep
-	env GOOS=linux GOARCH=386 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_386_linux -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
 deploydarwinamd: deploydir dep
 	env GOOS=darwin GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_amd64_darwin -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
-deploydarwin386: deploydir dep
-	env GOOS=darwin GOARCH=386 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_386_darwin -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
+deploydarwinarm: deploydir dep
+	env GOOS=darwin GOARCH=arm64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_arm64_darwin -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
