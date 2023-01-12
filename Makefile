@@ -31,13 +31,13 @@ deploydir:
 	mkdir -p deploy/${VERSION}
 
 deploywinamd: deploydir dep
-	env GOOS=windows GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_amd64.exe -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
+	env GOOS=windows GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_${VERSION}_amd64.exe -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
 deploylinuxamd: deploydir dep
-	env GOOS=linux GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_amd64_linux -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
+	env GOOS=linux GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_${VERSION}_amd64_linux -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
 deploydarwinamd: deploydir dep
-	env GOOS=darwin GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_amd64_darwin -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
+	env GOOS=darwin GOARCH=amd64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_${VERSION}_amd64_darwin -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
 
 deploydarwinarm: deploydir dep
-	env GOOS=darwin GOARCH=arm64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_arm64_darwin -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
+	env GOOS=darwin GOARCH=arm64 ${GO_EXECUTABLE} build -o deploy/${VERSION}/${NAME}_${VERSION}_arm64_darwin -ldflags "-X ${VERSION_PACKAGE}=${VERSION}" ${PACKAGE}
