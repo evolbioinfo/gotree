@@ -1703,7 +1703,7 @@ diff -q -b expectedcompare outputcompare
 # Compare all branches with lengths, etc.
 ${GOTREE} compare edges -i output -c expected | tail -n+2 | awk -F "\t" '{if($3!=$15){exit 1};if($10!="true"){exit 1};if($9!=$14){exit 1}}'
 
-rm -f expected output input outputcompare expectedcompare
+rm -f expected output input outputcompare expectedcompare id_groups
 
 #gotree generate startree
 echo "->gotree generate startree"
