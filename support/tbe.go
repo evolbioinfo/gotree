@@ -267,7 +267,9 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 		}
 		if computeavgtaxa || computeperbranchtaxa {
 			for _, t := range tips {
-				movedspecies[t.TipIndex()] += float64(movedspeciestmp[t.TipIndex()]) / float64(nbranchclose)
+				if nbranchclose > 0 {
+					movedspecies[t.TipIndex()] += float64(movedspeciestmp[t.TipIndex()]) / float64(nbranchclose)
+				}
 				movedspeciestmp[t.TipIndex()] = 0
 			}
 		}
@@ -282,32 +284,30 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 	}
 	NormalizeTransferDistancesByDepth(edges, nboot)
 	// Write in log file
-	if computeavgtaxa || computeperbranchtaxa {
-		if computeavgtaxa {
-			fmt.Fprintf(logfile, "Taxon\ttIndex\n")
-			for _, t := range tips {
-				movedtaxaindex := movedspecies[t.TipIndex()] * 100.0 / float64(nboot)
-				fmt.Fprintf(logfile, "%s\t%f\n", t.Name(), movedtaxaindex)
-			}
+	if computeavgtaxa {
+		fmt.Fprintf(logfile, "Taxon\ttIndex\n")
+		for _, t := range tips {
+			movedtaxaindex := movedspecies[t.TipIndex()] * 100.0 / float64(nboot)
+			fmt.Fprintf(logfile, "%s\t%f\n", t.Name(), movedtaxaindex)
 		}
+	}
 
-		if computeperbranchtaxa {
-			fmt.Fprintf(logfile, "Edge\tLength\tP\tSupport\tAvgNbClosestBranches")
+	if computeperbranchtaxa {
+		fmt.Fprintf(logfile, "Edge\tLength\tP\tSupport\tAvgNbClosestBranches")
+		for _, t := range tips {
+			fmt.Fprintf(logfile, "\t%s", t.Name())
+		}
+		fmt.Fprintf(logfile, "\n")
+		for _, e := range edges {
+			if e.Right().Tip() {
+				continue
+			}
+			d, _ := e.TopoDepth()
+			fmt.Fprintf(logfile, "%d\t%s\t%d\t%s\t%f", e.Id(), e.LengthString(), d, e.SupportString(), sumNbClosestBranches[e.Id()]/float64(nboot))
 			for _, t := range tips {
-				fmt.Fprintf(logfile, "\t%s", t.Name())
+				fmt.Fprintf(logfile, "\t%f", float64(movedperbranch[e.Id()][t.TipIndex()])*1.0/float64(nboot))
 			}
 			fmt.Fprintf(logfile, "\n")
-			for _, e := range edges {
-				if e.Right().Tip() {
-					continue
-				}
-				d, _ := e.TopoDepth()
-				fmt.Fprintf(logfile, "%d\t%s\t%d\t%s\t%f", e.Id(), e.LengthString(), d, e.SupportString(), sumNbClosestBranches[e.Id()]/float64(nboot))
-				for _, t := range tips {
-					fmt.Fprintf(logfile, "\t%f", float64(movedperbranch[e.Id()][t.TipIndex()])*1.0/float64(nboot))
-				}
-				fmt.Fprintf(logfile, "\n")
-			}
 		}
 	}
 
@@ -329,7 +329,8 @@ func ReformatAvgDistance(t *tree.Tree, nboot int) {
 // This function takes all branch support values (that are considered as average
 // transfer distances over bootstrap trees), normalizes them by the depth and
 // convert them to similarity, i.e:
-//     1-avg_dist/(depth-1)
+//
+//	1-avg_dist/(depth-1)
 func NormalizeTransferDistancesByDepth(edges []*tree.Edge, nboot int) {
 	for _, e := range edges {
 		if e.Support() != tree.NIL_SUPPORT {
