@@ -31,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	mat = t.ToDistanceMatrix()
+	mat = t.ToDistanceMatrix(tree.DISTANCE_METRIC_BRLEN)
 	tips = t.Tips()
 
 	for i, tip := range tips {

@@ -15,16 +15,18 @@ import (
 // and the edges that connects this node to the subtree.
 //
 // It considers the tree as unrooted
-// 	       e2---1
-// 	 ----a|
-// 	|      e1---2
-// 	|     ---3
-// 	 ----|
-// 	|     ---4
-// 	|     ---5
-// 	 ----|
-// 	      ---6
-// LeastCommonAncestorUnrooted(1,2) returns a,e1,e2,true
+//
+//	       e2---1
+//	 ----a|
+//	|      e1---2
+//	|     ---3
+//	 ----|
+//	|     ---4
+//	|     ---5
+//	 ----|
+//	      ---6
+//
+// # LeastCommonAncestorUnrooted(1,2) returns a,e1,e2,true
 //
 // The returned boolean value telling if the group is monophyletic
 // (i.e. contains all tips descending from LCA).
@@ -42,11 +44,11 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 		if found && node.Tip() {
 			tipindex[name] = node
 		} else {
-			io.LogWarning(errors.New(fmt.Sprintf("Tip not found in the tree : %s", name)))
+			io.LogWarning(fmt.Errorf("tip not found in the tree : %s", name))
 		}
 	}
 	if len(tipindex) == 0 {
-		return nil, nil, false, errors.New("None of the given tips are present in the tree")
+		return nil, nil, false, errors.New("none of the given tips are present in the tree")
 	}
 
 	// We search a tip that is not in the input tips
@@ -62,7 +64,7 @@ func (t *Tree) LeastCommonAncestorUnrooted(nodeindex *nodeIndex, tips ...string)
 
 	// If temproot == nil : Means that the input tips consist of all the tips of the tree
 	if temproot == nil {
-		return nil, nil, false, errors.New("All tips of the tree given : Nothing to do")
+		return nil, nil, false, errors.New("all tips of the tree given : Nothing to do")
 	}
 	// otherwise we take the only child of the tip as first root
 	ancestor, goodedges, _, diff, _, err2 := t.LeastCommonAncestorRecur(temproot.neigh[0], nil, tipindex)
@@ -94,11 +96,11 @@ func (t *Tree) LeastCommonAncestorRooted(nodeindex *nodeIndex, tips ...string) (
 		if found {
 			tipindex[name] = node
 		} else {
-			io.LogWarning(errors.New(fmt.Sprintf("Tip not found in the tree : %s", name)))
+			io.LogWarning(fmt.Errorf("tip not found in the tree : %s", name))
 		}
 	}
 	if len(tipindex) == 0 {
-		return nil, nil, false, errors.New("None of the given tips are present in the tree")
+		return nil, nil, false, errors.New("none of the given tips are present in the tree")
 	}
 
 	// We search a tip that is not in the input tips
@@ -174,24 +176,27 @@ func (t *Tree) LeastCommonAncestorRecur(current *Node, prev *Node, tipIndex map[
 // and connects it with a new edge.
 //
 // Imagine a star tree with central node n,
-//	      1
-//	      |
-//	      |
-//	 6----n-----2
-//	     /|\
-//	    / | \
-//	  e5 e4  e3
+//
+//	     1
+//	     |
+//	     |
+//	6----n-----2
+//	    /|\
+//	   / | \
+//	 e5 e4  e3
+//
 // if we call AddBipartition(n,{e3,e4,e5}), at the end we have:
-//	      1
-//	      |
-//	      |
-//	 6----n-----2
-//	      |
-//	      |
-//	      n2
-//	     /|\
-//	    / | \
-//	  e5 e4  e3
+//
+//	     1
+//	     |
+//	     |
+//	6----n-----2
+//	     |
+//	     |
+//	     n2
+//	    /|\
+//	   / | \
+//	 e5 e4  e3
 //
 // Useful for building consensus tree.
 //
@@ -204,7 +209,7 @@ func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) (
 	// Number of edges in direction n<-e<-other
 	nbin := 0
 	if len(edges) <= 1 || len(edges) >= len(n.br)-1 {
-		return nil, errors.New("We cannot add the bipartition, it already exists")
+		return nil, errors.New("we cannot add the bipartition, it already exists")
 	}
 	for _, e := range edges {
 		// We check if the edges are connected to the node
@@ -250,18 +255,20 @@ func (t *Tree) AddBipartition(n *Node, edges []*Edge, length, support float64) (
 }
 
 // Builds the consensus of trees given in the input channel.
-//	* If the cutoff is 0.5 : The majority rule consensus is computed;
-//	* If tht cutoff is 1   : The strict consensus is computed
+//   - If the cutoff is 0.5 : The majority rule consensus is computed;
+//   - If tht cutoff is 1   : The strict consensus is computed
+//
 // In the output consensus tree:
-//	1) Branch supports are computed as the proportion of trees in which the bipartitions are present
-//	2) Branch lengths are computed as the average length of the same branch over all the trees where it is present
+//  1. Branch supports are computed as the proportion of trees in which the bipartitions are present
+//  2. Branch lengths are computed as the average length of the same branch over all the trees where it is present
+//
 // There can be errors if:
-//	* The cutoff <0.5 or >1
-//	* The tip names are different in the different trees
-//	* Incompatible bipartition are generated to build the consensus (It should not happen since cutoff should be >=0.5)
+//   - The cutoff <0.5 or >1
+//   - The tip names are different in the different trees
+//   - Incompatible bipartition are generated to build the consensus (It should not happen since cutoff should be >=0.5)
 func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 	if cutoff < 0.5 || cutoff > 1 {
-		return nil, errors.New("Min frequency for bipartition must be >=0.5 and <=1")
+		return nil, errors.New("min frequency for bipartition must be >=0.5 and <=1")
 	}
 	nbtrees := 0
 	edgeindex := NewEdgeIndex(128, .75)
@@ -274,7 +281,7 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 	for curtree := range trees {
 		if curtree.Err != nil {
 			/* We empty the channel if needed */
-			for _ = range trees {
+			for range trees {
 			}
 			return nil, curtree.Err
 		}
@@ -339,12 +346,12 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 		if len(names) < 2 {
 			if len(names) == 1 {
 				if t, ok := nodeindex.GetNode(names[0]); !ok || !t.Tip() {
-					return nil, errors.New(fmt.Sprintf("This taxon name does not exist in the consensus: %s", names[0]))
+					return nil, fmt.Errorf("this taxon name does not exist in the consensus: %s", names[0])
 				} else {
 					t.br[0].SetLength(float64(bs.val.Len) / float64(bs.val.Count))
 				}
 			} else {
-				return nil, errors.New("This bipartition has a side with no taxa")
+				return nil, errors.New("this bipartition has a side with no taxa")
 			}
 		} else {
 			node, edges, monophyletic, err := startree.LeastCommonAncestorUnrooted(nodeindex, names...)
@@ -352,13 +359,13 @@ func Consensus(trees <-chan Trees, cutoff float64) (*Tree, error) {
 				return nil, err
 			}
 			if node == nil {
-				return nil, errors.New("Consensus error: No common ancestor found for biparition")
+				return nil, errors.New("consensus error: No common ancestor found for biparition")
 			}
 			if edges == nil || len(edges) == 0 {
-				return nil, errors.New("Consensus error: No common ancestor Edges found")
+				return nil, errors.New("consensus error: No common ancestor Edges found")
 			}
 			if !monophyletic {
-				return nil, errors.New("The group should be monophyletic")
+				return nil, errors.New("the group should be monophyletic")
 			}
 			// We add the bipartition with a support value corresponding to the percentage of
 			// trees in which it appears
@@ -448,7 +455,7 @@ func (t *Tree) RerootOutGroup(removeoutgroup, strict bool, tips ...string) error
 	}
 	if !monophyletic {
 		if strict {
-			return errors.New("The given outgroup is not monophyletic, cannot reroot")
+			return errors.New("the given outgroup is not monophyletic, cannot reroot")
 		}
 		log.Println("Warning! The given outgroup is not Monophyloetic, and may result in inappropriate rerooting")
 	}
@@ -629,7 +636,7 @@ func MaxLengthPath(cur *Node, prev *Node) ([]*Edge, float64, error) {
 		if child != prev {
 			e := cur.br[i]
 			if e.Length() == NIL_LENGTH {
-				return nil, -1, errors.New("Some branches have no length")
+				return nil, -1, errors.New("some branches have no length")
 			}
 			edges, l, err := MaxLengthPath(child, cur)
 			if err != nil {
@@ -644,34 +651,60 @@ func MaxLengthPath(cur *Node, prev *Node) ([]*Edge, float64, error) {
 	return potentialedges, curlength, nil
 }
 
-// This function computes and returns the distance (sum of branch lengths)
-// between all pairs of tips in the tree (patristic distance).
+const (
+	DISTANCE_METRIC_BRLEN = iota // The distance of each edge corresponds to length (patristic distance).
+	DISTANCE_METRIC_BOOTS        // The distance of each edge corresponds to its bootstrap support.
+	DISTANCE_METRIC_NONE         // Each edge will count a distance of 1 (topological distance).
+)
+
+// ToDistanceMatrix computes and returns distances
+// between all pairs of tips in the tree.
+// metric can be :
+//   - DISTANCE_METRIC_BRLEN : The distance of each edge corresponds to length (patristic distance).
+//   - DISTANCE_METRIC_BOOTS : The distance of each edge corresponds to its bootstrap support.
+//   - DISTANCE_METRIC_NONE : Each edge will count a distance of 1 (topological distance).
+//   - All other values will be considered as DISTANCE_METRIC_BRLEN
 //
 // Computes patristic distance matrix.
-func (t *Tree) ToDistanceMatrix() [][]float64 {
+func (t *Tree) ToDistanceMatrix(metric int) [][]float64 {
 	// All tips of the tree
 	tips := t.Tips()
 	// Init distance Matrix
 	var matrix [][]float64 = make([][]float64, len(tips))
-	for i, _ := range tips {
+	for i := range tips {
 		matrix[i] = make([]float64, len(tips))
 		tips[i].SetId(i)
 	}
 
 	for i, t := range tips {
-		pathLengths(t, nil, matrix[i], 0)
+		pathLengths(t, nil, matrix[i], 0, metric)
 	}
 	return matrix
 }
 
-func pathLengths(cur *Node, prev *Node, lengths []float64, curlength float64) {
+func pathLengths(cur *Node, prev *Node, lengths []float64, curlength float64, metric int) {
 	if cur.Tip() && prev != nil {
 		lengths[cur.Id()] = curlength
 	} else {
 		for i, child := range cur.neigh {
 			if child != prev {
 				e := cur.br[i]
-				pathLengths(child, cur, lengths, curlength+e.Length())
+				l := 1.0
+				switch metric {
+				case DISTANCE_METRIC_BOOTS:
+					l = e.Support()
+					if l == NIL_SUPPORT {
+						l = 0.0
+					}
+				case DISTANCE_METRIC_NONE:
+					l = 1.0
+				default:
+					l = e.Length()
+					if l == NIL_LENGTH {
+						l = 0.0
+					}
+				}
+				pathLengths(child, cur, lengths, curlength+l, metric)
 			}
 		}
 	}

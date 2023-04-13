@@ -3,17 +3,24 @@
 ## Commands
 
 ### matrix
-This command prints the distance matrix associated to the input tree.
+Prints distance matrix associated to the input tree.
+
+The distance matrix can be computed in several ways, depending on the "metric" option:
+* --metric brlen : distances correspond to the sum of branch lengths between the tips (patristic distance)
+* --metric boot : distances correspond to the sum of supports of the internal branches separating the tips
+* --metric none : distances correspond to the sum of the branches separating the tips, but each individual branch is counted as having a length of 1 (topological distance)
 
 
 #### Usage
 
 ```
+
 Usage:
   gotree matrix [flags]
 
 Flags:
   -i, --input string    Input tree (default "stdin")
+  -m, --metric string   Distance metric (brlen|boot|none) (default "brlen")
   -o, --output string   Matrix output file (default "stdout")
 ```
 

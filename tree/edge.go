@@ -193,7 +193,9 @@ func (e *Edge) DumpBitSet() string {
 	return s[len(s)-int(e.bitset.Len())-1 : len(s)]
 }
 
-/* Returns a string containing informations about the edge:
+/*
+	Returns a string containing informations about the edge:
+
 Tab delimited:
 
 	1 - length
@@ -321,9 +323,10 @@ func (e *Edge) FindEdge(edges []*Edge) (*Edge, error) {
 // The neighbors are defined by the branches located in a area defined
 // by number of branches separating them (<d).
 //
-//	* cutoff: Cutoff to consider hx=true or hy=true
-//	* hx=true if exists a neighbor branch with suppt > cutoff
-//	* hy=true if the current branch has suppt > cutoff */
+//   - cutoff: Cutoff to consider hx=true or hy=true
+//   - hx=true if exists a neighbor branch with suppt > cutoff
+//   - hy=true if the current branch has suppt > cutoff */
+//
 // Returns (avg diff, min diff, max diff, hx, hy)
 func (e *Edge) Locality(maxdist int, cutoff float64) (float64, float64, float64, bool, bool) {
 	neighbors := e.NeigborEdges(maxdist)
