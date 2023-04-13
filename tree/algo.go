@@ -694,7 +694,7 @@ func pathLengths(cur *Node, prev *Node, lengths []float64, curlength float64, me
 				case DISTANCE_METRIC_BOOTS:
 					l = e.Support()
 					if l == NIL_SUPPORT {
-						l = 0.0
+						l = 1.0
 					}
 				case DISTANCE_METRIC_NONE:
 					l = 1.0
