@@ -59,9 +59,8 @@ var matrixCmd = &cobra.Command{
 				io.LogError(t.Err)
 				return t.Err
 			}
-			tips := t.Tree.Tips()
+			mat, tips := t.Tree.ToDistanceMatrix(distmetric)
 			f.WriteString(fmt.Sprintf("%d\n", len(tips)))
-			mat := t.Tree.ToDistanceMatrix(distmetric)
 			for i, t := range tips {
 				f.WriteString(t.Name())
 				for j := range tips {

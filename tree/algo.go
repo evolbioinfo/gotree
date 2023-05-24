@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"sync"
 
 	"github.com/evolbioinfo/gotree/io"
@@ -665,10 +666,16 @@ const (
 //   - DISTANCE_METRIC_NONE : Each edge will count a distance of 1 (topological distance).
 //   - All other values will be considered as DISTANCE_METRIC_BRLEN
 //
-// Computes patristic distance matrix.
-func (t *Tree) ToDistanceMatrix(metric int) [][]float64 {
+// Computes patristic distance matrix. Outputs the distance matrix and the list of tips in the
+// same order as the lines and columns of the matrix
+func (t *Tree) ToDistanceMatrix(metric int) ([][]float64, []*Node) {
 	// All tips of the tree
 	tips := t.Tips()
+	// Sort by name
+	sort.Slice(tips, func(i, j int) bool {
+		return tips[i].Name() < tips[j].Name()
+	})
+
 	// Init distance Matrix
 	var matrix [][]float64 = make([][]float64, len(tips))
 	for i := range tips {
@@ -679,7 +686,7 @@ func (t *Tree) ToDistanceMatrix(metric int) [][]float64 {
 	for i, t := range tips {
 		pathLengths(t, nil, matrix[i], 0, metric)
 	}
-	return matrix
+	return matrix, tips
 }
 
 func pathLengths(cur *Node, prev *Node, lengths []float64, curlength float64, metric int) {
