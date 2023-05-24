@@ -28,6 +28,11 @@ This command compares a reference tree -given with `-i` with a set of compared t
  3. Number of common branches between reference and compared trees;
  4. Number of branches specific to the compared tree.
 
+  If the `--weighted` option is given the trees will be compared with branch length aware metrics. The output is tab separated with the following columns:
+  1. Compared tree index;
+  2. Weighted Robinson-Foulds distance [(Robinson & Foulds, 1979)](https://doi.org/10.1007/BFb0102690);
+  3. Khuner-Felsenstein distance [(Khuner & Felsenstein, 1994)](https://doi.org/10.1093/oxfordjournals.molbev.a040126);
+
 #### Usage
 
 General command
@@ -138,3 +143,13 @@ gotree compare trees -i <(gotree generate yuletree --seed 10) -c <(gotree genera
 |------|-------------|----------|------------|
 |0     |  7          |  0       |  7         |
 
+If we want to take the branch lengths into account when comparing the trees we can
+specify the `--weighted` flag:
+
+```
+gotree compare trees --weighted -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1)
+```
+
+| tree | weighted_RF  | KF           |
+|------|--------------|--------------|
+|0     | 1.310593E+00 | 5.056856E-01 |

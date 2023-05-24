@@ -7,8 +7,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/evolbioinfo/gotree/io"
 	//"os"
+
+	"github.com/evolbioinfo/gotree/io"
 )
 
 // Given a set of tip names, this function
@@ -791,6 +792,7 @@ func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical b
 									}
 								}
 								if ok && (tips || !e2.Right().Tip()) {
+
 									common++
 								}
 							}
@@ -802,6 +804,142 @@ func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical b
 					total - common,
 					total2 - common,
 					common,
+					sametree,
+					inerr,
+				}
+			}
+			wg.Done()
+		}(cpu)
+	}
+
+	go func() {
+		wg.Wait()
+		close(stats)
+	}()
+
+	return stats, nil
+}
+
+type WeightedBipartitionStats struct {
+	Id       int       // Identifier of the tree analyzed
+	Tree1    []float64 // Lengths of bipartitions specific to the first tree
+	Tree2    []float64 // Lengths of bipartitions specific to the second tree
+	Common   []float64 // Difference of lengths for common bipartitions
+	Sametree bool      // True if the trees are identical
+	Err      error     // Wether an error occured or not in the computation
+}
+
+// This function compares bipartitions of a reference tree with a set of trees given in the input channel, taking into account branch lengths.
+//
+// If tips is true, then comparison includes external branches. If comparetreeidentical is true, does not compute
+// the exact number of common and specific branches, but just put sametree=true or sametree=false in the stat channel.
+//
+// This function returns almost immediately because computation is done in several go routines in background.
+// However it returns a Channel that will contain bipartition statistics computed so far. This channel is closed at the end of the computations,
+// so on the calling functin, you can iterate over this channel in order to wait for the end of computations.
+//
+// Since this function builds an edge index for the reference tree and the compared trees it will use about twice as much memory
+// as `Compare`, so if you do not need the branch length differences it will be more efficient to use `Compare` than `CompareWeighted`
+func CompareWeighted(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical bool, cpus int) (<-chan WeightedBipartitionStats, error) {
+	var refEdges []*Edge
+	var compEdges []*Edge
+
+	var err error
+
+	stats := make(chan WeightedBipartitionStats)
+
+	if refTree == nil {
+		return nil, errors.New("Tree 1 in comparison is null")
+	}
+	if err = refTree.ReinitIndexes(); err != nil {
+		return nil, err
+	}
+
+	// Edge index of reference tree
+	refEdges = refTree.Edges()
+	refIndex := NewEdgeIndex(uint64(len(refEdges)*2), 0.75)
+	for i, e := range refEdges {
+		refIndex.PutEdgeValue(e, i, e.Length())
+	}
+
+	var wg sync.WaitGroup
+	for cpu := 0; cpu < cpus; cpu++ {
+		wg.Add(1)
+		go func(cpu int) {
+			for treeV := range compTrees {
+				var inerr error
+				inerr = treeV.Err
+
+				var Common []float64
+				var Ref []float64
+				var Comp []float64
+
+				// Check wether the 2 trees have the same set of tip names
+				// Else an error is included in the stats
+				sametree := false
+				if inerr == nil {
+					if inerr = treeV.Tree.ReinitIndexes(); inerr == nil {
+
+						// Edge index of compared tree
+						compEdges = treeV.Tree.Edges()
+						compIndex := NewEdgeIndex(uint64(len(compEdges)*2), 0.75)
+						for i, e := range compEdges {
+							compIndex.PutEdgeValue(e, i, e.Length())
+						}
+
+						// The trees have the same tips, we can compare them
+						if inerr = refTree.CompareTipIndexes(treeV.Tree); err == nil {
+							sametree = true
+
+							// Check compared edges against reference index
+							for _, compEdge := range compEdges {
+								if tips || !compEdge.Right().Tip() {
+									refEdge, ok := refIndex.Value(compEdge)
+									if ok { // Common edge
+										refLen := refEdge.Len
+										compLen := compEdge.Length()
+										if refLen != compLen {
+											sametree = false
+											if comparetreeidentical {
+												break
+											}
+										}
+
+										Common = append(Common, refLen-compLen)
+									} else { // Unique to compared tree
+										sametree = false
+										if comparetreeidentical {
+											break
+										}
+
+										Comp = append(Comp, compEdge.Length())
+									}
+								}
+							}
+
+							// Check reference edges against compared index
+							for _, refEdge := range refEdges {
+								if tips || !refEdge.Right().Tip() {
+									_, ok := compIndex.Value(refEdge)
+									if !ok { // Unique to reference tree
+										sametree = false
+										if comparetreeidentical {
+											break
+										}
+
+										Ref = append(Ref, refEdge.Length())
+									}
+								}
+							}
+						}
+					}
+				}
+
+				stats <- WeightedBipartitionStats{
+					treeV.Id,
+					Ref,
+					Comp,
+					Common,
 					sametree,
 					inerr,
 				}
