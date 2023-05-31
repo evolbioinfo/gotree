@@ -1,6 +1,6 @@
 /*
-   Package gotree implements a simple
-   library for handling phylogenetic trees in go
+Package gotree implements a simple
+library for handling phylogenetic trees in go
 */
 package tree
 
@@ -101,7 +101,9 @@ func (t *Tree) NewEdge() *Edge {
 
 // Set a root for the tree. This does not check that the
 // node is part of the tree. It may be useful to call
+//
 //	t.ReinitIndexes()
+//
 // After setting a new root, to update branch bitsets.
 func (t *Tree) SetRoot(r *Node) {
 	t.root = r
@@ -278,15 +280,17 @@ func (t *Tree) RemoveTips(revert bool, names ...string) error {
 }
 
 // Removes one tip from the tree. The internal node may be removed, example:
-//	          t1
-//	         /
-//	 n0--n2--
-//	         \
-//	          t2
+//
+//	         t1
+//	        /
+//	n0--n2--
+//	        \
+//	         t2
+//
 // If we remove t2, then n2 must be removed. In that case, we remove n2 and
 // connect n0 to t1 with a branch having :
-//	* length=length(n0--n2)+length(n2--t1)
-//	* support=max(support(n0--n2),support(n2--t1))
+//   - length=length(n0--n2)+length(n2--t1)
+//   - support=max(support(n0--n2),support(n2--t1))
 func (t *Tree) removeTip(tip *Node) error {
 	if len(tip.neigh) != 1 {
 		return errors.New("Cannot remove node, it is not a tip")
@@ -584,9 +588,9 @@ func (t *Tree) ClearBitSets() error {
 
 // This Function initializes or reinitializes
 // memory consuming structures:
-//	* bitset indexes
-//	* Tipindex
-//	* And computes node depths
+//   - bitset indexes
+//   - Tipindex
+//   - And computes node depths
 func (t *Tree) ReinitIndexes() (err error) {
 	if err = t.UpdateTipIndex(); err != nil {
 		return
@@ -605,9 +609,9 @@ func (t *Tree) ReinitIndexes() (err error) {
 
 // This Function initializes or reinitializes
 // memory consuming structures:
-//	* bitset indexes
-//	* Tipindex
-//	* And computes node depths
+//   - bitset indexes
+//   - Tipindex
+//   - And computes node depths
 func (t *Tree) ReinitInternalIndexes() {
 	t.ClearBitSets()
 	t.UpdateBitSet()
@@ -687,10 +691,12 @@ func (t *Tree) fillRightBitSet(currentEdge *Edge, rightEdges *[]*Edge) error {
 // If the trees have different sets of tip names, returns an error.
 //
 // It assumes that functions
+//
 //	tree.UpdateTipIndex()
 //	tree.ClearBitSets()
 //	tree.UpdateBitSet()
-// Have been called before, otherwise will output an error
+//
+// # Have been called before, otherwise will output an error
 //
 // If tipedges is false: does not take into account tip edges
 func (t *Tree) CommonEdges(t2 *Tree, tipEdges bool) (tree1 int, common int, err error) {
@@ -714,10 +720,12 @@ func (t *Tree) CommonEdges(t2 *Tree, tipEdges bool) (tree1 int, common int, err 
 // results.
 //
 // It assumes that functions
-// 	tree.UpdateTipIndex()
+//
+//	tree.UpdateTipIndex()
 //	tree.ClearBitSets()
 //	tree.UpdateBitSet()
-// Have been called before, otherwise will output an error
+//
+// # Have been called before, otherwise will output an error
 //
 // If tipedges is false: does not take into account tip edges
 func CommonEdges(edges1 []*Edge, edges2 []*Edge, tipEdges bool) (tree1 int, common int, err error) {
@@ -792,7 +800,7 @@ func (t *Tree) Reroot(n *Node) error {
 //
 // It reorients edges left-edge-right : see ReorderEdges()
 //
-// It does not check wether the node is part of tree or not
+// # It does not check wether the node is part of tree or not
 //
 // Returns an error If the given node is a tip or if it can
 // not reorder edges
@@ -830,12 +838,12 @@ func (t *Tree) ReorderEdges(n *Node, prev *Node, reversed *[]*Edge) error {
 // This function grafts the Tip n at the middle of the Edge e.
 //
 // Example:
-//	* Before
-//		*--e--*
-//	* After
-//		*--e1--newnode--e2--*
-//		          |
-//		          n
+//   - Before
+//     *--e--*
+//   - After
+//     *--e1--newnode--e2--*
+//     |
+//     n
 //
 // To do so, it divides the branch lenght by 2,and returns the 2 new
 // edges and the new internal node.
@@ -1068,6 +1076,7 @@ func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int, remov
 // This function does not update bitsets on edges.
 //
 // If needed, the calling function must do it with:
+//
 //	err := t.ClearBitSets()
 //	if err != nil {
 //		return err
@@ -1088,6 +1097,7 @@ func (t *Tree) Resolve() {
 //
 // This function does not update bitsets on edges:
 // The calling function must do it with:
+//
 //	err := t.ClearBitSets()
 //	if err != nil {
 //		return err
@@ -1150,7 +1160,6 @@ func (t *Tree) resolveRecur(current, previous *Node) {
 }
 
 // Resolves named internal nodes into tips
-//
 func (t *Tree) ResolveNamedInternalNodes() {
 	root := t.Root()
 
@@ -1167,6 +1176,7 @@ func (t *Tree) ResolveNamedInternalNodes() {
 //
 // This function does not update bitsets on edges:
 // The calling function must do it with:
+//
 //	err := t.ClearBitSets()
 //	if err != nil {
 //		return err
@@ -1191,11 +1201,13 @@ func (t *Tree) resolveNamedInternalNodesRecur(current, previous *Node) {
 // Removes Edges for which the left node has a unique child:
 //
 // Example:
-//	           t1           t1
-//	           /	       /
-//	 n0--n1--n2   => n0--n2
-//	           \	       \
-//	            t2          t2
+//
+//	          t1           t1
+//	          /	       /
+//	n0--n1--n2   => n0--n2
+//	          \	       \
+//	           t2          t2
+//
 // Will remove edge n1-n2 and keep node n2 informations (name, etc.)
 // It adds n1-n2 length to n0-n1 (if any) and keeps n0-n1 support (if any)
 // Useful for cleaning ncbi taxonomy for example.
@@ -1213,6 +1225,7 @@ func (t *Tree) RemoveSingleNodes() {
 //
 // This function does not update bitsets on edges, the calling function
 // must do it with:
+//
 //	err := t.ClearBitSets()
 //	if err != nil {
 //		return err
@@ -1285,10 +1298,12 @@ func (t *Tree) ClearPvalues() {
 }
 
 // Clears length (set to NIL_LENGTH) of all branches of the tree
-func (t *Tree) ClearLengths() {
+func (t *Tree) ClearLengths(internal, external bool) {
 	edges := t.Edges()
 	for _, e := range edges {
-		e.SetLength(NIL_LENGTH)
+		if (e.right.Tip() && external) || (!e.right.Tip() && internal) {
+			e.SetLength(NIL_LENGTH)
+		}
 	}
 }
 
@@ -1400,15 +1415,15 @@ func (t *Tree) UnRoot() {
 
 // Annotates internal branches of a tree with given data using the
 // given list of names:
-//	* each element is a slice of names whose first element is the new name to set
-//      * following names are internal node name or tip names defining an internal node (LCA)
+//   - each element is a slice of names whose first element is the new name to set
+//   - following names are internal node name or tip names defining an internal node (LCA)
 //
 // For a given element different possibilities:
-// 1) If < 2 names: an error is returned
-// 1) If 2 names [n1,n2]: we search for n2 in the tree (tip or internal node)
-//    and rename it as n1
-// 2) If > 2 names [n1,n2,...,ni]: We find the LCA of every tips whose name is in [n2,...,ni]
-//    and rename it as n1
+//  1. If < 2 names: an error is returned
+//  1. If 2 names [n1,n2]: we search for n2 in the tree (tip or internal node)
+//     and rename it as n1
+//  2. If > 2 names [n1,n2,...,ni]: We find the LCA of every tips whose name is in [n2,...,ni]
+//     and rename it as n1
 //
 // If comment is true, then we do not change the name, but the comment of the given nodes.
 //
@@ -1652,10 +1667,10 @@ func (t *Tree) Delete() {
 }
 
 // Copy attributes of the given edge to the other given edge:
-//	* Length
-//	* Support
-//	* id
-//	* bitset (if not nil)
+//   - Length
+//   - Support
+//   - id
+//   - bitset (if not nil)
 func (t *Tree) CopyEdge(e *Edge, copy *Edge) {
 	copy.length = e.length
 	copy.support = e.support
@@ -1850,10 +1865,12 @@ func (t *Tree) RoundSupports(precision int) {
 // Scale branch lengths by a given factor.
 //
 // Does not do anything for branches with a length of NIL_LENGTH
-func (t *Tree) ScaleLengths(factor float64) {
+func (t *Tree) ScaleLengths(factor float64, internal, external bool) {
 	for _, e := range t.Edges() {
 		if s := e.Length(); s != NIL_LENGTH {
-			e.SetLength(e.Length() * factor)
+			if (e.right.Tip() && external) || (!e.right.Tip() && internal) {
+				e.SetLength(e.Length() * factor)
+			}
 		}
 	}
 }
@@ -1863,13 +1880,17 @@ func (t *Tree) ScaleLengths(factor float64) {
 //
 // Does not do anything for branches with a length of NIL_LENGTH or if precision is <=0.
 // If precision > 15, then 15 is taken
-func (t *Tree) RoundLengths(precision int) {
+// If internal : then applies rounding to internal edges
+// If external : then applies rounding to external edges
+func (t *Tree) RoundLengths(precision int, internal, external bool) {
 	if precision > 15 {
 		precision = 15
 	}
 	for _, e := range t.Edges() {
 		if s := e.Length(); s != NIL_LENGTH {
-			e.SetLength(math.Round(math.Pow10(precision)*s) / math.Pow10(precision))
+			if (e.right.Tip() && external) || (!e.right.Tip() && internal) {
+				e.SetLength(math.Round(math.Pow10(precision)*s) / math.Pow10(precision))
+			}
 		}
 	}
 }
@@ -2009,21 +2030,29 @@ func (t *Tree) InsertIdenticalTips(identicalgroups [][]string) (err error) {
 // The new node is the internal node.
 //
 // Before:
-//   l
+//
+//	l
+//
 // *----*tip1
 // After:
-//       *tip1
-//  l   /.0
+//
+//	     *tip1
+//	l   /.0
+//
 // ----*
-//      \.0
-//       *newTipName
+//
+//	\.0
+//	 *newTipName
 //
 // If l==0.0 then, after:
-//   *tip1
-//  /.0
+//
+//	 *tip1
+//	/.0
+//
 // *
-//  \.0
-//   *newTipName
+//
+//	\.0
+//	 *newTipName
 //
 // Warning: This function may add polytomies if l==0.0.
 //

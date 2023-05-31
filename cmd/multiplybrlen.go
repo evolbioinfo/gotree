@@ -15,7 +15,12 @@ var scalelengthfactor float64
 var scalelengthCmd = &cobra.Command{
 	Use:   "scale",
 	Short: "Scale lengths from input trees by a given factor",
-	Long:  `Scale lengths from input trees by a given factor.`,
+	Long: `Scale lengths from input trees by a given factor.
+	
+	if --internal=false is given, it won't apply to internal branches (only external)
+	if --external=false is given, it won't apply to external branches (only internal)
+
+`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
 		var treefile goio.Closer
@@ -37,7 +42,7 @@ var scalelengthCmd = &cobra.Command{
 				io.LogError(tr.Err)
 				return tr.Err
 			}
-			tr.Tree.ScaleLengths(scalelengthfactor)
+			tr.Tree.ScaleLengths(scalelengthfactor, brleninternal, brlenexternal)
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 		return

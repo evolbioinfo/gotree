@@ -13,7 +13,12 @@ import (
 var clearlengthCmd = &cobra.Command{
 	Use:   "clear",
 	Short: "Clear lengths from input trees",
-	Long:  `Clear lengths from input trees.`,
+	Long: `Clear lengths from input trees.
+	
+	if --internal=false is given, it won't apply to internal branches (only external)
+	if --external=false is given, it won't apply to external branches (only internal)
+
+	`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
 		var treefile goio.Closer
@@ -35,7 +40,7 @@ var clearlengthCmd = &cobra.Command{
 				io.LogError(t.Err)
 				return t.Err
 			}
-			t.Tree.ClearLengths()
+			t.Tree.ClearLengths(brleninternal, brlenexternal)
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		return

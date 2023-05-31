@@ -17,7 +17,10 @@ var minbrlenCmd = &cobra.Command{
 
 Example of usage:
 
-gotree minbrlen -i tree.nw -o out.nw -l 0.001
+gotree brlen setmin -i tree.nw -o out.nw -l 0.001
+
+if --internal=false is given, it won't apply to internal branches (only external)
+if --external=false is given, it won't apply to external branches (only internal)
 
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -43,7 +46,7 @@ gotree minbrlen -i tree.nw -o out.nw -l 0.001
 				return t.Err
 			}
 			for _, e := range t.Tree.Edges() {
-				if e.Length() < cutoff {
+				if ((e.Right().Tip() && brlenexternal) || (!e.Right().Tip() && brleninternal)) && e.Length() < cutoff {
 					e.SetLength(cutoff)
 				}
 			}

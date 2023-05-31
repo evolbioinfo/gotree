@@ -28,6 +28,9 @@ Two possibilities for the mean:
 
 2) Otherwise, 'mean' is set to --mean value.
 
+if --internal=false is given, it won't apply to internal branches (only external)
+if --external=false is given, it won't apply to external branches (only internal)
+
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
@@ -58,7 +61,9 @@ Two possibilities for the mean:
 			}
 
 			for _, e := range tr.Tree.Edges() {
-				e.SetLength(gostats.Exp(1.0 / lmean))
+				if (e.Right().Tip() && brlenexternal) || (!e.Right().Tip() && brleninternal) {
+					e.SetLength(gostats.Exp(1.0 / lmean))
+				}
 			}
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}

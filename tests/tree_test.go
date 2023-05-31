@@ -15,7 +15,7 @@ func TestClearLengths(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	tr.ClearLengths()
+	tr.ClearLengths(true, true)
 	if tr.Newick() != "(Tip4,Tip0,(Tip3,(Tip2,Tip1)0.8)0.9);" {
 		t.Error(fmt.Sprintf("Tree after clear supports is not valid: %s", tr.Newick()))
 	}
@@ -39,7 +39,7 @@ func TestRoundLengths(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	tr.RoundLengths(4)
+	tr.RoundLengths(4, true, true)
 	if tr.Newick() != "(Tip4:0.0001,Tip0:0.0001,(Tip3:0.0001,(Tip2:0.0002,Tip1:0.0002)0.8:0.0003)0.9:0.0004);" {
 		t.Error(fmt.Sprintf("Tree after round supports is not valid: %s", tr.Newick()))
 	}
