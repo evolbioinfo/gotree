@@ -12,7 +12,7 @@ require (
 	github.com/jlaffaye/ftp v0.0.0-20210307004419-5d4190119067
 	github.com/llgcode/draw2d v0.0.0-20210313082411-577c1ead272a
 	github.com/spf13/cobra v1.5.0
-	golang.org/x/image v0.0.0-20210504121937-7319ad40d33e
+	golang.org/x/image v0.7.0
 )
 
 require (
@@ -25,5 +25,5 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/sys v0.0.0-20210324051608-47abb6519492 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 )
