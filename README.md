@@ -151,6 +151,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * scale:       Scale lengths from input trees by a given factor
 	* setmin:      Set a min branch length to all branches with length < cutoff
 	* setrand:     Assign a random length to edges of input trees
+	* set:         Assign a given length to edges of input trees
 *  collapse:    Collapse branches or clades of input trees
     * clades
     * depth

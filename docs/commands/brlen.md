@@ -16,9 +16,13 @@ Available Commands:
   multiply    Multiply lengths from input trees by a given factor
   setmin      Set a min branch length to all branches with length < cutoff
   setrand     Assign a random length to edges of input trees
+  set         Assign a given length to edges of input trees
 
 Flags:
-  -i, --input string    Input tree (default "stdin")
+  --external           Applies to external branches (default true)
+  -h, --help           help for brlen
+  -i, --input string   Input tree (default "stdin")
+  --internal           Applies to internal branches (default true)
 ```
 
 clear subcommand
