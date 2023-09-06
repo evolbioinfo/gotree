@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/ajstarks/svgo v0.0.0-20210406150507-75cfd577ce75
-	github.com/evolbioinfo/goalign v0.3.4
+	github.com/evolbioinfo/goalign v0.3.7-0.20230906113011-fcecb09f9d43
 	github.com/fredericlemoine/bitset v1.2.0
 	github.com/fredericlemoine/cobrashell v0.0.0-20180921081141-49c72f93426c
 	github.com/fredericlemoine/gostats v0.1.1
@@ -25,5 +25,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/ulikunitz/xz v0.5.10 // indirect
 	golang.org/x/sys v0.8.0 // indirect
+	gonum.org/v1/gonum v0.9.3 // indirect
 )
