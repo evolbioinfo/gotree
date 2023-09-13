@@ -60,7 +60,7 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 func (p *Parser) Parse() (newtree *tree.Tree, err error) {
 	// May have information inside [] before the tree
 	tok, lit := p.scanIgnoreWhitespace()
-	if tok == OPENBRACK {
+	if tok == OPENBRACK || tok == LABEL {
 		if _, err = p.consumeComment(tok, lit); err != nil {
 			return
 		}
@@ -83,7 +83,7 @@ func (p *Parser) Parse() (newtree *tree.Tree, err error) {
 		return
 	}
 	if level != 0 {
-		err = fmt.Errorf("Newick Error : Mismatched parenthesis after parsing")
+		err = fmt.Errorf("newick error : mismatched parenthesis after parsing")
 		return
 	}
 	tok, lit = p.scanIgnoreWhitespace()
@@ -125,7 +125,7 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 		case OPENPAR:
 			if node == nil {
 				if *level > 0 {
-					err = errors.New("Nil node at depth > 0")
+					err = errors.New("nil node at depth > 0")
 					return
 				}
 				node = t.NewNode()
@@ -135,7 +135,7 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 				t.SetRoot(node)
 			} else {
 				if *level == 0 {
-					err = errors.New("Newick Error: An open parenthesis while the stack is empty... Forgot a ';' at the end of previous tree?")
+					err = errors.New("newick Error: An open parenthesis while the stack is empty... Forgot a ';' at the end of previous tree?")
 					return
 				}
 				newNode = t.NewNode()
@@ -153,11 +153,11 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 			prevTok = tok
 			(*level)--
 			if _, _, err = nodeStack.Pop(); err != nil {
-				err = errors.New("Newick Error: Closing parenthesis while the stack is already empty")
+				err = errors.New("newick Error: Closing parenthesis while the stack is already empty")
 				return
 			}
 			node, edge, _ = nodeStack.Head()
-		case OPENBRACK:
+		case OPENBRACK, LABEL:
 			var comment string
 			//if prevTok == OPENPAR || prevTok == NEWSIBLING || prevTok == -1 {
 			if comment, err = p.consumeComment(tok, lit); err != nil {
@@ -172,17 +172,17 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 				// Else we add comment to node
 				node.AddComment(comment)
 			} else {
-				err = errors.New("Newick Error: Comment should not be located here: " + lit)
+				err = errors.New("newick error: comment should not be located here: " + lit)
 				return
 			}
 			prevTok = CLOSEBRACK
 		case CLOSEBRACK:
 			// Error here should not have
-			err = errors.New("Newick Error: Mismatched ] here...")
+			err = errors.New("newick error: mismatched ] here")
 			return
 		case STARTLEN:
 			if tok, lit = p.scanIgnoreWhitespace(); tok != NUMERIC {
-				err = errors.New("Newick Error: No numeric value after :")
+				err = errors.New("newick error: no numeric value after ':'")
 				return
 			}
 			// We skip length if the length is assigned to the root node
@@ -275,7 +275,7 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 		case EOT:
 			p.unscan()
 			if (*level) != 0 {
-				err = errors.New("Newick Error: Mismatched parenthesis at ;")
+				err = errors.New("newick Error: Mismatched parenthesis at ;")
 				return
 			}
 			prevTok = tok
@@ -291,11 +291,11 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 // At the end returns the matching ] token and lit.
 // If the given token is not a [, then returns an error
 func (p *Parser) consumeComment(curtoken Token, curlit string) (comment string, err error) {
-	if curtoken == OPENBRACK {
+	if curtoken == OPENBRACK || curtoken == LABEL {
 		commenttoken, commentlit := p.scanIgnoreWhitespace()
-		for commenttoken != CLOSEBRACK {
+		for (curtoken == LABEL && commenttoken != LABEL) || (curtoken == OPENBRACK && commenttoken != CLOSEBRACK) {
 			if commenttoken == EOF || commenttoken == ILLEGAL {
-				err = fmt.Errorf("Unmatched bracket")
+				err = fmt.Errorf("unmatched bracket")
 				return
 			} else {
 				comment += commentlit
@@ -303,7 +303,7 @@ func (p *Parser) consumeComment(curtoken Token, curlit string) (comment string, 
 			commenttoken, commentlit = p.scanIgnoreWhitespace()
 		}
 	} else {
-		err = fmt.Errorf("A comment must start with [")
+		err = fmt.Errorf("a comment must start with [")
 	}
 	return
 }

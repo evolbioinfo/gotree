@@ -15,6 +15,7 @@ const (
 	STARTLEN   // :
 	OPENBRACK  // [ : For comment
 	CLOSEBRACK // ] : For comment
+	LABEL      // ' : For comment associated to nodes/edges
 	NEWSIBLING // ,
 	EOT        // ;
 )
@@ -26,5 +27,6 @@ func isWhitespace(ch rune) bool {
 func isIdent(ch rune) bool {
 	return ch != '[' && ch != ']' &&
 		ch != '(' && ch != ')' &&
-		ch != ',' && ch != ':' && ch != ';'
+		ch != ',' && ch != ':' &&
+		ch != ';' && ch != '\''
 }

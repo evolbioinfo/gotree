@@ -55,6 +55,8 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 		return OPENBRACK, string(ch)
 	case ']':
 		return CLOSEBRACK, string(ch)
+	case '\'':
+		return LABEL, string(ch)
 	case ',':
 		return NEWSIBLING, string(ch)
 	case ';':

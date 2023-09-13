@@ -27,7 +27,8 @@ func (ns *NodeStack) Push(n *tree.Node, e *tree.Edge) {
 	ns.elt = append(ns.elt, nodeStackElt{n, e})
 }
 
-/**
+/*
+*
 Pops and returns the head of the Stack. The calling function is
 responsible for freeing the elt: free(elt).
 
@@ -36,7 +37,7 @@ Returns an error if the stack is empty
 func (ns *NodeStack) Pop() (n *tree.Node, e *tree.Edge, err error) {
 	var last nodeStackElt
 	if len(ns.elt) == 0 {
-		err = errors.New("Cannot Pop an empty stack")
+		err = errors.New("cannot pop an empty stack")
 		return
 	}
 	last, ns.elt = ns.elt[len(ns.elt)-1], ns.elt[:len(ns.elt)-1]
@@ -46,12 +47,13 @@ func (ns *NodeStack) Pop() (n *tree.Node, e *tree.Edge, err error) {
 	return
 }
 
-/**
+/*
+*
 Returns the head of the Stack, and an error if the stack is empty
 */
 func (ns *NodeStack) Head() (n *tree.Node, e *tree.Edge, err error) {
 	if len(ns.elt) == 0 {
-		err = errors.New("An empty stack has no head")
+		err = errors.New("an empty stack has no head")
 		return
 	}
 	head := ns.elt[len(ns.elt)-1]
