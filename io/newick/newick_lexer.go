@@ -33,7 +33,9 @@ func (s *Scanner) unread() {
 }
 
 // Scan returns the next token and literal value.
-func (s *Scanner) Scan() (tok Token, lit string) {
+// ignoreSemiColumn allows to parse identifiers that contain ";"
+// such as comments [...;...]
+func (s *Scanner) Scan(ignoreSemiColumn bool) (tok Token, lit string) {
 	// Read the next rune.
 	ch := s.read()
 
@@ -60,13 +62,15 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 	case ',':
 		return NEWSIBLING, string(ch)
 	case ';':
-		return EOT, string(ch)
+		if !ignoreSemiColumn {
+			return EOT, string(ch)
+		}
 	case ':':
 		return STARTLEN, string(ch)
 	}
 
 	s.unread()
-	return s.scanIdent()
+	return s.scanIdent(ignoreSemiColumn)
 }
 
 // scanWhitespace consumes the current rune and all contiguous whitespace.
@@ -91,8 +95,15 @@ func (s *Scanner) scanWhitespace() (tok Token, lit string) {
 	return WS, buf.String()
 }
 
-// scanIdent consumes the current rune and all contiguous ident runes.
-func (s *Scanner) scanIdent() (tok Token, lit string) {
+// scanIdent consumes the current rune and all contiguous identifier runes.
+// An identifier can be:
+// -tip, node and branch name
+// - comments
+// - branch length
+// - branch support
+// without newick keywords. If ignore semicolumn is true, then ";" is not
+// considered as a newick keyword. (useful for parsing comments [...;...])
+func (s *Scanner) scanIdent(ignoreSemiColumn bool) (tok Token, lit string) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
@@ -102,7 +113,7 @@ func (s *Scanner) scanIdent() (tok Token, lit string) {
 	for {
 		if ch := s.read(); ch == eof {
 			break
-		} else if !isIdent(ch) {
+		} else if !isIdent(ch, ignoreSemiColumn) {
 			s.unread()
 			break
 		} else {

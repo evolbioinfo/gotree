@@ -28,7 +28,9 @@ func NewParser(r io.Reader) *Parser {
 
 // scan returns the next token from the underlying scanner.
 // If a token has been unscanned then read that instead.
-func (p *Parser) scan() (tok Token, lit string) {
+// ignoreSemiColumn allows to parse identifiers that contain ";"
+// such as comments [...;...]
+func (p *Parser) scan(ignoreSemiColumn bool) (tok Token, lit string) {
 	// If we have a token on the buffer, then return it.
 	if p.buf.n != 0 {
 		p.buf.n = 0
@@ -36,7 +38,7 @@ func (p *Parser) scan() (tok Token, lit string) {
 	}
 
 	// Otherwise read the next token from the scanner.
-	tok, lit = p.s.Scan()
+	tok, lit = p.s.Scan(ignoreSemiColumn)
 
 	// Save it to the buffer in case we unscan later.
 	p.buf.tok, p.buf.lit = tok, lit
@@ -49,9 +51,9 @@ func (p *Parser) unscan() { p.buf.n = 1 }
 
 // scanIgnoreWhitespace scans the next non-whitespace token.
 func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
-	tok, lit = p.scan()
+	tok, lit = p.scan(false)
 	if tok == WS {
-		tok, lit = p.scan()
+		tok, lit = p.scan(false)
 	}
 	return
 }
@@ -287,20 +289,20 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 	}
 }
 
-// Consumes comment inside brakets [comment] if the given current token is a [.
+// Consumes comment inside brackets [comment] if the given current token is a [.
 // At the end returns the matching ] token and lit.
 // If the given token is not a [, then returns an error
 func (p *Parser) consumeComment(curtoken Token, curlit string) (comment string, err error) {
 	if curtoken == OPENBRACK || curtoken == LABEL {
-		commenttoken, commentlit := p.scanIgnoreWhitespace()
+		commenttoken, commentlit := p.scan(true)
 		for (curtoken == LABEL && commenttoken != LABEL) || (curtoken == OPENBRACK && commenttoken != CLOSEBRACK) {
 			if commenttoken == EOF || commenttoken == ILLEGAL {
-				err = fmt.Errorf("unmatched bracket")
+				err = fmt.Errorf("unmatched bracket: %s (%s)", comment, commentlit)
 				return
 			} else {
 				comment += commentlit
 			}
-			commenttoken, commentlit = p.scanIgnoreWhitespace()
+			commenttoken, commentlit = p.scan(true)
 		}
 	} else {
 		err = fmt.Errorf("a comment must start with [")
