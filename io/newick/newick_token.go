@@ -15,7 +15,6 @@ const (
 	STARTLEN   // :
 	OPENBRACK  // [ : For comment
 	CLOSEBRACK // ] : For comment
-	LABEL      // ' : For comment associated to nodes/edges
 	NEWSIBLING // ,
 	EOT        // ;
 )
@@ -36,5 +35,5 @@ func isIdent(ch rune, ignoreSemiColumn bool) bool {
 	return ch != '[' && ch != ']' &&
 		ch != '(' && ch != ')' &&
 		ch != ',' && ch != ':' &&
-		(ignoreSemiColumn || ch != ';') && ch != '\''
+		(ignoreSemiColumn || ch != ';')
 }

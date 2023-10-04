@@ -62,7 +62,7 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
 func (p *Parser) Parse() (newtree *tree.Tree, err error) {
 	// May have information inside [] before the tree
 	tok, lit := p.scanIgnoreWhitespace()
-	if tok == OPENBRACK || tok == LABEL {
+	if tok == OPENBRACK {
 		if _, err = p.consumeComment(tok, lit); err != nil {
 			return
 		}
@@ -159,7 +159,7 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 				return
 			}
 			node, edge, _ = nodeStack.Head()
-		case OPENBRACK, LABEL:
+		case OPENBRACK:
 			var comment string
 			//if prevTok == OPENPAR || prevTok == NEWSIBLING || prevTok == -1 {
 			if comment, err = p.consumeComment(tok, lit); err != nil {
@@ -293,9 +293,9 @@ func (p *Parser) parseIter(t *tree.Tree, level *int) (prevTok Token, err error) 
 // At the end returns the matching ] token and lit.
 // If the given token is not a [, then returns an error
 func (p *Parser) consumeComment(curtoken Token, curlit string) (comment string, err error) {
-	if curtoken == OPENBRACK || curtoken == LABEL {
+	if curtoken == OPENBRACK {
 		commenttoken, commentlit := p.scan(true)
-		for (curtoken == LABEL && commenttoken != LABEL) || (curtoken == OPENBRACK && commenttoken != CLOSEBRACK) {
+		for commenttoken != CLOSEBRACK {
 			if commenttoken == EOF || commenttoken == ILLEGAL {
 				err = fmt.Errorf("unmatched bracket: %s (%s)", comment, commentlit)
 				return
