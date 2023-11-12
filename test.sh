@@ -315,6 +315,35 @@ ${GOTREE} generate yuletree --seed 10 | ${GOTREE} collapse depth -m 2 -M 2 | ${G
 diff -q -b result expected
 rm -f expected result
 
+# gotree collapse id
+echo "->gotree collapse id/name"
+cat > input <<EOF
+((Tip4,Tip7,Tip2),Tip0,((Tip8,Tip9,Tip3),(Tip1,Tip6,Tip5)));
+EOF
+cat > expected <<EOF
+(Tip0,Tip4,Tip7,Tip2,Tip8,Tip9,Tip3,Tip1,Tip6,Tip5);
+EOF
+cat > expected2 <<EOF
+(Tip0,Tip4,Tip7,Tip2,(Tip1,Tip6,Tip5),Tip8,Tip9,Tip3);
+EOF
+cat > br <<EOF
+0
+5
+6
+10
+EOF
+cat > br2 <<EOF
+0
+5
+6
+EOF
+
+${GOTREE} collapse name -i input --id -b br > result
+diff -q -b result expected
+${GOTREE} collapse name -i input --id -b br2 > result
+diff -q -b result expected2
+rm -f input expected result br br2 expected2
+
 # gotree collapse single
 echo "->gotree collapse single"
 cat > test_input <<EOF
