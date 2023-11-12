@@ -178,25 +178,58 @@ func readTree(infile string) (t *tree.Tree, err error) {
 	return
 }
 
-func parseTipsFile(file string) (tips []string, err error) {
-
-	var treereader *bufio.Reader
-	var treefile goio.Closer
+// Parse a file with one string per line
+func parseStringFile(file string) (s []string, err error) {
+	var ifilereader *bufio.Reader
+	var ifile goio.Closer
 	var line string
 	var err2 error
 
-	tips = make([]string, 0, 100)
+	s = make([]string, 0, 100)
 
-	if treefile, treereader, err = utils.GetReader(file); err == nil {
-		line, err2 = Readln(treereader)
+	if ifile, ifilereader, err = utils.GetReader(file); err == nil {
+		line, err2 = Readln(ifilereader)
 		for err2 == nil {
 			for _, name := range strings.Split(line, ",") {
-				tips = append(tips, name)
+				s = append(s, name)
 			}
-			line, err2 = Readln(treereader)
+			line, err2 = Readln(ifilereader)
 		}
-		treefile.Close()
+		ifile.Close()
 	}
+	return
+}
+
+// Parse a file with one int per line
+func parseIntFile(file string) (islice []int, err error) {
+	var ifilereader *bufio.Reader
+	var ifile goio.Closer
+	var line string
+	var err2 error
+	var tempi int
+
+	islice = make([]int, 0, 100)
+
+	if ifile, ifilereader, err = utils.GetReader(file); err == nil {
+		line, err2 = Readln(ifilereader)
+		for err2 == nil {
+			for _, name := range strings.Split(line, ",") {
+
+				if tempi, err = strconv.Atoi(name); err != nil {
+					return
+				}
+				islice = append(islice, tempi)
+			}
+			line, err2 = Readln(ifilereader)
+		}
+		ifile.Close()
+	}
+	return
+}
+
+// Parse a file with one tip name per line
+func parseTipsFile(file string) (tips []string, err error) {
+	tips, err = parseStringFile(file)
 	return
 }
 
