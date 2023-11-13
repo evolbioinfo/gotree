@@ -22,6 +22,9 @@ var collapsebrnameCmd = &cobra.Command{
 	Names (or ID) are defined in an input file (-b)
 
 	If an external branch name/id is given, then does not do anything.
+
+	Branch identifiers are defined by preorder traversal of the tree, sorted as described in the input newick file.
+	If the tree or its newick representation is modified, identifiers will be different.
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
