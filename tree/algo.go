@@ -955,3 +955,36 @@ func CompareWeighted(refTree *Tree, compTrees <-chan Trees, tips, comparetreeide
 
 	return stats, nil
 }
+
+// LTTData describes a Lineage to Time data point
+type LTTData struct {
+	X float64 // Time or Mutations
+	Y int     // Number of lineages
+}
+
+// LTTData describes a Lineage to Time data point
+func (t *Tree) LTT() (lttdata []LTTData) {
+	// We compute distance from root to all nodes
+	dists := t.NodeRootDistance()
+
+	lttdata = make([]LTTData, len(dists))
+
+	t.PreOrder(func(cur, prev *Node, e *Edge) (keep bool) {
+		lttdata[cur.Id()].X = dists[cur.Id()]
+		lttdata[cur.Id()].Y = cur.Nneigh()
+		if prev != nil {
+			lttdata[cur.Id()].Y -= 2
+		}
+		return true
+	})
+	sort.Slice(lttdata, func(i, j int) bool {
+		return lttdata[i].X < lttdata[j].X
+	})
+	dists = nil
+	total := 0
+	for i := range lttdata {
+		total += lttdata[i].Y
+		lttdata[i].Y = total
+	}
+	return
+}

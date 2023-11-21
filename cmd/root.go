@@ -173,7 +173,7 @@ func readTree(infile string) (t *tree.Tree, err error) {
 		// Read comp Tree : Only one tree in input
 		t, err = utils.ReadTree(infile, treeformat)
 	} else {
-		err = errors.New("Cannot use \"none\" as input file")
+		err = errors.New("cannot use \"none\" as input file")
 	}
 	return
 }
@@ -190,9 +190,7 @@ func parseStringFile(file string) (s []string, err error) {
 	if ifile, ifilereader, err = utils.GetReader(file); err == nil {
 		line, err2 = Readln(ifilereader)
 		for err2 == nil {
-			for _, name := range strings.Split(line, ",") {
-				s = append(s, name)
-			}
+			s = append(s, strings.Split(line, ",")...)
 			line, err2 = Readln(ifilereader)
 		}
 		ifile.Close()
