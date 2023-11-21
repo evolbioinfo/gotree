@@ -964,22 +964,42 @@ type LTTData struct {
 
 // LTTData describes a Lineage to Time data point
 func (t *Tree) LTT() (lttdata []LTTData) {
+	var lttdatadup []LTTData
+
 	// We compute distance from root to all nodes
 	dists := t.NodeRootDistance()
-
+	// This initializes
+	lttdatadup = make([]LTTData, len(dists))
+	// Version with one point per x, already summed up
 	lttdata = make([]LTTData, len(dists))
 
 	t.PreOrder(func(cur, prev *Node, e *Edge) (keep bool) {
-		lttdata[cur.Id()].X = dists[cur.Id()]
-		lttdata[cur.Id()].Y = cur.Nneigh()
+		lttdatadup[cur.Id()].X = dists[cur.Id()]
+		lttdatadup[cur.Id()].Y = cur.Nneigh()
 		if prev != nil {
-			lttdata[cur.Id()].Y -= 2
+			lttdatadup[cur.Id()].Y -= 2
 		}
 		return true
 	})
-	sort.Slice(lttdata, func(i, j int) bool {
-		return lttdata[i].X < lttdata[j].X
+	sort.Slice(lttdatadup, func(i, j int) bool {
+		return lttdatadup[i].X < lttdatadup[j].X
 	})
+
+	lasti := 0
+	for i, l := range lttdatadup {
+		if i == 0 {
+			lttdata[i] = l
+		} else {
+			if lttdata[lasti].X == l.X {
+				lttdata[lasti].Y += l.Y
+			} else {
+				lasti++
+				lttdata[lasti] = l
+			}
+		}
+	}
+	lttdata = lttdata[:lasti+1]
+
 	dists = nil
 	total := 0
 	for i := range lttdata {
