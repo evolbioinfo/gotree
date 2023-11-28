@@ -81,8 +81,9 @@ Command                                                            | Subcommand 
 --                                                                 | topologies        | Generates all possible tree topologies
 --                                                                 | uniformtree       | Randomly generates uniform trees
 --                                                                 | yuletree          | Randomly generates Yule-Harding trees
-[graft](commands/graft.md) ([api](api/graft.md))                 |                   | Graft a tree on an input tree
+[graft](commands/graft.md) ([api](api/graft.md))                   |                   | Graft a tree on an input tree
 [labels](commands/labels.md)                                       |                   | Lists labels of tree tips
+[ltt](commands/ltt.md)                                             |                   | Draws a lineage through time plot
 [matrix](commands/matrix.md) ([api](api/matrix.md))                |                   | Prints distance matrix associated to the input tree
 [merge](commands/merge.md) ([api](api/merge.md))                   |                   | Merges two rooted trees
 [nni](commands/nni.md) ([api](api/nni.md))                   |                   | Generates all NNI neighbors from a given tree
