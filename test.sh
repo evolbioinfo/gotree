@@ -2125,3 +2125,20 @@ diff -q -b result expected3
 diff -q -b result.clade expected3.clade
 
 rm -rf input.t1 input.tips input.t2 expected expected2 expected3 result result.clade expected3.clade expected2.clade expected.clade
+
+
+echo "->gotree ltt"
+cat > expected <<EOF
+0	0.000000	2
+0	1.000000	3
+0	2.000000	4
+0	3.000000	6
+0	3.500000	7
+0	4.000000	8
+0	5.000000	0
+EOF
+
+echo "(((A:1,B:1):1,C:2):3,(D:4,(E:3,((F:1.5,G:1.5):0.5,H:2):1):1):1);" | $GOTREE ltt > result
+diff -q -b expected result
+rm -f expected result
+
