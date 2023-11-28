@@ -27,8 +27,12 @@ var lttCmd = &cobra.Command{
 	Short: "Lineage Through Time data",
 	Long: `Compute Lineage Through Time data.
 
-Will output data visualizable in statistal packages (R, python, etc.).
+1) Will output data visualizable in statistical packages (R, python, etc.).
 Set of x,y coordinates pairs: x: time (or mutations) and y: number of lineages.
+2) If --image <image file> is specified, then a ltt plot is drawn in the given output file.
+the format of the image depends on the extension (.png, .svg, .pdf, etc. 
+	see https://github.com/gonum/plot/blob/342a5cee2153b051d94ae813861f9436c5584de2/plot.go#L525C17-L525C17).
+Image width and height can be specified (in inch) with --image-width and --image-height.
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
@@ -68,10 +72,13 @@ Set of x,y coordinates pairs: x: time (or mutations) and y: number of lineages.
 			}
 
 			if lttoutimagefile != "none" {
-				pts := make(plotter.XYs, len(ltt))
+				pts := make(plotter.XYs, len(ltt)-1)
 				for i, l := range ltt {
-					pts[i].X = float64(l.X)
-					pts[i].Y = float64(l.Y)
+					// We do not take the last point where there is 0 lineage left
+					if i < (len(ltt) - 1) {
+						pts[i].X = float64(l.X)
+						pts[i].Y = float64(l.Y)
+					}
 				}
 				line, point, err = plotter.NewLinePoints(pts)
 				point.Shape = draw.CircleGlyph{}
