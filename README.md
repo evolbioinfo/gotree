@@ -189,6 +189,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * yuletree
 *  graft: Graft a tree on an input tree in place of a given tip
 *  labels: Lists labels (names) of all tips
+*  ltt: Compute lineage through time data/plot
 *  matrix:      Print (patristic) distance matrix associated to the input tree
 *  merge:       Merges two rooted trees
 *  nni:         Generate all NNI neighbors from a given tree
