@@ -1897,6 +1897,21 @@ func (t *Tree) ScaleLengths(factor float64, internal, external bool) {
 	}
 }
 
+// AddLength adds the given length to all branches of the tree.
+//
+// If a branch has NIL_LENGTH: then sets its length to the given length
+func (t *Tree) AddLength(brlen float64, internal, external bool) {
+	for _, e := range t.Edges() {
+		if (e.right.Tip() && external) || (!e.right.Tip() && internal) {
+			if s := e.Length(); s != NIL_LENGTH {
+				e.SetLength(s + brlen)
+			} else {
+				e.SetLength(brlen)
+			}
+		}
+	}
+}
+
 // Rounds branch lengths by a given precision. Precision is defined as 1/(power of 10)
 // Example: 6, means 10^-6.
 //

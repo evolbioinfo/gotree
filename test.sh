@@ -739,6 +739,31 @@ ${GOTREE} generate yuletree --seed 10 -l 10 | ${GOTREE} brlen clear | ${GOTREE} 
 diff -q -b expected result
 rm -f expected result
 
+echo "->gotree brlen add"
+cat > expected1 <<EOF
+(A:11,(B:1,C:1):11);
+EOF
+
+cat > expected2 <<EOF
+(A:10,(B,C):11);
+EOF
+
+cat > expected3 <<EOF
+(A:11,(B:1,C:1):10);
+EOF
+
+echo "(A:10.0,(B,C):10);" | $GOTREE brlen add -l 1.0 > result
+diff -q -b expected1 result
+rm -f expected result
+
+echo "(A:10.0,(B,C):10);" | $GOTREE brlen add -l 1.0 --external=false > result
+diff -q -b expected2 result
+rm -f expected result
+
+echo "(A:10.0,(B,C):10);" | $GOTREE brlen add -l 1.0 --internal=false > result
+diff -q -b expected3 result
+rm -f expected result
+
 echo "->gotree prune"
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)),((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)),Tip0);
@@ -2141,4 +2166,3 @@ EOF
 echo "(((A:1,B:1):1,C:2):3,(D:4,(E:3,((F:1.5,G:1.5):0.5,H:2):1):1):1);" | $GOTREE ltt > result
 diff -q -b expected result
 rm -f expected result
-
