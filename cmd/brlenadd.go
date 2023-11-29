@@ -51,6 +51,6 @@ gotree brlen add -i tree.nwk -l <length>
 
 func init() {
 	brlenCmd.AddCommand(brlenAddCmd)
-	brlenAddCmd.Flags().Float64VarP(&addlengthfactor, "addlentgh", "l", 0.0, "Length to add to all branches")
+	brlenAddCmd.Flags().Float64VarP(&addlengthfactor, "add-length", "l", 0.0, "Length to add to all branches")
 	brlenAddCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Output tree file")
 }
