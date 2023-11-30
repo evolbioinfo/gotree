@@ -972,7 +972,8 @@ func (t *Tree) LTT() (lttdata []LTTData) {
 	// If the field [&date=] exists, then takes it
 	// Otherwise, computes the distance to the root
 	if dists, err = t.NodeDates(); err != nil {
-		io.LogError(err)
+		io.LogWarning(err)
+		io.LogWarning(fmt.Errorf("using mutations instead of dates"))
 		dists = t.NodeRootDistance()
 	}
 

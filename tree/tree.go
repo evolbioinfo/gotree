@@ -966,26 +966,30 @@ func (t *Tree) NodeDates() (ndates []float64, err error) {
 	pattern = regexp.MustCompile(`(?i)&date="(.+)"`)
 	nnodes := 0
 	t.PreOrder(func(cur *Node, prev *Node, e *Edge) (keep bool) {
-		stop := false
+		keep = true
 		if cur.Id() != nnodes {
 			err = fmt.Errorf("node id does not correspond to postorder traversal: %d vs %d", cur.Id(), nnodes)
-			stop = true
-		} else {
+			keep = false
+		} else if len(cur.Comments()) > 0 {
+			keep = false
 			for _, c := range cur.Comments() {
 				matches = pattern.FindStringSubmatch(c)
 				if len(matches) < 2 {
 					err = fmt.Errorf("no date found: %s", c)
-					stop = true
-				}
-				if date, err = strconv.ParseFloat(matches[1], 64); err != nil {
+				} else if date, err = strconv.ParseFloat(matches[1], 64); err != nil {
 					err = fmt.Errorf("one of the node date is malformed: %s", c)
-					stop = true
+				} else {
+					ndates = append(ndates, date)
+					err = nil
+					keep = true
 				}
-				ndates = append(ndates, date)
 			}
+		} else {
+			err = fmt.Errorf("a node with no date found")
+			keep = false
 		}
 		nnodes += 1
-		return !stop
+		return
 	})
 	return
 }
