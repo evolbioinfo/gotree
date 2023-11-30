@@ -965,9 +965,17 @@ type LTTData struct {
 // LTTData describes a Lineage to Time data point
 func (t *Tree) LTT() (lttdata []LTTData) {
 	var lttdatadup []LTTData
+	var dists []float64
+	var err error
 
 	// We compute distance from root to all nodes
-	dists := t.NodeRootDistance()
+	// If the field [&date=] exists, then takes it
+	// Otherwise, computes the distance to the root
+	if dists, err = t.NodeDates(); err != nil {
+		io.LogError(err)
+		dists = t.NodeRootDistance()
+	}
+
 	// This initializes
 	lttdatadup = make([]LTTData, len(dists))
 	// Version with one point per x, already summed up

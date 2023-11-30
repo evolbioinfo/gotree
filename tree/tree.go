@@ -953,6 +953,43 @@ func (t *Tree) computeDepthUnRooted() {
 	}
 }
 
+// Get Node dates
+// Returns a slice of float correspsponding to all node dates (internal and external)
+// Node IDs are their index in the slice.
+// If one node does not have date or a malformed date, returns an error
+func (t *Tree) NodeDates() (ndates []float64, err error) {
+	var date float64
+	var pattern *regexp.Regexp
+	var matches []string
+
+	ndates = make([]float64, 0)
+	pattern = regexp.MustCompile(`(?i)&date="(.+)"`)
+	nnodes := 0
+	t.PreOrder(func(cur *Node, prev *Node, e *Edge) (keep bool) {
+		stop := false
+		if cur.Id() != nnodes {
+			err = fmt.Errorf("node id does not correspond to postorder traversal: %d vs %d", cur.Id(), nnodes)
+			stop = true
+		} else {
+			for _, c := range cur.Comments() {
+				matches = pattern.FindStringSubmatch(c)
+				if len(matches) < 2 {
+					err = fmt.Errorf("no date found: %s", c)
+					stop = true
+				}
+				if date, err = strconv.ParseFloat(matches[1], 64); err != nil {
+					err = fmt.Errorf("one of the node date is malformed: %s", c)
+					stop = true
+				}
+				ndates = append(ndates, date)
+			}
+		}
+		nnodes += 1
+		return !stop
+	})
+	return
+}
+
 // Computes distance of all nodes to root / pseudo root.
 // Indices of the nodes in the rdists slice correspond to node ids
 func (t *Tree) NodeRootDistance() (rdists []float64) {

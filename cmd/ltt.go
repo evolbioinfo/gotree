@@ -93,8 +93,6 @@ Image width and height can be specified (in inch) with --image-width and --image
 
 		if lttoutimagefile != "none" {
 			// Save the plot to a PNG file.
-			fmt.Println(font.Length(float64(lttoutimagewidth)) * vg.Inch)
-			fmt.Println(font.Length(float64(lttoutimageheight)) * vg.Inch)
 			if err = p.Save(font.Length(lttoutimagewidth)*vg.Inch, font.Length(lttoutimageheight)*vg.Inch, lttoutimagefile); err != nil {
 				io.LogError(err)
 				return
