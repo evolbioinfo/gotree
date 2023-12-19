@@ -722,6 +722,26 @@ ${GOTREE} matrix -i intree --metric none > result
 diff -q -b expected.none result
 rm -f expected.brlen expected.boot expected.none result intree
 
+echo "->gotree matrix --avg"
+
+cat > intree <<EOF
+(1:1,2:0,(3:1,4:1):0);
+(1:1,2:2,(3:2,4:2):1);
+(1:3,2:2,(3:3,4:2):1);
+(1:2,2:2,(3:0,4:1):1);
+EOF
+
+cat > expected <<EOF
+4
+1	0.000000000000	3.250000000000	4.000000000000	4.000000000000
+2	3.250000000000	0.000000000000	3.750000000000	3.750000000000
+3	4.000000000000	3.750000000000	0.000000000000	3.000000000000
+4	4.000000000000	3.750000000000	3.000000000000	0.000000000000
+EOF
+
+${GOTREE} matrix -i intree --avg > result
+diff -q -b expected result
+rm -f expected intree result
 
 echo "->gotree brlen setmin 1"
 cat > expected <<EOF

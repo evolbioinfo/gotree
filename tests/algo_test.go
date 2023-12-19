@@ -1,12 +1,15 @@
 package tests
 
 import (
+	"bufio"
 	"fmt"
-	"github.com/evolbioinfo/gotree/io/newick"
-	"github.com/evolbioinfo/gotree/tree"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/io/utils"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 var unroottree string = "((1:1,2:1):1,5:1,(3:1,4:1):1);"
@@ -231,6 +234,41 @@ func TestRerootMidPoint2(t *testing.T) {
 	for _, e := range tr.Root().Edges() {
 		if e.Length() != 3 && e.Length() != 1 {
 			t.Errorf("Length at root should be 1 or 3 but is %f", e.Length())
+		}
+	}
+}
+
+func TestAvgDistanceMatrix(t *testing.T) {
+	var trees string = `(1:1,2:0,(3:1,4:1):0);
+	(1:1,2:2,(3:2,4:2):1);
+	(1:3,2:2,(3:3,4:2):1);
+	(1:2,2:2,(3:0,4:1):1);`
+
+	treechan := utils.ReadMultiTrees(bufio.NewReader(strings.NewReader(trees)), utils.FORMAT_NEWICK)
+	mat, tips, err := tree.AvgDistanceMatrix(tree.DISTANCE_METRIC_BRLEN, treechan)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	var exptips = []string{"1", "2", "3", "4"}
+	var expmatrix = [][]float64{
+		{0.00, 3.25, 4.00, 4.00},
+		{3.25, 0.00, 3.75, 3.75},
+		{4.00, 3.75, 0.00, 3.00},
+		{4.00, 3.75, 3.00, 0.00}}
+
+	for i, tip := range tips {
+		if tip.Name() != exptips[i] {
+			t.Errorf("Tips are not identical")
+		}
+	}
+
+	for i := range tips {
+		for j := range tips {
+			if expmatrix[i][j] != mat[i][j] {
+				t.Errorf("Distance matrices are not identical")
+			}
 		}
 	}
 }

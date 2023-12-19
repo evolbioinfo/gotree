@@ -10,6 +10,8 @@ The distance matrix can be computed in several ways, depending on the "metric" o
 * --metric boot : distances correspond to the sum of supports of the internal branches separating the tips. If there is no support for a given branch (e.g. for a tip), 1.0 is the default. If branch supports range from 0 to 100, you may consider to use gotree support scale -f 0.01 first.
 * --metric none : distances correspond to the sum of the branches separating the tips, but each individual branch is counted as having a length of 1 (topological distance)
 
+If `--avg` is given, then the output distance matrix corresponds to the average of all distance matrices of the input trees.
+
 #### Usage
 
 ```
@@ -18,6 +20,7 @@ Usage:
   gotree matrix [flags]
 
 Flags:
+  --avg             Average the distance matrices of all input trees
   -i, --input string    Input tree (default "stdin")
   -m, --metric string   Distance metric (brlen|boot|none) (default "brlen")
   -o, --output string   Matrix output file (default "stdout")

@@ -11,6 +11,7 @@ import (
 )
 
 var metric string
+var matrixavg bool
 
 // matrixCmd represents the matrix command
 var matrixCmd = &cobra.Command{
@@ -28,6 +29,8 @@ var matrixCmd = &cobra.Command{
 		var treefile goio.Closer
 		var treechan <-chan tree.Trees
 		var distmetric int
+		var mat [][]float64
+		var tips []*tree.Node
 
 		if f, err = openWriteFile(outtreefile); err != nil {
 			io.LogError(err)
@@ -54,12 +57,11 @@ var matrixCmd = &cobra.Command{
 			return
 		}
 
-		for t := range treechan {
-			if t.Err != nil {
-				io.LogError(t.Err)
-				return t.Err
+		if matrixavg {
+			if mat, tips, err = tree.AvgDistanceMatrix(distmetric, treechan); err != nil {
+				io.LogError(err)
+				return
 			}
-			mat, tips := t.Tree.ToDistanceMatrix(distmetric)
 			f.WriteString(fmt.Sprintf("%d\n", len(tips)))
 			for i, t := range tips {
 				f.WriteString(t.Name())
@@ -67,6 +69,22 @@ var matrixCmd = &cobra.Command{
 					f.WriteString("\t" + fmt.Sprintf("%.12f", mat[i][j]))
 				}
 				f.WriteString("\n")
+			}
+		} else {
+			for t := range treechan {
+				if t.Err != nil {
+					io.LogError(t.Err)
+					return t.Err
+				}
+				mat, tips = t.Tree.ToDistanceMatrix(distmetric)
+				f.WriteString(fmt.Sprintf("%d\n", len(tips)))
+				for i, t := range tips {
+					f.WriteString(t.Name())
+					for j := range tips {
+						f.WriteString("\t" + fmt.Sprintf("%.12f", mat[i][j]))
+					}
+					f.WriteString("\n")
+				}
 			}
 		}
 		return
@@ -77,5 +95,6 @@ func init() {
 	RootCmd.AddCommand(matrixCmd)
 	matrixCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	matrixCmd.PersistentFlags().StringVarP(&metric, "metric", "m", "brlen", "Distance metric (brlen|boot|none)")
+	matrixCmd.PersistentFlags().BoolVar(&matrixavg, "avg", false, "Average the distance matrices of all input trees")
 	matrixCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Matrix output file")
 }

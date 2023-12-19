@@ -690,6 +690,55 @@ func (t *Tree) ToDistanceMatrix(metric int) ([][]float64, []*Node) {
 	return matrix, tips
 }
 
+// AvgDistanceMatrix computes and returns the average
+// distances matrix (between all pairs of tips in the tree)
+// of all the trees in the input channel.
+//
+// metric can be :
+//   - DISTANCE_METRIC_BRLEN : The distance of each edge corresponds to length (patristic distance).
+//   - DISTANCE_METRIC_BOOTS : The distance of each edge corresponds to its bootstrap support.
+//   - DISTANCE_METRIC_NONE : Each edge will count a distance of 1 (topological distance).
+//   - All other values will be considered as DISTANCE_METRIC_BRLEN
+//
+// Computes patristic distance matrix. Outputs the average distance matrix and the list of tips in the
+// same order as the lines and columns of the matrix
+func AvgDistanceMatrix(metric int, treechan <-chan Trees) (matrix [][]float64, tips []*Node, err error) {
+
+	var matrix2 [][]float64
+	var tips2 []*Node
+	var ntrees int
+
+	for t := range treechan {
+		if matrix == nil {
+			matrix, tips = t.Tree.ToDistanceMatrix(metric)
+		} else {
+			matrix2, tips2 = t.Tree.ToDistanceMatrix(metric)
+
+			for i, tip := range tips {
+				if tip.Name() != tips2[i].Name() {
+					err = fmt.Errorf("trees do not have the same sets of tip names")
+					return
+				}
+			}
+
+			for i := range tips {
+				for j := range tips2 {
+					matrix[i][j] += matrix2[i][j]
+				}
+			}
+		}
+		ntrees++
+	}
+
+	for i := range tips {
+		for j := range tips2 {
+			matrix[i][j] /= float64(ntrees)
+		}
+	}
+
+	return
+}
+
 func pathLengths(cur *Node, prev *Node, lengths []float64, curlength float64, metric int) {
 	if cur.Tip() && prev != nil {
 		lengths[cur.Id()] = curlength
