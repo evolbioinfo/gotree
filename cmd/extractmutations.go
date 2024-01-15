@@ -93,8 +93,11 @@ var mutationsCmd = &cobra.Command{
 		}
 		defer closeWriteFile(f, outfile)
 
-		fmt.Fprintf(f, "Tree ID\tSite\tBranch ID\tNode Name\tParent Character\tChild Character\tTotal tips\tSame Character Tips\n")
-
+		if mutationseems {
+			fmt.Fprintf(f, "Tree ID\tSite\tParent Character\tChild Character\tNb EEMs\n")
+		} else {
+			fmt.Fprintf(f, "Tree ID\tSite\tBranch ID\tNode Name\tParent Character\tChild Character\tTotal tips\tSame Character Tips\n")
+		}
 		for t := range treechan {
 			if mutationseems {
 				if muts, err = mutations.CountEEMs(t.Tree, align); err != nil {

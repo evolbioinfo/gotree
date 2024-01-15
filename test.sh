@@ -678,7 +678,7 @@ cat > input_tree <<EOF
 EOF
 
 cat > expected <<EOF
-Tree ID	Site	Branch ID	Node Name	Parent Character	Child Character	Total tips	Same Character Tips
+Tree ID	Site	Parent Character	Child Character	Nb EEMs
 0	0	G	T	2
 0	0	C	A	2
 0	0	G	C	1
