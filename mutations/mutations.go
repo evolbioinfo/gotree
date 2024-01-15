@@ -16,6 +16,7 @@ type Mutation struct {
 	ChildCharacter            uint8  // Child character
 	NumTips                   int    // Total number of descendent tips
 	NumTipsWithChildCharacter int    // Number of descendent tips that have the child character
+	NumEEM                    int    // Number of emergence of this mutation
 }
 
 type MutationList struct {
@@ -27,6 +28,11 @@ func NewMutationList() (mutations *MutationList) {
 		Mutations: make(map[string]Mutation),
 	}
 	return
+}
+
+func (m *MutationList) Exists(id string) (exist bool) {
+	_, exist = m.Mutations[id]
+	return exist
 }
 
 func (m *MutationList) Append(mapp *MutationList) (err error) {

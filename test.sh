@@ -639,6 +639,56 @@ ${GOTREE} generate yuletree --seed 10  | ${GOTREE} compute edgetrees > result
 diff -q -b expected result
 rm -f expected result
 
+echo "->gotree compute mutations --eems"
+cat > input_align <<EOF
+>A
+A
+>B
+A
+>AB
+A
+>C
+A
+>D
+C
+>CD
+C
+>ABCD
+C
+>E
+T
+>F
+T
+>EF
+T
+>G
+T
+>H
+G
+>GH
+G
+>EFGH
+G
+>ABCDEFGH
+G
+EOF
+
+cat > input_tree <<EOF
+(((A,B)AB,(C,D)CD)ABCD,((E,F)EF,(G,H)GH)EFGH)ABCDEFGH;
+EOF
+
+cat > expected <<EOF
+Tree ID	Site	Branch ID	Node Name	Parent Character	Child Character	Total tips	Same Character Tips
+0	0	G	T	2
+0	0	C	A	2
+0	0	G	C	1
+EOF
+
+${GOTREE} compute mutations -a input_align -i input_tree --eems >results
+diff -q -b <(sort expected) <(sort results)
+rm -f expected input_tree input_align results
+
+
 echo "->gotree divide"
 cat > expected1 <<EOF
 ((Tip4,(Tip7,Tip2)),Tip0,((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)));
