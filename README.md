@@ -114,21 +114,23 @@ conda install -c bioconda gotree
 ```
 
 ### From sources
-In order to build gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system ($1.16.4$).
+To build gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system ($1.21.6$).
 
 Then you just have to type :
 ```
-go get github.com/evolbioinfo/gotree/
-```
-This will download Gotree sources from github.
-
-You can then build it with:
-```
-cd $GOPATH/src/github.com/evolbioinfo/gotree/
+git clone git@github.com:evolbioinfo/gotree.git
+cd gotree
 make && make install
+# or go get . && go build .
+# or go get . && go install .
 ```
 
-The `gotree` executable should be located in the `$GOPATH/bin` folder.
+The `gotree` executable should be located in the current folder (or the `$GOPATH/bin`).
+
+To test the executable:
+```
+./test.sh
+```
 
 ## Auto completion
 
