@@ -10,6 +10,7 @@ import (
 )
 
 var edgecomments, nodecomments bool
+var terminalcomments bool
 
 // commentsCmd represents the comments command
 var clearcommentsCmd = &cobra.Command{
@@ -54,10 +55,18 @@ If both or none are given, will remove every comments.
 				return t.Err
 			}
 			if nodecomments {
-				t.Tree.ClearNodeComments()
+				if terminalcomments {
+					t.Tree.ClearTipsComments()
+				} else {
+					t.Tree.ClearNodeComments()
+				}
 			}
 			if edgecomments {
-				t.Tree.ClearEdgeComments()
+				if terminalcomments {
+					t.Tree.ClearTerminalEdgeComments()
+				} else {
+					t.Tree.ClearEdgeComments()
+				}
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
@@ -69,4 +78,5 @@ func init() {
 	commentCmd.AddCommand(clearcommentsCmd)
 	clearcommentsCmd.PersistentFlags().BoolVar(&edgecomments, "edges-only", false, "Clear comments on edges only")
 	clearcommentsCmd.PersistentFlags().BoolVar(&nodecomments, "nodes-only", false, "Clear comments on nodes only")
+	clearcommentsCmd.PersistentFlags().BoolVar(&terminalcomments, "terminal", false, "Clear comments on tips / terminal branches only")
 }

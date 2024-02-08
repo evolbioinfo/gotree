@@ -1390,6 +1390,22 @@ func (t *Tree) ClearEdgeComments() {
 	}
 }
 
+func (t *Tree) ClearTipsComments() {
+	nodes := t.Tips()
+	for _, n := range nodes {
+		n.ClearComments()
+	}
+}
+
+func (t *Tree) ClearTerminalEdgeComments() {
+	edges := t.Edges()
+	for _, e := range edges {
+		if e.Right().Tip() {
+			e.ClearComments()
+		}
+	}
+}
+
 // RemoveEdges removes the given branches from the tree if they are not
 // tip edges.
 // If removeRoot is true: In the case of rooted tree, branches
