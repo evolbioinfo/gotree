@@ -156,7 +156,7 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 	//var nb_branches_close int
 
 	var edges []*tree.Edge = reftree.Edges()
-	var movedspeciestmp []int
+	var movedspeciestmp []float64
 	var movedspecies []float64
 	var sumNbClosestBranches []float64 // Average number (over all the bootstrap trees) of branches having the minimum distance to this ref branch
 	var movedperbranch [][]float64
@@ -170,13 +170,13 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 
 	if computeavgtaxa {
 		movedspecies = make([]float64, len(tips))
-		movedspeciestmp = make([]int, len(tips))
+		movedspeciestmp = make([]float64, len(tips))
 	}
 
 	sumNbClosestBranches = make([]float64, len(edges))
 	if computeperbranchtaxa {
 		movedperbranch = make([][]float64, len(edges))
-		for i, _ := range edges {
+		for i := range edges {
 			movedperbranch[i] = make([]float64, len(tips))
 		}
 	}
@@ -240,7 +240,9 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 						if p, _ := e.TopoDepth(); p > 1 {
 							if _, ok := bootedgeindex.Value(e); ok {
 								if p >= mindepth {
+									mux.Lock()
 									nbranchclose++
+									mux.Unlock()
 								}
 								e.IncrementSupport(0.0)
 								sumNbClosestBranches[e.Id()] += 1.0
@@ -346,7 +348,7 @@ func NormalizeTransferDistancesByDepth(edges []*tree.Edge, nboot int) {
 // species_to_add & species_to_remove: Array of species (tree nodes) that move
 // distcutoff: if the bootstrap branch is too distant from the ref branch in terms of normalized transfer dist, then does not count
 func UpdateTaxaMoveArrays(ref *tree.Edge, boot []*tree.Edge, dist, p int,
-	moved_species []int, moved_species_per_branch [][]float64, sumNbClosestBranches []float64,
+	moved_species []float64, moved_species_per_branch [][]float64, sumNbClosestBranches []float64,
 	nb_branches_close *int, speciestoadd, speciestoremove [][]*tree.Node, distcutoff float64,
 	mindepth int, computeavgtaxa, computeperbranchtaxa bool, mux *sync.Mutex) {
 
@@ -357,12 +359,12 @@ func UpdateTaxaMoveArrays(ref *tree.Edge, boot []*tree.Edge, dist, p int,
 	if computeavgtaxa && norm <= distcutoff && p >= mindepth {
 		for _, spa := range speciestoadd {
 			for _, t := range spa {
-				moved_species[t.TipIndex()]++
+				moved_species[t.TipIndex()] += (1.0 / nbminedges)
 			}
 		}
 		for _, spr := range speciestoremove {
 			for _, t := range spr {
-				moved_species[t.TipIndex()]++
+				moved_species[t.TipIndex()] += (1.0 / nbminedges)
 			}
 		}
 		(*nb_branches_close)++
