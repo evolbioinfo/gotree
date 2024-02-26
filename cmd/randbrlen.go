@@ -13,6 +13,8 @@ import (
 var setlengthmean float64
 var setlengthmeanMin float64
 var setlengthmeanMax float64
+var setlengthMinLen float64
+var setlengthMaxLen float64
 
 // randbrlenCmd represents the randbrlen command
 var randbrlenCmd = &cobra.Command{
@@ -30,6 +32,9 @@ Two possibilities for the mean:
 
 if --internal=false is given, it won't apply to internal branches (only external)
 if --external=false is given, it won't apply to external branches (only internal)
+
+if --min-len > 0, it will apply only to branches with length >= min-len
+if --max-len > 0, it will apply only to branches with length <= max-len
 
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -61,7 +66,9 @@ if --external=false is given, it won't apply to external branches (only internal
 			}
 
 			for _, e := range tr.Tree.Edges() {
-				if (e.Right().Tip() && brlenexternal) || (!e.Right().Tip() && brleninternal) {
+				if ((e.Right().Tip() && brlenexternal) || (!e.Right().Tip() && brleninternal)) &&
+					(setlengthMinLen == -1 || e.Length() >= setlengthMinLen) &&
+					(setlengthMaxLen == -1 || e.Length() <= setlengthMaxLen) {
 					e.SetLength(gostats.Exp(1.0 / lmean))
 				}
 			}
@@ -78,5 +85,7 @@ func init() {
 	randbrlenCmd.Flags().Float64VarP(&setlengthmean, "mean", "m", 0.1, "Mean of the exponential distribution of branch lengths")
 	randbrlenCmd.Flags().Float64Var(&setlengthmeanMin, "min-mean", 0.001, "Mean of the exponential distribution of branch lengths will be drawn uniformly in the interval [min-mean,max-mean]")
 	randbrlenCmd.Flags().Float64Var(&setlengthmeanMax, "max-mean", 0.05, "Mean of the exponential distribution of branch lengths will be drawn uniformly in the interval [min-mean,max-mean]")
+	randbrlenCmd.Flags().Float64Var(&setlengthMinLen, "min-len", -1, "Applies only to branches having length >= min-length (taken into account iff > 0)")
+	randbrlenCmd.Flags().Float64Var(&setlengthMaxLen, "max-len", -1, "Applies only to branches having length <= max-length (taken into account iff > 0)")
 	randbrlenCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Random length output tree file")
 }

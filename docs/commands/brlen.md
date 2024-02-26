@@ -87,15 +87,19 @@ Usage:
   gotree brlen setrand [flags]
 
 Flags:
-  -h, --help         help for setrand
-  -m, --mean float   Mean of the exponential distribution of branch lengths (default 0.1)
-  -o, --output string   Random length output tree file (default "stdout")
+  -h, --help             help for setrand
+      --max-len float    Applies only to branches having length <= max-length (taken into account iff > 0) (default -1)
+      --max-mean float   Mean of the exponential distribution of branch lengths will be drawn uniformly in the interval [min-mean,max-mean] (default 0.05)
+  -m, --mean float       Mean of the exponential distribution of branch lengths (default 0.1)
+      --min-len float    Applies only to branches having length >= min-length (taken into account iff > 0) (default -1)
+      --min-mean float   Mean of the exponential distribution of branch lengths will be drawn uniformly in the interval [min-mean,max-mean] (default 0.001)
+  -o, --output string    Random length output tree file (default "stdout")
 
 Global Flags:
+      --external        Applies to external branches (default true)
+      --format string   Input tree format (newick, nexus, phyloxml, or nextstrain) (default "newick")
   -i, --input string    Input tree (default "stdin")
-      --seed    int     Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
-```
-
+      --internal        Applies to internal branches (default true)
 #### Examples
 
 1. Removing branch lengths from a set of 10 trees
