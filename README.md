@@ -129,7 +129,7 @@ The `gotree` executable should be located in the current folder (or the `$GOPATH
 
 To test the executable:
 ```
-./test.sh
+bash test.sh
 ```
 
 ## Auto completion
