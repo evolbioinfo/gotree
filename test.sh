@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ########## Test Suite for Gotree command line tools ##############
 
 set -e

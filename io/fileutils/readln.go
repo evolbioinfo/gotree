@@ -37,7 +37,13 @@ func ReadUntilSemiColon(r *bufio.Reader) (string, error) {
 		line, isPrefix, err = r.ReadLine()
 		ln = append(ln, line...)
 		if len(ln) > 0 {
-			lastChar = ln[len(ln)-1]
+			i := len(ln) - 1
+			lastChar = ln[i]
+			// Test what last non-space character of the line is
+			for (lastChar == ' ' || lastChar == '\t') && i >= 0 {
+				i--
+				lastChar = ln[i]
+			}
 		}
 	}
 	return string(ln), err
