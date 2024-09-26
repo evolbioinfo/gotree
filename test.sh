@@ -2251,3 +2251,20 @@ EOF
 echo '(((A[&date="2024"]:1,B[&date="2024"]:1)[&date="2023"]:1,C[&date="2024"]:2)[&date="2022"]:3,(D[&date="2024"]:4,(E[&date="2024"]:3,((F[&date="2024"]:1.5,G[&date="2024"]:1.5)[&date="2022.5"]:0.5,H[&date="2024"]:2)[&date="2022"]:1)[&date="2021"]:1)[&date="2020"]:1)[&date="2019"];' | $GOTREE ltt > result
 diff -q -b expected result
 rm -f expected result
+
+
+echo "->gotree cut date"
+cat > expected <<EOF
+(B[&date="2008"]:5)[&date="2003.000000"];
+((C[&date="2010"]:3,D[&date="2011"]:4)[&date="2007"]:4)[&date="2003.000000"];
+EOF
+echo '(A[&date="2000"]:10,(B[&date="2008"]:6,(C[&date="2010"]:3,D[&date="2011"]:4)[&date="2007"]:5)[&date="2002"]:12)[&date="1990"];' | $GOTREE cut date --min-date 2003 --max-date 2020 > result
+diff -q -b expected result
+rm -f expected result
+
+cat > expected <<EOF
+(B[&date="2008"]:5)[&date="2003.000000"];
+EOF
+echo '(A[&date="2000"]:10,(B[&date="2008"]:6,(C[&date="2010"]:3,D[&date="2011"]:4)[&date="2007"]:5)[&date="2002"]:12)[&date="1990"];' | $GOTREE cut date --min-date 2003 --max-date 2009 > result
+diff -q -b expected result
+rm -f expected result

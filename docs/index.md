@@ -64,6 +64,7 @@ Command                                                            | Subcommand 
 --                                                                 | edgetrees         | Writes one output tree per branch of the input tree, with only one branch
 --                                                                 | support classical | Computes classical bootstrap supports
 --                                                                 | support booster   | Computes booster bootstrap supports
+[cut](commands/cut.md)                                             | date              | Cut the tree into specific time windows trees (if dated tree)
 [divide](commands/divide.md)                                       |                   | Divides an input tree file into several tree files
 [download](commands/download.md) ([api](api/download.md))          |                   | Downloads trees from a server
 --                                                                 | itol              | Downloads a tree image from iTOL, with given image options

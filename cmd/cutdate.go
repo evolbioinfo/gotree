@@ -21,7 +21,9 @@ var pruneDateCmd = &cobra.Command{
 This command will extract part of the tree corresponding to >= min-date and <= max-date.
 
 If min-date falls on an internal branch, it will create a new root node and will extract a tree starting at this node.
-If max-date falls on an internal branch, we do not take this part of the tree, and we remove branches that end into these cases.
+If max-date is specified (>0) : It additionally removes all tips that are > maxdate
+
+This command considers the input tree as rooted
 
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
