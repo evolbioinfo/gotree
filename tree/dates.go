@@ -21,11 +21,8 @@ type LTTData struct {
 // If one node does not have date or a malformed date, returns an error
 func (t *Tree) NodeDates() (ndates []float64, err error) {
 	var date float64
-	var pattern *regexp.Regexp
-	var matches []string
 
 	ndates = make([]float64, 0)
-	pattern = regexp.MustCompile(`(?i)&date="(.+)"`)
 	nnodes := 0
 	t.PreOrder(func(cur *Node, prev *Node, e *Edge) (keep bool) {
 		keep = true
@@ -33,18 +30,10 @@ func (t *Tree) NodeDates() (ndates []float64, err error) {
 			err = fmt.Errorf("node id does not correspond to postorder traversal: %d vs %d", cur.Id(), nnodes)
 			keep = false
 		} else if len(cur.Comments()) > 0 {
-			keep = false
-			for _, c := range cur.Comments() {
-				matches = pattern.FindStringSubmatch(c)
-				if len(matches) < 2 {
-					err = fmt.Errorf("no date found: %s", c)
-				} else if date, err = strconv.ParseFloat(matches[1], 64); err != nil {
-					err = fmt.Errorf("one of the node date is malformed: %s", c)
-				} else {
-					ndates = append(ndates, date)
-					err = nil
-					keep = true
-				}
+			if date, err = cur.date(); err != nil {
+				keep = false
+			} else {
+				ndates = append(ndates, date)
 			}
 		} else {
 			err = fmt.Errorf("a node with no date found")
@@ -219,5 +208,40 @@ func cutTreeMinDateRecur(cur, prev *Node, e *Edge, mindate float64, dates []floa
 		}
 	}
 
+	return
+}
+
+// Parses the date in the field "&date=" from the comments in the newick format
+func (n *Node) date() (date float64, err error) {
+	var pattern *regexp.Regexp
+	var matches []string
+	pattern = regexp.MustCompile(`(?i)&date="(.+)"`)
+
+	for _, c := range n.Comments() {
+		matches = pattern.FindStringSubmatch(c)
+		if len(matches) < 2 {
+			err = fmt.Errorf("no date found: %s", c)
+		} else if date, err = strconv.ParseFloat(matches[1], 64); err != nil {
+			err = fmt.Errorf("one of the node date is malformed: %s", c)
+		} else {
+			err = nil
+			break
+		}
+	}
+	return
+}
+
+// CutTreeMaxDate traverses the tree, and keep only the tips that are before the given date
+func (t *Tree) CutTreeMaxDate(maxdate float64) (err error) {
+	var d float64
+
+	for _, tip := range t.Tips() {
+		if d, err = tip.date(); err != nil {
+			return
+		}
+		if d > maxdate {
+			t.removeTip(tip)
+		}
+	}
 	return
 }

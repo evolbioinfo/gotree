@@ -10,6 +10,7 @@ import (
 )
 
 var pruneMinDate float64
+var pruneMaxDate float64
 
 // resolveCmd represents the resolve command
 var pruneDateCmd = &cobra.Command{
@@ -51,7 +52,15 @@ If max-date falls on an internal branch, we do not take this part of the tree, a
 				return
 			}
 			for _, t := range forest {
-				f.WriteString(t.Newick() + "\n")
+				if pruneMaxDate > 0 {
+					if err = t.CutTreeMaxDate(pruneMaxDate); err != nil {
+						io.LogError(err)
+						return
+					}
+				}
+				if len(t.Edges()) > 0 {
+					f.WriteString(t.Newick() + "\n")
+				}
 			}
 		}
 
@@ -64,4 +73,5 @@ func init() {
 	pruneDateCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree(s) file")
 	pruneDateCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Forest output file")
 	pruneDateCmd.PersistentFlags().Float64Var(&pruneMinDate, "min-date", 0, "Minimum date to cut the tree")
+	pruneDateCmd.PersistentFlags().Float64Var(&pruneMaxDate, "max-date", 0, "Maximum date to cut the tree (0=no max date)")
 }
