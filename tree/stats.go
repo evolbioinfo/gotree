@@ -70,7 +70,11 @@ func (t *Tree) MeanSupport() float64 {
 func (t *Tree) MedianSupport() float64 {
 	edges := t.Edges()
 	tips := t.Tips()
-	supports := make([]float64, len(edges)-len(tips))
+	nsup := len(edges) - len(tips)
+	if nsup < 0 {
+		nsup = 0
+	}
+	supports := make([]float64, nsup)
 	if len(supports) == 0 {
 		return math.NaN()
 	}

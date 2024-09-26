@@ -231,7 +231,7 @@ func (n *Node) RotateNeighbors() {
 // from the current node
 func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 	if len(n.neigh) > 0 {
-		if len(n.neigh) > 1 {
+		if len(n.neigh) > 1 || parent == nil {
 			newick.WriteString("(")
 		}
 		nbchild := 0
@@ -268,7 +268,7 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 				nbchild++
 			}
 		}
-		if len(n.neigh) > 1 {
+		if len(n.neigh) > 1 || parent == nil {
 			newick.WriteString(")")
 		}
 	}

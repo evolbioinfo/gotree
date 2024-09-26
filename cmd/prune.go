@@ -150,5 +150,5 @@ func init() {
 	pruneCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output tree")
 	pruneCmd.Flags().StringVarP(&tipfile, "tipfile", "f", "none", "Tip file")
 	pruneCmd.Flags().BoolVarP(&revert, "revert", "r", false, "If true, then revert the behavior: will keep only species given in the command line, or keep only the species that are specific to the input tree, or keep only randomly selected taxa")
-	pruneCmd.PersistentFlags().IntVar(&randomtips, "random", 0, "Number of tips to randomly sample")
+	pruneCmd.Flags().IntVar(&randomtips, "random", 0, "Number of tips to randomly sample")
 }
