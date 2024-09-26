@@ -69,7 +69,7 @@ If max-date falls on an internal branch, we do not take this part of the tree, a
 }
 
 func init() {
-	pruneCmd.AddCommand(pruneDateCmd)
+	cutdateCmd.AddCommand(pruneDateCmd)
 	pruneDateCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree(s) file")
 	pruneDateCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Forest output file")
 	pruneDateCmd.PersistentFlags().Float64Var(&pruneMinDate, "min-date", 0, "Minimum date to cut the tree")
