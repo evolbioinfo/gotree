@@ -521,7 +521,7 @@ func (t *Tree) RerootOutGroup(removeoutgroup, strict bool, tips ...string) error
 		ne := t.ConnectNodes(root, lnode)
 		ne2 := t.ConnectNodes(root, rnode)
 
-		if length > 0 {
+		if length >= 0 {
 			ne.SetLength(length / 2.0)
 			ne2.SetLength(length / 2.0)
 			ne.SetSupport(support)
