@@ -1,14 +1,14 @@
 package tree
 
 func (t *Tree) PostOrder(f func(cur *Node, prev *Node, e *Edge) (keep bool)) {
-	t.postOrderRecur(t.Root(), nil, nil, f)
+	postOrderRecur(t.Root(), nil, nil, f)
 }
 
-func (t *Tree) postOrderRecur(cur *Node, prev *Node, e *Edge, f func(cur *Node, prev *Node, e *Edge) (keep bool)) (keep bool) {
+func postOrderRecur(cur *Node, prev *Node, e *Edge, f func(cur *Node, prev *Node, e *Edge) (keep bool)) (keep bool) {
 	keep = true
 	for i, n := range cur.neigh {
 		if n != prev {
-			if keep = t.postOrderRecur(n, cur, cur.Edges()[i], f); !keep {
+			if keep = postOrderRecur(n, cur, cur.Edges()[i], f); !keep {
 				return
 			}
 		}
@@ -18,20 +18,37 @@ func (t *Tree) postOrderRecur(cur *Node, prev *Node, e *Edge, f func(cur *Node, 
 }
 
 func (t *Tree) PreOrder(f func(cur *Node, prev *Node, e *Edge) (keep bool)) {
-	t.preOrderRecur(t.Root(), nil, nil, f)
+	preOrderRecur(t.Root(), nil, nil, f)
 }
 
-func (t *Tree) preOrderRecur(cur *Node, prev *Node, e *Edge, f func(cur *Node, prev *Node, e *Edge) (keep bool)) (keep bool) {
+func preOrderRecur(cur *Node, prev *Node, e *Edge, f func(cur *Node, prev *Node, e *Edge) (keep bool)) (keep bool) {
 	keep = true
 	if keep = f(cur, prev, e); !keep {
 		return
 	}
 	for i, n := range cur.neigh {
 		if n != prev {
-			if keep = t.preOrderRecur(n, cur, cur.Edges()[i], f); !keep {
+			if keep = preOrderRecur(n, cur, cur.Edges()[i], f); !keep {
 				return
 			}
 		}
 	}
+	return
+}
+
+func (n *Node) PostOrder(f func(cur *Node, prev *Node, e *Edge) (keep bool)) (err error) {
+	var parent *Node
+	if parent, err = n.Parent(); err != nil {
+		postOrderRecur(n, parent, nil, f)
+	}
+	return
+}
+
+func (n *Node) PreOrder(f func(cur *Node, prev *Node, e *Edge) (keep bool)) (err error) {
+	var parent *Node
+	if parent, err = n.Parent(); err != nil {
+		return
+	}
+	preOrderRecur(n, parent, nil, f)
 	return
 }

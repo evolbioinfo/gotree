@@ -18,6 +18,7 @@ import (
 )
 
 var annotateComment bool
+var annotateSubtrees bool
 
 // annotateCmd represents the annotate command
 var annotateCmd = &cobra.Command{
@@ -37,7 +38,7 @@ Annotations may be (in order of priority):
        and rename it as n1
     => If > 1 names '[n2,...,ni]' are given after ':' : We find the LCA of every tips whose name 
 	   is in '[n2,...,ni]' and rename it as n1.
-
+	=> If --subtrees is given: for each annotation line, not only the given internal node is annotated, but all its descending internal nodes as well (usefull for some branch tests, e.g. hyphy, etc.)
 
 If --comment is specified, then we do not change the names, but the comments of the given nodes.
 Otherwise output tree won't have bootstrap support at the branches anymore
@@ -75,7 +76,7 @@ If neither -c nor -m are given, gotree annotate will wait for a reference tree o
 					io.LogError(t.Err)
 					return t.Err
 				}
-				t.Tree.Annotate(annotateNames, annotateComment)
+				t.Tree.Annotate(annotateNames, annotateComment, annotateSubtrees)
 				f.WriteString(t.Tree.Newick() + "\n")
 			}
 		} else {
@@ -164,6 +165,7 @@ func init() {
 	RootCmd.AddCommand(annotateCmd)
 	annotateCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree(s) file")
 	annotateCmd.PersistentFlags().StringVarP(&intree2file, "compared", "c", "stdin", "Compared tree file")
+	annotateCmd.PersistentFlags().BoolVar(&annotateSubtrees, "subtrees", false, "Annotate the internal node and all descending intern nodes with the given annotations")
 	annotateCmd.PersistentFlags().StringVarP(&mapfile, "map-file", "m", "none", "Name map input file")
 	annotateCmd.PersistentFlags().BoolVar(&annotateComment, "comment", false, "Annotations are stored in Newick comment fields")
 	annotateCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Resolved tree(s) output file")

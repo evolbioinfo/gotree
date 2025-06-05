@@ -28,7 +28,8 @@ func main() {
 	}
 	namemap := make(map[string][]string)
 	namemap["internalnode"] = []string{"Tip1", "Tip2", "Tip3"}
-	t.Annotate(namemap)
+	// Annotates with node name and not all subtrees
+	t.Annotate(namemap, false, false) 
 	fmt.Println(t.Newick())
 	// Should print (Tip4,Tip0,(Tip3,(Tip2,Tip1))internalnode);
 }

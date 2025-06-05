@@ -21,6 +21,9 @@ Annotations may be (in order of priority):
 - If `--comment` is specified, then we do not change the names, but the comments of the given nodes.
 - Otherwise output tree won't have bootstrap support at the branches anymore
 
+- If `--subtrees` is given (and `-m`): for each annotation line, not only the given internal node is annotated, but all its descending internal nodes as well (usefull for some branch tests, e.g. hyphy, etc.)
+
+
 If neither -c nor -m are given, gotree annotate will wait for data on stdin
 
 This command annotates internal branches of a set of trees with given data.

@@ -1468,7 +1468,7 @@ func (t *Tree) UnRoot() {
 // The output tree won't have bootstrap support at the given branches anymore.
 //
 // It considers the tree as rooted (even if multifurcation at root).
-func (t *Tree) Annotate(names [][]string, comment bool) error {
+func (t *Tree) Annotate(names [][]string, comment, subtrees bool) error {
 	nodeindex, err := NewNodeIndex(t)
 	if err != nil {
 		return err
@@ -1477,7 +1477,7 @@ func (t *Tree) Annotate(names [][]string, comment bool) error {
 	for _, line := range names {
 		// Only one node (internal or tip): Then sets the name to this specific node is found on the tree
 		if len(line) < 2 {
-			return errors.New("Error in tree annotation: Wrongly formatted annotation slice")
+			return errors.New("error in tree annotation: wrongly formatted annotation slice")
 		} else if len(line) == 2 {
 			if node, found := nodeindex.GetNode(line[1]); found {
 				if comment {
@@ -1491,10 +1491,22 @@ func (t *Tree) Annotate(names [][]string, comment bool) error {
 			if err != nil {
 				return err
 			}
-			if comment {
-				n.AddComment(line[0])
+
+			if subtrees {
+				n.PreOrder(func(cur, prev *Node, edge *Edge) bool {
+					if comment {
+						cur.AddComment(line[0])
+					} else {
+						cur.SetName(line[0])
+					}
+					return true
+				})
 			} else {
-				n.SetName(line[0])
+				if comment {
+					n.AddComment(line[0])
+				} else {
+					n.SetName(line[0])
+				}
 			}
 		}
 	}
