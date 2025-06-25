@@ -215,7 +215,7 @@ func cutTreeMinDateRecur(cur, prev *Node, e *Edge, mindate float64, dates []floa
 func (n *Node) date() (date float64, err error) {
 	var pattern *regexp.Regexp
 	var matches []string
-	pattern = regexp.MustCompile(`(?i)&date="(.+)"`)
+	pattern = regexp.MustCompile(`(?i)&date=\"{0,1}(.+?)([,"]|$)`)
 
 	for _, c := range n.Comments() {
 		matches = pattern.FindStringSubmatch(c)
