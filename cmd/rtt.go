@@ -20,6 +20,7 @@ import (
 var rttoutimagefile string
 var rttoutimagewidth int
 var rttoutimageheight int
+var rttinternalnodes bool
 
 // resolveCmd represents the resolve command
 var rttCmd = &cobra.Command{
@@ -61,7 +62,7 @@ It considers input tree as rooted.
 				io.LogError(tr.Err)
 				return tr.Err
 			}
-			rtt, err = tr.Tree.RTT()
+			rtt, err = tr.Tree.RTT(!rttinternalnodes)
 			for _, l := range rtt {
 				f.WriteString(fmt.Sprintf("%d\t%f\t%f\n", tr.Id, l.X, l.Y))
 			}
@@ -99,6 +100,7 @@ func init() {
 	rttCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree(s) file")
 	rttCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "RTT output file")
 	rttCmd.PersistentFlags().StringVar(&rttoutimagefile, "image", "none", "RTT plot image image output file")
+	rttCmd.PersistentFlags().BoolVar(&rttinternalnodes, "internal-nodes", false, "include internal nodes")
 	rttCmd.PersistentFlags().IntVar(&rttoutimagewidth, "image-width", 4, "RTT plot image image output width")
 	rttCmd.PersistentFlags().IntVar(&rttoutimageheight, "image-height", 4, "RTT plot image output heigh")
 }

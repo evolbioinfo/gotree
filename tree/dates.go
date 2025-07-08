@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/evolbioinfo/gotree/io"
 )
@@ -19,7 +20,9 @@ type LTTData struct {
 // Returns a slice of float correspsponding to all node dates (internal and external)
 // Node IDs are their index in the slice.
 // If one node does not have date or a malformed date, returns an error
-func (t *Tree) NodeDates() (ndates []float64, err error) {
+// If onlytips is true: Only considers tip nodes
+// Otherwise, considers all nodes
+func (t *Tree) NodeDates(onlytips bool) (ndates []float64, err error) {
 	var date float64
 
 	ndates = make([]float64, 0)
@@ -29,15 +32,17 @@ func (t *Tree) NodeDates() (ndates []float64, err error) {
 		if cur.Id() != nnodes {
 			err = fmt.Errorf("node id does not correspond to postorder traversal: %d vs %d", cur.Id(), nnodes)
 			keep = false
-		} else if len(cur.Comments()) > 0 {
-			if date, err = cur.date(); err != nil {
-				keep = false
+		} else if cur.Tip() || !onlytips {
+			if len(cur.Comments()) > 0 {
+				if date, err = cur.date(); err != nil {
+					keep = false
+				} else {
+					ndates = append(ndates, date)
+				}
 			} else {
-				ndates = append(ndates, date)
+				err = fmt.Errorf("a node with no date found")
+				keep = false
 			}
-		} else {
-			err = fmt.Errorf("a node with no date found")
-			keep = false
 		}
 		nnodes += 1
 		return
@@ -54,10 +59,10 @@ func (t *Tree) LTT() (lttdata []LTTData) {
 	// We compute distance from root to all nodes
 	// If the field [&date=] exists, then takes it
 	// Otherwise, computes the distance to the root
-	if dists, err = t.NodeDates(); err != nil {
+	if dists, err = t.NodeDates(false); err != nil {
 		io.LogWarning(err)
 		io.LogWarning(fmt.Errorf("using mutations instead of dates"))
-		dists = t.NodeRootDistance()
+		dists = t.NodeRootDistance(false)
 	}
 
 	// This initializes
@@ -108,21 +113,21 @@ type RTTData struct {
 }
 
 // RTTData describes a Root To Tip Regression
-func (t *Tree) RTT() (rttdata []RTTData, err error) {
+func (t *Tree) RTT(onlytips bool) (rttdata []RTTData, err error) {
 	var dists []float64
 	var dates []float64
 
 	// We compute distance from root to all nodes
 	// If the field [&date=] exists, then takes it
 	// Otherwise, computes the distance to the root
-	if dates, err = t.NodeDates(); err != nil {
+	if dates, err = t.NodeDates(onlytips); err != nil {
 		io.LogWarning(err)
 		err = fmt.Errorf("using mutations instead of dates")
 		io.LogWarning(err)
 		return
 	}
 
-	dists = t.NodeRootDistance()
+	dists = t.NodeRootDistance(onlytips)
 
 	if len(dists) != len(dates) {
 		err = fmt.Errorf("length of dates differs from length of distances")
@@ -150,7 +155,7 @@ func (t *Tree) CutTreeMinDate(mindate float64) (forest []*Tree, err error) {
 
 	// If the field [&date=] exists, then takes it
 	// Otherwise, returns an error
-	if dates, err = t.NodeDates(); err != nil {
+	if dates, err = t.NodeDates(false); err != nil {
 		io.LogWarning(err)
 		err = fmt.Errorf("no dates provided in in the tree, of the form &date=")
 		io.LogWarning(err)
@@ -215,6 +220,10 @@ func cutTreeMinDateRecur(cur, prev *Node, e *Edge, mindate float64, dates []floa
 func (n *Node) date() (date float64, err error) {
 	var pattern *regexp.Regexp
 	var matches []string
+	var timeformat string = "2006-01-02"
+	var fdate time.Time
+	var year, nextyear time.Time
+
 	pattern = regexp.MustCompile(`(?i)&date=\"{0,1}(.+?)([,"]|$)`)
 
 	for _, c := range n.Comments() {
@@ -222,7 +231,17 @@ func (n *Node) date() (date float64, err error) {
 		if len(matches) < 2 {
 			err = fmt.Errorf("no date found: %s", c)
 		} else if date, err = strconv.ParseFloat(matches[1], 64); err != nil {
-			err = fmt.Errorf("one of the node date is malformed: %s", c)
+			// If the parsing of the date on the decimal form yyyy.xxx does not work
+			// We try to parse date on the form yyyy-mm-dd
+			if fdate, err = time.Parse(timeformat, matches[1]); err != nil {
+				err = fmt.Errorf("one of the node date year is malformed: %s", c)
+			} else {
+				year = time.Date(fdate.Year(), 1, 1, 0, 0, 0, 0, fdate.Location())
+				nextyear = time.Date(fdate.Year()+1, 1, 1, 0, 0, 0, 0, fdate.Location())
+				duration := fdate.Sub(year)
+				total := nextyear.Sub(year)
+				date = float64(fdate.Year()) + (duration.Hours() / total.Hours())
+			}
 		} else {
 			err = nil
 			break

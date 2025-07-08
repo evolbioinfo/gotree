@@ -955,23 +955,40 @@ func (t *Tree) computeDepthUnRooted() {
 
 // Computes distance of all nodes to root / pseudo root.
 // Indices of the nodes in the rdists slice correspond to node ids
-func (t *Tree) NodeRootDistance() (rdists []float64) {
+func (t *Tree) NodeRootDistance(onlytips bool) (rdists []float64) {
 	nnodes := 0
+	ntips := 0
 	t.PreOrder(func(cur *Node, prev *Node, e *Edge) (keep bool) {
 		nnodes++
+		if cur.Tip() {
+			ntips++
+		}
 		return true
 	})
-	rdists = make([]float64, nnodes)
+	rdiststmp := make([]float64, nnodes)
 	t.PreOrder(func(cur *Node, prev *Node, e *Edge) (keep bool) {
 		// Add current edge length to prev node distance
 		// to get current node distance
 		if prev != nil {
-			rdists[cur.Id()] = rdists[prev.Id()] + e.Length()
+			rdiststmp[cur.Id()] = rdiststmp[prev.Id()] + e.Length()
 		} else {
-			rdists[cur.Id()] = 0.0
+			rdiststmp[cur.Id()] = 0.0
 		}
 		return true
 	})
+
+	if !onlytips {
+		rdists = rdiststmp
+	} else {
+		rdists = make([]float64, 0, ntips)
+		t.PreOrder(func(cur *Node, prev *Node, e *Edge) (keep bool) {
+			if cur.Tip() {
+				rdists = append(rdists, rdiststmp[cur.Id()])
+			}
+			return true
+		})
+	}
+
 	return
 }
 
