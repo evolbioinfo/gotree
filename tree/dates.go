@@ -108,14 +108,16 @@ func (t *Tree) LTT() (lttdata []LTTData) {
 
 // RTTData describes a Root To Tip Regression
 type RTTData struct {
-	X float64 // Date of the tip
-	Y float64 // Distance to root
+	X   float64 // Date of the tip
+	Y   float64 // Distance to root
+	Tip bool    // Tip : True, Internal Node: False
 }
 
 // RTTData describes a Root To Tip Regression
 func (t *Tree) RTT(onlytips bool) (rttdata []RTTData, err error) {
 	var dists []float64
 	var dates []float64
+	var tips []bool
 
 	// We compute distance from root to all nodes
 	// If the field [&date=] exists, then takes it
@@ -135,9 +137,18 @@ func (t *Tree) RTT(onlytips bool) (rttdata []RTTData, err error) {
 		return
 	}
 
+	tips = make([]bool, 0, len(dists))
+	t.PreOrder(func(cur *Node, prev *Node, e *Edge) (keep bool) {
+		keep = true
+		if cur.Tip() || !onlytips {
+			tips = append(tips, cur.Tip())
+		}
+		return
+	})
+
 	rttdata = make([]RTTData, 0, len(dates))
 	for i, v := range dists {
-		rttdata = append(rttdata, RTTData{dates[i], v})
+		rttdata = append(rttdata, RTTData{dates[i], v, tips[i]})
 	}
 
 	return

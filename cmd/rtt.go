@@ -70,13 +70,21 @@ It considers input tree as rooted.
 			if rttoutimagefile != "none" {
 				pts := make(plotter.XYs, len(rtt))
 				for i, l := range rtt {
-					pts[i].X = float64(l.X)
-					pts[i].Y = float64(l.Y)
+					pts[i].X = l.X
+					pts[i].Y = l.Y
 				}
 				point, err = plotter.NewScatter(pts)
 				point.Shape = draw.CircleGlyph{}
 				point.Radius = 1
-				point.Color = color.RGBA{R: 0, G: 0, B: 255, A: 255}
+				point.GlyphStyleFunc = func(i int) draw.GlyphStyle {
+					var col color.RGBA
+					if rtt[i].Tip {
+						col = color.RGBA{R: 0, G: 0, B: 255, A: 255}
+					} else {
+						col = color.RGBA{R: 255, G: 210, B: 52, A: 255}
+					}
+					return draw.GlyphStyle{Color: col, Radius: 1, Shape: draw.CircleGlyph{}}
+				}
 
 				//plotutil.AddLinePoints(p, fmt.Sprintf("LTT_%d", tr.Id), pts, draw.CircleGlyph{})
 				p.Add(point)
