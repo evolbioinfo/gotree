@@ -1007,6 +1007,15 @@ ${GOTREE} generate yuletree --seed 10 | ${GOTREE} collapse length -l 0.05 | ${GO
 diff -q -b expected result
 rm -f expected result
 
+echo "->gotree resolve --rooted"
+cat > expected <<EOF
+(4,((2,3),1));
+EOF
+echo "(1,(2,3),4);" | ${GOTREE} resolve --rooted --seed 10 | ${GOTREE} brlen clear > result
+diff -q -b expected result
+rm -f expected result
+
+
 echo "->gotree resolve named"
 cat > expected <<EOF
 (T1:1,((T2:1,T3:1,N1:0)N1,T4:1,N2:0)N2:1,T5:1);

@@ -5,6 +5,8 @@
 ### resolve
 This command randomly resolves multifurcations by adding 0 length branches. If any node has more than 3 neighbors: it randomly adds 0 length branches until it has 3 neighbors.
 
+If `--rooted` is specified, then the root is randomly resolved as well, to produce a rooted output tree.
+
 #### Usage
 
 General command
@@ -15,6 +17,7 @@ Usage:
 Flags:
   -i, --input string    Input tree(s) file (default "stdin")
   -o, --output string   Resolved tree(s) output file (default "stdout")
+      --rooted          Considers the tree as rooted (will randomly resolve the root also if needed)
       --seed int        Random Seed: -1 = nano seconds since 1970/01/01 00:00:00 (default -1)
 ```
 

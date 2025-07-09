@@ -1121,10 +1121,10 @@ func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int, remov
 //		return err
 //	}
 //	t.UpdateBitSet()
-func (t *Tree) Resolve() {
+func (t *Tree) Resolve(rooted bool) {
 	root := t.Root()
 
-	t.resolveRecur(root, nil)
+	t.resolveRecur(root, nil, rooted)
 	t.ReinitInternalIndexes()
 }
 
@@ -1142,15 +1142,22 @@ func (t *Tree) Resolve() {
 //		return err
 //	}
 //	t.UpdateBitSet()
-func (t *Tree) resolveRecur(current, previous *Node) {
+func (t *Tree) resolveRecur(current, previous *Node, rooted bool) {
 	// Resolve neighbors
 	for _, n := range current.Neigh() {
 		if n != previous {
-			t.resolveRecur(n, current)
+			t.resolveRecur(n, current, rooted)
 		}
 	}
+
+	maxneighbors := 3
+	// If it is the root and we want a rooted tree as output
+	if rooted && t.root == current {
+		maxneighbors = 2
+	}
+
 	// Resolve the current node if needed
-	if len(current.Neigh()) > 3 {
+	if len(current.Neigh()) > maxneighbors {
 		// Neighbors to group : All neighbors except the "parent"
 		// And random order in the array
 		l := len(current.Neigh())
@@ -1167,7 +1174,7 @@ func (t *Tree) resolveRecur(current, previous *Node) {
 			}
 		}
 		// Now we take neighbors 2 by 2 in reverse order of togroup
-		for len(current.Neigh()) > 3 {
+		for len(current.Neigh()) > maxneighbors {
 			// And add a new node that will connect the 2 neighbors
 			n2 := t.NewNode()
 			// Take the two last edges of perm

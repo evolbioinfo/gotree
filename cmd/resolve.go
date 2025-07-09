@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var resolverooted bool
+
 // resolveCmd represents the resolve command
 var resolveCmd = &cobra.Command{
 	Use:   "resolve",
@@ -41,7 +43,7 @@ var resolveCmd = &cobra.Command{
 				io.LogError(tr.Err)
 				return tr.Err
 			}
-			tr.Tree.Resolve()
+			tr.Tree.Resolve(resolverooted)
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 		return
@@ -52,4 +54,5 @@ func init() {
 	RootCmd.AddCommand(resolveCmd)
 	resolveCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree(s) file")
 	resolveCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Resolved tree(s) output file")
+	resolveCmd.PersistentFlags().BoolVar(&resolverooted, "rooted", false, "Considers the tree as rooted (will randomly resolve the root also if needed)")
 }
