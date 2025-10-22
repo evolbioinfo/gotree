@@ -38,7 +38,7 @@ gotree stats nodes -i t.nw
 		}
 		defer closeWriteFile(f, outtreefile)
 
-		f.WriteString("tree\tnid\tnneigh\tname\tdepth\tcomments\tupnames\tdownnames\n")
+		f.WriteString("tree\tnid\tnneigh\tname\tdepth\tcomments\tupnames\tdownnames\tclosesttip\tclosesttipdist\n")
 		var depth int
 		if treefile, treechan, err = readTrees(intreefile); err != nil {
 			io.LogError(err)
@@ -75,7 +75,15 @@ gotree stats nodes -i t.nw
 						childName += n.Name()
 					}
 				}
-				f.WriteString(fmt.Sprintf("%d\t%d\t%d\t%s\t%d\t%s\t%s\t%s\n", t.Id, i, n.Nneigh(), n.Name(), depth, n.CommentsString(), parentName, childName))
+				closesttips, tipdist := t.Tree.FindClosestTips(n)
+				closesttipsstr := ""
+				for j, ct := range closesttips {
+					if j > 0 {
+						closesttipsstr += ","
+					}
+					closesttipsstr += ct.Name()
+				}
+				fmt.Fprintf(f, "%d\t%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%.4f\n", t.Id, i, n.Nneigh(), n.Name(), depth, n.CommentsString(), parentName, childName, closesttipsstr, tipdist)
 			}
 		}
 		return

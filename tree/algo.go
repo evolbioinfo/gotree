@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"sort"
 	"sync"
 
@@ -1003,4 +1004,37 @@ func CompareWeighted(refTree *Tree, compTrees <-chan Trees, tips, comparetreeide
 	}()
 
 	return stats, nil
+}
+
+// Recursive function to find the closest tips to the given node
+// the distance is the sum of branch lengths separating the nodes.
+// It outputs the tips that are equally distant to the given node, and the distance
+func (t *Tree) FindClosestTips(n *Node) (tips []*Node, dist float64) {
+	dist = math.MaxFloat64
+	tips = make([]*Node, 0)
+
+	findClosestTipsRecur(n, nil, 0, &dist, &tips)
+
+	return
+}
+
+func findClosestTipsRecur(n, prev *Node, curDist float64, curMinDist *float64, tips *[]*Node) {
+	if n.Tip() && prev != nil {
+		if curDist < *curMinDist {
+			*curMinDist = curDist
+			*tips = (*tips)[:0]
+			*tips = append(*tips, n)
+		} else if curDist == *curMinDist {
+			*tips = append(*tips, n)
+		}
+	} else {
+		if curDist <= *curMinDist {
+			for i, child := range n.Neigh() {
+				if child != prev {
+					e := n.Edges()[i]
+					findClosestTipsRecur(child, n, curDist+e.Length(), curMinDist, tips)
+				}
+			}
+		}
+	}
 }

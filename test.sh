@@ -1104,30 +1104,51 @@ rm -f expected result
 
 echo "->gotree stats nodes"
 cat > expected <<EOF
-tree	nid	nneigh	name	depth	comments	upnames	downnames
-0	0	3		1	[]	-	Tip0
-0	1	3		1	[]		Tip4
-0	2	1	Tip4	0	[]		
-0	3	3		1	[]		Tip7,Tip2
-0	4	1	Tip7	0	[]		
-0	5	1	Tip2	0	[]		
-0	6	1	Tip0	0	[]		
-0	7	3		2	[]		
-0	8	3		1	[]		Tip8
-0	9	1	Tip8	0	[]		
-0	10	3		1	[]		Tip9,Tip3
-0	11	1	Tip9	0	[]		
-0	12	1	Tip3	0	[]		
-0	13	3		1	[]		Tip1
-0	14	3		1	[]		Tip6,Tip5
-0	15	1	Tip6	0	[]		
-0	16	1	Tip5	0	[]		
-0	17	1	Tip1	0	[]		
+tree	nid	nneigh	name	depth	comments	upnames	downnames	closesttip	closesttipdist
+0	0	3		1	[]	-	Tip0	Tip4	0.2031
+0	1	3		1	[]		Tip4	Tip4	0.0206
+0	2	1	Tip4	0	[]			Tip2	0.2949
+0	3	3		1	[]		Tip7,Tip2	Tip2	0.0155
+0	4	1	Tip7	0	[]			Tip2	0.1129
+0	5	1	Tip2	0	[]			Tip7	0.1129
+0	6	1	Tip0	0	[]			Tip4	0.4623
+0	7	3		2	[]			Tip8	0.2199
+0	8	3		1	[]		Tip8	Tip8	0.0278
+0	9	1	Tip8	0	[]			Tip3	0.1412
+0	10	3		1	[]		Tip9,Tip3	Tip8	0.0381
+0	11	1	Tip9	0	[]			Tip8	0.1730
+0	12	1	Tip3	0	[]			Tip8	0.1412
+0	13	3		1	[]		Tip1	Tip5	0.1702
+0	14	3		1	[]		Tip6,Tip5	Tip5	0.1120
+0	15	1	Tip6	0	[]			Tip5	0.4900
+0	16	1	Tip5	0	[]			Tip1	0.4093
+0	17	1	Tip1	0	[]			Tip5	0.4093
 EOF
 ${GOTREE} generate yuletree --seed 10 | ${GOTREE} stats nodes > result
 diff -q -b expected result
 rm -f expected result
 
+
+echo "->gotree stats nodes (with min tip distance)"
+echo "((1:1,2:1):1,(3:1,9:0,8:4,4:1):1,(5:1,6:1):1);" > input
+cat > expected <<EOF
+tree	nid	nneigh	name	depth	comments	upnames	downnames	closesttip	closesttipdist
+0	0	3		2	[]	-		9	1.0000
+0	1	3		1	[]		1,2	1,2	1.0000
+0	2	1	1	0	[]			2	2.0000
+0	3	1	2	0	[]			1	2.0000
+0	4	5		1	[]		3,9,8,4	9	0.0000
+0	5	1	3	0	[]			9	1.0000
+0	6	1	9	0	[]			3,4	1.0000
+0	7	1	8	0	[]			9	4.0000
+0	8	1	4	0	[]			9	1.0000
+0	9	3		1	[]		5,6	5,6	1.0000
+0	10	1	5	0	[]			6	2.0000
+0	11	1	6	0	[]			5	2.0000
+EOF
+${GOTREE} stats nodes -i input > output
+diff -q -b expected output
+rm -f expected output input
 
 echo "->gotree stats rooted"
 cat > expected <<EOF
