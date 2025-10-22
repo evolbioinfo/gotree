@@ -863,6 +863,21 @@ ${GOTREE} generate yuletree --seed 10 -l 20 | ${GOTREE} prune -i - -f tipfile -r
 diff -q -b expected result
 rm -f expected result tipfile
 
+echo "->gotree prune --random --diversity"
+cat > input <<EOF
+(((1:0.1,1b:0.1):1,(2:0.1,2b:0.1):1,(3:0.1,3b:0.1):1):1,(4:0.1,4b:0.1):1,((5:0.1,5b:0.1):1.0,(6:0.1,6b:0.1):1.0):1.0);
+EOF
+
+cat > expected <<EOF
+((1:1.1,2:1.1,3:1.1):1,(5:1.1,6:1.1):1,4:1.1);
+EOF
+
+for i in  {1..500};do $GOTREE prune --random 6 -i input -r --diversity | sed 's/b//g';done| sort -u > output
+
+diff -q -b expected output
+rm -f expected output intput
+
+
 # echo "->gotree brlen setrand"
 # cat > expected <<EOF
 # ((Tip4:0.11181011331618643,(Tip7:0.21688356961855743,Tip2:0.21695890315161873):0.007486847792469759):0.02262551762264341,Tip0:0.07447903650558614,((Tip8:0.05414175839023796,(Tip9:0.34924246250387486,Tip3:0.023925115233614132):0.1890483249199916):0.03146499978313507,((Tip6:0.31897358778004786,Tip5:0.29071259678750266):0.04826059603128351,Tip1:0.02031669307269784):0.052025373286913534):0.011401847253594477);

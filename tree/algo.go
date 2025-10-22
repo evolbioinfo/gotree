@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
+	"slices"
 	"sort"
 	"sync"
 
@@ -1006,33 +1008,121 @@ func CompareWeighted(refTree *Tree, compTrees <-chan Trees, tips, comparetreeide
 	return stats, nil
 }
 
-// Recursive function to find the closest tips to the given node
-// the distance is the sum of branch lengths separating the nodes.
-// It outputs the tips that are equally distant to the given node, and the distance
-func (t *Tree) FindClosestTips(n *Node) (tips []*Node, dist float64) {
-	dist = math.MaxFloat64
-	tips = make([]*Node, 0)
+// RandomDiversityTips selects n random tips from the tree, while keeping as much diversity as possible.
+// To do so, it iteratively selects the closest pair of tips (randomly is equalities)
+// And removes one of the tip of the pair randomly.
+// Outputs the list of tips to keep (does not actually remove the tips from the tree)
+func (tr *Tree) SubSampleDiversity(n int) (sampled []string) {
 
-	findClosestTipsRecur(n, nil, 0, &dist, &tips)
+	var mindist float64 = math.MaxFloat64
+	var mintips []*Node = make([]*Node, 0)
+	var closesttips [][]*Node
+	var closestdists []float64
+	var alltips = tr.Tips()
+	var alltipsidx []int = make([]int, len(alltips))
+	var removed []*Node = make([]*Node, 0)
+
+	// Compute the closest distances to all tips
+	closesttips = make([][]*Node, len(alltips))
+	closestdists = make([]float64, len(alltips))
+
+	for i, tip := range alltips {
+		closesttipTmp, closestdistTmp := tr.FindClosestTips(tip, removed)
+		closesttips[i] = closesttipTmp
+		closestdists[i] = closestdistTmp
+		alltipsidx[i] = i
+	}
+
+	for len(alltipsidx) > n {
+		// We select the closest pair of tips
+		mindist = math.MaxFloat64
+		mintips = mintips[:0]
+		for _, idx := range alltipsidx {
+			tip := alltips[idx]
+			closestdistTmp := closestdists[idx]
+			closesttipTmp := closesttips[idx]
+			if closestdistTmp <= mindist {
+				if closestdistTmp < mindist {
+					mintips = mintips[:0]
+				}
+				mindist = closestdistTmp
+				if !slices.Contains(mintips, tip) {
+					mintips = append(mintips, tip)
+				}
+				for _, ct := range closesttipTmp {
+					if !slices.Contains(mintips, ct) {
+						mintips = append(mintips, ct)
+					}
+				}
+			}
+		}
+
+		// We now select a random tip to remove
+		// From these closest pairs
+		toremoveidx := rand.Intn(len(mintips))
+		var toremove *Node = mintips[toremoveidx]
+		// Update the removed tips slice
+		removed = append(removed, toremove)
+
+		// We update the all tips index slice
+		var removeidx int
+		for i, idx := range alltipsidx {
+			if toremove == alltips[idx] {
+				removeidx = i
+				break
+			}
+		}
+		alltipsidx = append(alltipsidx[:removeidx], alltipsidx[removeidx+1:]...)
+
+		// We update the closest pairs informations only for the pairs
+		// concerned by the removed one
+		for _, idx := range alltipsidx {
+			if slices.Contains(closesttips[idx], toremove) {
+				closesttipTmp, closestdistTmp := tr.FindClosestTips(alltips[idx], removed)
+				closesttips[idx] = closesttipTmp
+				closestdists[idx] = closestdistTmp
+			}
+		}
+	}
+
+	sampled = make([]string, len(alltipsidx))
+	for i := 0; i < len(alltipsidx); i++ {
+		sampled[i] = alltips[alltipsidx[i]].Name()
+	}
 
 	return
 }
 
-func findClosestTipsRecur(n, prev *Node, curDist float64, curMinDist *float64, tips *[]*Node) {
+// Recursive function to find the closest tips to the given node
+// the distance is the sum of branch lengths separating the nodes.
+// It outputs the tips that are equally distant to the given node, and the distance
+// The exclude slice informs FindClosestTips to exclude the given tips in the closest computation
+func (t *Tree) FindClosestTips(n *Node, excludeTips []*Node) (tips []*Node, dist float64) {
+	dist = math.MaxFloat64
+	tips = make([]*Node, 0)
+
+	findClosestTipsRecur(n, nil, 0, &dist, &tips, excludeTips)
+
+	return
+}
+
+func findClosestTipsRecur(n, prev *Node, curDist float64, curMinDist *float64, tips *[]*Node, excludeTips []*Node) {
 	if n.Tip() && prev != nil {
-		if curDist < *curMinDist {
-			*curMinDist = curDist
-			*tips = (*tips)[:0]
-			*tips = append(*tips, n)
-		} else if curDist == *curMinDist {
-			*tips = append(*tips, n)
+		if !slices.Contains(excludeTips, n) {
+			if curDist < *curMinDist {
+				*curMinDist = curDist
+				*tips = (*tips)[:0]
+				*tips = append(*tips, n)
+			} else if curDist == *curMinDist {
+				*tips = append(*tips, n)
+			}
 		}
 	} else {
 		if curDist <= *curMinDist {
 			for i, child := range n.Neigh() {
 				if child != prev {
 					e := n.Edges()[i]
-					findClosestTipsRecur(child, n, curDist+e.Length(), curMinDist, tips)
+					findClosestTipsRecur(child, n, curDist+e.Length(), curMinDist, tips, excludeTips)
 				}
 			}
 		}

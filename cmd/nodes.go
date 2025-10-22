@@ -75,7 +75,7 @@ gotree stats nodes -i t.nw
 						childName += n.Name()
 					}
 				}
-				closesttips, tipdist := t.Tree.FindClosestTips(n)
+				closesttips, tipdist := t.Tree.FindClosestTips(n, nil)
 				closesttipsstr := ""
 				for j, ct := range closesttips {
 					if j > 0 {

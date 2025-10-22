@@ -54,6 +54,7 @@ func randomTips(tr *tree.Tree, n int) (sampled []string) {
 }
 
 var randomtips int
+var diversity bool
 
 // pruneCmd represents the prune command
 var pruneCmd = &cobra.Command{
@@ -63,7 +64,7 @@ var pruneCmd = &cobra.Command{
 
 1) Are not present in the compared tree (--comp <other tree>) if any or
 2) Are present in the given tip file (--tipfile <file>) if any or 
-3) Are randomly sampled (--random <num tips>) or
+3) Are randomly sampled (--random <num tips>), accounting for diversity (--diversity) or not, or
 4) Are given on the command line
 
 If several trees are present in the file given by -i, they are all analyzed and 
@@ -75,11 +76,17 @@ gotree prune -i reftree.nw -o outtree.nw t1 t2 t3
 By order of priority:
 1) -f --tipfile <tip file>
 2) -c --comp <other tree>
-3) --random <number of tips to randomly sample> 
+3) --random <number of tips to randomly sample>  (with or without --diversity)
 4) tips given on commandline
 5) Nothing is done
 
 If -r is given, behavior is reversed, it keep given tips instead of removing them.
+
+If --random and --diversity are given: Tips to be removed are selected in order to keep the highest diversity in the tree.
+To do so, until the desired number of tips is reached, the closest tips pairs are selected, and one of the tip is chosen 
+(randomly) to be deleted. In case of equality, one random pair is selected. The process stops when
+the number of desired number of tips to remove is reached (--random <int>). If revert is true (-r --revert), then --random <i> indicates 
+the number of tips to keep (as opposed to the number of tips to remove).
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
@@ -117,7 +124,10 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 			}
 		}
 
+		var ntips int
 		for reftree := range treechan {
+			ntips = len(reftree.Tree.Tips())
+
 			if reftree.Err != nil {
 				io.LogError(reftree.Err)
 				return reftree.Err
@@ -128,8 +138,16 @@ If -r is given, behavior is reversed, it keep given tips instead of removing the
 				specificTipNames = specificTips(reftree.Tree, comptree)
 				err = reftree.Tree.RemoveTips(revert, specificTipNames...)
 			} else if randomtips > 0 {
-				sampled := randomTips(reftree.Tree, randomtips)
-				err = reftree.Tree.RemoveTips(revert, sampled...)
+				if diversity {
+					if !revert {
+						randomtips = ntips - randomtips
+					}
+					sampled := reftree.Tree.SubSampleDiversity(randomtips)
+					err = reftree.Tree.RemoveTips(false, sampled...)
+				} else {
+					sampled := randomTips(reftree.Tree, randomtips)
+					err = reftree.Tree.RemoveTips(revert, sampled...)
+				}
 			} else {
 				err = reftree.Tree.RemoveTips(revert, args...)
 			}
@@ -151,4 +169,5 @@ func init() {
 	pruneCmd.Flags().StringVarP(&tipfile, "tipfile", "f", "none", "Tip file")
 	pruneCmd.Flags().BoolVarP(&revert, "revert", "r", false, "If true, then revert the behavior: will keep only species given in the command line, or keep only the species that are specific to the input tree, or keep only randomly selected taxa")
 	pruneCmd.Flags().IntVar(&randomtips, "random", 0, "Number of tips to randomly sample")
+	pruneCmd.Flags().BoolVar(&diversity, "diversity", false, "If the random pruning takes into account diversity (only with --random)")
 }
