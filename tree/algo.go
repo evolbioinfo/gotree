@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"slices"
 	"sort"
 	"sync"
@@ -1017,23 +1018,37 @@ func (tr *Tree) SubSampleDiversity(n int) (sampled []string) {
 	var mindist float64 = math.MaxFloat64
 	var mintips []*Node = make([]*Node, 0)
 	var closesttips [][]*Node
+	var reverseclosesttips [][]*Node
 	var closestdists []float64
 	var alltips = tr.Tips()
 	var alltipsidx []int = make([]int, len(alltips))
-	var removed []*Node = make([]*Node, 0)
+	var removed map[*Node]bool = make(map[*Node]bool)
 
 	// Compute the closest distances to all tips
 	closesttips = make([][]*Node, len(alltips))
+	// The reverse lookup table
+	reverseclosesttips = make([][]*Node, len(alltips))
 	closestdists = make([]float64, len(alltips))
+
+	for i, tip := range alltips {
+		tip.SetId(i)
+	}
 
 	for i, tip := range alltips {
 		closesttipTmp, closestdistTmp := tr.FindClosestTips(tip, removed)
 		closesttips[i] = closesttipTmp
 		closestdists[i] = closestdistTmp
 		alltipsidx[i] = i
+		// Reverse lookup table
+		for _, ct := range closesttipTmp {
+			reverseclosesttips[ct.Id()] = append(reverseclosesttips[ct.Id()], tip)
+		}
 	}
 
+	// While we do not have the desired number of tips
 	for len(alltipsidx) > n {
+		fmt.Fprintf(os.Stderr, "%d / %d                \r", len(alltipsidx), n)
+
 		// We select the closest pair of tips
 		mindist = math.MaxFloat64
 		mintips = mintips[:0]
@@ -1062,28 +1077,36 @@ func (tr *Tree) SubSampleDiversity(n int) (sampled []string) {
 		toremoveidx := rand.Intn(len(mintips))
 		var toremove *Node = mintips[toremoveidx]
 		// Update the removed tips slice
-		removed = append(removed, toremove)
+		removed[toremove] = true
 
 		// We update the all tips index slice
 		var removeidx int
-		for i, idx := range alltipsidx {
-			if toremove == alltips[idx] {
-				removeidx = i
-				break
-			}
+		var found bool
+		// alltipsidx is sorted by construction. We search the index of the tip to remove
+		if removeidx, found = slices.BinarySearch(alltipsidx, toremove.Id()); !found {
+			fmt.Fprintf(os.Stderr, "The index %d should be found in the alltips idx\n", toremove.Id())
 		}
+		//fmt.Fprintf(os.Stderr, "%d - %v\n", removeidx, alltipsidx)
 		alltipsidx = append(alltipsidx[:removeidx], alltipsidx[removeidx+1:]...)
+		//fmt.Printf(" ToRemove: %s %d\n", toremove.name, toremove.id)
+		//fmt.Fprintf(os.Stderr, " %d - %v\n", removeidx, alltipsidx)
 
 		// We update the closest pairs informations only for the pairs
-		// concerned by the removed one
-		for _, idx := range alltipsidx {
-			if slices.Contains(closesttips[idx], toremove) {
-				closesttipTmp, closestdistTmp := tr.FindClosestTips(alltips[idx], removed)
-				closesttips[idx] = closesttipTmp
-				closestdists[idx] = closestdistTmp
+		// concerned by the removed one, using the reverse lookup table
+		// No need to list all the tips
+		for _, toupdate := range reverseclosesttips[toremove.Id()] {
+			if !removed[toupdate] {
+				//fmt.Printf(" To update: %s %d\n", toupdate.name, toupdate.id)
+				closesttipTmp, closestdistTmp := tr.FindClosestTips(toupdate, removed)
+				closesttips[toupdate.Id()] = closesttipTmp
+				closestdists[toupdate.Id()] = closestdistTmp
+				for _, ct := range closesttipTmp {
+					reverseclosesttips[ct.Id()] = append(reverseclosesttips[ct.Id()], toupdate)
+				}
 			}
 		}
 	}
+	fmt.Fprintf(os.Stderr, "\n")
 
 	sampled = make([]string, len(alltipsidx))
 	for i := 0; i < len(alltipsidx); i++ {
@@ -1097,7 +1120,7 @@ func (tr *Tree) SubSampleDiversity(n int) (sampled []string) {
 // the distance is the sum of branch lengths separating the nodes.
 // It outputs the tips that are equally distant to the given node, and the distance
 // The exclude slice informs FindClosestTips to exclude the given tips in the closest computation
-func (t *Tree) FindClosestTips(n *Node, excludeTips []*Node) (tips []*Node, dist float64) {
+func (t *Tree) FindClosestTips(n *Node, excludeTips map[*Node]bool) (tips []*Node, dist float64) {
 	dist = math.MaxFloat64
 	tips = make([]*Node, 0)
 
@@ -1106,9 +1129,9 @@ func (t *Tree) FindClosestTips(n *Node, excludeTips []*Node) (tips []*Node, dist
 	return
 }
 
-func findClosestTipsRecur(n, prev *Node, curDist float64, curMinDist *float64, tips *[]*Node, excludeTips []*Node) {
+func findClosestTipsRecur(n, prev *Node, curDist float64, curMinDist *float64, tips *[]*Node, excludeTips map[*Node]bool) {
 	if n.Tip() && prev != nil {
-		if !slices.Contains(excludeTips, n) {
+		if _, ok := excludeTips[n]; !ok {
 			if curDist < *curMinDist {
 				*curMinDist = curDist
 				*tips = (*tips)[:0]

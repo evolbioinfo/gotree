@@ -143,7 +143,7 @@ the number of tips to keep (as opposed to the number of tips to remove).
 						randomtips = ntips - randomtips
 					}
 					sampled := reftree.Tree.SubSampleDiversity(randomtips)
-					err = reftree.Tree.RemoveTips(false, sampled...)
+					err = reftree.Tree.RemoveTips(true, sampled...)
 				} else {
 					sampled := randomTips(reftree.Tree, randomtips)
 					err = reftree.Tree.RemoveTips(revert, sampled...)
