@@ -28,10 +28,13 @@ type NsNodeAttributes struct {
 	LocalBranchingIndex struct {
 		Value float64 `json:"value"`
 	} `json:"lbi"`
-	Date      NsDate   `json:"num_date"`
-	Region    NsRegion `json:"region"`
-	Accession string   `json:"accession"`
-	Age       struct {
+	Date       NsDate   `json:"num_date"`
+	Region     NsRegion `json:"region"`
+	Accession  string   `json:"accession"`
+	Confidence struct {
+		Value float64 `json:"value"`
+	} `json:"confidence"`
+	Age struct {
 		Value string `json:"value"`
 	} `json:"age"`
 	CladeMembership struct {
@@ -170,6 +173,17 @@ func cladeToTree(c *NsNode, t *tree.Tree, parent *tree.Node, nedges, nnodes *int
 			country = ",country=" + country
 		}
 		comment += country
+		firstannot = false
+	}
+
+	if c.Attributes.Confidence.Value != 0.0 {
+		confidence := c.Attributes.Confidence.Value
+		if firstannot {
+			comment += fmt.Sprintf("&confidence=%f", confidence)
+		} else {
+			comment += fmt.Sprintf(",confidence=%f", confidence)
+		}
+
 		firstannot = false
 	}
 
