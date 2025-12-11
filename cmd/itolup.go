@@ -69,7 +69,7 @@ Will store only urls in the output file
 
 			fmt.Fprintf(os.Stderr, "-------------------\n")
 			fmt.Fprintf(os.Stderr, "<Server response>\n")
-			fmt.Fprintf(os.Stderr, response)
+			fmt.Fprintf(os.Stderr, "%s", response)
 			fmt.Fprintf(os.Stderr, "-------------------\n")
 			time.Sleep(1 * time.Second)
 			i++
