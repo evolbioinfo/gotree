@@ -1010,7 +1010,7 @@ func CompareWeighted(refTree *Tree, compTrees <-chan Trees, tips, comparetreeide
 }
 
 // RandomDiversityTips selects n random tips from the tree, while keeping as much diversity as possible.
-// To do so, it iteratively selects the closest pair of tips (randomly is equalities)
+// To do so, it iteratively selects the closest pair of tips (randomly if equalities)
 // And removes one of the tip of the pair randomly.
 // Outputs the list of tips to keep (does not actually remove the tips from the tree)
 func (tr *Tree) SubSampleDiversity(n int) (sampled []string) {
