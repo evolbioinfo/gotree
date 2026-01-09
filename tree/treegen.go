@@ -3,7 +3,7 @@ package tree
 import (
 	"errors"
 	"fmt"
-	"math/rand"
+	mathrand "math/rand"
 	"strconv"
 
 	"github.com/evolbioinfo/gotree/io"
@@ -13,11 +13,12 @@ import (
 // Creates a Random uniform Binary tree by successively adding
 // new tips to a random edge of the tree.
 //
-//	* nbtips : Number of tips of the random binary tree to create
-//	* rooted: if true, generates a rooted tree
-//	* branch length: follow an exponential distribution with param lambda=1/0.1
-func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
+//   - nbtips : Number of tips of the random binary tree to create
+//   - rooted: if true, generates a rooted tree
+//   - branch length: follow an exponential distribution with param lambda=1/0.1
+func RandomUniformBinaryTree(nbtips int, rooted bool, rand *mathrand.Rand) (*Tree, error) {
 	t := NewTree()
+	gsr := gostats.New(rand)
 	if nbtips < 2 {
 		return nil, errors.New("Cannot create an unrooted random binary tree with less than 2 tips")
 	}
@@ -35,14 +36,14 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
 			edges = append(edges, e)
-			e.SetLength(gostats.Exp(lambda))
+			e.SetLength(gsr.Exp(lambda))
 			if rooted {
 				n2.SetName("")
 				n3 := t.NewNode()
 				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
 				edges = append(edges, e2)
-				e2.SetLength(gostats.Exp(lambda))
+				e2.SetLength(gsr.Exp(lambda))
 			}
 			t.SetRoot(n2)
 		default:
@@ -50,9 +51,9 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			i_edge := rand.Intn(len(edges))
 			e := edges[i_edge]
 			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
-			e.SetLength(gostats.Exp(lambda))
-			newedge.SetLength(gostats.Exp(lambda))
-			newedge2.SetLength(gostats.Exp(lambda))
+			e.SetLength(gsr.Exp(lambda))
+			newedge.SetLength(gsr.Exp(lambda))
+			newedge2.SetLength(gsr.Exp(lambda))
 
 			edges = append(edges, newedge)
 			edges = append(edges, newedge2)
@@ -73,10 +74,10 @@ func RandomUniformBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 // Creates a Random Balanced Binary tree. Does it recursively
 // until the given depth is attained. Root is at depth 0.
 // So a depth "d" will generate a tree with 2^(d) tips.
-//	* depth : Depth of the balanced binary tree
-//	* rooted: if true, generates a rooted tree
-//	* branch length: follow an exponential distribution with param lambda=1/0.1
-func RandomBalancedBinaryTree(depth int, rooted bool) (*Tree, error) {
+//   - depth : Depth of the balanced binary tree
+//   - rooted: if true, generates a rooted tree
+//   - branch length: follow an exponential distribution with param lambda=1/0.1
+func RandomBalancedBinaryTree(depth int, rooted bool, rand *mathrand.Rand) (*Tree, error) {
 	t := NewTree()
 	if depth < 1 {
 		return nil, errors.New("Cannot create an random binary tree of depth < 1")
@@ -86,7 +87,7 @@ func RandomBalancedBinaryTree(depth int, rooted bool) (*Tree, error) {
 	root := t.NewNode()
 	t.SetRoot(root)
 	id := 0
-	randomBalancedBinaryTreeRecur(t, root, curdepth+1, depth, &id)
+	randomBalancedBinaryTreeRecur(t, root, curdepth+1, depth, &id, rand)
 	if !rooted {
 		t.UnRoot()
 	}
@@ -95,19 +96,19 @@ func RandomBalancedBinaryTree(depth int, rooted bool) (*Tree, error) {
 }
 
 // Recursive function called by RandomBalancedBinaryTree function
-func randomBalancedBinaryTreeRecur(t *Tree, node *Node, curdepth int, targetdepth int, id *int) {
+func randomBalancedBinaryTreeRecur(t *Tree, node *Node, curdepth int, targetdepth int, id *int, rand *mathrand.Rand) {
 	child1 := t.NewNode()
 	child2 := t.NewNode()
-
+	gsr := gostats.New(rand)
 	lambda := 1.0 / 0.1
 	e1 := t.ConnectNodes(node, child1)
 	e2 := t.ConnectNodes(node, child2)
-	e1.SetLength(gostats.Exp(lambda))
-	e2.SetLength(gostats.Exp(lambda))
+	e1.SetLength(gsr.Exp(lambda))
+	e2.SetLength(gsr.Exp(lambda))
 
 	if curdepth < targetdepth {
-		randomBalancedBinaryTreeRecur(t, child1, curdepth+1, targetdepth, id)
-		randomBalancedBinaryTreeRecur(t, child2, curdepth+1, targetdepth, id)
+		randomBalancedBinaryTreeRecur(t, child1, curdepth+1, targetdepth, id, rand)
+		randomBalancedBinaryTreeRecur(t, child2, curdepth+1, targetdepth, id, rand)
 	} else {
 		child1.SetName("Tip" + strconv.Itoa(*id))
 		(*id)++
@@ -118,11 +119,12 @@ func randomBalancedBinaryTreeRecur(t *Tree, node *Node, curdepth int, targetdept
 
 // Creates a Random Yule tree by successively adding new tips
 // to random terminal edges of the tree.
-//	* nbtips : Number of tips of the random binary tree to create
-//	* rooted: if true, generates a rooted tree (actually if false, unroots the given tree)
-//	* branch lengths: follow an exponential distribution with param lambda=1/0.1
-func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
+//   - nbtips : Number of tips of the random binary tree to create
+//   - rooted: if true, generates a rooted tree (actually if false, unroots the given tree)
+//   - branch lengths: follow an exponential distribution with param lambda=1/0.1
+func RandomYuleBinaryTree(nbtips int, rooted bool, rand *mathrand.Rand) (*Tree, error) {
 	t := NewTree()
+	gsr := gostats.New(rand)
 	if nbtips < 2 {
 		return nil, errors.New("Cannot create an unrooted random binary tree with less than 2 tips")
 	}
@@ -141,7 +143,7 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
 			edges = append(edges, e)
-			e.SetLength(gostats.Exp(lambda))
+			e.SetLength(gsr.Exp(lambda))
 			if !rooted {
 				tips = append(tips, n2)
 			} else {
@@ -150,7 +152,7 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
 				edges = append(edges, e2)
-				e2.SetLength(gostats.Exp(lambda))
+				e2.SetLength(gsr.Exp(lambda))
 				tips = append(tips, n3)
 			}
 			t.SetRoot(n2)
@@ -160,9 +162,9 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			ntemp := tips[i_tip]
 			e := ntemp.br[0]
 			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
-			e.SetLength(gostats.Exp(lambda))
-			newedge.SetLength(gostats.Exp(lambda))
-			newedge2.SetLength(gostats.Exp(lambda))
+			e.SetLength(gsr.Exp(lambda))
+			newedge.SetLength(gsr.Exp(lambda))
+			newedge2.SetLength(gsr.Exp(lambda))
 			edges = append(edges, newedge)
 			edges = append(edges, newedge2)
 			if err != nil {
@@ -182,11 +184,12 @@ func RandomYuleBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 
 // Creates a Random Caterpillar tree by adding new tips to the last
 // added terminal edge of the tree.
-//	* nbtips : Number of tips of the random binary tree to create
-//	* rooted: if true, generates a rooted tree
-//	* branch length: follows an exponential distribution with param lambda=1/0.1
-func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
+//   - nbtips : Number of tips of the random binary tree to create
+//   - rooted: if true, generates a rooted tree
+//   - branch length: follows an exponential distribution with param lambda=1/0.1
+func RandomCaterpillarBinaryTree(nbtips int, rooted bool, rand *mathrand.Rand) (*Tree, error) {
 	t := NewTree()
+	gsr := gostats.New(rand)
 	if nbtips < 2 {
 		return nil, errors.New("Cannot create an unrooted random binary tree with less than 2 tips")
 	}
@@ -204,7 +207,7 @@ func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 			n2 := t.NewNode()
 			n2.SetName("Tip" + strconv.Itoa(i-1))
 			e := t.ConnectNodes(n2, n)
-			e.SetLength(gostats.Exp(lambda))
+			e.SetLength(gsr.Exp(lambda))
 			if !rooted {
 				lasttip = n2
 			} else {
@@ -212,16 +215,16 @@ func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 				n3 := t.NewNode()
 				n3.SetName("Tip" + strconv.Itoa(i-1))
 				e2 := t.ConnectNodes(n2, n3)
-				e2.SetLength(gostats.Exp(lambda))
+				e2.SetLength(gsr.Exp(lambda))
 				lasttip = n3
 			}
 			t.SetRoot(n2)
 		default:
 			e := lasttip.br[0]
 			newedge, newedge2, _, err := t.GraftTipOnEdge(n, e)
-			e.SetLength(gostats.Exp(lambda))
-			newedge.SetLength(gostats.Exp(lambda))
-			newedge2.SetLength(gostats.Exp(lambda))
+			e.SetLength(gsr.Exp(lambda))
+			newedge.SetLength(gsr.Exp(lambda))
+			newedge2.SetLength(gsr.Exp(lambda))
 			if err != nil {
 				return nil, err
 			}
@@ -241,8 +244,8 @@ func RandomCaterpillarBinaryTree(nbtips int, rooted bool) (*Tree, error) {
 //
 // Since there is only one possible labelled tree, no need
 // of randomness.
-//	* nbtips : Number of tips of the star tree.
-//	* Branch lengths are all set to 1.0
+//   - nbtips : Number of tips of the star tree.
+//   - Branch lengths are all set to 1.0
 func StarTree(nbtips int) (*Tree, error) {
 	t := NewTree()
 	if nbtips < 2 {
@@ -253,7 +256,7 @@ func StarTree(nbtips int) (*Tree, error) {
 	n := t.NewNode()
 	t.SetRoot(n)
 	//n.SetName("N" + strconv.Itoa(i))
-	for i := 0; i < nbtips; i++ {
+	for i := range nbtips {
 		n2 := t.NewNode()
 		n2.SetName("Tip" + strconv.Itoa(i))
 		e := t.ConnectNodes(n, n2)
@@ -303,9 +306,11 @@ func StarTreeFromTree(t *Tree) (*Tree, error) {
 
 // Builds a tree whose only internal edge is the given edge e
 // The two internal nodes are multifurcated
-// 	\     /
-// 	-*---*-
-// 	/     \
+//
+//	\     /
+//	-*---*-
+//	/     \
+//
 // alltips is the slice containing all tip names of the tree.
 // if it is nil, it will be recomputed from the given tree.
 func EdgeTree(t *Tree, e *Edge, alltips []string) *Tree {
@@ -341,9 +346,11 @@ func EdgeTree(t *Tree, e *Edge, alltips []string) *Tree {
 }
 
 // Builds a single edge tree, given left taxa and right taxa
-// 	\     /
-// 	-*---*-
-// 	/     \
+//
+//	\     /
+//	-*---*-
+//	/     \
+//
 // Returns an error if size of lefTips is <=1 or size of rightTips w<= 1, or
 // if tip names are common between left and right tip sets.
 func BipartitionTree(leftTips []string, rightTips []string) (*Tree, error) {

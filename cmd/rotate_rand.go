@@ -50,7 +50,7 @@ gotree rotate rand -i t.nw
 				io.LogError(t.Err)
 				return t.Err
 			}
-			t.Tree.RotateInternalNodes()
+			t.Tree.RotateInternalNodes(globalRand)
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		return

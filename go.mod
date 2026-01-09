@@ -7,7 +7,7 @@ require (
 	github.com/evolbioinfo/goalign v0.3.7-0.20230906113011-fcecb09f9d43
 	github.com/fredericlemoine/bitset v1.2.0
 	github.com/fredericlemoine/cobrashell v0.0.0-20180921081141-49c72f93426c
-	github.com/fredericlemoine/gostats v0.1.1
+	github.com/fredericlemoine/gostats v0.2.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/jlaffaye/ftp v0.0.0-20210307004419-5d4190119067
 	github.com/llgcode/draw2d v0.0.0-20210313082411-577c1ead272a

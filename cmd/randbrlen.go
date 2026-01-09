@@ -42,6 +42,7 @@ if --max-len > 0, it will apply only to branches with length <= max-len
 		var treefile goio.Closer
 		var treechan <-chan tree.Trees
 
+		gsr := gostats.New(globalRand)
 		if f, err = openWriteFile(outtreefile); err != nil {
 			io.LogError(err)
 			return
@@ -58,7 +59,7 @@ if --max-len > 0, it will apply only to branches with length <= max-len
 		for tr := range treechan {
 			if cmd.Flags().Changed("min-mean") && cmd.Flags().Changed("max-mean") &&
 				setlengthmeanMin < setlengthmeanMax && setlengthmeanMin >= 0 && setlengthmeanMax > 0 {
-				lmean = gostats.Float64RangeF(setlengthmeanMin, setlengthmeanMax)
+				lmean = gsr.Float64RangeF(setlengthmeanMin, setlengthmeanMax)
 			}
 			if tr.Err != nil {
 				io.LogError(tr.Err)
@@ -69,7 +70,7 @@ if --max-len > 0, it will apply only to branches with length <= max-len
 				if ((e.Right().Tip() && brlenexternal) || (!e.Right().Tip() && brleninternal)) &&
 					(setlengthMinLen == -1 || e.Length() >= setlengthMinLen) &&
 					(setlengthMaxLen == -1 || e.Length() <= setlengthMaxLen) {
-					e.SetLength(gostats.Exp(1.0 / lmean))
+					e.SetLength(gsr.Exp(1.0 / lmean))
 				}
 			}
 			f.WriteString(tr.Tree.Newick() + "\n")

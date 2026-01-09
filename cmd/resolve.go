@@ -43,7 +43,7 @@ var resolveCmd = &cobra.Command{
 				io.LogError(tr.Err)
 				return tr.Err
 			}
-			tr.Tree.Resolve(resolverooted)
+			tr.Tree.Resolve(resolverooted, globalRand)
 			f.WriteString(tr.Tree.Newick() + "\n")
 		}
 		return

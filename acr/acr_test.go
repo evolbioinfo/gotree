@@ -2,6 +2,7 @@ package acr
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
 
@@ -85,7 +86,7 @@ func TestACRDELTRANParsimony(t *testing.T) {
 	testCheckStates(t, 2, ni, "t21", states, stateIndices, "A")
 
 	// Test DOWNPASS
-	parsimonyDOWNPASS(tr.Root(), nil, states, upstates, stateIndices, false)
+	parsimonyDOWNPASS(tr.Root(), nil, states, upstates, stateIndices, false, rand.New(rand.NewSource(10)))
 	testCheckStates(t, 2, ni, "t1", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t2", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t3", states, stateIndices, "B")
@@ -109,7 +110,7 @@ func TestACRDELTRANParsimony(t *testing.T) {
 	testCheckStates(t, 2, ni, "t21", states, stateIndices, "A")
 
 	// Test DELTRAN
-	parsimonyDELTRAN(tr.Root(), nil, states, stateIndices, false)
+	parsimonyDELTRAN(tr.Root(), nil, states, stateIndices, false, rand.New(rand.NewSource(10)))
 	testCheckStates(t, 2, ni, "t1", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t2", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t3", states, stateIndices, "B")
@@ -208,7 +209,7 @@ func TestACRACCTRANParsimony(t *testing.T) {
 	testCheckStates(t, 2, ni, "t21", states, stateIndices, "A")
 
 	// Test ACCTRAN
-	parsimonyACCTRAN(tr.Root(), nil, states, stateIndices, false)
+	parsimonyACCTRAN(tr.Root(), nil, states, stateIndices, false, rand.New(rand.NewSource(10)))
 	testCheckStates(t, 2, ni, "t1", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t2", states, stateIndices, "A")
 	testCheckStates(t, 2, ni, "t3", states, stateIndices, "B")
@@ -264,7 +265,7 @@ func TestALLDELTRAN(t *testing.T) {
 		t.Error(err)
 	}
 
-	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_DELTRAN, false)
+	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_DELTRAN, false, rand.New(rand.NewSource(10)))
 
 	if err != nil {
 		t.Error(err)
@@ -315,7 +316,7 @@ func TestALLDOWNPASS(t *testing.T) {
 		t.Error(err)
 	}
 
-	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_DOWNPASS, false)
+	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_DOWNPASS, false, rand.New(rand.NewSource(10)))
 	if err != nil {
 		t.Error(err)
 	}
@@ -366,7 +367,7 @@ func TestALLACCTRAN(t *testing.T) {
 		t.Error(err)
 	}
 
-	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_ACCTRAN, false)
+	statemap, nsteps, err := ParsimonyAcr(tr, tipstates, ALGO_ACCTRAN, false, rand.New(rand.NewSource(10)))
 	if err != nil {
 		t.Error(err)
 	}

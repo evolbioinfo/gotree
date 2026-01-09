@@ -13,7 +13,7 @@ func starTree(nbtrees int, nbtips int, output string) error {
 	var f *os.File
 	var err error
 	var t *tree.Tree
-
+	gsr := gostats.New(globalRand)
 	if output != "stdout" && output != "-" {
 		f, err = os.Create(output)
 		defer f.Close()
@@ -29,7 +29,7 @@ func starTree(nbtrees int, nbtips int, output string) error {
 			return err
 		}
 		for _, e := range t.Edges() {
-			e.SetLength(gostats.Exp(1.0 / setlengthmean))
+			e.SetLength(gsr.Exp(1.0 / setlengthmean))
 		}
 
 		f.WriteString(t.Newick() + "\n")

@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"strings"
 	"testing"
 
@@ -14,7 +15,7 @@ import (
 // Testing the edges of distance 1
 func TestEdgeNeighbor(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		tr, err := tree.RandomYuleBinaryTree(200, true)
+		tr, err := tree.RandomYuleBinaryTree(200, true, rand.New(rand.NewSource(10)))
 		if err != nil {
 			t.Error(err)
 		}
@@ -44,7 +45,7 @@ func TestEdgeNeighbor2(t *testing.T) {
 	// Expected number of neighbors of root connected edges
 	expected := 0
 	// Random balanced binary tree
-	tr, err := tree.RandomBalancedBinaryTree(15, true)
+	tr, err := tree.RandomBalancedBinaryTree(15, true, rand.New(rand.NewSource(10)))
 	if err != nil {
 		t.Error(err)
 	}
@@ -70,7 +71,7 @@ func TestEdgeNeighbor2(t *testing.T) {
 func TestLocality(t *testing.T) {
 	cutoff := 0.8
 	for i := 0; i < 10; i++ {
-		tr, err := tree.RandomYuleBinaryTree(100, true)
+		tr, err := tree.RandomYuleBinaryTree(100, true, rand.New(rand.NewSource(10)))
 		if err != nil {
 			t.Error(err)
 		}
@@ -108,7 +109,7 @@ func TestLocality(t *testing.T) {
 func TestLocality2(t *testing.T) {
 	expected := 3.0 / 4.0
 	cutoff := 0.8
-	tr, err := tree.RandomBalancedBinaryTree(10, true)
+	tr, err := tree.RandomBalancedBinaryTree(10, true, rand.New(rand.NewSource(10)))
 	if err != nil {
 		t.Error(err)
 	}

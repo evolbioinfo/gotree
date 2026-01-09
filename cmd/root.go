@@ -44,6 +44,8 @@ var rootInputFormat string
 var removeoutgroup bool
 var rerootstrict bool
 
+var globalRand *rand.Rand
+
 var helptemplate string = `{{with or .Long .Short }}{{. | trim}}
 
 {{end}}Version: ` + Version + `
@@ -84,7 +86,8 @@ Different usages are implemented:
 		if seed == -1 {
 			seed = time.Now().UTC().UnixNano()
 		}
-		rand.Seed(seed)
+
+		globalRand = rand.New(rand.NewSource(seed))
 	},
 
 	Run: func(cmd *cobra.Command, args []string) {

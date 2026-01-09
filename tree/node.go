@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math/rand"
+	mathrand "math/rand"
 	"strconv"
 )
 
@@ -219,7 +219,7 @@ func (n *Node) IsConnected(next *Node) bool {
 // of a given node.
 //
 // Topology is not changed, just the order of the tree traversal
-func (n *Node) RotateNeighbors() {
+func (n *Node) RotateNeighbors(rand *mathrand.Rand) {
 	for i, _ := range n.neigh {
 		j := rand.Intn(i + 1)
 		n.neigh[i], n.neigh[j] = n.neigh[j], n.neigh[i]

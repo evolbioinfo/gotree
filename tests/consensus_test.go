@@ -3,6 +3,7 @@ package tests
 import (
 	"bufio"
 	"io"
+	"math/rand"
 	"testing"
 
 	"github.com/evolbioinfo/gotree/io/newick"
@@ -11,9 +12,9 @@ import (
 )
 
 /*
- Function to test consensus tree generation
- It compares majority consensus to a given already computed
- consensus (from phylip consense)
+Function to test consensus tree generation
+It compares majority consensus to a given already computed
+consensus (from phylip consense)
 */
 func TestMajorityConsensus(t *testing.T) {
 	var treefile, treefile2 io.Closer
@@ -69,9 +70,9 @@ func TestMajorityConsensus(t *testing.T) {
 }
 
 /*
- Function to test consensus tree generation
- It compares majority consensus to a given already computed
- consensus (from phylip consense)
+Function to test consensus tree generation
+It compares majority consensus to a given already computed
+consensus (from phylip consense)
 */
 func TestStrictConsensus(t *testing.T) {
 	var treefile, treefile2 io.Closer
@@ -133,13 +134,14 @@ func TestConsensus2(t *testing.T) {
 	var randtree1, randtree2, randtree3 *tree.Tree
 	var err error
 
-	if randtree1, err = tree.RandomUniformBinaryTree(1000, false); err != nil {
+	r := rand.New(rand.NewSource(10))
+	if randtree1, err = tree.RandomUniformBinaryTree(1000, false, r); err != nil {
 		t.Error(err)
 	}
-	if randtree2, err = tree.RandomUniformBinaryTree(1000, false); err != nil {
+	if randtree2, err = tree.RandomUniformBinaryTree(1000, false, r); err != nil {
 		t.Error(err)
 	}
-	if randtree3, err = tree.RandomUniformBinaryTree(1000, false); err != nil {
+	if randtree3, err = tree.RandomUniformBinaryTree(1000, false, r); err != nil {
 		t.Error(err)
 	}
 

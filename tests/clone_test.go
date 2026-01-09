@@ -1,8 +1,10 @@
 package tests
 
 import (
-	"github.com/evolbioinfo/gotree/tree"
+	"math/rand"
 	"testing"
+
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 /*
@@ -10,7 +12,7 @@ Generates 100 random 1000 tip trees, clone them, and compare them to the origina
 */
 func TestCloneTree(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		tr, err := tree.RandomYuleBinaryTree(1000, true)
+		tr, err := tree.RandomYuleBinaryTree(1000, true, rand.New(rand.NewSource(10)))
 		clone := tr.Clone()
 
 		// Comparing tip names

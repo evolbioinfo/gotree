@@ -2,7 +2,7 @@ package cmd
 
 import (
 	goio "io"
-	"math/rand"
+	mathrand "math/rand"
 	"os"
 
 	"github.com/evolbioinfo/gotree/io"
@@ -33,7 +33,7 @@ func specificTips(ref *tree.Tree, comp *tree.Tree) []string {
 // returns a random list of n tips from the tree
 // uses reservoir sampling to select random tips
 // if n>nb tips: returns the tips
-func randomTips(tr *tree.Tree, n int) (sampled []string) {
+func randomTips(tr *tree.Tree, n int, rand *mathrand.Rand) (sampled []string) {
 	sampled = make([]string, n)
 	total := 0
 	for i, tip := range tr.Tips() {
@@ -142,10 +142,10 @@ the number of tips to keep (as opposed to the number of tips to remove).
 					if !revert {
 						randomtips = ntips - randomtips
 					}
-					sampled := reftree.Tree.SubSampleDiversity(randomtips)
+					sampled := reftree.Tree.SubSampleDiversity(randomtips, globalRand)
 					err = reftree.Tree.RemoveTips(true, sampled...)
 				} else {
-					sampled := randomTips(reftree.Tree, randomtips)
+					sampled := randomTips(reftree.Tree, randomtips, globalRand)
 					err = reftree.Tree.RemoveTips(revert, sampled...)
 				}
 			} else {

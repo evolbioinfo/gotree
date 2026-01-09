@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
+	mathrand "math/rand"
 	"os"
 	"slices"
 	"sort"
@@ -814,7 +814,7 @@ func Compare(refTree *Tree, compTrees <-chan Trees, tips, comparetreeidentical b
 	}
 
 	var wg sync.WaitGroup
-	for cpu := 0; cpu < cpus; cpu++ {
+	for cpu := range cpus {
 		wg.Add(1)
 		go func(cpu int) {
 			for treeV := range compTrees {
@@ -916,7 +916,7 @@ func CompareWeighted(refTree *Tree, compTrees <-chan Trees, tips, comparetreeide
 	}
 
 	var wg sync.WaitGroup
-	for cpu := 0; cpu < cpus; cpu++ {
+	for cpu := range cpus {
 		wg.Add(1)
 		go func(cpu int) {
 			for treeV := range compTrees {
@@ -1013,7 +1013,7 @@ func CompareWeighted(refTree *Tree, compTrees <-chan Trees, tips, comparetreeide
 // To do so, it iteratively selects the closest pair of tips (randomly if equalities)
 // And removes one of the tip of the pair randomly.
 // Outputs the list of tips to keep (does not actually remove the tips from the tree)
-func (tr *Tree) SubSampleDiversity(n int) (sampled []string) {
+func (tr *Tree) SubSampleDiversity(n int, rand *mathrand.Rand) (sampled []string) {
 
 	var mindist float64 = math.MaxFloat64
 	var mintips []*Node = make([]*Node, 0)

@@ -1,8 +1,10 @@
 package tests
 
 import (
-	"github.com/evolbioinfo/gotree/tree"
+	"math/rand"
 	"testing"
+
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 var prevtree2 *tree.Tree
@@ -11,7 +13,7 @@ func benchmarkBinaryTreeGeneration(nbtips int, b *testing.B) {
 	var t *tree.Tree
 	for n := 0; n < b.N; n++ {
 		var err error
-		t, err = tree.RandomUniformBinaryTree(nbtips, false)
+		t, err = tree.RandomUniformBinaryTree(nbtips, false, rand.New(rand.NewSource(10)))
 		if err != nil {
 			b.Error(err)
 		}

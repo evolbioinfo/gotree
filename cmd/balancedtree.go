@@ -24,7 +24,7 @@ func balancedTree(nbtrees int, depth int, output string, rooted bool) error {
 	}
 
 	for i := 0; i < nbtrees; i++ {
-		t, err = tree.RandomBalancedBinaryTree(depth, rooted)
+		t, err = tree.RandomBalancedBinaryTree(depth, rooted, globalRand)
 		if err != nil {
 			return err
 		}

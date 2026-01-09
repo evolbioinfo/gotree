@@ -234,7 +234,7 @@ func TBE(reftree *tree.Tree, boottrees <-chan tree.Trees, cpu int,
 				close(edgechan)
 			}()
 
-			for c := 0; c < cpu; c++ {
+			for range cpu {
 				go func() {
 					for e := range edgechan {
 						if p, _ := e.TopoDepth(); p > 1 {

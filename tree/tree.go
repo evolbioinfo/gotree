@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/rand"
+	mathrand "math/rand"
 	"regexp"
 	"sort"
 	"strconv"
@@ -997,7 +997,7 @@ func (t *Tree) NodeRootDistance(onlytips bool) (rdists []float64) {
 //
 // The tree have the same topology, but tip names
 // are reassigned randomly.
-func (t *Tree) ShuffleTips() {
+func (t *Tree) ShuffleTips(rand *mathrand.Rand) {
 	tips := t.Tips()
 	names := t.AllTipNames()
 	permutation := rand.Perm(len(names))
@@ -1013,9 +1013,9 @@ func (t *Tree) ShuffleTips() {
 //
 // It does not change the topology, but just the way
 // the tree is traversed.
-func (t *Tree) RotateInternalNodes() {
+func (t *Tree) RotateInternalNodes(rand *mathrand.Rand) {
 	for _, n := range t.Nodes() {
-		n.RotateNeighbors()
+		n.RotateNeighbors(rand)
 	}
 }
 
@@ -1121,10 +1121,10 @@ func (t *Tree) CollapseTopoDepth(mindepthThreshold, maxdepthThreshold int, remov
 //		return err
 //	}
 //	t.UpdateBitSet()
-func (t *Tree) Resolve(rooted bool) {
+func (t *Tree) Resolve(rooted bool, rand *mathrand.Rand) {
 	root := t.Root()
 
-	t.resolveRecur(root, nil, rooted)
+	t.resolveRecur(root, nil, rooted, rand)
 	t.ReinitInternalIndexes()
 }
 
@@ -1142,11 +1142,11 @@ func (t *Tree) Resolve(rooted bool) {
 //		return err
 //	}
 //	t.UpdateBitSet()
-func (t *Tree) resolveRecur(current, previous *Node, rooted bool) {
+func (t *Tree) resolveRecur(current, previous *Node, rooted bool, rand *mathrand.Rand) {
 	// Resolve neighbors
 	for _, n := range current.Neigh() {
 		if n != previous {
-			t.resolveRecur(n, current, rooted)
+			t.resolveRecur(n, current, rooted, rand)
 		}
 	}
 

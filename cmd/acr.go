@@ -97,7 +97,7 @@ randomly before going deeper in the tree.
 			defer closeWriteFile(resfile, outresfile)
 		}
 		for t := range treechan {
-			statemap, nsteps, err = acr.ParsimonyAcr(t.Tree, tipstates, algo, acrrandomresolve)
+			statemap, nsteps, err = acr.ParsimonyAcr(t.Tree, tipstates, algo, acrrandomresolve, globalRand)
 			if err != nil {
 				io.LogError(err)
 				return

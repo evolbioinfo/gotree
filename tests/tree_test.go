@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
 
@@ -272,8 +273,11 @@ func TestColless4(t *testing.T) {
 
 // Test counting the Sackin Index on balanced rooted and unrooted trees
 func TestSackin1(t *testing.T) {
+
+	r := rand.New(rand.NewSource(10))
+
 	// rooted, depth 7: 128 tips : Sackin should be 7*128=896
-	tr, err := tree.RandomBalancedBinaryTree(7, true)
+	tr, err := tree.RandomBalancedBinaryTree(7, true, r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -284,7 +288,7 @@ func TestSackin1(t *testing.T) {
 	}
 
 	// unrooted, depth 7: 128 tips : Sackin should be 7*128=896
-	tr, err = tree.RandomBalancedBinaryTree(7, false)
+	tr, err = tree.RandomBalancedBinaryTree(7, false, r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -295,7 +299,7 @@ func TestSackin1(t *testing.T) {
 	}
 
 	// rooted caterpillar, 128 tips : Sackin should be sum(1:127)+127=8255
-	tr, err = tree.RandomCaterpillarBinaryTree(128, true)
+	tr, err = tree.RandomCaterpillarBinaryTree(128, true, r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -306,7 +310,7 @@ func TestSackin1(t *testing.T) {
 	}
 
 	// unrooted caterpillar, 128 tips : Sackin should be (sum(2:64)+64)*2=4286
-	tr, err = tree.RandomCaterpillarBinaryTree(128, false)
+	tr, err = tree.RandomCaterpillarBinaryTree(128, false, r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -341,7 +345,7 @@ func TestSackin1(t *testing.T) {
 
 // Test counting the Sackin Index on balanced rooted and unrooted trees
 func TestDelete(t *testing.T) {
-	tr, err := tree.RandomYuleBinaryTree(701, true)
+	tr, err := tree.RandomYuleBinaryTree(701, true, rand.New(rand.NewSource(10)))
 	if err != nil {
 		t.Error(err)
 	}
@@ -352,7 +356,8 @@ func TestDelete(t *testing.T) {
 //
 // Topology must be the same afterwards
 func TestRotateRandom(t *testing.T) {
-	tr, err := tree.RandomYuleBinaryTree(1000, true)
+	r := rand.New(rand.NewSource(10))
+	tr, err := tree.RandomYuleBinaryTree(1000, true, r)
 	clone := tr.Clone()
 	if err != nil {
 		t.Error(err)
@@ -363,7 +368,7 @@ func TestRotateRandom(t *testing.T) {
 		index.PutEdgeValue(e, i, e.Length())
 	}
 
-	clone.RotateInternalNodes()
+	clone.RotateInternalNodes(r)
 	edges2 := clone.Edges()
 	// Check wether the 2 trees have the same set of tip names
 	if err = tr.CompareTipIndexes(clone); err != nil {
@@ -383,7 +388,7 @@ func TestRotateRandom(t *testing.T) {
 //
 // Topology must be the same afterwards
 func TestRotateSort(t *testing.T) {
-	tr, err := tree.RandomYuleBinaryTree(1000, true)
+	tr, err := tree.RandomYuleBinaryTree(1000, true, rand.New(rand.NewSource(10)))
 	clone := tr.Clone()
 	if err != nil {
 		t.Error(err)
@@ -731,7 +736,7 @@ func TestNNI3(t *testing.T) {
 	var tr, copy *tree.Tree
 	var err error
 	var ntips int = 500
-	if tr, err = tree.RandomYuleBinaryTree(ntips, false); err != nil {
+	if tr, err = tree.RandomYuleBinaryTree(ntips, false, rand.New(rand.NewSource(10))); err != nil {
 		t.Error(err)
 	}
 	tr.ReinitIndexes()

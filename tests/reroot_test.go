@@ -2,8 +2,10 @@ package tests
 
 import (
 	"fmt"
-	"github.com/evolbioinfo/gotree/tree"
+	"math/rand"
 	"testing"
+
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 /*
@@ -11,7 +13,7 @@ Generates a 1000 tip random tree, then reroot it at each tip
 and compare all bipartitions of the rerooted tree with the original tree
 */
 func TestRootOutgroup(t *testing.T) {
-	tr, err := tree.RandomYuleBinaryTree(1000, true)
+	tr, err := tree.RandomYuleBinaryTree(1000, true, rand.New(rand.NewSource(10)))
 	clone := tr.Clone()
 	if err != nil {
 		t.Error(err)
@@ -54,7 +56,7 @@ Generates a 1000 tip ROOTED random tree, then reroot it at each tip
 and compare all bipartitions of the rerooted tree with the original tree
 */
 func TestReRootOutgroupRemove(t *testing.T) {
-	tr, err := tree.RandomYuleBinaryTree(1000, true)
+	tr, err := tree.RandomYuleBinaryTree(1000, true, rand.New(rand.NewSource(10)))
 	edges := tr.Edges()
 	tips := tr.Tips()
 	nodes := tr.Nodes()
@@ -90,7 +92,7 @@ Generates a 1000 tip UNROOTED random tree, then reroot it at each tip
 and compare all bipartitions of the rerooted tree with the original tree
 */
 func TestReRootOutgroupRemoveUnRooted(t *testing.T) {
-	tr, err := tree.RandomYuleBinaryTree(1000, false)
+	tr, err := tree.RandomYuleBinaryTree(1000, false, rand.New(rand.NewSource(10)))
 	edges := tr.Edges()
 	tips := tr.Tips()
 	nodes := tr.Nodes()

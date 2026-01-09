@@ -49,7 +49,7 @@ gotree shuffletips -i t.nw
 				io.LogError(t.Err)
 				return t.Err
 			}
-			t.Tree.ShuffleTips()
+			t.Tree.ShuffleTips(globalRand)
 			f.WriteString(t.Tree.Newick() + "\n")
 		}
 		return

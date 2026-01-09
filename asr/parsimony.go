@@ -3,7 +3,7 @@ package asr
 import (
 	"bytes"
 	"fmt"
-	"math/rand"
+	mathrand "math/rand"
 
 	"github.com/evolbioinfo/goalign/align"
 	"github.com/evolbioinfo/gotree/io"
@@ -21,7 +21,7 @@ const (
 // Computed using parsimony
 // Sequences will be located in the comment field of each node
 // at the first index
-func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool) (nsteps []int, err error) {
+func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool, rand *mathrand.Rand) (nsteps []int, err error) {
 	var nodes []*tree.Node = t.Nodes()
 	var seqs []*AncestralSequence = make([]*AncestralSequence, len(nodes))
 	var upseqs []*AncestralSequence = make([]*AncestralSequence, len(nodes)) // Upside seqs of each  node
@@ -56,12 +56,12 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool)
 
 	switch algo {
 	case ALGO_DOWNPASS:
-		parsimonyDOWNPASS(t.Root(), nil, a, seqs, upseqs, charToIndex, randomResolve)
+		parsimonyDOWNPASS(t.Root(), nil, a, seqs, upseqs, charToIndex, randomResolve, rand)
 	case ALGO_DELTRAN:
-		parsimonyDOWNPASS(t.Root(), nil, a, seqs, upseqs, charToIndex, false)
-		parsimonyDELTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve)
+		parsimonyDOWNPASS(t.Root(), nil, a, seqs, upseqs, charToIndex, false, rand)
+		parsimonyDELTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve, rand)
 	case ALGO_ACCTRAN:
-		parsimonyACCTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve)
+		parsimonyACCTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve, rand)
 	default:
 		err = fmt.Errorf("parsimony algorithm %d unkown", algo)
 		return
@@ -152,7 +152,8 @@ func parsimonyUPPASS(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralS
 // Second step of the parsimony computatation: From root to tips
 func parsimonyDOWNPASS(cur, prev *tree.Node, a align.Alignment,
 	seqs []*AncestralSequence, upseqs []*AncestralSequence,
-	charToIndex map[uint8]int, randomResolve bool) {
+	charToIndex map[uint8]int, randomResolve bool,
+	rand *mathrand.Rand) {
 	// If it is not a tip and not the root
 	if !cur.Tip() {
 		// We compute the up sequence states for each children of
@@ -213,12 +214,12 @@ func parsimonyDOWNPASS(cur, prev *tree.Node, a align.Alignment,
 		// We randomly resolve ambiguities
 		// Even for the root (outside if statement)
 		if randomResolve {
-			randomlyResolveNodeStates(cur, seqs)
+			randomlyResolveNodeStates(cur, seqs, rand)
 		}
 
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyDOWNPASS(child, cur, a, seqs, upseqs, charToIndex, randomResolve)
+				parsimonyDOWNPASS(child, cur, a, seqs, upseqs, charToIndex, randomResolve, rand)
 			}
 		}
 	}
@@ -246,7 +247,7 @@ func computeParsimony(neighborStates AncestralState, currentStates AncestralStat
 }
 
 // Third step of the parsimony computation for resolving ambiguities
-func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[uint8]int, randomResolve bool) {
+func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[uint8]int, randomResolve bool, rand *mathrand.Rand) {
 	// If it is not a tip
 	if !cur.Tip() {
 		// If it is not the root
@@ -281,25 +282,25 @@ func parsimonyDELTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestral
 		// We resolve ambiguities if randomResolve
 		// Even for the root (outside if statement)
 		if randomResolve {
-			randomlyResolveNodeStates(cur, seqs)
+			randomlyResolveNodeStates(cur, seqs, rand)
 		}
 
 		// We go down in the tree
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyDELTRAN(child, cur, a, seqs, charToIndex, randomResolve)
+				parsimonyDELTRAN(child, cur, a, seqs, charToIndex, randomResolve, rand)
 			}
 		}
 	}
 }
 
 // Second step of the parsimony computation (instead of DOWNPASS) for resolving ambiguities
-func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[uint8]int, randomResolve bool) {
+func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*AncestralSequence, charToIndex map[uint8]int, randomResolve bool, rand *mathrand.Rand) {
 	// If it is not a tip
 	if !cur.Tip() {
 		// We resolve ambiguities if randomResolve
 		if randomResolve {
-			randomlyResolveNodeStates(cur, seqs)
+			randomlyResolveNodeStates(cur, seqs, rand)
 		}
 
 		// We Analyze each direct child
@@ -334,14 +335,14 @@ func parsimonyACCTRAN(cur, prev *tree.Node, a align.Alignment, seqs []*Ancestral
 		// We go down in the tree
 		for _, child := range cur.Neigh() {
 			if child != prev {
-				parsimonyACCTRAN(child, cur, a, seqs, charToIndex, randomResolve)
+				parsimonyACCTRAN(child, cur, a, seqs, charToIndex, randomResolve, rand)
 			}
 		}
 	}
 }
 
 // Randomly resolve all sequences states of the node that are ambiguous
-func randomlyResolveNodeStates(node *tree.Node, seqs []*AncestralSequence) {
+func randomlyResolveNodeStates(node *tree.Node, seqs []*AncestralSequence, rand *mathrand.Rand) {
 	for _, ances := range seqs[node.Id()].seq {
 		numstates := 0
 		for _, c := range ances.counts {

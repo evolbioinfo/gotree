@@ -94,6 +94,10 @@ github.com/fredericlemoine/cobrashell v0.0.0-20180921081141-49c72f93426c h1:SSzQ
 github.com/fredericlemoine/cobrashell v0.0.0-20180921081141-49c72f93426c/go.mod h1:aFIc1y3MUNi6cxWYSJsSoV8ZIdRMaM8W6KWH4wV8k1k=
 github.com/fredericlemoine/gostats v0.1.1 h1:vODa3brG7tt98FNAkfLC7KFIg3qrm5li9GHbmjLLWxk=
 github.com/fredericlemoine/gostats v0.1.1/go.mod h1:5OBBRN6vXzgXAJfprZ1WPahOHPJw2wJjmVtijhTqsX8=
+github.com/fredericlemoine/gostats v0.1.2-0.20260109172712-10b741e13e51 h1:2eCmoetnX/Yrd7yUg5ex282lGPthtvrMgNUyE7tQh1s=
+github.com/fredericlemoine/gostats v0.1.2-0.20260109172712-10b741e13e51/go.mod h1:oiVMgJzw1U0OVBNP2LE+EvZYLitjIT9GQrfy9gk7rKc=
+github.com/fredericlemoine/gostats v0.2.0 h1:Wnbt0d0zxNEEwXU1ZJFzV+f/GpZmiFIPngR2lgSqo4o=
+github.com/fredericlemoine/gostats v0.2.0/go.mod h1:oiVMgJzw1U0OVBNP2LE+EvZYLitjIT9GQrfy9gk7rKc=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-fonts/dejavu v0.1.0/go.mod h1:4Wt4I4OU2Nq9asgDCteaAaWZOV24E+0/Pwo0gppep4g=

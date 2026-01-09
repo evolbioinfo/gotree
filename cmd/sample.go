@@ -2,7 +2,6 @@ package cmd
 
 import (
 	goio "io"
-	"math/rand"
 	"os"
 
 	"github.com/evolbioinfo/gotree/io"
@@ -48,7 +47,7 @@ If the number of desired trees is > number of input trees:
 				if totaltrees < numtrees {
 					outtrees[totaltrees] = t.Tree
 				} else {
-					j := rand.Intn(totaltrees)
+					j := globalRand.Intn(totaltrees)
 					if j < numtrees {
 						outtrees[j] = t.Tree
 					}
@@ -70,7 +69,7 @@ If the number of desired trees is > number of input trees:
 				totaltrees++
 				for j := 0; j < numtrees; j++ {
 					// One chance over current number of trees to replace the tree at j
-					r := rand.Intn(totaltrees)
+					r := globalRand.Intn(totaltrees)
 					if r == 0 {
 						outtrees[j] = t.Tree
 					}

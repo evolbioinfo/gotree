@@ -4,9 +4,9 @@ import (
 	goio "io"
 	"os"
 
-	"github.com/fredericlemoine/gostats"
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/tree"
+	"github.com/fredericlemoine/gostats"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +23,7 @@ Support follows a uniform distribution in [0,1].
 		var f *os.File
 		var treefile goio.Closer
 		var treechan <-chan tree.Trees
-
+		gsr := gostats.New(globalRand)
 		if f, err = openWriteFile(outtreefile); err != nil {
 			io.LogError(err)
 			return
@@ -43,7 +43,7 @@ Support follows a uniform distribution in [0,1].
 			}
 			for _, e := range tr.Tree.Edges() {
 				if !e.Right().Tip() {
-					e.SetSupport(gostats.Float64Range(0, 1))
+					e.SetSupport(gsr.Float64Range(0, 1))
 				}
 			}
 			f.WriteString(tr.Tree.Newick() + "\n")

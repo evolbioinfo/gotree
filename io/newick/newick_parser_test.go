@@ -3,11 +3,13 @@ package newick_test
 import (
 	"bufio"
 	"fmt"
-	"github.com/evolbioinfo/gotree/io/newick"
-	"github.com/evolbioinfo/gotree/tree"
+	"math/rand"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/evolbioinfo/gotree/io/newick"
+	"github.com/evolbioinfo/gotree/tree"
 )
 
 // Ensure the parser can parse strings into Statement ASTs.
@@ -64,7 +66,7 @@ func benchmarkTreeParse(nbtips int, b *testing.B) {
 	var t *tree.Tree
 	for n := 0; n < b.N; n++ {
 		var err error
-		t, err = tree.RandomUniformBinaryTree(nbtips, false)
+		t, err = tree.RandomUniformBinaryTree(nbtips, false, rand.New(rand.NewSource(10)))
 		if err != nil {
 			b.Error(err)
 		}

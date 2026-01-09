@@ -110,7 +110,7 @@ randomly before going deeper in the tree.
 		defer closeWriteFile(logf, outlogfile)
 
 		for t := range treechan {
-			nsteps, err = asr.ParsimonyAsr(t.Tree, align, algo, asrrandomresolve)
+			nsteps, err = asr.ParsimonyAsr(t.Tree, align, algo, asrrandomresolve, globalRand)
 			if err != nil {
 				io.LogError(err)
 				return
