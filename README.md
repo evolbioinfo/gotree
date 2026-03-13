@@ -177,7 +177,6 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * consensus:       Compute the consensus from a set of input trees
     * edgetrees:       Write one output tree per branch of the input tree, with only one branch
     * mutations:       Extract the list of mutations along the branches of the phylogeny
-    * roccurve:        Compute true positives and false positives at different support thresholds
     * support:         Compute bootstrap supports
       * fbp ([Felsenstein Bootstrap](https://www.jstor.org/stable/2408678))
       * tbe ([Transfer Bootstrap](https://www.nature.com/articles/s41586-018-0043-0))
