@@ -94,7 +94,7 @@ Gotree Docker image is accessible from [docker hub](https://hub.docker.com/r/evo
 
 ```[bash]
 # Display gotree help
-docker run -v $PWD:$PWD -w $PWD -i -t evolbioinfo/gotree:v0.2.8b -h
+docker run -v $PWD:$PWD -w $PWD -i -t evolbioinfo/gotree:v0.5.1 -h
 ```
 
 ### Singularity
@@ -102,9 +102,9 @@ Gotree [Docker image](https://hub.docker.com/r/evolbioinfo/gotree/) is usable fr
 
 ```[bash]
 # Pull image from docker hub
-singularity pull docker://evolbioinfo/gotree:v0.2.8b
+singularity pull docker://evolbioinfo/gotree:v0.5.1
 # Display gotree help
-./gotree-v0.2.8b.simg -h
+./gotree-v0.5.1.simg -h
 ```
 ### Conda
 Gotree is also available on [bioconda](https://anaconda.org/bioconda/gotree). Just type:
@@ -114,7 +114,7 @@ conda install -c bioconda gotree
 ```
 
 ### From sources
-To build gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system ($1.21.6$).
+To build gotree, you must first [download](https://golang.org/dl/) and [install](https://golang.org/doc/install) Go on your system ($1.24.11$).
 
 Then you just have to type :
 ```
@@ -145,87 +145,100 @@ gotree implements several tree manipulation commands.
 You may go to the [doc](docs/index.md) for a more detailed documentation of the commands.
 
 ### List of commands
+*  acr:         Reconstruct most parsimonious ancestral characters
 *  annotate:    Annotate internal nodes of a tree with given data
+*  asr:         Reconstruct most parsimonious ancestral sequences
 *  brlen:       Modify branch lengths
+    * add:         Add the given length to all branches
     * clear:       Clear lengths from input trees
-	* cut:         Cut branches whose length is greater than or equal to the given length
-	* round:       Round branch lengths from input trees with a given precision
+    * cut:         Cut branches whose length is greater than or equal to the given length
+    * round:       Round branch lengths from input trees with a given precision
     * scale:       Scale lengths from input trees by a given factor
-	* setmin:      Set a min branch length to all branches with length < cutoff
-	* setrand:     Assign a random length to edges of input trees
-	* set:         Assign a given length to edges of input trees
+    * setmin:      Set a min branch length to all branches with length < cutoff
+    * setrand:     Assign a random length to edges of input trees
+    * set:         Assign a given length to edges of input trees
 *  collapse:    Collapse branches or clades of input trees
-    * clades
-    * depth
-    * length
-    * support
+    * clade:       Collapse a clade and replace it with a tip
+    * depth:       Collapse branches having a given depth
+    * length:      Collapse short branches of the input tree
+    * name:        Collapse branches having given name or ID
+    * single:      Collapse branches that connect single nodes
+    * support:     Collapse lowly supported branches of the input tree
 *  comment:     Modify branch/node comments
-    * clear:    Remove node/tip comments
+    * clear:       Remove node/tip comments
+    * transfer:    Transfer node names to comments
 *  compare:     Compare full trees, edges, or tips
-    * edges: Individually compare edges of the reference tree to a compared tree
-    * tips: Compare the set of tips of the reference tree to a compared tree
-    * trees: Compare 2 trees in terms of common and specific branches
+    * distances: Print transfer distance of all edges of a reference tree to another tree
+    * edges:     Individually compare edges of the reference tree to a compared tree
+    * tips:      Compare the set of tips of the reference tree to a compared tree
+    * trees:     Compare 2 trees in terms of common and specific branches
 *  compute:     Computations such as consensus and supports
     * bipartitiontree: Builds one tree with only one given bipartition
-    * consensus: Compute the consensus from a set of input trees
-    * edgetrees: Write one output tree per branch of the input tree, with only one branch
-    * support: Compute bootstrap supports
+    * consensus:       Compute the consensus from a set of input trees
+    * edgetrees:       Write one output tree per branch of the input tree, with only one branch
+    * mutations:       Extract the list of mutations along the branches of the phylogeny
+    * roccurve:        Compute true positives and false positives at different support thresholds
+    * support:         Compute bootstrap supports
       * fbp ([Felsenstein Bootstrap](https://www.jstor.org/stable/2408678))
       * tbe ([Transfer Bootstrap](https://www.nature.com/articles/s41586-018-0043-0))
+*  cut:         Cut the tree
+    * date:        Cut the input tree by keeping only parts in a date window
 *  divide:      Divide an input tree file into several tree files
-*  download:     Download a tree image from a server
-    * itol: download a tree image from iTOL, with given image options
-    * ncbitax: Download the full ncbi taxonomy in newick format
-	* panther: Download a tree from Panther database (http://pantherdb.org/)
-*  draw: Draw tree(s) with different layouts
-    * text: Display tree(s) in ASCII text format
-    * png : Draw tree(s) in png format, with normal, radial/unrooted or circular layout
-    * svg : Draw tree(s) in svg format, with normal, radial/unrooted or circular layout
-	* cyjs: Draw tree(s) in a html file, using cytoscape js
-*  generate:    Generate random trees, branch lengths are simply drawn from an expontential(1) law
+*  download:    Download trees or images from servers
+    * itol:        Download a tree image from iTOL, with given image options
+    * ncbitax:     Download the full ncbi taxonomy in newick format
+    * panther:     Download a tree from Panther database (http://pantherdb.org/)
+*  draw:        Draw tree(s) with different layouts
+    * text:        Display tree(s) in ASCII text format
+    * png:         Draw tree(s) in png format, with normal, radial/unrooted or circular layout
+    * svg:         Draw tree(s) in svg format, with normal, radial/unrooted or circular layout
+    * cyjs:        Draw tree(s) in a html file, using cytoscape js
+*  generate:    Generate random trees, branch lengths are simply drawn from an exponential(1) law
     * balancedtree
     * caterpillartree
     * startree
     * topologies: all possible topologies
     * uniformtree
     * yuletree
-*  graft: Graft a tree on an input tree in place of a given tip
-*  labels: Lists labels (names) of all tips
-*  ltt: Compute lineage through time data/plot
+*  graft:       Graft a tree on an input tree in place of a given tip
+*  labels:      Lists labels (names) of all tips
+*  ltt:         Compute lineage through time data/plot
 *  matrix:      Print (patristic) distance matrix associated to the input tree
 *  merge:       Merges two rooted trees
 *  nni:         Generate all NNI neighbors from a given tree
 *  prune:       Remove tips of the input tree that are not in the compared tree, or that are given on the command line
-*  reformat: Convert input file between nexus and newick formats
+*  reformat:    Convert input tree file between newick, nexus, and phyloxml formats
     * newick
     * nexus
+    * phyloxml
 *  rename:      Rename tips of the input tree, given a map file, or a regexp, or automatically
 *  repopulate:  Re populate the tree with identical tips (having the exact same sequence)
 *  reroot:      Reroot trees using an outgroup or at midpoint
     * midpoint
     * outgroup
-* rotate: Reorders neighbors of internal nodes. Does not change the topology, but just traversal order
-	* rand: Randomly reorders neighbors of internal nodes 
-	* sort: Sort neighbors of internal nodes by ascending number of tips
 *  resolve:     Resolve multifurcations by adding 0 length branches
+*  rotate:      Reorder neighbors of internal nodes. Does not change the topology, but just traversal order
+    * rand:        Randomly reorder neighbors of internal nodes
+    * sort:        Sort neighbors of internal nodes by ascending number of tips
+*  rtt:         Compute Root To Tip regression
 *  sample:      Takes a sample (with or without replacement) from the set of input trees
 *  shuffletips: Shuffle tip names of an input tree
-*  subtree: extract a subtree
-*  support: Modify branch supports
-    * clear       Clear supports from input trees
-	* round       Round branch lengths from input trees with a given precision
-    * setrand     Assign a random support to edges of input trees
-    * scale       Scale branch supports from input trees by a given factor
+*  subtree:     Extract a subtree
+*  support:     Modify branch supports
+    * clear:       Clear supports from input trees
+    * round:       Round branch supports from input trees with a given precision
+    * setrand:     Assign a random support to edges of input trees
+    * scale:       Scale branch supports from input trees by a given factor
 *  stats:       Print statistics about the tree, its edges, its nodes, if it is rooted, and its tips
     * edges
-	* monophyletic : Print wether input tips form a monophyletic group in each of the input trees
+    * monophyletic: Print whether input tips form a monophyletic group in each of the input trees
     * nodes
     * rooted
     * tips
     * splits
 *  unroot:      Unroot input tree
 *  upload:      Upload a tree to a given server
-    * itol : Upload a tree to itol, with given annotations
+    * itol:        Upload a tree to iTOL, with given annotations
 *  version:     Display version of gotree
 
 ### Gotree commandline examples
