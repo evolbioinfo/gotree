@@ -6,7 +6,7 @@
 This command removes (or retain with `-r`) a given set of tips from input trees. Several possibilities, in order of priorities :
 1. Giving a tip file (`-f`): This file contains one tip name per line. In this case, it will remove (or retain with `-r`) only tips given in the file; 
 2. Giving a compared tree (`-c`): In this case, tips that are specific to the input tree are removed (or retained if `-r`) from the input tree;
-3. Giving a number of random tips (`--random`), tips that are sampled are removed (or retained if `-r`) from the input tree or
+3. Giving a number of random tips (`--random`), tips that are sampled are removed (or retained if `-r`) from the input tree. When combined with `--diversity`, the set of tips to keep is chosen to maximize diversity: iteratively, the closest pair of tips is found and one of the two is randomly removed, until the desired number of remaining tips is reached. `--random` specifies the number of tips to remove (or, with `-r`, the number of tips to keep); or
 4. Giving tip names on the commandline: In this case, it will remove (or retain with `-r`) only the tips given on the command line. 
 
 If  2 branches need to be merged after a tip removal, length of these branches are added, and the bootstrap support of the new branch is the maximum of the bootstrap supports of the two branches.
@@ -19,6 +19,7 @@ Usage:
 
 Flags:
   -c, --comp string      Input compared tree  (default "none")
+      --diversity        If the random pruning takes into account diversity (only with --random)
   -o, --output string    Output tree (default "stdout")
       --random int       Number of tips to randomly sample
   -i, --ref string       Input reference tree (default "stdin")
@@ -67,3 +68,15 @@ gotree draw svg -w 200 -H 200  -i pruned.nw -o commands/prune_7.svg
 Random Tree                   | Pruned Tree                  
 ------------------------------|------------------------------
 ![Random Tree](prune_6.svg) | ![Pruned Tree](prune_7.svg)
+
+* Keeping 4 tips by maximizing diversity:
+```
+gotree generate yuletree --seed 10 -l 20 -o outtree1.nw
+gotree prune -i outtree1.nw --random 4 --diversity --seed 10 -r -o pruned.nw
+gotree draw svg -w 200 -H 200  -i outtree1.nw -o commands/prune_8.svg
+gotree draw svg -w 200 -H 200  -i pruned.nw -o commands/prune_9.svg
+```
+
+Random Tree                   | Pruned Tree (diversity)      
+------------------------------|------------------------------
+![Random Tree](prune_8.svg) | ![Pruned Tree](prune_9.svg)
