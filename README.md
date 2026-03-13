@@ -168,7 +168,6 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * clear:       Remove node/tip comments
     * transfer:    Transfer node names to comments
 *  compare:     Compare full trees, edges, or tips
-    * distances: Print transfer distance of all edges of a reference tree to another tree
     * edges:     Individually compare edges of the reference tree to a compared tree
     * tips:      Compare the set of tips of the reference tree to a compared tree
     * trees:     Compare 2 trees in terms of common and specific branches
