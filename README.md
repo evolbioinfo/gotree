@@ -185,7 +185,6 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
 *  download:    Download trees or images from servers
     * itol:        Download a tree image from iTOL, with given image options
     * ncbitax:     Download the full ncbi taxonomy in newick format
-    * panther:     Download a tree from Panther database (http://pantherdb.org/)
 *  draw:        Draw tree(s) with different layouts
     * text:        Display tree(s) in ASCII text format
     * png:         Draw tree(s) in png format, with normal, radial/unrooted or circular layout
