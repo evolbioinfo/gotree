@@ -14,6 +14,7 @@ import (
 	//"os"
 
 	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/sliceutils"
 )
 
 // Given a set of tip names, this function
@@ -1150,4 +1151,82 @@ func findClosestTipsRecur(n, prev *Node, curDist float64, curMinDist *float64, t
 			}
 		}
 	}
+}
+
+type TipNeighborhoodStats struct {
+	Id          string    // Tip name
+	PercentTips []int     // x% of the total tips to define the neighborhood
+	Jacquard    []float64 // Jacquard similarities between the x% neighborhood of the tip in the reference tree and in the compared tree (x% of the total number of tips in the tree)
+	Common      []int     // Number common tips in the neighborhood of the tip in the reference tree and in the compared tree for x=0.1 (10% of the total number of tips in the tree)
+	Union       []int     // Number of tips in the union of the neighborhood of the tip in the reference tree and in the compared tree for x=0.1 (10% of the total number of tips in the tree)
+}
+
+// CompareTipNeighborhood compares the neighborhood of each tip in the reference tree and in the compared tree,
+// for different values of x% of the total number of tips in the tree.
+// The neighborhood of a tip is defined as the x% closest tips to this tip in the tree, where x is a percentage
+// of the total number of tips in the tree.
+// The function outputs for each tip, the jacquard similarity between the neighborhood of this tip in the
+// reference tree and in the compared tree, for different values of x.
+func CompareTipNeighborhood(refTree *Tree, comparedTree *Tree) (nb []TipNeighborhoodStats, err error) {
+
+	m1, t1 := refTree.ToDistanceMatrix(DISTANCE_METRIC_BRLEN)
+	m2, t2 := comparedTree.ToDistanceMatrix(DISTANCE_METRIC_BRLEN)
+	// m1, t1 := refTree.ToDistanceMatrix(DISTANCE_METRIC_NONE)
+	// m2, t2 := comparedTree.ToDistanceMatrix(DISTANCE_METRIC_NONE)
+
+	for i, t := range t1 {
+		if t.Name() != t2[i].Name() {
+			err = fmt.Errorf("trees do not have the same sets of tip names")
+			return
+		}
+
+		// We get the indices of the tips sorted by distance to the current tip in the
+		// reference tree and in the compared tree
+		closest1 := sliceutils.SortIndicesByValues(m1[i])
+		closest2 := sliceutils.SortIndicesByValues(m2[i])
+
+		percents := make([]int, 0)
+		jacquards := make([]float64, 0)
+		commons := make([]int, 0)
+		unions := make([]int, 0)
+
+		// We will compare the neighborhood of the tip for different values of x% of the total
+		// number of tips in the tree
+		for pourcent := 1; pourcent <= 100; pourcent += 1 {
+			n1 := int(float64(pourcent*len(closest1)) / 100.0)
+			n2 := int(float64(pourcent*len(closest2)) / 100.0)
+			closest1tmp := closest1[:n1]
+			closest2tmp := closest2[:n2]
+
+			// We include in the neighborhood all the tips that are at the same distance as the
+			// last included tip, to avoid arbitrary cutoffs
+			for n1 > 0 && n1 < len(closest1) && m1[i][closest1[n1]] == m1[i][closest1[n1-1]] {
+				n1++
+				closest1tmp = closest1[:n1]
+			}
+
+			// We include in the neighborhood all the tips that are at the same distance as the
+			// last included tip, to avoid arbitrary cutoffs
+			for n2 > 0 && n2 < len(closest2) && m2[i][closest2[n2]] == m2[i][closest2[n2-1]] {
+				n2++
+				closest2tmp = closest2[:n2]
+			}
+
+			//fmt.Printf("Comparing tip %s: %d%% (%d) of the tips in the neighborhood (%d)\n", t.Name(), pourcent, n1, len(closest1))
+
+			jacquard := sliceutils.Jacquard(closest1tmp, closest2tmp)
+			percents = append(percents, pourcent)
+			jacquards = append(jacquards, jacquard)
+			commons = append(commons, len(sliceutils.Intersect(closest1tmp, closest2tmp)))
+			unions = append(unions, len(sliceutils.Union(closest1tmp, closest2tmp)))
+		}
+		nb = append(nb, TipNeighborhoodStats{
+			Id:          t.Name(),
+			PercentTips: percents,
+			Jacquard:    jacquards,
+			Common:      commons,
+			Union:       unions,
+		})
+	}
+	return
 }
