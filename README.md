@@ -163,6 +163,7 @@ You may go to the [doc](docs/index.md) for a more detailed documentation of the 
     * clear:    Remove node/tip comments
 *  compare:     Compare full trees, edges, or tips
     * edges: Individually compare edges of the reference tree to a compared tree
+	* neighborhood: Compare tip neighborhoods between a reference tree and compared trees
     * tips: Compare the set of tips of the reference tree to a compared tree
     * trees: Compare 2 trees in terms of common and specific branches
 *  compute:     Computations such as consensus and supports

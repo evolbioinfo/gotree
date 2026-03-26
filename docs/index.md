@@ -55,6 +55,7 @@ Command                                                            | Subcommand 
 --                                                                 | transfer          | Transfers node names to comments
 [compare](commands/compare.md) ([api](api/compare.md))             |                   | Compares full trees, edges, or tips
 --                                                                 | edges             | Individually compares edges of the reference tree to a compared tree
+--                                                                 | neighborhood      | Compares tip neighborhoods between a reference tree and compared trees
 --                                                                 | tips              | Compares the set of tips of the reference tree to a compared tree
 --                                                                 | trees             | Compare 2 trees in terms of common and specific branches
 [completion](commands/completion.md)                               |                   | Generates auto-completion commands for bash or zsh

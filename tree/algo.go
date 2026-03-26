@@ -1167,12 +1167,17 @@ type TipNeighborhoodStats struct {
 // of the total number of tips in the tree.
 // The function outputs for each tip, the jacquard similarity between the neighborhood of this tip in the
 // reference tree and in the compared tree, for different values of x.
-func CompareTipNeighborhood(refTree *Tree, comparedTree *Tree) (nb []TipNeighborhoodStats, err error) {
+// The function also outputs the number of common tips in the neighborhood of the tip in the reference tree and in the compared tree,
+// and the number of tips in the union of the neighborhood of the tip in the reference tree and in the compared tree, for different values of x.
+// metric can be :
+//   - DISTANCE_METRIC_BRLEN : The distance of each edge corresponds to branch length (patristic distance).
+//   - DISTANCE_METRIC_BOOTS : The distance of each edge corresponds to its bootstrap support.
+//   - DISTANCE_METRIC_NONE : Each edge will count a distance of 1 (topological distance).
+//   - All other values will be considered as DISTANCE_METRIC_BRLEN
+func CompareTipNeighborhood(refTree *Tree, comparedTree *Tree, metric int) (nb []TipNeighborhoodStats, err error) {
 
-	m1, t1 := refTree.ToDistanceMatrix(DISTANCE_METRIC_BRLEN)
-	m2, t2 := comparedTree.ToDistanceMatrix(DISTANCE_METRIC_BRLEN)
-	// m1, t1 := refTree.ToDistanceMatrix(DISTANCE_METRIC_NONE)
-	// m2, t2 := comparedTree.ToDistanceMatrix(DISTANCE_METRIC_NONE)
+	m1, t1 := refTree.ToDistanceMatrix(metric)
+	m2, t2 := comparedTree.ToDistanceMatrix(metric)
 
 	for i, t := range t1 {
 		if t.Name() != t2[i].Name() {

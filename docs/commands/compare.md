@@ -3,7 +3,7 @@
 ## Commands
 
 ### compare
-This command compares a reference tree -given with `-i` with a set of compared trees given with `-c`. Three subcommands :
+This command compares a reference tree -given with `-i` with a set of compared trees given with `-c`. Four subcommands :
 * `gotree compare edges`: Compares each edges/branches of the reference tree to all compared trees, by giving the following informations in a tab-separated format:
  1. Compared tree index;
  2. Reference branch id;
@@ -33,6 +33,19 @@ This command compares a reference tree -given with `-i` with a set of compared t
   2. Weighted Robinson-Foulds distance [(Robinson & Foulds, 1979)](https://doi.org/10.1007/BFb0102690);
   3. Khuner-Felsenstein distance [(Khuner & Felsenstein, 1994)](https://doi.org/10.1093/oxfordjournals.molbev.a040126);
 
+* `gotree compare neighborhood`: For each tip, compares neighborhoods in reference and compared trees across percentages from 1% to 100% of closest tips. Output columns are:
+  1. Compared tree index;
+  2. Tip name;
+  3. Neighborhood percentage;
+  4. Jaccard similarity;
+  5. Number of common tips (`Inter`);
+  6. Number of tips in union (`Union`).
+
+  The neighborhood distance metric can be selected with `--metric`:
+  * `brlen`: sum of branch lengths (patristic distance),
+  * `boot`: sum of branch supports,
+  * `none`: topological distance (all branches have distance 1).
+
 #### Usage
 
 General command
@@ -42,6 +55,7 @@ Usage:
 
 Available Commands:
   edges       Compare edges of a reference tree with another tree
+  neighborhood Compare tip neighborhoods of a reference tree to a compared tree
   tips        Print diff between tip names of two trees
   trees       Compare a reference tree with a set of trees
 
@@ -83,6 +97,19 @@ Flags:
       --binary   If true, then just print true (identical tree) or false (different tree) for each compared tree
   -l, --tips     Include tips in the comparison
   --rf           If true, outputs Robinson-Foulds distance, as the sum of reference + compared specific branches
+
+Global Flags:
+  -c, --compared string   Compared trees input file (default "none")
+  -i, --reftree string    Reference tree input file (default "stdin")
+```
+
+neighborhood sub-command
+```
+Usage:
+  gotree compare neighborhood [flags]
+
+Flags:
+  -m, --metric string   Distance metric (brlen|boot|none) (default "brlen")
 
 Global Flags:
   -c, --compared string   Compared trees input file (default "none")
@@ -153,3 +180,18 @@ gotree compare trees --weighted -i <(gotree generate yuletree --seed 10) -c <(go
 | tree | weighted_RF  | KF           |
 |------|--------------|--------------|
 |0     | 1.310593E+00 | 5.056856E-01 |
+
+
+4. Comparing tip neighborhoods
+
+```
+gotree compare neighborhood -i <(gotree generate yuletree --seed 10) -c <(gotree generate yuletree --seed 12 -n 1) -m brlen
+```
+
+Example output (tab-separated):
+
+| Tree | Tip  | Percent | Jacquard | Inter | Union |
+|------|------|---------|----------|-------|-------|
+| 0    | Tip0 | 1       | 1.000000 | 0     | 0     |
+| 0    | Tip0 | 2       | 1.000000 | 0     | 0     |
+| ...  | ...  | ...     | ...      | ...   | ...   |
