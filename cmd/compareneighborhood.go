@@ -5,14 +5,18 @@ import (
 	"fmt"
 	goio "io"
 	"runtime"
+	"slices"
 
 	"github.com/spf13/cobra"
 
 	"github.com/evolbioinfo/gotree/io"
+	"github.com/evolbioinfo/gotree/sliceutils"
 	"github.com/evolbioinfo/gotree/tree"
 )
 
 var compareNeighborhoodMetric string
+var compareNeighborhoodSpecificTip string
+var compareNeighborhoodSpecificTipPercent float64
 
 // compareCmd represents the compare command
 var compareNeighborhoodCmd = &cobra.Command{
@@ -38,6 +42,7 @@ Tree, Tip, Percent, Jacquard, Inter, Union
 		var refTree *tree.Tree
 		var stats []tree.TipNeighborhoodStats
 		var distMetric int
+		var specificNeighbors []string
 
 		if intree2file == "none" {
 			err = errors.New("You must provide a file containing compared trees")
@@ -76,6 +81,9 @@ Tree, Tip, Percent, Jacquard, Inter, Union
 			io.LogError(err)
 			return
 		}
+		if compareNeighborhoodSpecificTip != "" {
+			specificNeighbors, _ = refTree.TipNeighbors(compareNeighborhoodSpecificTip, compareNeighborhoodSpecificTipPercent, distMetric)
+		}
 
 		fmt.Printf("Tree\tTip\tPercent\tJacquard\tInter\tUnion\n")
 		for comptree := range treechan {
@@ -84,12 +92,21 @@ Tree, Tip, Percent, Jacquard, Inter, Union
 				return
 			}
 
+			var neighbors []string
+			if compareNeighborhoodSpecificTip != "" {
+				tmpneighbors, _ := comptree.Tree.TipNeighbors(compareNeighborhoodSpecificTip, compareNeighborhoodSpecificTipPercent, distMetric)
+				neighbors = sliceutils.UnionStr(specificNeighbors, tmpneighbors)
+			}
+
 			if stats, err = tree.CompareTipNeighborhood(refTree, comptree.Tree, distMetric); err != nil {
 				io.LogError(err)
 				return
 			}
 			for _, s := range stats {
 				for v := range s.PercentTips {
+					if compareNeighborhoodSpecificTip != "" && !slices.Contains(neighbors, s.Id) {
+						continue
+					}
 					fmt.Printf("%d\t%s\t%d\t%f\t%d\t%d\n", comptree.Id, s.Id, s.PercentTips[v], s.Jacquard[v], s.Common[v], s.Union[v])
 				}
 			}
@@ -102,4 +119,6 @@ Tree, Tip, Percent, Jacquard, Inter, Union
 func init() {
 	compareCmd.AddCommand(compareNeighborhoodCmd)
 	compareNeighborhoodCmd.Flags().StringVarP(&compareNeighborhoodMetric, "metric", "m", "brlen", "Distance metric (brlen|boot|none)")
+	compareNeighborhoodCmd.Flags().StringVar(&compareNeighborhoodSpecificTip, "tip", "", "Specific tip to compare (default: all tips)")
+	compareNeighborhoodCmd.Flags().Float64VarP(&compareNeighborhoodSpecificTipPercent, "percent", "p", 100.0, "Percentage of closest tips from --tip to consider in the output (default: 100.0), only when --tip is given")
 }

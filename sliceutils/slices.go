@@ -54,3 +54,19 @@ func Union(slice1, slice2 []int) []int {
 	}
 	return union
 }
+
+// This function returns the union of two slices of ints, considered as sets (i.e. it is the slice of the values that are present in at least one of the slices)
+func UnionStr(slice1, slice2 []string) []string {
+	set := make(map[string]bool)
+	for _, v := range slice1 {
+		set[v] = true
+	}
+	for _, v := range slice2 {
+		set[v] = true
+	}
+	var union []string
+	for v := range set {
+		union = append(union, v)
+	}
+	return union
+}

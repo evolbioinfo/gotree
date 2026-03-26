@@ -1727,9 +1727,7 @@ func (t *Tree) CopyNode(n *Node) *Node {
 	out.depth = n.depth
 	out.id = n.id
 	out.comment = make([]string, len(n.comment))
-	for i, c := range n.comment {
-		out.comment[i] = c
-	}
+	copy(out.comment, n.comment)
 	return out
 }
 

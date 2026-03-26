@@ -1217,7 +1217,7 @@ func CompareTipNeighborhood(refTree *Tree, comparedTree *Tree, metric int) (nb [
 				closest2tmp = closest2[:n2]
 			}
 
-			//fmt.Printf("Comparing tip %s: %d%% (%d) of the tips in the neighborhood (%d)\n", t.Name(), pourcent, n1, len(closest1))
+			//fmt.Printf("Comparing tip %s: %d%% (%d-%d) of the tips in the neighborhood (%v-%v)\n", t.Name(), pourcent, n1, n2, sliceutils.Intersect(closest1tmp, closest2tmp), sliceutils.Union(closest1tmp, closest2tmp))
 
 			jacquard := sliceutils.Jacquard(closest1tmp, closest2tmp)
 			percents = append(percents, pourcent)
@@ -1233,5 +1233,43 @@ func CompareTipNeighborhood(refTree *Tree, comparedTree *Tree, metric int) (nb [
 			Union:       unions,
 		})
 	}
+	return
+}
+
+// TipNeighbors returns the closest tips to the given tip, in the tree, for a given percentage of the total number of tips in the tree.
+// The neighborhood of a tip is defined as the x% closest tips to this tip in the tree, where x is a percentage
+// of the total number of tips in the tree.
+// metric can be :
+//   - DISTANCE_METRIC_BRLEN : The distance of each edge corresponds to branch length (patristic distance).
+//   - DISTANCE_METRIC_BOOTS : The distance of each edge corresponds to its bootstrap support.
+//   - DISTANCE_METRIC_NONE : Each edge will count a distance of 1 (topological distance).
+//   - All other values will be considered as DISTANCE_METRIC_BRLEN
+func (t *Tree) TipNeighbors(tipname string, percent float64, metric int) (neighbors []string, distances []float64) {
+	m, tips := t.ToDistanceMatrix(metric)
+	var tipidx int
+	for i, t := range tips {
+		if t.Name() == tipname {
+			tipidx = i
+			break
+		}
+	}
+	distances = m[tipidx]
+	// We get the indices of the tips sorted by distance to tip
+	sortedindices := sliceutils.SortIndicesByValues(distances)
+	n := int(percent * float64(len(distances)) / 100.0)
+	neighboridx := sortedindices[:n]
+
+	// We include in the neighborhood all the tips that are at the same distance as the
+	// last included tip, to avoid arbitrary cutoffs
+	for n > 0 && n < len(distances) && distances[sortedindices[n]] == distances[sortedindices[n-1]] {
+		n++
+		neighboridx = sortedindices[:n]
+	}
+
+	neighbors = make([]string, len(neighboridx))
+	for i, idx := range neighboridx {
+		neighbors[i] = tips[idx].Name()
+	}
+
 	return
 }
