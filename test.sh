@@ -367,6 +367,40 @@ ${GOTREE} compare trees -i <(${GOTREE} generate yuletree --seed 10) -c <(${GOTRE
 diff -q -b expected result
 rm -f expected result
 
+# gotree compare neighborhood
+echo "->gotree compare neighborhood"
+cat > neigh_ref <<EOF
+((A:0.1,B:0.1):10,(C:0.1,D:0.1):0.1);
+EOF
+cat > neigh_cmp <<EOF
+((A:10,B:10):0.1,(C:0.1,D:0.1):0.1);
+EOF
+
+${GOTREE} compare neighborhood -i neigh_ref -c neigh_cmp --metric none > result_none
+${GOTREE} compare neighborhood -i neigh_ref -c neigh_cmp --metric brlen > result_brlen
+${GOTREE} compare neighborhood -i neigh_ref -c neigh_cmp --metric boot > result_boot
+
+# header + 4 tips * 100 percentages
+head -n 1 result_none > result_header
+cat > expected_header <<EOF
+Tree	Tip	Percent	Jacquard	Inter	Union
+EOF
+diff -q -b expected_header result_header
+test "$(wc -l < result_none)" -eq 401
+test "$(wc -l < result_brlen)" -eq 401
+test "$(wc -l < result_boot)" -eq 401
+
+# with topological metric, A at 50% keeps identical neighborhood in both trees
+awk '$2=="A" && $3==50 {if($4!="1.000000" || $5!="2" || $6!="2") exit 1; found=1} END{if(!found) exit 1}' result_none
+
+# with branch lengths, neighborhoods differ for A at 50%
+awk '$2=="A" && $3==50 {if($4!="0.250000" || $5!="1" || $6!="4") exit 1; found=1} END{if(!found) exit 1}' result_brlen
+
+# no supports in input trees: boot metric defaults to 1.0 and matches topological output
+diff -q -b result_none result_boot
+
+rm -f neigh_ref neigh_cmp expected_header result_header result_none result_brlen result_boot
+
 # gotree compare trees weighted
 echo "->gotree compare trees weighted"
 cat > input <<EOF
