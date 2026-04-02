@@ -75,7 +75,12 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 	directionX := math.Cos(branchAngle)
 	directionY := math.Sin(branchAngle)
 
-	nodePoint := &layoutPoint{xPosition + (length * directionX), yPosition + (length * directionY), branchAngle, node.Name(), node.CommentsString()}
+	newXPosition := xPosition + (length * directionX)
+	newYPosition := yPosition + (length * directionY)
+
+	//fmt.Fprintf(os.Stderr, "Node %s: angleStart: %f, angleFinish: %f, branchAngle: %f, directionX: %f, directionY: %f, newXPosition: %f, newYPosition: %f, length: %f, xPosition: %f, yPosition: %f\n", node.Name(), angleStart, angleFinish, branchAngle, directionX, directionY, newXPosition, newYPosition, length, xPosition, yPosition)
+
+	nodePoint := &layoutPoint{newXPosition, newYPosition, branchAngle, node.Name(), node.CommentsString()}
 
 	if !node.Tip() {
 		leafCounts := make([]int, 0)
@@ -96,6 +101,7 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 			angleStart = branchAngle - (span / 2.0)
 			angleFinish = branchAngle + (span / 2.0)
 		}
+		// fmt.Fprintf(os.Stderr, "%f - %f\n", angleStart, angleFinish)
 		a2 := angleStart
 		rotate := false
 		i = 0
@@ -136,6 +142,18 @@ func (layout *radialLayout) drawTree(maxNameLength int) {
 	yoffset := 0.0
 	if ymin < 0 {
 		yoffset = -ymin
+	}
+
+	if ymax > xmax {
+		xmax = ymax
+	} else if xmax > ymax {
+		ymax = xmax
+	}
+
+	if xoffset > yoffset {
+		yoffset = xoffset
+	} else if yoffset > xoffset {
+		xoffset = yoffset
 	}
 
 	layout.drawer.SetMaxValues(xmax+xoffset, ymax+yoffset, maxNameLength, maxNameLength)
