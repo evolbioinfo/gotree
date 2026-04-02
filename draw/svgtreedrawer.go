@@ -116,24 +116,21 @@ func (svgtd *svgTreeDrawer) DrawName(x, y float64, name string, angle float64) {
 	degree := angle * 180.0 / math.Pi
 	//left, top, right, bottom := ptd.gc.GetStringBounds(name)
 	// Text width: Not very elegant so far...
-	textsize := 4 * len(name)
 	ypos := int(float64(svgtd.height-svgtd.maxNameHeight)*y/svgtd.maxHeight + float64(svgtd.topmargin))
 	xpos := int(float64(svgtd.width-svgtd.maxNameLength)*x/svgtd.maxLength + float64(svgtd.leftmargin))
-
+	//fmt.Fprintf(os.Stderr, "Tip angle: %f (%f)\n", angle, degree)
+	svgtd.canvas.Translate(xpos, ypos)
 	// We rotate the other way (text not upside down)
 	if angle < 3*math.Pi/2.0 && angle > math.Pi/2.0 {
-		svgtd.canvas.Translate(xpos, ypos)
 		svgtd.canvas.Rotate(degree - 180)
-		svgtd.canvas.Text(-(textsize)-int(svgtd.dTip), 0, name, "font-family: sans-serif;font-size:8px;")
-		svgtd.canvas.Gend()
-		svgtd.canvas.Gend()
+		svgtd.canvas.Text(-int(svgtd.dTip), 0, name, "alignment-baseline:middle;text-anchor:end;font-family: sans-serif;font-size:8px;")
 	} else {
-		svgtd.canvas.Translate(xpos, ypos)
 		svgtd.canvas.Rotate(degree)
-		svgtd.canvas.Text(int(svgtd.dTip), 0, name, "font-family: sans-serif;font-size:8px;")
-		svgtd.canvas.Gend()
-		svgtd.canvas.Gend()
+		svgtd.canvas.Text(int(svgtd.dTip), 0, name, "alignment-baseline:middle;text-anchor:start;font-family: sans-serif;font-size:8px;")
 	}
+	//svgtd.canvas.Rect(int(svgtd.dTip), 0, 100, 10)
+	svgtd.canvas.Gend()
+	svgtd.canvas.Gend()
 }
 
 func (svgtd *svgTreeDrawer) Write() {
