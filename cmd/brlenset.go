@@ -10,6 +10,7 @@ import (
 )
 
 var brlensetlen float64
+var brlensetTip string
 
 // minbrlenCmd represents the minbrlen command
 var brlenSetCmd = &cobra.Command{
@@ -22,6 +23,7 @@ Example of usage:
 gotree brlen set -i tree.nw -o out.nw -l 0.001
 if --internal=false is given, it won't apply to internal branches (only external)
 if --external=false is given, it won't apply to external branches (only internal)
+if --tip is given, only set the branch length of the terminal branch leading to that tip
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var f *os.File
@@ -45,9 +47,26 @@ if --external=false is given, it won't apply to external branches (only internal
 				io.LogError(t.Err)
 				return t.Err
 			}
-			for _, e := range t.Tree.Edges() {
-				if (e.Right().Tip() && brlenexternal) || (!e.Right().Tip() && brleninternal) {
-					e.SetLength(brlensetlen)
+
+			if brlensetTip != "" {
+				var tipNode *tree.Node
+				// Set branch length for a specific tip
+				if err = t.Tree.UpdateTipIndex(); err != nil {
+					io.LogError(err)
+					return
+				}
+				tipNode, err = t.Tree.TipNode(brlensetTip)
+				if err != nil {
+					io.LogError(err)
+					return
+				}
+				tipNode.Edges()[0].SetLength(brlensetlen)
+			} else {
+				// Set branch length for all branches (original behavior)
+				for _, e := range t.Tree.Edges() {
+					if (e.Right().Tip() && brlenexternal) || (!e.Right().Tip() && brleninternal) {
+						e.SetLength(brlensetlen)
+					}
 				}
 			}
 			f.WriteString(t.Tree.Newick() + "\n")
@@ -59,6 +78,7 @@ if --external=false is given, it won't apply to external branches (only internal
 func init() {
 	brlenCmd.AddCommand(brlenSetCmd)
 	brlenSetCmd.Flags().Float64VarP(&brlensetlen, "length", "l", 0.0, "Desired branch length")
+	brlenSetCmd.Flags().StringVar(&brlensetTip, "tip", "", "Terminal branch tip (if set, only modify the branch leading to this tip)")
 	brlenSetCmd.PersistentFlags().StringVarP(&intreefile, "input", "i", "stdin", "Input tree")
 	brlenSetCmd.PersistentFlags().StringVarP(&outtreefile, "output", "o", "stdout", "Min length output tree file")
 }
