@@ -877,6 +877,30 @@ ${GOTREE} generate yuletree --seed 10 -l 20 | ${GOTREE} prune -i - -c <(${GOTREE
 diff -q -b expected result
 rm -f expected result
 
+echo "->gotree prune --outtipfile"
+cat > expected <<EOF
+((Tip4,(Tip7,Tip2)),((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)),Tip0);
+EOF
+cat > expectedtips <<EOF
+Tip10 0.09877148486784715
+Tip11 0.11878365225567722
+Tip12 0.11237796247328742
+Tip13 0.043410187065692406
+Tip14 0.004045558787936122
+Tip15 0.026931366387984084
+Tip16 0.23546628757817842
+Tip17 0.0172464384244537
+Tip18 0.3087862710508567
+Tip19 0.13096442937066638
+Tip	Length
+EOF
+
+${GOTREE} generate yuletree --seed 10 -l 20 | ${GOTREE} prune -i - -c <(${GOTREE} generate yuletree --seed 12 -l 10) --outtipfile tipfile | ${GOTREE} brlen clear > result
+diff -q -b expected result
+diff -q -b <(sort expectedtips) <(sort tipfile)
+rm -f expected result expectedtips tipfile
+
+
 echo "->gotree prune tipfile"
 cat > expected <<EOF
 ((Tip4,(Tip7,Tip2)),((Tip8,(Tip9,Tip3)),((Tip6,Tip5),Tip1)),Tip0);

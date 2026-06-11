@@ -255,28 +255,44 @@ func (t *Tree) SelectNodes(re string) ([]*Node, error) {
 //
 // if revert is true, then keeps only tips with the given names
 //
+// Returns the list of removed tip names and the lengths of the removed edges, and an
+// error if one of the names is not a tip in the tree
+//
 // Removed tips
-func (t *Tree) RemoveTips(revert bool, names ...string) error {
+func (t *Tree) RemoveTips(revert bool, names ...string) (delNames []string, delLength []float64, err error) {
 	namemap := make(map[string]bool)
-
+	delNames = make([]string, 0)
+	delLength = make([]float64, 0)
+	toremove := make([]*Node, 0)
 	for _, name := range names {
 		namemap[name] = true
 	}
 
+	// We first check that all names are tips and we list the tips to remove, then we remove them.
+	// This way, if there is an error (a name is not a tip), we do not modify the tree.
+	// Also we keep the length of the removed edges (before it is potentially modified when several tips are removed)
+	// to be able to write them in a file if needed.
 	for _, tip := range t.Tips() {
 		if len(tip.neigh) != 1 {
-			return errors.New("The node named " + tip.Name() + " is not a tip")
+			return delNames, delLength, errors.New("The node named " + tip.Name() + " is not a tip")
 		}
 
 		_, ok := namemap[tip.Name()]
 		if (!revert && ok) || (revert && !ok) {
-			if err := t.removeTip(tip); err != nil {
-				return err
-			}
+			delNames = append(delNames, tip.Name())
+			delLength = append(delLength, tip.Edges()[0].Length())
+			toremove = append(toremove, tip)
 		}
 	}
+
+	for _, tip := range toremove {
+		if err := t.removeTip(tip); err != nil {
+			return delNames, delLength, err
+		}
+	}
+
 	t.ReinitInternalIndexes()
-	return nil
+	return delNames, delLength, nil
 }
 
 // Removes one tip from the tree. The internal node may be removed, example:

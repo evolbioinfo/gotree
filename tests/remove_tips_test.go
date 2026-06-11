@@ -28,7 +28,7 @@ func TestRemoveTips(t *testing.T) {
 		}
 	}
 
-	if err = tr.RemoveTips(false, toremove...); err != nil {
+	if _, _, err = tr.RemoveTips(false, toremove...); err != nil {
 		t.Error(err)
 	}
 
@@ -42,7 +42,7 @@ func TestRemoveTips(t *testing.T) {
 		}
 	}
 
-	if err = t2.RemoveTips(true, toremove...); err != nil {
+	if _, _, err = t2.RemoveTips(true, toremove...); err != nil {
 		t.Error(err)
 	}
 	if nodeindex, err2 = tree.NewNodeIndex(t2); err2 != nil {

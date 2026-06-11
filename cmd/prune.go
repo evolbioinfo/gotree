@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	goio "io"
 	mathrand "math/rand"
 	"os"
+	"strconv"
 
 	"github.com/evolbioinfo/gotree/io"
 	"github.com/evolbioinfo/gotree/tree"
@@ -55,6 +57,7 @@ func randomTips(tr *tree.Tree, n int, rand *mathrand.Rand) (sampled []string) {
 
 var randomtips int
 var diversity bool
+var outtipfile string
 
 // pruneCmd represents the prune command
 var pruneCmd = &cobra.Command{
@@ -87,13 +90,17 @@ To do so, until the desired number of tips is reached, the closest tips pairs ar
 (randomly) to be deleted. In case of equality, one random pair is selected. The process stops when
 the number of desired number of tips to remove is reached (--random <int>). If revert is true (-r --revert), then --random <i> indicates 
 the number of tips to keep (as opposed to the number of tips to remove).
+
+
+If --outtipfile is given, the list of removed tips is written in this file.
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		var f *os.File
+		var f, otipfile *os.File
 		var comptree *tree.Tree
 		var treefile goio.Closer
 		var treechan <-chan tree.Trees
-
+		var removedTipNames []string
+		var removedTipLengths []float64
 		var specificTipNames []string
 
 		if f, err = openWriteFile(outtreefile); err != nil {
@@ -101,6 +108,12 @@ the number of tips to keep (as opposed to the number of tips to remove).
 			return
 		}
 		defer closeWriteFile(f, outtreefile)
+
+		if otipfile, err = openWriteFile(outtipfile); err != nil {
+			io.LogError(err)
+			return
+		}
+		defer closeWriteFile(otipfile, outtipfile)
 
 		if intree2file != "none" {
 			if comptree, err = readTree(intree2file); err != nil {
@@ -133,29 +146,33 @@ the number of tips to keep (as opposed to the number of tips to remove).
 				return reftree.Err
 			}
 			if tipfile != "none" {
-				err = reftree.Tree.RemoveTips(revert, tips...)
+				removedTipNames, removedTipLengths, err = reftree.Tree.RemoveTips(revert, tips...)
 			} else if comptree != nil {
 				specificTipNames = specificTips(reftree.Tree, comptree)
-				err = reftree.Tree.RemoveTips(revert, specificTipNames...)
+				removedTipNames, removedTipLengths, err = reftree.Tree.RemoveTips(revert, specificTipNames...)
 			} else if randomtips > 0 {
 				if diversity {
 					if !revert {
 						randomtips = ntips - randomtips
 					}
 					sampled := reftree.Tree.SubSampleDiversity(randomtips, globalRand)
-					err = reftree.Tree.RemoveTips(true, sampled...)
+					removedTipNames, removedTipLengths, err = reftree.Tree.RemoveTips(true, sampled...)
 				} else {
 					sampled := randomTips(reftree.Tree, randomtips, globalRand)
-					err = reftree.Tree.RemoveTips(revert, sampled...)
+					removedTipNames, removedTipLengths, err = reftree.Tree.RemoveTips(revert, sampled...)
 				}
 			} else {
-				err = reftree.Tree.RemoveTips(revert, args...)
+				removedTipNames, removedTipLengths, err = reftree.Tree.RemoveTips(revert, args...)
 			}
 			if err != nil {
 				io.LogError(err)
 				return
 			}
 			f.WriteString(reftree.Tree.Newick() + "\n")
+			fmt.Fprintf(otipfile, "Tip\tLength\n")
+			for i, name := range removedTipNames {
+				fmt.Fprintf(otipfile, "%s\t%s\n", name, strconv.FormatFloat(removedTipLengths[i], 'f', -1, 64))
+			}
 		}
 		return
 	},
@@ -166,7 +183,8 @@ func init() {
 	pruneCmd.Flags().StringVarP(&intreefile, "ref", "i", "stdin", "Input reference tree")
 	pruneCmd.Flags().StringVarP(&intree2file, "comp", "c", "none", "Input compared tree ")
 	pruneCmd.Flags().StringVarP(&outtreefile, "output", "o", "stdout", "Output tree")
-	pruneCmd.Flags().StringVarP(&tipfile, "tipfile", "f", "none", "Tip file")
+	pruneCmd.Flags().StringVarP(&tipfile, "tipfile", "f", "none", "Input tip file")
+	pruneCmd.Flags().StringVar(&outtipfile, "outtipfile", "none", "Output tip file (removed tip files informations)")
 	pruneCmd.Flags().BoolVarP(&revert, "revert", "r", false, "If true, then revert the behavior: will keep only species given in the command line, or keep only the species that are specific to the input tree, or keep only randomly selected taxa")
 	pruneCmd.Flags().IntVar(&randomtips, "random", 0, "Number of tips to randomly sample")
 	pruneCmd.Flags().BoolVar(&diversity, "diversity", false, "If the random pruning takes into account diversity (only with --random)")
