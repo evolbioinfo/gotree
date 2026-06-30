@@ -78,6 +78,20 @@ func (n *Node) Name() string {
 	return n.name
 }
 
+// Returns the name of the node with quotes
+// if it contains special characters (space, comma, semicolon, colon, parenthesis)
+func (n *Node) NameQuoted() string {
+	if len(n.name) == 0 {
+		return ""
+	}
+	for _, c := range n.name {
+		if c == ' ' || c == ',' || c == ';' || c == ':' || c == '(' || c == ')' || c == '[' || c == ']' {
+			return fmt.Sprintf("'%s'", n.name)
+		}
+	}
+	return n.name
+}
+
 // Returns the Id of the node. Id==NIL_ID means that
 // it has not been set yet.
 func (n *Node) Id() int {
@@ -272,5 +286,5 @@ func (n *Node) Newick(parent *Node, newick *bytes.Buffer) {
 			newick.WriteString(")")
 		}
 	}
-	newick.WriteString(n.name)
+	newick.WriteString(n.NameQuoted())
 }

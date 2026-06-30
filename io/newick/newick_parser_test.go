@@ -13,6 +13,29 @@ import (
 )
 
 // Ensure the parser can parse strings into Statement ASTs.
+func TestParser_ParseQuotedLabels(t *testing.T) {
+	intree := `('a:b;c', "d,e(f)g":0.5);`
+	tree, err := newick.NewParser(strings.NewReader(intree)).Parse()
+	if err != nil {
+		t.Fatalf("expected quoted labels to parse, got error: %v", err)
+	}
+
+	names := make([]string, 0, len(tree.Tips()))
+	for _, tip := range tree.Tips() {
+		names = append(names, tip.Name())
+	}
+
+	want := []string{"a:b;c", "d,e(f)g"}
+	if len(names) != len(want) {
+		t.Fatalf("expected %d tips, got %d", len(want), len(names))
+	}
+	for i := range want {
+		if names[i] != want[i] {
+			t.Fatalf("expected tip %d to be %q, got %q", i, want[i], names[i])
+		}
+	}
+}
+
 func TestParser_ParseTree(t *testing.T) {
 	goodtrees := [...]string{
 		"(Tip2:1.00000,(Tip 7:1.00000,((Tip9[NODE COMMENT]:1.00000,((Tip5:1.00000,((Tip8:1.00000,Tip6:0.50000):0.50000,Tip4:0.25000):0.25000):0.50000,Tip3:0.50000):0.25000):0.25000,Node0:0.25000):0.12500):0.12500,Tip1:0.50000);",

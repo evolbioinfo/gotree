@@ -65,6 +65,8 @@ func (s *Scanner) Scan(ignoreSemiColumn bool) (tok Token, lit string) {
 		}
 	case ':':
 		return STARTLEN, string(ch)
+	case '\'', '"':
+		return s.scanQuoted(ch)
 	}
 
 	s.unread()
@@ -91,6 +93,31 @@ func (s *Scanner) scanWhitespace() (tok Token, lit string) {
 	}
 
 	return WS, buf.String()
+}
+
+// scanQuoted consumes a quoted Newick label and returns its contents as an identifier.
+func (s *Scanner) scanQuoted(quote rune) (tok Token, lit string) {
+	var buf bytes.Buffer
+
+	for {
+		ch := s.read()
+		switch {
+		case ch == eof:
+			return ILLEGAL, buf.String()
+		case ch == quote:
+			next := s.read()
+			if next == quote {
+				buf.WriteRune(quote)
+				continue
+			}
+			if next != eof {
+				s.unread()
+			}
+			return IDENT, buf.String()
+		default:
+			buf.WriteRune(ch)
+		}
+	}
 }
 
 // scanIdent consumes the current rune and all contiguous identifier runes.

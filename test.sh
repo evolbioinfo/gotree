@@ -1659,6 +1659,17 @@ ${GOTREE} reformat newick -i nexus -f nexus -o result
 diff -q -b expected result
 rm -f expected result nexus
 
+echo "->gotree reformat newick with quoted labels and comments"
+cat > input <<EOF
+('a:b;c'[tip1],(('d,e(f)g'[tip2],x[tip3])[node-comment],y[tip4])[root-comment]);
+EOF
+cat > expected <<EOF
+('a:b;c'[tip1],(('d,e(f)g'[tip2],x[tip3])[node-comment],y[tip4])[root-comment]);
+EOF
+${GOTREE} reformat newick -i input -f newick -o result
+diff -q -b expected result
+rm -f expected result input
+
 echo "->gotree acr acctran"
 cat > tmp_states.txt <<EOF
 1,A
