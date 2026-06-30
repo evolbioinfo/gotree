@@ -61,7 +61,7 @@ randomly before going deeper in the tree.
 		case "none":
 			algo = acr.ALGO_NONE
 		default:
-			io.LogError(fmt.Errorf("Unkown parsimony algorithm: %s", parsimonyAlgo))
+			io.LogError(fmt.Errorf("Unknown parsimony algorithm: %s", parsimonyAlgo))
 			return
 		}
 		// Reading tip state in an input file
