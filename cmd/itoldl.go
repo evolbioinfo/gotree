@@ -52,7 +52,7 @@ phyloxml
 				return
 			}
 		case download.FORMAT_UNKNOWN:
-			err = errors.New("Unkown format: " + dlformat)
+			err = errors.New("Unknown format: " + dlformat)
 			io.LogError(err)
 			return
 		}

@@ -69,7 +69,7 @@ func ParsimonyAcr(t *tree.Tree, tipCharacters map[string]string, algo int, rando
 	case ALGO_NONE:
 		// No pass after uppass
 	default:
-		err = fmt.Errorf("Parsimony algorithm %d unkown", algo)
+		err = fmt.Errorf("Parsimony algorithm %d unknown", algo)
 		return
 	}
 
