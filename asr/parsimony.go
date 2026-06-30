@@ -63,7 +63,7 @@ func ParsimonyAsr(t *tree.Tree, a align.Alignment, algo int, randomResolve bool,
 	case ALGO_ACCTRAN:
 		parsimonyACCTRAN(t.Root(), nil, a, seqs, charToIndex, randomResolve, rand)
 	default:
-		err = fmt.Errorf("parsimony algorithm %d unkown", algo)
+		err = fmt.Errorf("parsimony algorithm %d unknown", algo)
 		return
 	}
 
