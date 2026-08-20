@@ -37,6 +37,7 @@ var svgCmd = &cobra.Command{
 			io.LogError(err)
 			return err
 		}
+		legendW, legendH := draw.LegendSize(metaLegend, draw.SvgTextWidth)
 
 		ntree := 0
 		if treefile, treechan, err = readTrees(intreefile); err != nil {
@@ -75,14 +76,14 @@ var svgCmd = &cobra.Command{
 					return
 				}
 
-				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, margin, margin, margin, margin)
+				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, margin, margin, margin, margin, legendW, legendH)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 				l.SetDisplayInternalNodes(drawInternalNodeSymbols)
 			} else if svgcircular {
-				d = draw.NewSvgTreeDrawer(f, min(svgwidth, svgheight), min(svgwidth, svgheight), margin, margin, margin, margin)
+				d = draw.NewSvgTreeDrawer(f, min(svgwidth, svgheight), min(svgwidth, svgheight), margin, margin, margin, margin, legendW, legendH)
 				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else {
-				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, margin, 30, 30)
+				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, 30, margin, 30, 30, legendW, legendH)
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
 			l.SetDisplayInternalNodes(drawInternalNodeSymbols)

@@ -30,8 +30,10 @@ const (
 	legendRowHeight = 13.0
 	// legendSwatchGap is the horizontal space (px) reserved for a row's marker before its label starts.
 	legendSwatchGap = 14.0
-	// legendCharWidth is the approximate pixel width of one legend label character, used to size the legend box.
-	legendCharWidth = 5.0
+	// legendGap is the pixel gap left between the tree area and the legend band reserved below it.
+	legendGap = 10.0
+	// legendColumnGap is the horizontal pixel gap between two field columns in the legend.
+	legendColumnGap = 10.0
 )
 
 // metaLabelOffset returns the pixel offset at which the tip label should
@@ -116,33 +118,79 @@ type legendRow struct {
 	r, g, b, a uint8
 }
 
-// legendRows flattens legend entries into the linear list of rows a
-// TreeDrawer should render: one header row per field, then one row per
-// value (marker + label), plus a "..." row when a field's values were
-// truncated (see maxLegendDiscreteValues).
-func legendRows(entries []LegendEntry) []legendRow {
-	rows := make([]legendRow, 0, len(entries)*2)
+// legendColumns lays out legend entries as one column per metadata field
+// (landscape legend): each column is a header row (the field name) followed
+// by that field's value rows (marker + label), plus a "..." row when the
+// field's values were truncated (see maxLegendDiscreteValues). Columns are
+// meant to be drawn left to right, each internally top to bottom.
+func legendColumns(entries []LegendEntry) [][]legendRow {
+	cols := make([][]legendRow, 0, len(entries))
 	for _, e := range entries {
-		rows = append(rows, legendRow{text: e.Field, isHeader: true})
+		col := make([]legendRow, 0, len(e.Values)+2)
+		col = append(col, legendRow{text: e.Field, isHeader: true})
 		for _, v := range e.Values {
-			rows = append(rows, legendRow{text: v.Label, hasSwatch: true, shape: e.Shape, r: v.R, g: v.G, b: v.B, a: v.A})
+			col = append(col, legendRow{text: v.Label, hasSwatch: true, shape: e.Shape, r: v.R, g: v.G, b: v.B, a: v.A})
 		}
 		if e.Truncated {
-			rows = append(rows, legendRow{text: "..."})
+			col = append(col, legendRow{text: "..."})
 		}
+		cols = append(cols, col)
 	}
-	return rows
+	return cols
 }
 
-// legendMaxChars returns the longest row text length, used to size the legend box.
-func legendMaxChars(rows []legendRow) int {
-	max := 0
-	for _, r := range rows {
-		if len(r.text) > max {
-			max = len(r.text)
+// TextWidthFunc measures the rendered pixel width of text in a legend row
+// (bold is true for a field-name header row), for a specific TreeDrawer's
+// font/size. Implementations: SvgTextWidth (estimate, no real font metrics
+// available for SVG output) and PngTextWidth (exact, via draw2d font
+// metrics, the same font pngTreeDrawer draws with).
+type TextWidthFunc func(text string, bold bool) float64
+
+// legendColumnWidth returns a column's rendered content width in pixels
+// (marker + label text, or header text), excluding padding/gaps: for each
+// row, the swatch (if any) plus the row's measured text width, maxed
+// across all rows in the column.
+func legendColumnWidth(col []legendRow, widthFn TextWidthFunc) float64 {
+	max := 0.0
+	for _, r := range col {
+		w := widthFn(r.text, r.isHeader)
+		if r.hasSwatch {
+			w += legendSwatchGap
+		}
+		if w > max {
+			max = w
 		}
 	}
 	return max
+}
+
+// LegendSize returns the pixel (width, height) of the legend box that
+// DrawLegend would draw for entries, or (0, 0) if entries is empty.
+// Callers that want the image canvas to grow to fit the legend (rather
+// than have it overlaid on the tree) should compute this before
+// constructing a TreeDrawer and reserve the returned space, e.g. via
+// NewSvgTreeDrawer/NewPngTreeDrawer's legendWidth/legendHeight parameters.
+// widthFn must measure text the same way the eventual TreeDrawer's
+// DrawLegend will (SvgTextWidth for an svg drawer, PngTextWidth for a png
+// one), or the reserved space and the actual rendering will disagree.
+func LegendSize(entries []LegendEntry, widthFn TextWidthFunc) (width, height int) {
+	cols := legendColumns(entries)
+	if len(cols) == 0 {
+		return 0, 0
+	}
+	w := 2 * legendPadding
+	maxRows := 0
+	for i, col := range cols {
+		if i > 0 {
+			w += legendColumnGap
+		}
+		w += legendColumnWidth(col, widthFn)
+		if len(col) > maxRows {
+			maxRows = len(col)
+		}
+	}
+	h := float64(maxRows)*legendRowHeight + 2*legendPadding
+	return int(math.Ceil(w)), int(math.Ceil(h))
 }
 
 func maxLength(t *tree.Tree, hasBranchLengths, hasTipNames, hasNodeComments bool) (float64, int) {

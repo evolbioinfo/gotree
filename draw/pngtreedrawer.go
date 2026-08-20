@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"io"
 	"math"
+	"sync"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/llgcode/draw2d"
@@ -22,29 +23,37 @@ import (
 /*
 TextTreeDrawer initializer. TextTreeDraws draws tree as ASCII on stdout or any file.
 So far: Does not take into account branch lengths.
+
+legendWidth/legendHeight (from LegendSize) reserve extra canvas space
+below/beside the tree area for DrawLegend, instead of overlaying it on the
+tree. Pass 0, 0 when there is no legend.
 */
-func NewPngTreeDrawer(w io.Writer, width, height int, leftmargin, rightmargin, topmargin, bottommargin int, fillbackground bool) TreeDrawer {
+func NewPngTreeDrawer(w io.Writer, width, height int, leftmargin, rightmargin, topmargin, bottommargin int, fillbackground bool, legendWidth, legendHeight int) TreeDrawer {
 	ptd := &pngTreeDrawer{
-		w,
-		width,
-		height,
-		leftmargin,
-		rightmargin,
-		topmargin,
-		bottommargin,
-		nil,
-		nil,
-		2.0,
-		0.0,
-		0.0,
-		0.0,
-		0.0,
+		outwriter:    w,
+		width:        width,
+		height:       height,
+		leftmargin:   leftmargin,
+		rightmargin:  rightmargin,
+		topmargin:    topmargin,
+		bottommargin: bottommargin,
+		legendWidth:  legendWidth,
+		legendHeight: legendHeight,
+		dTip:         2.0,
 	}
-	ptd.img = image.NewRGBA(image.Rect(0, 0, width+leftmargin+rightmargin, height+bottommargin+topmargin))
+	totalW := width + leftmargin + rightmargin
+	if legendWidth > totalW {
+		totalW = legendWidth
+	}
+	totalH := height + topmargin + bottommargin
+	if legendHeight > 0 {
+		totalH += int(legendGap) + legendHeight
+	}
+	ptd.img = image.NewRGBA(image.Rect(0, 0, totalW, totalH))
 	ptd.gc = draw2dimg.NewGraphicContext(ptd.img)
 	if fillbackground {
 		ptd.gc.SetFillColor(color.White)
-		draw2dkit.Rectangle(ptd.gc, 0, 0, float64(width+leftmargin+rightmargin), float64(height+bottommargin+topmargin))
+		draw2dkit.Rectangle(ptd.gc, 0, 0, float64(totalW), float64(totalH))
 		ptd.gc.Fill()
 	}
 	ptd.initFonts()
@@ -64,6 +73,8 @@ type pngTreeDrawer struct {
 	rightmargin   int                       // Right margin of the canvas (in addition to the width)
 	topmargin     int                       // Top margin of the canvas (in addition to the height)
 	bottommargin  int                       // Bottom margin of the canvas (in addition to the height)
+	legendWidth   int                       // Pixel width reserved for the legend box (0 if none), from LegendSize
+	legendHeight  int                       // Pixel height reserved for the legend box (0 if none), from LegendSize
 	img           *image.RGBA               // Image
 	gc            *draw2dimg.GraphicContext // Graphic context to draw on the image
 	dTip          float64                   // Distance from tip tolabel
@@ -260,19 +271,17 @@ func (ptd *pngTreeDrawer) DrawName(x, y float64, name string, angle float64) {
 // transform), listing each metadata field's name, marker shape, and
 // color-coded values.
 func (ptd *pngTreeDrawer) DrawLegend(entries []LegendEntry) {
-	rows := legendRows(entries)
-	if len(rows) == 0 {
+	cols := legendColumns(entries)
+	if len(cols) == 0 || ptd.legendHeight == 0 {
 		return
 	}
 
-	totalH := float64(ptd.height + ptd.topmargin + ptd.bottommargin)
-
-	maxChars := legendMaxChars(rows)
-	legendW := legendSwatchGap + float64(maxChars)*legendCharWidth + 2*legendPadding
-	legendH := float64(len(rows))*legendRowHeight + 2*legendPadding
+	totalH := float64(ptd.height + ptd.topmargin + ptd.bottommargin + int(legendGap) + ptd.legendHeight)
+	legendW := float64(ptd.legendWidth)
+	legendH := float64(ptd.legendHeight)
 
 	x0 := legendPadding
-	y0 := totalH - legendPadding - legendH
+	y0 := totalH - legendH
 
 	ptd.gc.SetFillColor(color.RGBA{0xff, 0xff, 0xff, 0xff})
 	ptd.gc.SetStrokeColor(color.RGBA{0x99, 0x99, 0x99, 0xff})
@@ -284,23 +293,33 @@ func (ptd *pngTreeDrawer) DrawLegend(entries []LegendEntry) {
 	ptd.gc.Close()
 	ptd.gc.FillStroke()
 
-	for i, r := range rows {
-		rowY := y0 + legendPadding + float64(i)*legendRowHeight + legendRowHeight/2.0
-		textX := x0 + legendPadding
-		if r.hasSwatch {
-			ptd.gc.SetFillColor(color.RGBA{r.r, r.g, r.b, r.a})
+	colX := x0 + legendPadding
+	for _, col := range cols {
+		for i, r := range col {
+			rowY := y0 + legendPadding + float64(i)*legendRowHeight + legendRowHeight/2.0
+			textX := colX
+			if r.hasSwatch {
+				ptd.gc.SetFillColor(color.RGBA{r.r, r.g, r.b, r.a})
+				ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+				ptd.gc.SetLineWidth(1)
+				ptd.gc.Translate(colX+4, rowY)
+				ptd.drawShape(0, r.shape)
+				ptd.gc.Translate(-(colX + 4), -rowY)
+				textX = colX + legendSwatchGap
+			}
+			fontName := "goregular"
+			if r.isHeader {
+				fontName = "gobold"
+			}
+			ptd.gc.SetFontData(draw2d.FontData{Name: fontName})
+			ptd.gc.SetFillColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
 			ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
-			ptd.gc.SetLineWidth(1)
-			ptd.gc.Translate(x0+legendPadding+4, rowY)
-			ptd.drawShape(0, r.shape)
-			ptd.gc.Translate(-(x0 + legendPadding + 4), -rowY)
-			textX = x0 + legendPadding + legendSwatchGap
+			_, top, _, bottom := ptd.gc.GetStringBounds(r.text)
+			ptd.gc.FillStringAt(r.text, textX, rowY+(bottom-top)/2.0)
 		}
-		ptd.gc.SetFillColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
-		ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
-		_, top, _, bottom := ptd.gc.GetStringBounds(r.text)
-		ptd.gc.FillStringAt(r.text, textX, rowY+(bottom-top)/2.0)
+		colX += legendColumnWidth(col, PngTextWidth) + legendColumnGap
 	}
+	ptd.gc.SetFontData(draw2d.FontData{Name: "goregular"})
 }
 
 func (ptd *pngTreeDrawer) Write() {
@@ -330,7 +349,10 @@ func (fc myFontCache) Load(fd draw2d.FontData) (*truetype.Font, error) {
 	return font, nil
 }
 
-func (ptd *pngTreeDrawer) initFonts() {
+// loadPngFontCache parses the embedded TTFs into a font cache usable by
+// any draw2d graphic context (a real pngTreeDrawer's, or a throwaway one
+// used purely for text measurement - see PngTextWidth).
+func loadPngFontCache() myFontCache {
 	fontCache := myFontCache{}
 
 	TTFs := map[string]([]byte){
@@ -347,6 +369,47 @@ func (ptd *pngTreeDrawer) initFonts() {
 		}
 		fontCache.Store(draw2d.FontData{Name: fontName}, font)
 	}
+	return fontCache
+}
+
+func (ptd *pngTreeDrawer) initFonts() {
+	fontCache := loadPngFontCache()
 	draw2d.SetFontCache(fontCache)
 	ptd.gc.FontCache = fontCache
+}
+
+var (
+	measureGCOnce sync.Once
+	measureGC     *draw2dimg.GraphicContext
+)
+
+// pngMeasureContext returns a shared, throwaway graphic context configured
+// with the same fonts pngTreeDrawer uses, for measuring text width before
+// a real pngTreeDrawer (and its output image) exists. Built once and
+// reused, since loading/parsing the embedded fonts is not free.
+func pngMeasureContext() *draw2dimg.GraphicContext {
+	measureGCOnce.Do(func() {
+		img := image.NewRGBA(image.Rect(0, 0, 1, 1))
+		gc := draw2dimg.NewGraphicContext(img)
+		fontCache := loadPngFontCache()
+		draw2d.SetFontCache(fontCache)
+		gc.FontCache = fontCache
+		measureGC = gc
+	})
+	return measureGC
+}
+
+// PngTextWidth measures the exact rendered pixel width of text using the
+// same font pngTreeDrawer's legend draws with (bold selects the "gobold"
+// face instead of "goregular", both at the legend's 10pt size).
+func PngTextWidth(text string, bold bool) float64 {
+	gc := pngMeasureContext()
+	fontName := "goregular"
+	if bold {
+		fontName = "gobold"
+	}
+	gc.SetFontData(draw2d.FontData{Name: fontName})
+	gc.SetFontSize(10.0)
+	left, _, right, _ := gc.GetStringBounds(text)
+	return right - left
 }

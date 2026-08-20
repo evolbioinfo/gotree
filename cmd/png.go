@@ -40,6 +40,7 @@ var pngCmd = &cobra.Command{
 			io.LogError(err)
 			return err
 		}
+		legendW, legendH := draw.LegendSize(metaLegend, draw.PngTextWidth)
 
 		ntree := 0
 		if treefile, treechan, err = readTrees(intreefile); err != nil {
@@ -71,13 +72,13 @@ var pngCmd = &cobra.Command{
 					return
 				}
 
-				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30, pngfillbackground)
+				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30, pngfillbackground, legendW, legendH)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else if pngcircular {
-				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), 30, 30, 30, 30, pngfillbackground)
+				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), 30, 30, 30, 30, pngfillbackground, legendW, legendH)
 				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else {
-				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30, pngfillbackground)
+				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30, pngfillbackground, legendW, legendH)
 				l = draw.NewNormalLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			}
 			l.SetDisplayInternalNodes(drawInternalNodeSymbols)

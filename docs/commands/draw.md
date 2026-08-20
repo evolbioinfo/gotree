@@ -96,17 +96,16 @@ the metadata file draws an unfilled, grey-bordered marker for that
 tip/field instead of a colored one.
 
 Whenever `--metadata-file` is used, a legend is automatically added in the
-bottom-left corner of the image (svg & png), listing each field's name,
-marker shape, and color-coded values (min/max for continuous fields; up to
-12 distinct values for discrete fields, beyond which it is truncated):
+bottom-left corner of the image (svg & png), in landscape layout: one
+column per metadata field (field name, marker shape, and color-coded
+values — min/max for continuous fields, up to 12 distinct values for
+discrete fields beyond which it is truncated), columns placed side by
+side. The `-w`/`-H` you pass set the tree's own drawing area exactly as
+before; the canvas is then automatically grown below (and, if needed, to
+the right) to fit the legend, so it is never overlaid on top of the tree:
 
 ```
 gotree generate yuletree --seed 10 | gotree draw svg -w 250 -H 200 --metadata-file metadata.tsv --metadata-colors metadata-colors.yaml -o draw_5.svg
 ```
 
 ![legend svg](draw_5.svg)
-
-The legend is drawn as a fixed-size overlay and is not reserved extra
-canvas space, so on a small image with many metadata fields or long
-value/tip labels it may overlap the tree; increase `-w`/`-H` if that
-happens.

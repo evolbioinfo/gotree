@@ -11,26 +11,35 @@ import (
 /*
 TextTreeDrawer initializer. TextTreeDraws draws tree as ASCII on stdout or any file.
 So far: Does not take into account branch lengths.
+
+legendWidth/legendHeight (from LegendSize) reserve extra canvas space
+below/beside the tree area for DrawLegend, instead of overlaying it on the
+tree. Pass 0, 0 when there is no legend.
 */
 func NewSvgTreeDrawer(w io.Writer, width, height int,
-	leftmargin, rightmargin, topmargin, bottommargin int) TreeDrawer {
+	leftmargin, rightmargin, topmargin, bottommargin int, legendWidth, legendHeight int) TreeDrawer {
 	svgtd := &svgTreeDrawer{
-		w,
-		width,
-		height,
-		leftmargin,
-		rightmargin,
-		topmargin,
-		bottommargin,
-		nil,
-		1.0,
-		0.0,
-		0.0,
-		0.0,
-		0.0,
+		outwriter:    w,
+		width:        width,
+		height:       height,
+		leftmargin:   leftmargin,
+		rightmargin:  rightmargin,
+		topmargin:    topmargin,
+		bottommargin: bottommargin,
+		legendWidth:  legendWidth,
+		legendHeight: legendHeight,
+		dTip:         1.0,
 	}
 	svgtd.canvas = svg.New(w)
-	svgtd.canvas.Start(width+leftmargin+rightmargin, height+topmargin+bottommargin)
+	totalW := width + leftmargin + rightmargin
+	if legendWidth > totalW {
+		totalW = legendWidth
+	}
+	totalH := height + topmargin + bottommargin
+	if legendHeight > 0 {
+		totalH += int(legendGap) + legendHeight
+	}
+	svgtd.canvas.Start(totalW, totalH)
 	return svgtd
 }
 
@@ -52,6 +61,8 @@ type svgTreeDrawer struct {
 	rightmargin   int       // Right margin of the canvas (in addition to the width)
 	topmargin     int       // Top margin of the canvas (in addition to the height)
 	bottommargin  int       // Bottom margin of the canvas (in addition to the height)
+	legendWidth   int       // Pixel width reserved for the legend box (0 if none), from LegendSize
+	legendHeight  int       // Pixel height reserved for the legend box (0 if none), from LegendSize
 	canvas        *svg.SVG  // SVN Canvas
 	dTip          float64   // Distance from tip to label
 	maxLength     float64   // Maximum length of object to draw (in original scale)
@@ -202,38 +213,40 @@ func (svgtd *svgTreeDrawer) DrawName(x, y float64, name string, angle float64) {
 // transform), listing each metadata field's name, marker shape, and
 // color-coded values.
 func (svgtd *svgTreeDrawer) DrawLegend(entries []LegendEntry) {
-	rows := legendRows(entries)
-	if len(rows) == 0 {
+	cols := legendColumns(entries)
+	if len(cols) == 0 || svgtd.legendHeight == 0 {
 		return
 	}
 
-	totalH := float64(svgtd.height + svgtd.topmargin + svgtd.bottommargin)
-
-	maxChars := legendMaxChars(rows)
-	legendW := legendSwatchGap + float64(maxChars)*legendCharWidth + 2*legendPadding
-	legendH := float64(len(rows))*legendRowHeight + 2*legendPadding
+	totalH := float64(svgtd.height + svgtd.topmargin + svgtd.bottommargin + int(legendGap) + svgtd.legendHeight)
+	legendW := float64(svgtd.legendWidth)
+	legendH := float64(svgtd.legendHeight)
 
 	x0 := legendPadding
-	y0 := totalH - legendPadding - legendH
+	y0 := totalH - legendH
 
 	svgtd.canvas.Rect(round(x0), round(y0), round(legendW), round(legendH),
 		"fill:white;fill-opacity:0.85;stroke:#999999;stroke-width:1;")
 
-	for i, r := range rows {
-		rowY := y0 + legendPadding + float64(i)*legendRowHeight + legendRowHeight/2.0
-		textX := x0 + legendPadding
-		textStyle := "alignment-baseline:middle;text-anchor:start;font-family:sans-serif;font-size:8px;"
-		if r.isHeader {
-			textStyle = "alignment-baseline:middle;text-anchor:start;font-family:sans-serif;font-size:8px;font-weight:bold;"
+	colX := x0 + legendPadding
+	for _, col := range cols {
+		for i, r := range col {
+			rowY := y0 + legendPadding + float64(i)*legendRowHeight + legendRowHeight/2.0
+			textX := colX
+			textStyle := "alignment-baseline:middle;text-anchor:start;font-family:sans-serif;font-size:8px;"
+			if r.isHeader {
+				textStyle = "alignment-baseline:middle;text-anchor:start;font-family:sans-serif;font-size:8px;font-weight:bold;"
+			}
+			if r.hasSwatch {
+				style := svgFillStyle(r.r, r.g, r.b, r.a, "black")
+				svgtd.canvas.Translate(round(colX+4), round(rowY))
+				svgtd.drawShape(0, r.shape, style)
+				svgtd.canvas.Gend()
+				textX = colX + legendSwatchGap
+			}
+			svgtd.canvas.Text(round(textX), round(rowY), r.text, textStyle)
 		}
-		if r.hasSwatch {
-			style := svgFillStyle(r.r, r.g, r.b, r.a, "black")
-			svgtd.canvas.Translate(round(x0+legendPadding+4), round(rowY))
-			svgtd.drawShape(0, r.shape, style)
-			svgtd.canvas.Gend()
-			textX = x0 + legendPadding + legendSwatchGap
-		}
-		svgtd.canvas.Text(round(textX), round(rowY), r.text, textStyle)
+		colX += legendColumnWidth(col, SvgTextWidth) + legendColumnGap
 	}
 }
 
@@ -244,6 +257,37 @@ func (svgtd *svgTreeDrawer) Write() {
 func (svgtd *svgTreeDrawer) Bounds() (width, height int) {
 	width, height = svgtd.width, svgtd.height
 	return
+}
+
+// SvgTextWidth estimates the rendered pixel width of text at the svg
+// legend's font size (8px sans-serif). SVG output carries no real font
+// metrics of its own (actual glyph shapes are resolved by whichever
+// viewer/renderer opens the file), so this uses a per-character width
+// table (narrow/normal/wide buckets, roughly Helvetica/Arial-like)
+// instead of a single average - a flat per-character average tends to
+// noticeably under-measure text with many wide characters (capitals, "m",
+// "w") and over-measure narrow-heavy text, which is what caused legend
+// columns to overlap. bold approximates a bold weight's larger footprint.
+func SvgTextWidth(text string, bold bool) float64 {
+	const fontSize = 8.0
+	w := 0.0
+	for _, c := range text {
+		switch {
+		case c == ' ' || c == '.' || c == ',' || c == ':' || c == ';' || c == '\'' || c == '!' || c == '|' ||
+			c == 'i' || c == 'j' || c == 'l' || c == 'I' || c == 't' || c == 'f' || c == 'r':
+			w += 0.30 * fontSize
+		case c == 'm' || c == 'w' || c == 'M' || c == 'W' || c == '@' || c == '%':
+			w += 0.85 * fontSize
+		case c >= 'A' && c <= 'Z':
+			w += 0.68 * fontSize
+		default:
+			w += 0.52 * fontSize
+		}
+	}
+	if bold {
+		w *= 1.12
+	}
+	return w
 }
 
 // svgFillStyle builds a fill style using a standard 6-digit hex color plus
