@@ -69,10 +69,8 @@ func (layout *circularLayout) DrawTree(t *tree.Tree) error {
 	root := t.Root()
 	ntips := len(t.Tips())
 	curNbTips := 0
-	_, maxNameLength := maxLength(t, layout.hasBranchLengths, layout.hasTipLabels, layout.hasNodeComments)
-	maxNameLength += metaExtraNameChars(len(layout.metaFields))
 	layout.drawTreeRecur(root, nil, tree.NIL_SUPPORT, 0, 0, &curNbTips, ntips)
-	layout.drawTree(maxNameLength)
+	layout.drawTree()
 	layout.drawer.Write()
 	return err
 }
@@ -126,7 +124,14 @@ func (layout *circularLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, suppo
 	return angle
 }
 
-func (layout *circularLayout) drawTree(maxNameLength int) {
+// drawTree renders the accumulated geometry. It does not shrink the
+// drawable area for tip labels the way normalLayout does (via
+// TreeDrawer.SetMaxValues' maxNameLength/maxNameHeight): circular labels
+// fan out in every direction, not just rightward, so that one-sided
+// buffer can't keep them inside the image. Instead, the caller is
+// expected to have sized this drawer's margins (via RadialLabelMargin)
+// generously enough on all four sides before construction.
+func (layout *circularLayout) drawTree() {
 	xmin, ymin, xmax, ymax := layout.cache.borders()
 	xoffset := 0.0
 	if xmin < 0 {
@@ -138,7 +143,7 @@ func (layout *circularLayout) drawTree(maxNameLength int) {
 	}
 
 	max := math.Max(xmax+xoffset, ymax+yoffset)
-	layout.drawer.SetMaxValues(max, max, maxNameLength, maxNameLength)
+	layout.drawer.SetMaxValues(max, max, 0, 0)
 
 	for _, l := range layout.cache.branchPaths {
 		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset)

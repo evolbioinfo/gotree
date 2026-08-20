@@ -34,6 +34,11 @@ const (
 	legendGap = 10.0
 	// legendColumnGap is the horizontal pixel gap between two field columns in the legend.
 	legendColumnGap = 10.0
+	// radialLabelExtraGap is a safety pad added to RadialLabelMargin, beyond
+	// the measured label/marker extent, to absorb estimation error (svg text
+	// width is an approximation) and rounding. Generous on purpose: a
+	// slightly larger image is a much smaller cost than a clipped label.
+	radialLabelExtraGap = 14.0
 )
 
 // metaLabelOffset returns the pixel offset at which the tip label should
@@ -52,6 +57,29 @@ func metaLabelOffset(nFields int) float64 {
 // the image bounds.
 func metaExtraNameChars(nFields int) int {
 	return int(math.Ceil(metaLabelOffset(nFields) / 5.0))
+}
+
+// RadialLabelMargin returns the pixel margin needed on every side of a
+// radial/circular canvas so that tip labels (and, if metadata markers are
+// present, their offset) stay inside the image no matter which direction
+// a given tip happens to point. Unlike the normal layout - where labels
+// always point rightward, so a one-sided margin (TreeDrawer.SetMaxValues'
+// maxNameLength) suffices - radial/circular tips fan out over the full
+// circle, so the same buffer must be reserved on all four sides.
+//
+// maxTipNameWidth is the widest tip name's rendered pixel width (0 if
+// hasTipLabels is false, e.g. via SvgTextWidth/PngTextWidth); nMetaFields
+// is the number of --metadata-file columns (0 if none). Callers must
+// compute this, and pass the result as every one of
+// NewSvgTreeDrawer/NewPngTreeDrawer's leftmargin/rightmargin/topmargin/
+// bottommargin, before constructing a radial or circular TreeDrawer.
+func RadialLabelMargin(maxTipNameWidth float64, hasTipLabels bool, nMetaFields int) int {
+	m := metaLabelOffset(nMetaFields)
+	if hasTipLabels {
+		m += maxTipNameWidth
+	}
+	m += radialLabelExtraGap
+	return int(math.Ceil(m))
 }
 
 /*

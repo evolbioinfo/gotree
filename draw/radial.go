@@ -63,9 +63,7 @@ func (layout *radialLayout) DrawTree(t *tree.Tree) error {
 	root := t.Root()
 	layout.spread = 0.0
 	layout.constructNode(t, root, nil, 0.0, 0.0, math.Pi*2, 0.0, 0.0, 0.0)
-	_, maxNameLength := maxLength(t, layout.hasBranchLengths, layout.hasTipLabels, layout.hasNodeComments)
-	maxNameLength += metaExtraNameChars(len(layout.metaFields))
-	layout.drawTree(maxNameLength)
+	layout.drawTree()
 	layout.drawer.Write()
 	return nil
 }
@@ -133,7 +131,14 @@ func (layout *radialLayout) constructNode(t *tree.Tree, node *tree.Node, prev *t
 	return nodePoint
 }
 
-func (layout *radialLayout) drawTree(maxNameLength int) {
+// drawTree renders the accumulated geometry. It does not shrink the
+// drawable area for tip labels the way normalLayout does (via
+// TreeDrawer.SetMaxValues' maxNameLength/maxNameHeight): radial labels fan
+// out in every direction, not just rightward, so that one-sided buffer
+// can't keep them inside the image. Instead, the caller is expected to
+// have sized this drawer's margins (via RadialLabelMargin) generously
+// enough on all four sides before construction.
+func (layout *radialLayout) drawTree() {
 	xmin, ymin, xmax, ymax := layout.cache.borders()
 	xoffset := 0.0
 	if xmin < 0 {
@@ -156,7 +161,7 @@ func (layout *radialLayout) drawTree(maxNameLength int) {
 		xoffset = yoffset
 	}
 
-	layout.drawer.SetMaxValues(xmax+xoffset, ymax+yoffset, maxNameLength, maxNameLength)
+	layout.drawer.SetMaxValues(xmax+xoffset, ymax+yoffset, 0, 0)
 
 	for _, l := range layout.cache.branchPaths {
 		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset)

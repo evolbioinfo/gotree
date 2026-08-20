@@ -64,11 +64,22 @@ var svgCmd = &cobra.Command{
 			}
 
 			margin := 30
-			// for _, n := range t.Tree.AllTipNames() {
-			// 	if len(n)*10 > margin {
-			// 		margin = len(n) * 8
-			// 	}
-			// }
+
+			if svgradial || svgcircular {
+				// Radial/circular tip labels fan out in every direction (not
+				// just rightward like the normal layout), so the margin must
+				// be wide enough on all four sides for the longest one,
+				// wherever it ends up pointing.
+				maxTipNameWidth := 0.0
+				for _, n := range t.Tree.AllTipNames() {
+					if w := draw.SvgTextWidth(n, false); w > maxTipNameWidth {
+						maxTipNameWidth = w
+					}
+				}
+				if radial := draw.RadialLabelMargin(maxTipNameWidth, !drawNoTipLabels, len(metaFields)); radial > margin {
+					margin = radial
+				}
+			}
 
 			if svgradial {
 				if err = t.Tree.ReinitIndexes(); err != nil {
@@ -76,7 +87,7 @@ var svgCmd = &cobra.Command{
 					return
 				}
 
-				d = draw.NewSvgTreeDrawer(f, svgwidth, svgheight, margin, margin, margin, margin, legendW, legendH)
+				d = draw.NewSvgTreeDrawer(f, min(svgwidth, svgheight), min(svgwidth, svgheight), margin, margin, margin, margin, legendW, legendH)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 				l.SetDisplayInternalNodes(drawInternalNodeSymbols)
 			} else if svgcircular {

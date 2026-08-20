@@ -66,16 +66,34 @@ var pngCmd = &cobra.Command{
 				io.LogError(err)
 				return
 			}
+			margin := 30
+
+			if pngradial || pngcircular {
+				// Radial/circular tip labels fan out in every direction (not
+				// just rightward like the normal layout), so the margin must
+				// be wide enough on all four sides for the longest one,
+				// wherever it ends up pointing.
+				maxTipNameWidth := 0.0
+				for _, n := range t.Tree.AllTipNames() {
+					if w := draw.PngTextWidth(n, false); w > maxTipNameWidth {
+						maxTipNameWidth = w
+					}
+				}
+				if radial := draw.RadialLabelMargin(maxTipNameWidth, !drawNoTipLabels, len(metaFields)); radial > margin {
+					margin = radial
+				}
+			}
+
 			if pngradial {
 				if err = t.Tree.ReinitIndexes(); err != nil {
 					io.LogError(err)
 					return
 				}
 
-				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30, pngfillbackground, legendW, legendH)
+				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), margin, margin, margin, margin, pngfillbackground, legendW, legendH)
 				l = draw.NewRadialLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else if pngcircular {
-				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), 30, 30, 30, 30, pngfillbackground, legendW, legendH)
+				d = draw.NewPngTreeDrawer(f, min(pngwidth, pngheight), min(pngwidth, pngheight), margin, margin, margin, margin, pngfillbackground, legendW, legendH)
 				l = draw.NewCircularLayout(d, !drawNoBranchLengths, !drawNoTipLabels, drawInternalNodeLabels, drawSupport)
 			} else {
 				d = draw.NewPngTreeDrawer(f, pngwidth, pngheight, 30, 30, 30, 30, pngfillbackground, legendW, legendH)
