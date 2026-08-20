@@ -707,7 +707,7 @@ func addseq(sequences map[string]string, names *[]string, sequence string, name 
 // If the given token is not a [, then returns the input token and lit
 func (p *Parser) consumeComment(curtoken Token, curlit string) (outtoken Token, outlit string, err error) {
 	outtoken = curtoken
-	curlit = curlit
+	outlit = curlit
 	if curtoken == OPENBRACK {
 		for outtoken != CLOSEBRACK {
 			outtoken, outlit = p.scanIgnoreWhitespace()
