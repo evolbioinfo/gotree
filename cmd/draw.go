@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 
+	"github.com/evolbioinfo/gotree/draw"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var drawNoTipLabels bool
@@ -17,7 +18,8 @@ var drawSupport bool
 var drawSupportCutoff float64
 var drawInternalNodeSymbols bool
 var drawNodeComment bool
-var annotFile string
+var metadataFile string
+var metadataColorsFile string
 
 // drawCmd represents the draw command
 var drawCmd = &cobra.Command{
@@ -38,65 +40,137 @@ func init() {
 	drawCmd.PersistentFlags().BoolVar(&drawSupport, "with-branch-support", false, "Highlight highly supported branches")
 	drawCmd.PersistentFlags().Float64Var(&drawSupportCutoff, "support-cutoff", 0.7, "Cutoff for highlithing supported branches")
 	drawCmd.PersistentFlags().BoolVar(&drawNodeComment, "with-node-comments", false, "Draw the tree with internal node comments (if --with-node-labels is not set)")
-	drawCmd.PersistentFlags().StringVarP(&annotFile, "annotation-file", "f", "", "Annotation file to add colored circles to tip nodes (svg & png)\nTab separated, with <tip-name  Red  Green  Blue> or\n<tip-name hex-value> on each line")
+	drawCmd.PersistentFlags().StringVarP(&metadataFile, "metadata-file", "m", "", "Tab separated metadata file to add colored circles to tip nodes (svg & png): tip name in the first column (header ignored), then one column per metadata field (header = field name). Values are auto-detected as discrete or continuous; colors are auto-assigned unless overridden with --metadata-colors. Empty cells draw an unfilled grey circle.")
+	drawCmd.PersistentFlags().StringVar(&metadataColorsFile, "metadata-colors", "", "Optional YAML file overriding the color scheme of one or more --metadata-file fields (discrete value->color map, or continuous low/high/min/max)")
 }
 
-// Parse tab separated value file to add colored nodes to specific tips
-func parseAnnot(filepath string) (map[string][]uint8, error) {
-
-	colors := make(map[string][]uint8)
-
-	file, err := os.Open(filepath)
-	if err != nil {
-		return nil, err
+// parseMetadataTSV reads a tab separated metadata file: tip name in the
+// first column (header ignored), then one column per metadata field
+// (header = field name). Returns field names in column order, tip names
+// in row order (for deterministic first-appearance color assignment), and
+// values indexed as values[tipName][fieldName].
+func parseMetadataTSV(filepath string) (fields []string, tipOrder []string, values map[string]map[string]string, err error) {
+	var file *os.File
+	if file, err = os.Open(filepath); err != nil {
+		return
 	}
 	defer file.Close()
 
 	reader := csv.NewReader(file)
-	reader.Comma = '\t' // Tab separated values file
+	reader.Comma = '\t'
+
+	var header []string
+	if header, err = reader.Read(); err != nil {
+		return
+	}
+	if len(header) < 2 {
+		err = fmt.Errorf("metadata file must have at least 2 columns (tip name + 1 metadata field), got %d", len(header))
+		return
+	}
+	fields = header[1:]
+
+	values = make(map[string]map[string]string)
+	tipOrder = make([]string, 0)
 
 	for {
-		record, err := reader.Read()
-
+		var record []string
+		record, err = reader.Read()
 		if err == io.EOF {
+			err = nil
 			break
 		}
 		if err != nil {
-			return nil, err
+			return
 		}
-
-		colors[record[0]] = make([]uint8, 3)
-
-		if len(record) == 4 { // R,G,B format
-			for i, col := range record[1:] {
-				comp, err := strconv.ParseUint(col, 10, 8)
-				if err != nil {
-					return nil, err
-				}
-				colors[record[0]][i] = uint8(comp)
-			}
-		} else if len(record) == 2 { // HEX format
-
-			// adapted from stackoverflow.com/a/54200713
-			switch len(record[1]) {
-			case 7:
-				_, err = fmt.Sscanf(record[1], "#%02x%02x%02x", &colors[record[0]][0], &colors[record[0]][1], &colors[record[0]][2])
-			case 9: // Discard Alpha channel
-				var ignore uint8
-				_, err = fmt.Sscanf(record[1], "#%02x%02x%02x%02x", &colors[record[0]][0], &colors[record[0]][1], &colors[record[0]][2], &ignore)
-			default:
-				err = fmt.Errorf("invalid length (%v) for hex code, must be 7 or 9", len(record[1]))
-			}
-
-			if err != nil {
-				return nil, err
-			}
-
-		} else { // Wrong format
-			return nil, fmt.Errorf("annotation file is the wrong format. (Expecting 4 or 2 fields got %d)", len(record))
+		if len(record) != len(header) {
+			err = fmt.Errorf("metadata file: row for tip %q has %d columns, expecting %d", record[0], len(record), len(header))
+			return
 		}
-
+		tip := record[0]
+		if _, ok := values[tip]; !ok {
+			tipOrder = append(tipOrder, tip)
+			values[tip] = make(map[string]string)
+		}
+		for i, field := range fields {
+			values[tip][field] = record[i+1]
+		}
 	}
 
-	return colors, nil
+	return
+}
+
+// yamlFieldSpec mirrors the per-field entries of a --metadata-colors YAML file.
+type yamlFieldSpec struct {
+	Type    string            `yaml:"type"`
+	Colors  map[string]string `yaml:"colors"`
+	Default string            `yaml:"default"`
+	Low     string            `yaml:"low"`
+	High    string            `yaml:"high"`
+	Min     *float64          `yaml:"min"`
+	Max     *float64          `yaml:"max"`
+}
+
+// parseMetadataColorsYAML reads an optional per-field color scheme override file.
+func parseMetadataColorsYAML(filepath string) (specs map[string]draw.FieldColorSpec, err error) {
+	var content []byte
+	if content, err = os.ReadFile(filepath); err != nil {
+		return
+	}
+
+	yamlSpecs := make(map[string]yamlFieldSpec)
+	if err = yaml.Unmarshal(content, &yamlSpecs); err != nil {
+		return
+	}
+
+	specs = make(map[string]draw.FieldColorSpec, len(yamlSpecs))
+	for field, y := range yamlSpecs {
+		spec := draw.FieldColorSpec{
+			Discrete: y.Colors,
+			Default:  y.Default,
+			Low:      y.Low,
+			High:     y.High,
+			Min:      y.Min,
+			Max:      y.Max,
+		}
+		switch y.Type {
+		case "discrete":
+			spec.HasType = true
+			spec.Type = draw.FieldDiscrete
+		case "continuous":
+			spec.HasType = true
+			spec.Type = draw.FieldContinuous
+		case "":
+			// auto-detected
+		default:
+			err = fmt.Errorf("metadata-colors file: field %q has invalid type %q (must be \"discrete\" or \"continuous\")", field, y.Type)
+			return
+		}
+		specs[field] = spec
+	}
+	return
+}
+
+// loadTipMetadata reads --metadata-file (and optional --metadata-colors),
+// and resolves per-tip, per-field circle colors. Returns (nil, nil, nil)
+// when --metadata-file is not set.
+func loadTipMetadata() (fields []string, values map[string][]draw.TipMetaColor, err error) {
+	if metadataFile == "" {
+		return nil, nil, nil
+	}
+
+	var tipOrder []string
+	var raw map[string]map[string]string
+	if fields, tipOrder, raw, err = parseMetadataTSV(metadataFile); err != nil {
+		return
+	}
+
+	overrides := map[string]draw.FieldColorSpec{}
+	if metadataColorsFile != "" {
+		if overrides, err = parseMetadataColorsYAML(metadataColorsFile); err != nil {
+			return
+		}
+	}
+
+	values, err = draw.ResolveTipMetadata(fields, tipOrder, raw, overrides)
+	return
 }

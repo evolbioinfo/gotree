@@ -8,29 +8,25 @@ type normalLayout struct {
 	drawer                 TreeDrawer
 	hasBranchLengths       bool
 	hasTipLabels           bool
-	hasTipSymbols          bool
 	hasInternalNodeLabels  bool
 	hasInternalNodeSymbols bool
 	hasNodeComments        bool
 	hasSupport             bool
 	supportCutoff          float64
 	cache                  *layoutCache
-	tipColors              map[string][]uint8
+	metaFields             []string
+	metaValues             map[string][]TipMetaColor
 }
 
 func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel, withSupportCircles bool) TreeLayout {
 	return &normalLayout{
-		td,
-		withBranchLengths,
-		withTipLabels,
-		false,
-		withInternalNodeLabel,
-		false,
-		false,
-		withSupportCircles,
-		0.7,
-		newLayoutCache(),
-		make(map[string][]uint8),
+		drawer:                td,
+		hasBranchLengths:      withBranchLengths,
+		hasTipLabels:          withTipLabels,
+		hasInternalNodeLabels: withInternalNodeLabel,
+		hasSupport:            withSupportCircles,
+		supportCutoff:         0.7,
+		cache:                 newLayoutCache(),
 	}
 }
 
@@ -46,9 +42,9 @@ func (layout *normalLayout) SetDisplayNodeComments(s bool) {
 	layout.hasNodeComments = s
 }
 
-func (layout *normalLayout) SetTipColors(colors map[string][]uint8) {
-	layout.hasTipSymbols = true
-	layout.tipColors = colors
+func (layout *normalLayout) SetTipMetadata(fields []string, values map[string][]TipMetaColor) {
+	layout.metaFields = fields
+	layout.metaValues = values
 }
 
 /*
@@ -76,10 +72,8 @@ func (layout *normalLayout) drawTreeRecur(n *tree.Node, prev *tree.Node, support
 	if n.Tip() {
 		ypos = float64(*curtip)
 		nbchild = 1.0
-		if layout.hasTipLabels {
-			node := &layoutPoint{distToRoot, ypos, 0.0, n.Name(), n.CommentsString()}
-			layout.cache.tipLabelPoints = append(layout.cache.tipLabelPoints, node)
-		}
+		node := &layoutPoint{distToRoot, ypos, 0.0, n.Name(), n.CommentsString()}
+		layout.cache.tipLabelPoints = append(layout.cache.tipLabelPoints, node)
 		*curtip++
 	} else {
 		minpos := -1.0
@@ -122,6 +116,10 @@ func (layout *normalLayout) drawTree() {
 	for _, l := range layout.cache.verticalPaths {
 		layout.drawer.DrawVLine(l.x, l.y1, l.y2)
 	}
+	if len(layout.metaFields) > 0 {
+		layout.drawer.SetTipLabelOffset(metaBaseGap + metaCircleSpacing*float64(len(layout.metaFields)) + metaLabelExtraGap)
+	}
+
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
 			if layout.hasNodeComments {
@@ -147,10 +145,13 @@ func (layout *normalLayout) drawTree() {
 		}
 	}
 
-	if layout.hasTipSymbols {
+	if len(layout.metaFields) > 0 {
 		for _, p := range layout.cache.tipLabelPoints {
-			if col, ok := layout.tipColors[p.name]; ok {
-				layout.drawer.DrawColoredCircle(p.x, p.y, col[0], col[1], col[2], 0xff)
+			if vals, ok := layout.metaValues[p.name]; ok {
+				for i, v := range vals {
+					offset := metaBaseGap + metaCircleSpacing*float64(i)
+					layout.drawer.DrawColoredCircleAtOffset(p.x, p.y, 0.0, offset, v.R, v.G, v.B, v.A, !v.Empty)
+				}
 			}
 		}
 	}

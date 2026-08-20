@@ -14,6 +14,15 @@ import (
 	"github.com/evolbioinfo/gotree/tree"
 )
 
+const (
+	// metaBaseGap is the pixel distance between a tip and the first metadata circle.
+	metaBaseGap = 8.0
+	// metaCircleSpacing is the pixel distance between consecutive metadata circles.
+	metaCircleSpacing = 11.0
+	// metaLabelExtraGap is added after the last metadata circle before the tip label starts.
+	metaLabelExtraGap = 5.0
+)
+
 /*
 Generic struct to draw on different supports:
  * ascii in terminal
@@ -27,7 +36,14 @@ type TreeDrawer interface {
 	DrawLine(x1, y1, x2, y2 float64)
 	DrawCurve(centerx, centery float64, middlex, middley float64, radius float64, startAngle, endAngle float64)
 	DrawCircle(x, y float64)
-	DrawColoredCircle(x, y float64, r, g, b, a uint8)
+	/* angle : angle of the tip incoming branch. offsetPixels : distance
+	   (in pixels) from (x,y) along angle at which the circle is centered.
+	   filled : colored fill + black stroke if true, else unfilled with a
+	   grey stroke (used for missing metadata values). */
+	DrawColoredCircleAtOffset(x, y float64, angle, offsetPixels float64, r, g, b, a uint8, filled bool)
+	/* Sets the pixel offset at which tip names start being drawn (to make
+	   room for metadata circles drawn closer to the tip). */
+	SetTipLabelOffset(px float64)
 	/* angle : angle of the tip incoming branch */
 	DrawName(x, y float64, name string, angle float64)
 	Write()
@@ -45,7 +61,7 @@ type TreeLayout interface {
 	SetSupportCutoff(float64)
 	SetDisplayInternalNodes(bool)
 	SetDisplayNodeComments(bool)
-	SetTipColors(map[string][]uint8)
+	SetTipMetadata(fields []string, values map[string][]TipMetaColor)
 }
 
 func maxLength(t *tree.Tree, hasBranchLengths, hasTipNames, hasNodeComments bool) (float64, int) {

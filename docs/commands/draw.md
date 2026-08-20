@@ -17,10 +17,15 @@ Available Commands:
   text        Print trees in ASCII
 
 Flags:
-  -f, --annotation-file string   Annotation file to add colored circles to tip nodes (svg & png)
-                                 Tab separated, with <tip-name  Red  Green  Blue> or  
-                                 <tip-name hex-value> on each line
   -i, --input string             Input tree (default "stdin")
+  -m, --metadata-file string     Tab separated metadata file to add colored circles to tip nodes (svg & png):
+                                 tip name in the first column (header ignored), then one column per
+                                 metadata field (header = field name). Values are auto-detected as
+                                 discrete or continuous; colors are auto-assigned unless overridden with
+                                 --metadata-colors. Empty cells draw an unfilled grey circle.
+      --metadata-colors string   Optional YAML file overriding the color scheme of one or more
+                                 --metadata-file fields (discrete value->color map, or continuous
+                                 low/high/min/max)
       --no-branch-lengths        Draw the tree without branch lengths (all the same length)
       --no-tip-labels            Draw the tree without tip labels
   -o, --output string            Output file (default "stdout")
@@ -52,20 +57,34 @@ gotree generate yuletree --seed 10 | gotree randsupport --seed 10 | gotree draw 
 
 ![circular svg](draw_3.svg)
 
-* SVG image, radial layout with annotated tips and without tip labels
+* SVG image, radial layout with tip metadata circles and without tip labels
 ```
-echo "Tip1\t255\t0\t0
-Tip2\t0\t255\t0
-Tip3\t0\t0\t255" > annots.tab
-gotree generate yuletree --seed 10 | gotree draw svg -r -w 200 -H 200 --annotation-file annots.tab --no-tip-labels -o draw_4.svg
+printf "tip\tcountry\tage\nTip1\tFrance\t10\nTip2\tGermany\t50\nTip3\tFrance\t90\n" > metadata.tsv
+gotree generate yuletree --seed 10 | gotree draw svg -r -w 200 -H 200 --metadata-file metadata.tsv --no-tip-labels -o draw_4.svg
 ```
 
 ![annotated svg](draw_4.svg)
 
-The annotation file can also be specified using HEX color codes, the following annotation file would yield the same figure: 
+Here `country` is auto-detected as discrete (colors auto-assigned from a
+categorical palette) and `age` as continuous (colored along a default
+blue-to-red gradient). One circle per metadata column is drawn next to
+each tip, in column order. Colors can be pinned down explicitly with
+`--metadata-colors`, a YAML file keyed by field name:
 
+```yaml
+country:
+  type: discrete
+  colors:
+    France: "#e6194b"
+    Germany: "#3cb44b"
+age:
+  type: continuous
+  low: "#2c7bb6"
+  high: "#d7191c"
+  min: 0
+  max: 100
 ```
-echo "Tip1\t#ff0000
-Tip2\t#00ff00
-Tip3\t#0000ff" > annots.hex.tab
-```
+
+Fields omitted from the YAML file (or the file itself) fall back to full
+auto-detection/auto-coloring. A blank cell in the metadata file draws an
+unfilled, grey-bordered circle for that tip/field instead of a colored one.

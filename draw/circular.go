@@ -11,14 +11,14 @@ type circularLayout struct {
 	drawer                 TreeDrawer
 	hasBranchLengths       bool
 	hasTipLabels           bool
-	hasTipSymbols          bool
 	hasInternalNodeLabels  bool
 	hasInternalNodeSymbols bool
 	hasNodeComments        bool
 	hasSupport             bool
 	supportCutoff          float64
 	cache                  *layoutCache
-	tipColors              map[string][]uint8
+	metaFields             []string
+	metaValues             map[string][]TipMetaColor
 }
 
 /*
@@ -30,17 +30,13 @@ func NewCircularLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInte
 		log.Print("Width!=Height : This is not advised with circular layout")
 	}
 	return &circularLayout{
-		td,
-		withBranchLengths,
-		withTipLabels,
-		true,
-		withInternalNodeLabel,
-		false,
-		false,
-		withSupportCircles,
-		0.7,
-		newLayoutCache(),
-		make(map[string][]uint8),
+		drawer:                td,
+		hasBranchLengths:      withBranchLengths,
+		hasTipLabels:          withTipLabels,
+		hasInternalNodeLabels: withInternalNodeLabel,
+		hasSupport:            withSupportCircles,
+		supportCutoff:         0.7,
+		cache:                 newLayoutCache(),
 	}
 }
 
@@ -56,9 +52,9 @@ func (layout *circularLayout) SetDisplayNodeComments(s bool) {
 	layout.hasNodeComments = s
 }
 
-func (layout *circularLayout) SetTipColors(colors map[string][]uint8) {
-	layout.hasTipSymbols = true
-	layout.tipColors = colors
+func (layout *circularLayout) SetTipMetadata(fields []string, values map[string][]TipMetaColor) {
+	layout.metaFields = fields
+	layout.metaValues = values
 }
 
 /*
@@ -146,20 +142,16 @@ func (layout *circularLayout) drawTree(maxNameLength int) {
 		layout.drawer.DrawCurve(c.center.x+xoffset, c.center.y+yoffset, c.middlepoint.x+xoffset, c.middlepoint.y+yoffset, c.radius, c.startAngle, c.endAngle)
 	}
 
+	if len(layout.metaFields) > 0 {
+		layout.drawer.SetTipLabelOffset(metaBaseGap + metaCircleSpacing*float64(len(layout.metaFields)) + metaLabelExtraGap)
+	}
+
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
-			// Add space to label so it's not hidden by node symbol
-			// There is probably a better way to do this
-			spc := ""
-			if layout.hasTipSymbols {
-				if _, ok := layout.tipColors[p.name]; ok {
-					spc = " "
-				}
-			}
 			if layout.hasNodeComments {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, spc+p.name+p.comment+spc, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, p.brAngle)
 			} else {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, spc+p.name+spc, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, p.brAngle)
 			}
 		}
 	}
@@ -179,10 +171,13 @@ func (layout *circularLayout) drawTree(maxNameLength int) {
 		}
 	}
 
-	if layout.hasTipSymbols {
+	if len(layout.metaFields) > 0 {
 		for _, p := range layout.cache.tipLabelPoints {
-			if col, ok := layout.tipColors[p.name]; ok {
-				layout.drawer.DrawColoredCircle(p.x+xoffset, p.y+yoffset, col[0], col[1], col[2], 0xff)
+			if vals, ok := layout.metaValues[p.name]; ok {
+				for i, v := range vals {
+					offset := metaBaseGap + metaCircleSpacing*float64(i)
+					layout.drawer.DrawColoredCircleAtOffset(p.x+xoffset, p.y+yoffset, p.brAngle, offset, v.R, v.G, v.B, v.A, !v.Empty)
+				}
 			}
 		}
 	}

@@ -11,30 +11,25 @@ type radialLayout struct {
 	spread                 float64
 	hasBranchLengths       bool
 	hasTipLabels           bool
-	hasTipSymbols          bool
 	hasInternalNodeLabels  bool
 	hasInternalNodeSymbols bool
 	hasNodeComments        bool
 	hasSupport             bool
 	supportCutoff          float64
 	cache                  *layoutCache
-	tipColors              map[string][]uint8
+	metaFields             []string
+	metaValues             map[string][]TipMetaColor
 }
 
 func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabels, withSuppportCircles bool) TreeLayout {
 	return &radialLayout{
-		td,
-		0.0,
-		withBranchLengths,
-		withTipLabels,
-		false,
-		withInternalNodeLabels,
-		false,
-		false,
-		withSuppportCircles,
-		0.7,
-		newLayoutCache(),
-		make(map[string][]uint8),
+		drawer:                td,
+		hasBranchLengths:      withBranchLengths,
+		hasTipLabels:          withTipLabels,
+		hasInternalNodeLabels: withInternalNodeLabels,
+		hasSupport:            withSuppportCircles,
+		supportCutoff:         0.7,
+		cache:                 newLayoutCache(),
 	}
 }
 
@@ -49,9 +44,9 @@ func (layout *radialLayout) SetDisplayNodeComments(s bool) {
 	layout.hasNodeComments = s
 }
 
-func (layout *radialLayout) SetTipColors(colors map[string][]uint8) {
-	layout.hasTipSymbols = true
-	layout.tipColors = colors
+func (layout *radialLayout) SetTipMetadata(fields []string, values map[string][]TipMetaColor) {
+	layout.metaFields = fields
+	layout.metaValues = values
 }
 
 /*
@@ -161,20 +156,16 @@ func (layout *radialLayout) drawTree(maxNameLength int) {
 	for _, l := range layout.cache.branchPaths {
 		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset)
 	}
+	if len(layout.metaFields) > 0 {
+		layout.drawer.SetTipLabelOffset(metaBaseGap + metaCircleSpacing*float64(len(layout.metaFields)) + metaLabelExtraGap)
+	}
+
 	if layout.hasTipLabels {
 		for _, p := range layout.cache.tipLabelPoints {
-			// Add space to label so it's not hidden by node symbol
-			// There is probably a better way to do this
-			spc := ""
-			if layout.hasTipSymbols {
-				if _, ok := layout.tipColors[p.name]; ok {
-					spc = "  "
-				}
-			}
 			if layout.hasNodeComments {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, spc+p.name+p.comment+spc, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name+p.comment, p.brAngle)
 			} else {
-				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, spc+p.name+spc, p.brAngle)
+				layout.drawer.DrawName(p.x+xoffset, p.y+yoffset, p.name, p.brAngle)
 			}
 		}
 	}
@@ -195,10 +186,13 @@ func (layout *radialLayout) drawTree(maxNameLength int) {
 		}
 	}
 
-	if layout.hasTipSymbols {
+	if len(layout.metaFields) > 0 {
 		for _, p := range layout.cache.tipLabelPoints {
-			if col, ok := layout.tipColors[p.name]; ok {
-				layout.drawer.DrawColoredCircle(p.x+xoffset, p.y+yoffset, col[0], col[1], col[2], 0xff)
+			if vals, ok := layout.metaValues[p.name]; ok {
+				for i, v := range vals {
+					offset := metaBaseGap + metaCircleSpacing*float64(i)
+					layout.drawer.DrawColoredCircleAtOffset(p.x+xoffset, p.y+yoffset, p.brAngle, offset, v.R, v.G, v.B, v.A, !v.Empty)
+				}
 			}
 		}
 	}

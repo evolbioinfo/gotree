@@ -105,10 +105,31 @@ func (svgtd *svgTreeDrawer) DrawCircle(x, y float64) {
 	svgtd.canvas.Circle(round(centerx2), round(centery2), 5, "stroke-width:1; fill:orange;stroke: black;")
 }
 
-func (svgtd *svgTreeDrawer) DrawColoredCircle(x, y float64, r, g, b, a uint8) {
-	centerx2 := x*float64(svgtd.width-svgtd.maxNameLength)/svgtd.maxLength + float64(svgtd.topmargin)
-	centery2 := y*float64(svgtd.height-svgtd.maxNameHeight)/svgtd.maxHeight + float64(svgtd.leftmargin)
-	svgtd.canvas.Circle(round(centerx2), round(centery2), 5, fmt.Sprintf("stroke-width:1;fill: #%02x%02x%02x%02x;stroke: black;", r, g, b, a))
+func (svgtd *svgTreeDrawer) SetTipLabelOffset(px float64) {
+	svgtd.dTip = px
+}
+
+/* angle : incoming branch angle. offsetPixels : distance from (x,y) along angle */
+func (svgtd *svgTreeDrawer) DrawColoredCircleAtOffset(x, y float64, angle, offsetPixels float64, r, g, b, a uint8, filled bool) {
+	degree := angle * 180.0 / math.Pi
+	ypos := int(float64(svgtd.height-svgtd.maxNameHeight)*y/svgtd.maxHeight + float64(svgtd.topmargin))
+	xpos := int(float64(svgtd.width-svgtd.maxNameLength)*x/svgtd.maxLength + float64(svgtd.leftmargin))
+
+	style := fmt.Sprintf("stroke-width:1;fill:#%02x%02x%02x%02x;stroke:black;", r, g, b, a)
+	if !filled {
+		style = "stroke-width:1;fill:none;stroke:#999999;"
+	}
+
+	svgtd.canvas.Translate(xpos, ypos)
+	if angle < 3*math.Pi/2.0 && angle > math.Pi/2.0 {
+		svgtd.canvas.Rotate(degree - 180)
+		svgtd.canvas.Circle(-round(offsetPixels), 0, 4, style)
+	} else {
+		svgtd.canvas.Rotate(degree)
+		svgtd.canvas.Circle(round(offsetPixels), 0, 4, style)
+	}
+	svgtd.canvas.Gend()
+	svgtd.canvas.Gend()
 }
 
 /* angle:  incoming branch angle */

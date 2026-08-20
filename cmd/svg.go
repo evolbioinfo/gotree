@@ -28,14 +28,12 @@ var svgCmd = &cobra.Command{
 		var treechan <-chan tree.Trees
 		var d draw.TreeDrawer
 		var l draw.TreeLayout
-		var tipColors map[string][]uint8
+		var metaFields []string
+		var metaValues map[string][]draw.TipMetaColor
 
-		if annotFile != "" {
-			tipColors, err = parseAnnot(annotFile)
-			if err != nil {
-				io.LogError(err)
-				return err
-			}
+		if metaFields, metaValues, err = loadTipMetadata(); err != nil {
+			io.LogError(err)
+			return err
 		}
 
 		ntree := 0
@@ -88,8 +86,8 @@ var svgCmd = &cobra.Command{
 			l.SetDisplayInternalNodes(drawInternalNodeSymbols)
 			l.SetDisplayNodeComments(drawNodeComment)
 			l.SetSupportCutoff(drawSupportCutoff)
-			if len(tipColors) > 0 {
-				l.SetTipColors(tipColors)
+			if len(metaFields) > 0 {
+				l.SetTipMetadata(metaFields, metaValues)
 			}
 			l.DrawTree(t.Tree)
 			closeWriteFile(f, fname)

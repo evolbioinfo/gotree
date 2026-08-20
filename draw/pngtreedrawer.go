@@ -147,16 +147,41 @@ func (ptd *pngTreeDrawer) DrawCircle(x, y float64) {
 	ptd.gc.FillStroke()
 }
 
-func (ptd *pngTreeDrawer) DrawColoredCircle(x, y float64, r, g, b, a uint8) {
-	centerx2 := x*float64(ptd.width-ptd.maxNameLength)/ptd.maxLength + float64(ptd.topmargin)
-	centery2 := y*float64(ptd.height-ptd.maxNameHeight)/ptd.maxHeight + float64(ptd.leftmargin)
+func (ptd *pngTreeDrawer) SetTipLabelOffset(px float64) {
+	ptd.dTip = px
+}
 
-	ptd.gc.SetFillColor(color.RGBA{r, g, b, a})
-	ptd.gc.SetStrokeColor(color.RGBA{r, g, b, a})
+/* angle : incoming branch angle. offsetPixels : distance from (x,y) along angle */
+func (ptd *pngTreeDrawer) DrawColoredCircleAtOffset(x, y float64, angle, offsetPixels float64, r, g, b, a uint8, filled bool) {
+	ypos := float64(ptd.height-ptd.maxNameHeight)*y/ptd.maxHeight + float64(ptd.topmargin)
+	xpos := float64(ptd.width-ptd.maxNameLength)*x/ptd.maxLength + float64(ptd.leftmargin)
+
+	if filled {
+		ptd.gc.SetFillColor(color.RGBA{r, g, b, a})
+		ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+	} else {
+		ptd.gc.SetFillColor(color.RGBA{0, 0, 0, 0})
+		ptd.gc.SetStrokeColor(color.RGBA{0x99, 0x99, 0x99, 0xff})
+	}
 	ptd.gc.SetLineWidth(1)
-	ptd.gc.ArcTo(centerx2, centery2, 5, 5, 0, 2*math.Pi)
-	ptd.gc.Close()
-	ptd.gc.FillStroke()
+
+	drawAt := func(localx float64) {
+		ptd.gc.ArcTo(localx, 0, 4, 4, 0, 2*math.Pi)
+		ptd.gc.Close()
+		ptd.gc.FillStroke()
+	}
+
+	ptd.gc.Translate(xpos, ypos)
+	if angle < 3*math.Pi/2.0 && angle > math.Pi/2.0 {
+		ptd.gc.Rotate(angle - math.Pi)
+		drawAt(-offsetPixels)
+		ptd.gc.Rotate(-angle + math.Pi)
+	} else {
+		ptd.gc.Rotate(angle)
+		drawAt(offsetPixels)
+		ptd.gc.Rotate(-angle)
+	}
+	ptd.gc.Translate(-xpos, -ypos)
 }
 
 /* angle:  incoming branch angle */
