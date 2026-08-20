@@ -62,6 +62,7 @@ func (layout *radialLayout) DrawTree(t *tree.Tree) error {
 	layout.spread = 0.0
 	layout.constructNode(t, root, nil, 0.0, 0.0, math.Pi*2, 0.0, 0.0, 0.0)
 	_, maxNameLength := maxLength(t, layout.hasBranchLengths, layout.hasTipLabels, layout.hasNodeComments)
+	maxNameLength += metaExtraNameChars(len(layout.metaFields))
 	layout.drawTree(maxNameLength)
 	layout.drawer.Write()
 	return nil
@@ -159,7 +160,7 @@ func (layout *radialLayout) drawTree(maxNameLength int) {
 		layout.drawer.DrawLine(l.p1.x+xoffset, l.p1.y+yoffset, l.p2.x+xoffset, l.p2.y+yoffset)
 	}
 	if len(layout.metaFields) > 0 {
-		layout.drawer.SetTipLabelOffset(metaBaseGap + metaCircleSpacing*float64(len(layout.metaFields)) + metaLabelExtraGap)
+		layout.drawer.SetTipLabelOffset(metaLabelOffset(len(layout.metaFields)))
 	}
 
 	if layout.hasTipLabels {

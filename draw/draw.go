@@ -11,6 +11,8 @@ And with different drawing algorithms. So far, only ASCII form in terminal.
 package draw
 
 import (
+	"math"
+
 	"github.com/evolbioinfo/gotree/tree"
 )
 
@@ -22,6 +24,24 @@ const (
 	// metaLabelExtraGap is added after the last metadata marker before the tip label starts.
 	metaLabelExtraGap = 5.0
 )
+
+// metaLabelOffset returns the pixel offset at which the tip label should
+// start, to leave room for nFields metadata markers (0 if there are none).
+func metaLabelOffset(nFields int) float64 {
+	if nFields == 0 {
+		return 0
+	}
+	return metaBaseGap + metaCircleSpacing*float64(nFields) + metaLabelExtraGap
+}
+
+// metaExtraNameChars converts the metadata marker row's pixel width into an
+// equivalent number of "name characters", so it can inflate the
+// character-based tip-label margin passed to TreeDrawer.SetMaxValues
+// (which reserves 5px/char) and keep both markers and label text inside
+// the image bounds.
+func metaExtraNameChars(nFields int) int {
+	return int(math.Ceil(metaLabelOffset(nFields) / 5.0))
+}
 
 /*
 Generic struct to draw on different supports:

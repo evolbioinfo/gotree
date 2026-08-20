@@ -58,6 +58,7 @@ func (layout *normalLayout) DrawTree(t *tree.Tree) error {
 	ntips := len(t.Tips())
 	curNbTips := 0
 	maxLength, maxName := maxLength(t, layout.hasBranchLengths, layout.hasTipLabels, layout.hasNodeComments)
+	maxName += metaExtraNameChars(len(layout.metaFields))
 	layout.drawer.SetMaxValues(maxLength, float64(ntips), maxName, 0)
 	layout.drawTreeRecur(root, nil, tree.NIL_SUPPORT, 0, 0, &curNbTips)
 	layout.drawTree()
@@ -119,7 +120,7 @@ func (layout *normalLayout) drawTree() {
 		layout.drawer.DrawVLine(l.x, l.y1, l.y2)
 	}
 	if len(layout.metaFields) > 0 {
-		layout.drawer.SetTipLabelOffset(metaBaseGap + metaCircleSpacing*float64(len(layout.metaFields)) + metaLabelExtraGap)
+		layout.drawer.SetTipLabelOffset(metaLabelOffset(len(layout.metaFields)))
 	}
 
 	if layout.hasTipLabels {

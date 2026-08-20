@@ -68,6 +68,7 @@ func (layout *circularLayout) DrawTree(t *tree.Tree) error {
 	ntips := len(t.Tips())
 	curNbTips := 0
 	_, maxNameLength := maxLength(t, layout.hasBranchLengths, layout.hasTipLabels, layout.hasNodeComments)
+	maxNameLength += metaExtraNameChars(len(layout.metaFields))
 	layout.drawTreeRecur(root, nil, tree.NIL_SUPPORT, 0, 0, &curNbTips, ntips)
 	layout.drawTree(maxNameLength)
 	layout.drawer.Write()
@@ -145,7 +146,7 @@ func (layout *circularLayout) drawTree(maxNameLength int) {
 	}
 
 	if len(layout.metaFields) > 0 {
-		layout.drawer.SetTipLabelOffset(metaBaseGap + metaCircleSpacing*float64(len(layout.metaFields)) + metaLabelExtraGap)
+		layout.drawer.SetTipLabelOffset(metaLabelOffset(len(layout.metaFields)))
 	}
 
 	if layout.hasTipLabels {
