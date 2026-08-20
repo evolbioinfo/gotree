@@ -2,6 +2,7 @@ package draw
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -89,6 +90,28 @@ type TipMetaColor struct {
 	R, G, B, A uint8
 }
 
+// maxLegendDiscreteValues caps how many distinct discrete values are
+// listed in a field's legend entry, to keep the legend a reasonable size.
+const maxLegendDiscreteValues = 12
+
+// LegendValue is one color-coded row of a field's legend: a value label
+// (or, for continuous fields, a "min"/"max" number) and its color.
+type LegendValue struct {
+	Label      string
+	R, G, B, A uint8
+}
+
+// LegendEntry is one metadata field's legend block: its name, the marker
+// shape used for it, and its color-coded values (all distinct values for
+// a discrete field, capped at maxLegendDiscreteValues; min/max for a
+// continuous field).
+type LegendEntry struct {
+	Field     string
+	Shape     Shape
+	Values    []LegendValue
+	Truncated bool // true if a discrete field's distinct values were capped
+}
+
 const (
 	defaultContinuousLow  = "#2c7bb6"
 	defaultContinuousHigh = "#d7191c"
@@ -104,19 +127,24 @@ var defaultPalette = []string{
 }
 
 // ResolveTipMetadata computes, for each tip in tipOrder and each field in
-// fields, the color that should be drawn for that (tip, field) cell.
+// fields, the color that should be drawn for that (tip, field) cell, and a
+// legend entry per field describing that same color scheme.
 //
 // raw is indexed as raw[tipName][fieldName] = rawValue ("" meaning blank).
 // overrides is indexed by field name and may be nil or partial: any field
 // (or attribute of a field) not present is auto-detected/auto-colored.
-func ResolveTipMetadata(fields []string, tipOrder []string, raw map[string]map[string]string, overrides map[string]FieldColorSpec) (map[string][]TipMetaColor, error) {
+// shapes gives the marker shape for each field (see ResolveFieldShapes),
+// used only to populate the returned legend entries.
+func ResolveTipMetadata(fields []string, tipOrder []string, raw map[string]map[string]string, overrides map[string]FieldColorSpec, shapes []Shape) (map[string][]TipMetaColor, []LegendEntry, error) {
 	result := make(map[string][]TipMetaColor, len(tipOrder))
 	for _, tip := range tipOrder {
 		result[tip] = make([]TipMetaColor, len(fields))
 	}
+	legend := make([]LegendEntry, 0, len(fields))
 
 	for fi, fieldName := range fields {
 		override := overrides[fieldName]
+		shape := metaShapeAt(shapes, fi)
 
 		distinctValues := make([]string, 0)
 		seen := make(map[string]bool)
@@ -148,21 +176,23 @@ func ResolveTipMetadata(fields []string, tipOrder []string, raw map[string]map[s
 			}
 		}
 
+		var entry LegendEntry
+		var err error
 		if fieldType == FieldContinuous {
-			if err := resolveContinuousField(fieldName, fi, distinctValues, override, tipOrder, raw, result); err != nil {
-				return nil, err
-			}
+			entry, err = resolveContinuousField(fieldName, fi, distinctValues, override, shape, tipOrder, raw, result)
 		} else {
-			if err := resolveDiscreteField(fieldName, fi, distinctValues, override, tipOrder, raw, result); err != nil {
-				return nil, err
-			}
+			entry, err = resolveDiscreteField(fieldName, fi, distinctValues, override, shape, tipOrder, raw, result)
 		}
+		if err != nil {
+			return nil, nil, err
+		}
+		legend = append(legend, entry)
 	}
 
-	return result, nil
+	return result, legend, nil
 }
 
-func resolveContinuousField(fieldName string, fi int, distinctValues []string, override FieldColorSpec, tipOrder []string, raw map[string]map[string]string, result map[string][]TipMetaColor) error {
+func resolveContinuousField(fieldName string, fi int, distinctValues []string, override FieldColorSpec, shape Shape, tipOrder []string, raw map[string]map[string]string, result map[string][]TipMetaColor) (LegendEntry, error) {
 	low := defaultContinuousLow
 	if override.Low != "" {
 		low = override.Low
@@ -173,11 +203,11 @@ func resolveContinuousField(fieldName string, fi int, distinctValues []string, o
 	}
 	lr, lg, lb, la, err := parseHexColor(low)
 	if err != nil {
-		return fmt.Errorf("field %q: invalid low color %q: %w", fieldName, low, err)
+		return LegendEntry{}, fmt.Errorf("field %q: invalid low color %q: %w", fieldName, low, err)
 	}
 	hr, hg, hb, ha, err := parseHexColor(high)
 	if err != nil {
-		return fmt.Errorf("field %q: invalid high color %q: %w", fieldName, high, err)
+		return LegendEntry{}, fmt.Errorf("field %q: invalid high color %q: %w", fieldName, high, err)
 	}
 
 	min, max := 0.0, 0.0
@@ -234,10 +264,18 @@ func resolveContinuousField(fieldName string, fi int, distinctValues []string, o
 			A:     lerpUint8(la, ha, t),
 		}
 	}
-	return nil
+
+	return LegendEntry{
+		Field: fieldName,
+		Shape: shape,
+		Values: []LegendValue{
+			{Label: formatLegendNumber(min), R: lr, G: lg, B: lb, A: la},
+			{Label: formatLegendNumber(max), R: hr, G: hg, B: hb, A: ha},
+		},
+	}, nil
 }
 
-func resolveDiscreteField(fieldName string, fi int, distinctValues []string, override FieldColorSpec, tipOrder []string, raw map[string]map[string]string, result map[string][]TipMetaColor) error {
+func resolveDiscreteField(fieldName string, fi int, distinctValues []string, override FieldColorSpec, shape Shape, tipOrder []string, raw map[string]map[string]string, result map[string][]TipMetaColor) (LegendEntry, error) {
 	type rgba struct{ r, g, b, a uint8 }
 	colorFor := make(map[string]rgba, len(distinctValues))
 	paletteIdx := 0
@@ -255,7 +293,7 @@ func resolveDiscreteField(fieldName string, fi int, distinctValues []string, ove
 		}
 		r, g, b, a, err := parseHexColor(hex)
 		if err != nil {
-			return fmt.Errorf("field %q: invalid color %q for value %q: %w", fieldName, hex, v, err)
+			return LegendEntry{}, fmt.Errorf("field %q: invalid color %q for value %q: %w", fieldName, hex, v, err)
 		}
 		colorFor[v] = rgba{r, g, b, a}
 	}
@@ -269,7 +307,28 @@ func resolveDiscreteField(fieldName string, fi int, distinctValues []string, ove
 		c := colorFor[v]
 		result[tip][fi] = TipMetaColor{Empty: false, R: c.r, G: c.g, B: c.b, A: c.a}
 	}
-	return nil
+
+	shown := distinctValues
+	truncated := false
+	if len(shown) > maxLegendDiscreteValues {
+		shown = shown[:maxLegendDiscreteValues]
+		truncated = true
+	}
+	entry := LegendEntry{Field: fieldName, Shape: shape, Truncated: truncated}
+	for _, v := range shown {
+		c := colorFor[v]
+		entry.Values = append(entry.Values, LegendValue{Label: v, R: c.r, G: c.g, B: c.b, A: c.a})
+	}
+	return entry, nil
+}
+
+// formatLegendNumber formats a float for legend display: no decimals for
+// integral values, otherwise a short, trimmed decimal representation.
+func formatLegendNumber(f float64) string {
+	if f == math.Trunc(f) && math.Abs(f) < 1e15 {
+		return strconv.FormatFloat(f, 'f', 0, 64)
+	}
+	return strconv.FormatFloat(f, 'g', 4, 64)
 }
 
 func lerpUint8(a, b uint8, t float64) uint8 {

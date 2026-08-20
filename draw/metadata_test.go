@@ -1,6 +1,7 @@
 package draw
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -14,7 +15,7 @@ func TestResolveTipMetadata_DiscreteAutoPalette(t *testing.T) {
 		"t4": {"country": "Italy"},
 	}
 
-	resolved, err := ResolveTipMetadata(fields, tipOrder, raw, nil)
+	resolved, _, err := ResolveTipMetadata(fields, tipOrder, raw, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -49,7 +50,7 @@ func TestResolveTipMetadata_ContinuousAutoRange(t *testing.T) {
 		"t3": {"age": "100"},
 	}
 
-	resolved, err := ResolveTipMetadata(fields, tipOrder, raw, nil)
+	resolved, _, err := ResolveTipMetadata(fields, tipOrder, raw, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -80,7 +81,7 @@ func TestResolveTipMetadata_MixedParseableIsDiscrete(t *testing.T) {
 		"t2": {"mixed": "not-a-number"},
 	}
 
-	resolved, err := ResolveTipMetadata(fields, tipOrder, raw, nil)
+	resolved, _, err := ResolveTipMetadata(fields, tipOrder, raw, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -100,7 +101,7 @@ func TestResolveTipMetadata_EmptyCellIsEmptyPlaceholder(t *testing.T) {
 		"t2": {"country": "Germany"},
 	}
 
-	resolved, err := ResolveTipMetadata(fields, tipOrder, raw, nil)
+	resolved, _, err := ResolveTipMetadata(fields, tipOrder, raw, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -120,7 +121,7 @@ func TestResolveTipMetadata_TipAbsentFromFileGetsNothing(t *testing.T) {
 		"t1": {"country": "France"},
 	}
 
-	resolved, err := ResolveTipMetadata(fields, tipOrder, raw, nil)
+	resolved, _, err := ResolveTipMetadata(fields, tipOrder, raw, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -145,7 +146,7 @@ func TestResolveTipMetadata_DiscreteYamlOverrideTakesPrecedence(t *testing.T) {
 		},
 	}
 
-	resolved, err := ResolveTipMetadata(fields, tipOrder, raw, overrides)
+	resolved, _, err := ResolveTipMetadata(fields, tipOrder, raw, overrides, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -182,7 +183,7 @@ func TestResolveTipMetadata_ContinuousYamlOverride(t *testing.T) {
 		},
 	}
 
-	resolved, err := ResolveTipMetadata(fields, tipOrder, raw, overrides)
+	resolved, _, err := ResolveTipMetadata(fields, tipOrder, raw, overrides, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -192,6 +193,88 @@ func TestResolveTipMetadata_ContinuousYamlOverride(t *testing.T) {
 	want := lerpUint8(0, 255, 0.1)
 	if got.R != want {
 		t.Errorf("expected overridden min/max range to shift interpolation, got R=%d want R=%d", got.R, want)
+	}
+}
+
+func TestResolveTipMetadata_LegendDiscrete(t *testing.T) {
+	fields := []string{"country"}
+	tipOrder := []string{"t1", "t2", "t3"}
+	raw := map[string]map[string]string{
+		"t1": {"country": "France"},
+		"t2": {"country": "Germany"},
+		"t3": {"country": "France"},
+	}
+	shapes := []Shape{ShapeDiamond}
+
+	_, legend, err := ResolveTipMetadata(fields, tipOrder, raw, nil, shapes)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(legend) != 1 {
+		t.Fatalf("expected 1 legend entry, got %d", len(legend))
+	}
+	e := legend[0]
+	if e.Field != "country" {
+		t.Errorf("expected legend field name %q, got %q", "country", e.Field)
+	}
+	if e.Shape != ShapeDiamond {
+		t.Errorf("expected legend shape to match field shape, got %v", e.Shape)
+	}
+	if e.Truncated {
+		t.Errorf("did not expect truncation for 2 distinct values")
+	}
+	if len(e.Values) != 2 {
+		t.Fatalf("expected 2 distinct values in legend, got %d", len(e.Values))
+	}
+	if e.Values[0].Label != "France" || e.Values[1].Label != "Germany" {
+		t.Errorf("expected legend values in first-appearance order [France, Germany], got %v", e.Values)
+	}
+	wantFrance := mustParseHex(t, defaultPalette[0])
+	if e.Values[0].R != wantFrance.R || e.Values[0].G != wantFrance.G || e.Values[0].B != wantFrance.B {
+		t.Errorf("expected legend color to match resolved marker color, got %+v want %+v", e.Values[0], wantFrance)
+	}
+}
+
+func TestResolveTipMetadata_LegendDiscreteTruncated(t *testing.T) {
+	fields := []string{"id"}
+	tipOrder := make([]string, 0)
+	raw := make(map[string]map[string]string)
+	for i := 0; i < maxLegendDiscreteValues+3; i++ {
+		tip := fmt.Sprintf("t%d", i)
+		tipOrder = append(tipOrder, tip)
+		raw[tip] = map[string]string{"id": fmt.Sprintf("v%d", i)}
+	}
+
+	_, legend, err := ResolveTipMetadata(fields, tipOrder, raw, nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !legend[0].Truncated {
+		t.Errorf("expected legend to be marked truncated with %d distinct values", maxLegendDiscreteValues+3)
+	}
+	if len(legend[0].Values) != maxLegendDiscreteValues {
+		t.Errorf("expected legend to cap at %d values, got %d", maxLegendDiscreteValues, len(legend[0].Values))
+	}
+}
+
+func TestResolveTipMetadata_LegendContinuous(t *testing.T) {
+	fields := []string{"age"}
+	tipOrder := []string{"t1", "t2", "t3"}
+	raw := map[string]map[string]string{
+		"t1": {"age": "0"},
+		"t2": {"age": "50"},
+		"t3": {"age": "100"},
+	}
+
+	_, legend, err := ResolveTipMetadata(fields, tipOrder, raw, nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(legend[0].Values) != 2 {
+		t.Fatalf("expected 2 legend values (min, max) for a continuous field, got %d", len(legend[0].Values))
+	}
+	if legend[0].Values[0].Label != "0" || legend[0].Values[1].Label != "100" {
+		t.Errorf("expected legend labels [0, 100], got [%s, %s]", legend[0].Values[0].Label, legend[0].Values[1].Label)
 	}
 }
 

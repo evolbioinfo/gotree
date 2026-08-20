@@ -31,8 +31,9 @@ var svgCmd = &cobra.Command{
 		var metaFields []string
 		var metaShapes []draw.Shape
 		var metaValues map[string][]draw.TipMetaColor
+		var metaLegend []draw.LegendEntry
 
-		if metaFields, metaShapes, metaValues, err = loadTipMetadata(); err != nil {
+		if metaFields, metaShapes, metaValues, metaLegend, err = loadTipMetadata(); err != nil {
 			io.LogError(err)
 			return err
 		}
@@ -88,7 +89,7 @@ var svgCmd = &cobra.Command{
 			l.SetDisplayNodeComments(drawNodeComment)
 			l.SetSupportCutoff(drawSupportCutoff)
 			if len(metaFields) > 0 {
-				l.SetTipMetadata(metaFields, metaShapes, metaValues)
+				l.SetTipMetadata(metaFields, metaShapes, metaValues, metaLegend)
 			}
 			l.DrawTree(t.Tree)
 			closeWriteFile(f, fname)

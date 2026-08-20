@@ -255,6 +255,54 @@ func (ptd *pngTreeDrawer) DrawName(x, y float64, name string, angle float64) {
 	}
 }
 
+// DrawLegend draws a legend box in the bottom-left corner of the image, in
+// absolute pixel coordinates (independent of the tree's data-space
+// transform), listing each metadata field's name, marker shape, and
+// color-coded values.
+func (ptd *pngTreeDrawer) DrawLegend(entries []LegendEntry) {
+	rows := legendRows(entries)
+	if len(rows) == 0 {
+		return
+	}
+
+	totalH := float64(ptd.height + ptd.topmargin + ptd.bottommargin)
+
+	maxChars := legendMaxChars(rows)
+	legendW := legendSwatchGap + float64(maxChars)*legendCharWidth + 2*legendPadding
+	legendH := float64(len(rows))*legendRowHeight + 2*legendPadding
+
+	x0 := legendPadding
+	y0 := totalH - legendPadding - legendH
+
+	ptd.gc.SetFillColor(color.RGBA{0xff, 0xff, 0xff, 0xff})
+	ptd.gc.SetStrokeColor(color.RGBA{0x99, 0x99, 0x99, 0xff})
+	ptd.gc.SetLineWidth(1)
+	ptd.gc.MoveTo(x0, y0)
+	ptd.gc.LineTo(x0+legendW, y0)
+	ptd.gc.LineTo(x0+legendW, y0+legendH)
+	ptd.gc.LineTo(x0, y0+legendH)
+	ptd.gc.Close()
+	ptd.gc.FillStroke()
+
+	for i, r := range rows {
+		rowY := y0 + legendPadding + float64(i)*legendRowHeight + legendRowHeight/2.0
+		textX := x0 + legendPadding
+		if r.hasSwatch {
+			ptd.gc.SetFillColor(color.RGBA{r.r, r.g, r.b, r.a})
+			ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+			ptd.gc.SetLineWidth(1)
+			ptd.gc.Translate(x0+legendPadding+4, rowY)
+			ptd.drawShape(0, r.shape)
+			ptd.gc.Translate(-(x0 + legendPadding + 4), -rowY)
+			textX = x0 + legendPadding + legendSwatchGap
+		}
+		ptd.gc.SetFillColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+		ptd.gc.SetStrokeColor(color.RGBA{0x00, 0x00, 0x00, 0xff})
+		_, top, _, bottom := ptd.gc.GetStringBounds(r.text)
+		ptd.gc.FillStringAt(r.text, textX, rowY+(bottom-top)/2.0)
+	}
+}
+
 func (ptd *pngTreeDrawer) Write() {
 	// Create Writer from file
 	b := bufio.NewWriter(ptd.outwriter)

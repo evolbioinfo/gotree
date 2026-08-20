@@ -17,6 +17,7 @@ type normalLayout struct {
 	metaFields             []string
 	metaShapes             []Shape
 	metaValues             map[string][]TipMetaColor
+	metaLegend             []LegendEntry
 }
 
 func NewNormalLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabel, withSupportCircles bool) TreeLayout {
@@ -43,10 +44,11 @@ func (layout *normalLayout) SetDisplayNodeComments(s bool) {
 	layout.hasNodeComments = s
 }
 
-func (layout *normalLayout) SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor) {
+func (layout *normalLayout) SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor, legend []LegendEntry) {
 	layout.metaFields = fields
 	layout.metaShapes = shapes
 	layout.metaValues = values
+	layout.metaLegend = legend
 }
 
 /*
@@ -165,5 +167,9 @@ func (layout *normalLayout) drawTree() {
 		if layout.hasSupport && l.support != tree.NIL_SUPPORT && l.support >= layout.supportCutoff {
 			layout.drawer.DrawCircle(middlex, middley)
 		}
+	}
+
+	if len(layout.metaLegend) > 0 {
+		layout.drawer.DrawLegend(layout.metaLegend)
 	}
 }

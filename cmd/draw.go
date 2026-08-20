@@ -159,11 +159,12 @@ func parseMetadataColorsYAML(filepath string) (specs map[string]draw.FieldColorS
 }
 
 // loadTipMetadata reads --metadata-file (and optional --metadata-colors),
-// and resolves per-tip, per-field marker colors and per-field marker
-// shapes. Returns (nil, nil, nil, nil) when --metadata-file is not set.
-func loadTipMetadata() (fields []string, shapes []draw.Shape, values map[string][]draw.TipMetaColor, err error) {
+// and resolves per-tip, per-field marker colors, per-field marker shapes,
+// and a legend entry per field. Returns (nil, nil, nil, nil, nil) when
+// --metadata-file is not set.
+func loadTipMetadata() (fields []string, shapes []draw.Shape, values map[string][]draw.TipMetaColor, legend []draw.LegendEntry, err error) {
 	if metadataFile == "" {
-		return nil, nil, nil, nil
+		return nil, nil, nil, nil, nil
 	}
 
 	var tipOrder []string
@@ -180,6 +181,6 @@ func loadTipMetadata() (fields []string, shapes []draw.Shape, values map[string]
 	}
 
 	shapes = draw.ResolveFieldShapes(fields, overrides)
-	values, err = draw.ResolveTipMetadata(fields, tipOrder, raw, overrides)
+	values, legend, err = draw.ResolveTipMetadata(fields, tipOrder, raw, overrides, shapes)
 	return
 }

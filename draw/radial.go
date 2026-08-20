@@ -20,6 +20,7 @@ type radialLayout struct {
 	metaFields             []string
 	metaShapes             []Shape
 	metaValues             map[string][]TipMetaColor
+	metaLegend             []LegendEntry
 }
 
 func NewRadialLayout(td TreeDrawer, withBranchLengths, withTipLabels, withInternalNodeLabels, withSuppportCircles bool) TreeLayout {
@@ -45,10 +46,11 @@ func (layout *radialLayout) SetDisplayNodeComments(s bool) {
 	layout.hasNodeComments = s
 }
 
-func (layout *radialLayout) SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor) {
+func (layout *radialLayout) SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor, legend []LegendEntry) {
 	layout.metaFields = fields
 	layout.metaShapes = shapes
 	layout.metaValues = values
+	layout.metaLegend = legend
 }
 
 /*
@@ -206,5 +208,9 @@ func (layout *radialLayout) drawTree(maxNameLength int) {
 		if layout.hasSupport && l.support != tree.NIL_SUPPORT && l.support >= layout.supportCutoff {
 			layout.drawer.DrawCircle(middlex, middley)
 		}
+	}
+
+	if len(layout.metaLegend) > 0 {
+		layout.drawer.DrawLegend(layout.metaLegend)
 	}
 }

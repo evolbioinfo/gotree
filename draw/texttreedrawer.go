@@ -105,6 +105,10 @@ func (ttd *textTreeDrawer) DrawColoredShapeAtOffset(x, y float64, angle, offsetP
 	// Metadata markers are not supported in ascii rendering.
 }
 
+func (ttd *textTreeDrawer) DrawLegend(entries []LegendEntry) {
+	// Legends are not supported in ascii rendering.
+}
+
 func (ttd *textTreeDrawer) DrawName(x, y float64, name string, angle float64) {
 	ypos := float64(ttd.height-ttd.maxNameHeight) * y / ttd.maxHeight
 	xpos := float64(ttd.width-ttd.maxNameLength) * x / ttd.maxLength

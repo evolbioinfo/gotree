@@ -18,12 +18,12 @@ Available Commands:
 
 Flags:
   -i, --input string             Input tree (default "stdin")
-  -m, --metadata-file string     Tab separated metadata file to add colored markers to tip nodes (svg & png):
-                                 tip name in the first column (header ignored), then one column per
-                                 metadata field (header = field name). Values are auto-detected as
-                                 discrete or continuous; colors and marker shapes are auto-assigned
-                                 unless overridden with --metadata-colors. Empty cells draw an unfilled
-                                 grey circle.
+  -m, --metadata-file string     Tab separated metadata file to add colored markers (and a legend) to tip
+                                 nodes (svg & png): tip name in the first column (header ignored), then
+                                 one column per metadata field (header = field name). Values are
+                                 auto-detected as discrete or continuous; colors and marker shapes are
+                                 auto-assigned unless overridden with --metadata-colors. Empty cells draw
+                                 an unfilled grey circle.
       --metadata-colors string   Optional YAML file overriding the color scheme and/or marker shape of
                                  one or more --metadata-file fields (discrete value->color map, or
                                  continuous low/high/min/max; shape: circle|square|triangle|diamond|star)
@@ -94,3 +94,19 @@ Attributes omitted from a field's YAML entry (or the field, or the file
 itself) fall back to full auto-detection/auto-assignment. A blank cell in
 the metadata file draws an unfilled, grey-bordered marker for that
 tip/field instead of a colored one.
+
+Whenever `--metadata-file` is used, a legend is automatically added in the
+bottom-left corner of the image (svg & png), listing each field's name,
+marker shape, and color-coded values (min/max for continuous fields; up to
+12 distinct values for discrete fields, beyond which it is truncated):
+
+```
+gotree generate yuletree --seed 10 | gotree draw svg -w 250 -H 200 --metadata-file metadata.tsv --metadata-colors metadata-colors.yaml -o draw_5.svg
+```
+
+![legend svg](draw_5.svg)
+
+The legend is drawn as a fixed-size overlay and is not reserved extra
+canvas space, so on a small image with many metadata fields or long
+value/tip labels it may overlap the tree; increase `-w`/`-H` if that
+happens.

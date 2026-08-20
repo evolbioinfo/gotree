@@ -115,7 +115,7 @@ func (svgtd *svgTreeDrawer) DrawColoredShapeAtOffset(x, y float64, angle, offset
 	ypos := int(float64(svgtd.height-svgtd.maxNameHeight)*y/svgtd.maxHeight + float64(svgtd.topmargin))
 	xpos := int(float64(svgtd.width-svgtd.maxNameLength)*x/svgtd.maxLength + float64(svgtd.leftmargin))
 
-	style := fmt.Sprintf("stroke-width:1;fill:#%02x%02x%02x%02x;stroke:black;", r, g, b, a)
+	style := svgFillStyle(r, g, b, a, "black")
 	if !filled {
 		style = "stroke-width:1;fill:none;stroke:#999999;"
 	}
@@ -197,6 +197,46 @@ func (svgtd *svgTreeDrawer) DrawName(x, y float64, name string, angle float64) {
 	svgtd.canvas.Gend()
 }
 
+// DrawLegend draws a legend box in the bottom-left corner of the image, in
+// absolute pixel coordinates (independent of the tree's data-space
+// transform), listing each metadata field's name, marker shape, and
+// color-coded values.
+func (svgtd *svgTreeDrawer) DrawLegend(entries []LegendEntry) {
+	rows := legendRows(entries)
+	if len(rows) == 0 {
+		return
+	}
+
+	totalH := float64(svgtd.height + svgtd.topmargin + svgtd.bottommargin)
+
+	maxChars := legendMaxChars(rows)
+	legendW := legendSwatchGap + float64(maxChars)*legendCharWidth + 2*legendPadding
+	legendH := float64(len(rows))*legendRowHeight + 2*legendPadding
+
+	x0 := legendPadding
+	y0 := totalH - legendPadding - legendH
+
+	svgtd.canvas.Rect(round(x0), round(y0), round(legendW), round(legendH),
+		"fill:white;fill-opacity:0.85;stroke:#999999;stroke-width:1;")
+
+	for i, r := range rows {
+		rowY := y0 + legendPadding + float64(i)*legendRowHeight + legendRowHeight/2.0
+		textX := x0 + legendPadding
+		textStyle := "alignment-baseline:middle;text-anchor:start;font-family:sans-serif;font-size:8px;"
+		if r.isHeader {
+			textStyle = "alignment-baseline:middle;text-anchor:start;font-family:sans-serif;font-size:8px;font-weight:bold;"
+		}
+		if r.hasSwatch {
+			style := svgFillStyle(r.r, r.g, r.b, r.a, "black")
+			svgtd.canvas.Translate(round(x0+legendPadding+4), round(rowY))
+			svgtd.drawShape(0, r.shape, style)
+			svgtd.canvas.Gend()
+			textX = x0 + legendPadding + legendSwatchGap
+		}
+		svgtd.canvas.Text(round(textX), round(rowY), r.text, textStyle)
+	}
+}
+
 func (svgtd *svgTreeDrawer) Write() {
 	svgtd.canvas.End()
 }
@@ -204,6 +244,15 @@ func (svgtd *svgTreeDrawer) Write() {
 func (svgtd *svgTreeDrawer) Bounds() (width, height int) {
 	width, height = svgtd.width, svgtd.height
 	return
+}
+
+// svgFillStyle builds a fill style using a standard 6-digit hex color plus
+// a separate fill-opacity, rather than the 8-digit #rrggbbaa shorthand:
+// some SVG renderers (e.g. older Inkscape/librsvg builds) fail to parse
+// the CSS Color Level 4 alpha-hex syntax and silently fall back to an
+// opaque black fill instead of reporting an error.
+func svgFillStyle(r, g, b, a uint8, stroke string) string {
+	return fmt.Sprintf("stroke-width:1;fill:#%02x%02x%02x;fill-opacity:%.3f;stroke:%s;", r, g, b, float64(a)/255.0, stroke)
 }
 
 func round(x float64) int {

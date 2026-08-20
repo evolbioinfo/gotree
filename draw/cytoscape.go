@@ -27,7 +27,7 @@ func (layout *cytoscapeLayout) SetDisplayInternalNodes(s bool) {
 func (layout *cytoscapeLayout) SetDisplayNodeComments(s bool) {
 }
 
-func (layout *cytoscapeLayout) SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor) {
+func (layout *cytoscapeLayout) SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor, legend []LegendEntry) {
 }
 
 /*

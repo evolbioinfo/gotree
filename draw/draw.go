@@ -23,6 +23,15 @@ const (
 	metaCircleSpacing = 11.0
 	// metaLabelExtraGap is added after the last metadata marker before the tip label starts.
 	metaLabelExtraGap = 5.0
+
+	// legendPadding is the padding (px) between the legend box border and its content.
+	legendPadding = 6.0
+	// legendRowHeight is the vertical space (px) allotted to each legend row.
+	legendRowHeight = 13.0
+	// legendSwatchGap is the horizontal space (px) reserved for a row's marker before its label starts.
+	legendSwatchGap = 14.0
+	// legendCharWidth is the approximate pixel width of one legend label character, used to size the legend box.
+	legendCharWidth = 5.0
 )
 
 // metaLabelOffset returns the pixel offset at which the tip label should
@@ -66,6 +75,11 @@ type TreeDrawer interface {
 	SetTipLabelOffset(px float64)
 	/* angle : angle of the tip incoming branch */
 	DrawName(x, y float64, name string, angle float64)
+	/* Draws a legend box (field name, marker shape, and color-coded value
+	   labels for each metadata field) anchored to a corner of the image,
+	   in absolute pixel coordinates independent of the tree's data-space
+	   transform. No-op if entries is empty. */
+	DrawLegend(entries []LegendEntry)
 	Write()
 	Bounds() (int, int) /* width, height*/
 }
@@ -81,7 +95,7 @@ type TreeLayout interface {
 	SetSupportCutoff(float64)
 	SetDisplayInternalNodes(bool)
 	SetDisplayNodeComments(bool)
-	SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor)
+	SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor, legend []LegendEntry)
 }
 
 // metaShapeAt returns shapes[i], defaulting to ShapeCircle if shapes is too short.
@@ -90,6 +104,45 @@ func metaShapeAt(shapes []Shape, i int) Shape {
 		return shapes[i]
 	}
 	return ShapeCircle
+}
+
+// legendRow is one line of a rendered legend: either a field-name header
+// (isHeader, no swatch) or a color-coded value row (hasSwatch).
+type legendRow struct {
+	text       string
+	isHeader   bool
+	hasSwatch  bool
+	shape      Shape
+	r, g, b, a uint8
+}
+
+// legendRows flattens legend entries into the linear list of rows a
+// TreeDrawer should render: one header row per field, then one row per
+// value (marker + label), plus a "..." row when a field's values were
+// truncated (see maxLegendDiscreteValues).
+func legendRows(entries []LegendEntry) []legendRow {
+	rows := make([]legendRow, 0, len(entries)*2)
+	for _, e := range entries {
+		rows = append(rows, legendRow{text: e.Field, isHeader: true})
+		for _, v := range e.Values {
+			rows = append(rows, legendRow{text: v.Label, hasSwatch: true, shape: e.Shape, r: v.R, g: v.G, b: v.B, a: v.A})
+		}
+		if e.Truncated {
+			rows = append(rows, legendRow{text: "..."})
+		}
+	}
+	return rows
+}
+
+// legendMaxChars returns the longest row text length, used to size the legend box.
+func legendMaxChars(rows []legendRow) int {
+	max := 0
+	for _, r := range rows {
+		if len(r.text) > max {
+			max = len(r.text)
+		}
+	}
+	return max
 }
 
 func maxLength(t *tree.Tree, hasBranchLengths, hasTipNames, hasNodeComments bool) (float64, int) {
