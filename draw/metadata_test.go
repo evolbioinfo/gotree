@@ -195,6 +195,56 @@ func TestResolveTipMetadata_ContinuousYamlOverride(t *testing.T) {
 	}
 }
 
+func TestResolveFieldShapes_AutoCyclesByColumn(t *testing.T) {
+	fields := []string{"a", "b", "c", "d", "e", "f"}
+	shapes := ResolveFieldShapes(fields, nil)
+	want := []Shape{ShapeCircle, ShapeSquare, ShapeTriangle, ShapeDiamond, ShapeStar, ShapeCircle}
+	if len(shapes) != len(want) {
+		t.Fatalf("expected %d shapes, got %d", len(want), len(shapes))
+	}
+	for i := range want {
+		if shapes[i] != want[i] {
+			t.Errorf("field %d: expected shape %v, got %v", i, want[i], shapes[i])
+		}
+	}
+}
+
+func TestResolveFieldShapes_OverrideTakesPrecedence(t *testing.T) {
+	fields := []string{"a", "b"}
+	overrides := map[string]FieldColorSpec{
+		"a": {HasShape: true, Shape: ShapeStar},
+	}
+	shapes := ResolveFieldShapes(fields, overrides)
+	if shapes[0] != ShapeStar {
+		t.Errorf("expected overridden shape ShapeStar for field a, got %v", shapes[0])
+	}
+	if shapes[1] != ShapeSquare {
+		t.Errorf("expected auto-cycled shape ShapeSquare for field b, got %v", shapes[1])
+	}
+}
+
+func TestParseShapeName(t *testing.T) {
+	cases := map[string]Shape{
+		"circle":   ShapeCircle,
+		"Square":   ShapeSquare,
+		"TRIANGLE": ShapeTriangle,
+		"diamond":  ShapeDiamond,
+		"star":     ShapeStar,
+	}
+	for name, want := range cases {
+		got, err := ParseShapeName(name)
+		if err != nil {
+			t.Errorf("unexpected error for %q: %v", name, err)
+		}
+		if got != want {
+			t.Errorf("ParseShapeName(%q) = %v, want %v", name, got, want)
+		}
+	}
+	if _, err := ParseShapeName("hexagon"); err == nil {
+		t.Errorf("expected error for unknown shape name")
+	}
+}
+
 func mustParseHex(t *testing.T, s string) TipMetaColor {
 	t.Helper()
 	r, g, b, a, err := parseHexColor(s)

@@ -101,8 +101,8 @@ func (ttd *textTreeDrawer) SetTipLabelOffset(px float64) {
 	// Not applicable to ascii rendering.
 }
 
-func (ttd *textTreeDrawer) DrawColoredCircleAtOffset(x, y float64, angle, offsetPixels float64, r, g, b, a uint8, filled bool) {
-	// Metadata circles are not supported in ascii rendering.
+func (ttd *textTreeDrawer) DrawColoredShapeAtOffset(x, y float64, angle, offsetPixels float64, shape Shape, r, g, b, a uint8, filled bool) {
+	// Metadata markers are not supported in ascii rendering.
 }
 
 func (ttd *textTreeDrawer) DrawName(x, y float64, name string, angle float64) {

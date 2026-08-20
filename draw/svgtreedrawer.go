@@ -110,7 +110,7 @@ func (svgtd *svgTreeDrawer) SetTipLabelOffset(px float64) {
 }
 
 /* angle : incoming branch angle. offsetPixels : distance from (x,y) along angle */
-func (svgtd *svgTreeDrawer) DrawColoredCircleAtOffset(x, y float64, angle, offsetPixels float64, r, g, b, a uint8, filled bool) {
+func (svgtd *svgTreeDrawer) DrawColoredShapeAtOffset(x, y float64, angle, offsetPixels float64, shape Shape, r, g, b, a uint8, filled bool) {
 	degree := angle * 180.0 / math.Pi
 	ypos := int(float64(svgtd.height-svgtd.maxNameHeight)*y/svgtd.maxHeight + float64(svgtd.topmargin))
 	xpos := int(float64(svgtd.width-svgtd.maxNameLength)*x/svgtd.maxLength + float64(svgtd.leftmargin))
@@ -123,13 +123,56 @@ func (svgtd *svgTreeDrawer) DrawColoredCircleAtOffset(x, y float64, angle, offse
 	svgtd.canvas.Translate(xpos, ypos)
 	if angle < 3*math.Pi/2.0 && angle > math.Pi/2.0 {
 		svgtd.canvas.Rotate(degree - 180)
-		svgtd.canvas.Circle(-round(offsetPixels), 0, 4, style)
+		svgtd.drawShape(-round(offsetPixels), shape, style)
 	} else {
 		svgtd.canvas.Rotate(degree)
-		svgtd.canvas.Circle(round(offsetPixels), 0, 4, style)
+		svgtd.drawShape(round(offsetPixels), shape, style)
 	}
 	svgtd.canvas.Gend()
 	svgtd.canvas.Gend()
+}
+
+// drawShape draws shape centered at local (localx, 0), in the current
+// (already translated/rotated) canvas coordinate system.
+func (svgtd *svgTreeDrawer) drawShape(localx int, shape Shape, style string) {
+	switch shape {
+	case ShapeSquare:
+		svgtd.canvas.Rect(localx-4, -4, 8, 8, style)
+	case ShapeTriangle:
+		svgtd.canvas.Polygon(
+			[]int{localx, localx - 5, localx + 5},
+			[]int{-5, 4, 4},
+			style,
+		)
+	case ShapeDiamond:
+		svgtd.canvas.Polygon(
+			[]int{localx, localx + 5, localx, localx - 5},
+			[]int{-5, 0, 5, 0},
+			style,
+		)
+	case ShapeStar:
+		xs, ys := starPoints(localx, 0, 5, 2)
+		svgtd.canvas.Polygon(xs, ys, style)
+	default: // ShapeCircle
+		svgtd.canvas.Circle(localx, 0, 4, style)
+	}
+}
+
+// starPoints returns the 10 vertices (5 outer, 5 inner, alternating) of a
+// 5-pointed star centered at (cx,cy), pointing up.
+func starPoints(cx, cy int, outerR, innerR float64) (xs, ys []int) {
+	xs = make([]int, 10)
+	ys = make([]int, 10)
+	for i := 0; i < 10; i++ {
+		radius := outerR
+		if i%2 == 1 {
+			radius = innerR
+		}
+		angle := -math.Pi/2.0 + float64(i)*math.Pi/5.0
+		xs[i] = cx + round(radius*math.Cos(angle))
+		ys[i] = cy + round(radius*math.Sin(angle))
+	}
+	return
 }
 
 /* angle:  incoming branch angle */

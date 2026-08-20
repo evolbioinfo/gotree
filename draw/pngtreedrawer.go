@@ -152,7 +152,7 @@ func (ptd *pngTreeDrawer) SetTipLabelOffset(px float64) {
 }
 
 /* angle : incoming branch angle. offsetPixels : distance from (x,y) along angle */
-func (ptd *pngTreeDrawer) DrawColoredCircleAtOffset(x, y float64, angle, offsetPixels float64, r, g, b, a uint8, filled bool) {
+func (ptd *pngTreeDrawer) DrawColoredShapeAtOffset(x, y float64, angle, offsetPixels float64, shape Shape, r, g, b, a uint8, filled bool) {
 	ypos := float64(ptd.height-ptd.maxNameHeight)*y/ptd.maxHeight + float64(ptd.topmargin)
 	xpos := float64(ptd.width-ptd.maxNameLength)*x/ptd.maxLength + float64(ptd.leftmargin)
 
@@ -165,23 +165,69 @@ func (ptd *pngTreeDrawer) DrawColoredCircleAtOffset(x, y float64, angle, offsetP
 	}
 	ptd.gc.SetLineWidth(1)
 
-	drawAt := func(localx float64) {
-		ptd.gc.ArcTo(localx, 0, 4, 4, 0, 2*math.Pi)
-		ptd.gc.Close()
-		ptd.gc.FillStroke()
-	}
-
 	ptd.gc.Translate(xpos, ypos)
 	if angle < 3*math.Pi/2.0 && angle > math.Pi/2.0 {
 		ptd.gc.Rotate(angle - math.Pi)
-		drawAt(-offsetPixels)
+		ptd.drawShape(-offsetPixels, shape)
 		ptd.gc.Rotate(-angle + math.Pi)
 	} else {
 		ptd.gc.Rotate(angle)
-		drawAt(offsetPixels)
+		ptd.drawShape(offsetPixels, shape)
 		ptd.gc.Rotate(-angle)
 	}
 	ptd.gc.Translate(-xpos, -ypos)
+}
+
+// drawShape draws shape centered at local (localx, 0), in the current
+// (already translated/rotated) graphic context coordinate system.
+func (ptd *pngTreeDrawer) drawShape(localx float64, shape Shape) {
+	switch shape {
+	case ShapeSquare:
+		ptd.gc.MoveTo(localx-4, -4)
+		ptd.gc.LineTo(localx+4, -4)
+		ptd.gc.LineTo(localx+4, 4)
+		ptd.gc.LineTo(localx-4, 4)
+		ptd.gc.Close()
+	case ShapeTriangle:
+		ptd.gc.MoveTo(localx, -5)
+		ptd.gc.LineTo(localx-5, 4)
+		ptd.gc.LineTo(localx+5, 4)
+		ptd.gc.Close()
+	case ShapeDiamond:
+		ptd.gc.MoveTo(localx, -5)
+		ptd.gc.LineTo(localx+5, 0)
+		ptd.gc.LineTo(localx, 5)
+		ptd.gc.LineTo(localx-5, 0)
+		ptd.gc.Close()
+	case ShapeStar:
+		xs, ys := starPointsF(localx, 0, 5, 2)
+		ptd.gc.MoveTo(xs[0], ys[0])
+		for i := 1; i < len(xs); i++ {
+			ptd.gc.LineTo(xs[i], ys[i])
+		}
+		ptd.gc.Close()
+	default: // ShapeCircle
+		ptd.gc.ArcTo(localx, 0, 4, 4, 0, 2*math.Pi)
+		ptd.gc.Close()
+	}
+	ptd.gc.FillStroke()
+}
+
+// starPointsF returns the 10 vertices (5 outer, 5 inner, alternating) of a
+// 5-pointed star centered at (cx,cy), pointing up.
+func starPointsF(cx, cy, outerR, innerR float64) (xs, ys []float64) {
+	xs = make([]float64, 10)
+	ys = make([]float64, 10)
+	for i := 0; i < 10; i++ {
+		radius := outerR
+		if i%2 == 1 {
+			radius = innerR
+		}
+		angle := -math.Pi/2.0 + float64(i)*math.Pi/5.0
+		xs[i] = cx + radius*math.Cos(angle)
+		ys[i] = cy + radius*math.Sin(angle)
+	}
+	return
 }
 
 /* angle:  incoming branch angle */

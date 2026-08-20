@@ -32,9 +32,10 @@ var pngCmd = &cobra.Command{
 		var l draw.TreeLayout
 
 		var metaFields []string
+		var metaShapes []draw.Shape
 		var metaValues map[string][]draw.TipMetaColor
 
-		if metaFields, metaValues, err = loadTipMetadata(); err != nil {
+		if metaFields, metaShapes, metaValues, err = loadTipMetadata(); err != nil {
 			io.LogError(err)
 			return err
 		}
@@ -82,7 +83,7 @@ var pngCmd = &cobra.Command{
 			l.SetDisplayNodeComments(drawNodeComment)
 			l.SetSupportCutoff(drawSupportCutoff)
 			if len(metaFields) > 0 {
-				l.SetTipMetadata(metaFields, metaValues)
+				l.SetTipMetadata(metaFields, metaShapes, metaValues)
 			}
 			l.DrawTree(t.Tree)
 			closeWriteFile(f, fname)

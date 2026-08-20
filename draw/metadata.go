@@ -3,6 +3,7 @@ package draw
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // FieldType describes how a metadata field's values are interpreted for coloring.
@@ -12,6 +13,57 @@ const (
 	FieldDiscrete FieldType = iota
 	FieldContinuous
 )
+
+// Shape is the marker shape drawn for a whole metadata field (column).
+// Color still varies per value/tip; shape is constant across a field, so it
+// helps tell columns apart even without a legend.
+type Shape int
+
+const (
+	ShapeCircle Shape = iota
+	ShapeSquare
+	ShapeTriangle
+	ShapeDiamond
+	ShapeStar
+)
+
+// defaultShapeCycle is used to auto-assign a distinct shape to each
+// metadata field, in column order, when not overridden.
+var defaultShapeCycle = []Shape{ShapeCircle, ShapeSquare, ShapeTriangle, ShapeDiamond, ShapeStar}
+
+// ParseShapeName parses a shape name ("circle", "square", "triangle",
+// "diamond", "star", case-insensitive) as used in --metadata-colors YAML.
+func ParseShapeName(s string) (Shape, error) {
+	switch strings.ToLower(s) {
+	case "circle":
+		return ShapeCircle, nil
+	case "square":
+		return ShapeSquare, nil
+	case "triangle":
+		return ShapeTriangle, nil
+	case "diamond":
+		return ShapeDiamond, nil
+	case "star":
+		return ShapeStar, nil
+	default:
+		return ShapeCircle, fmt.Errorf("unknown shape %q (must be one of: circle, square, triangle, diamond, star)", s)
+	}
+}
+
+// ResolveFieldShapes returns the shape to draw for each field, in the same
+// order as fields: the override's shape if given, otherwise a shape cycled
+// from a fixed default sequence by column position.
+func ResolveFieldShapes(fields []string, overrides map[string]FieldColorSpec) []Shape {
+	shapes := make([]Shape, len(fields))
+	for i, fieldName := range fields {
+		if override, ok := overrides[fieldName]; ok && override.HasShape {
+			shapes[i] = override.Shape
+		} else {
+			shapes[i] = defaultShapeCycle[i%len(defaultShapeCycle)]
+		}
+	}
+	return shapes
+}
 
 // FieldColorSpec is an optional per-field color scheme override (typically
 // loaded from a YAML file). Zero value means "fully auto-detect".
@@ -24,6 +76,8 @@ type FieldColorSpec struct {
 	High     string            // hex color for continuous maximum
 	Min      *float64
 	Max      *float64
+	HasShape bool
+	Shape    Shape
 }
 
 // TipMetaColor is the resolved color for one (tip, field) cell.

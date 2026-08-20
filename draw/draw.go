@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	// metaBaseGap is the pixel distance between a tip and the first metadata circle.
+	// metaBaseGap is the pixel distance between a tip and the first metadata marker.
 	metaBaseGap = 8.0
-	// metaCircleSpacing is the pixel distance between consecutive metadata circles.
+	// metaCircleSpacing is the pixel distance between consecutive metadata markers.
 	metaCircleSpacing = 11.0
-	// metaLabelExtraGap is added after the last metadata circle before the tip label starts.
+	// metaLabelExtraGap is added after the last metadata marker before the tip label starts.
 	metaLabelExtraGap = 5.0
 )
 
@@ -37,10 +37,10 @@ type TreeDrawer interface {
 	DrawCurve(centerx, centery float64, middlex, middley float64, radius float64, startAngle, endAngle float64)
 	DrawCircle(x, y float64)
 	/* angle : angle of the tip incoming branch. offsetPixels : distance
-	   (in pixels) from (x,y) along angle at which the circle is centered.
+	   (in pixels) from (x,y) along angle at which the shape is centered.
 	   filled : colored fill + black stroke if true, else unfilled with a
 	   grey stroke (used for missing metadata values). */
-	DrawColoredCircleAtOffset(x, y float64, angle, offsetPixels float64, r, g, b, a uint8, filled bool)
+	DrawColoredShapeAtOffset(x, y float64, angle, offsetPixels float64, shape Shape, r, g, b, a uint8, filled bool)
 	/* Sets the pixel offset at which tip names start being drawn (to make
 	   room for metadata circles drawn closer to the tip). */
 	SetTipLabelOffset(px float64)
@@ -61,7 +61,15 @@ type TreeLayout interface {
 	SetSupportCutoff(float64)
 	SetDisplayInternalNodes(bool)
 	SetDisplayNodeComments(bool)
-	SetTipMetadata(fields []string, values map[string][]TipMetaColor)
+	SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor)
+}
+
+// metaShapeAt returns shapes[i], defaulting to ShapeCircle if shapes is too short.
+func metaShapeAt(shapes []Shape, i int) Shape {
+	if i < len(shapes) {
+		return shapes[i]
+	}
+	return ShapeCircle
 }
 
 func maxLength(t *tree.Tree, hasBranchLengths, hasTipNames, hasNodeComments bool) (float64, int) {

@@ -15,6 +15,7 @@ type normalLayout struct {
 	supportCutoff          float64
 	cache                  *layoutCache
 	metaFields             []string
+	metaShapes             []Shape
 	metaValues             map[string][]TipMetaColor
 }
 
@@ -42,8 +43,9 @@ func (layout *normalLayout) SetDisplayNodeComments(s bool) {
 	layout.hasNodeComments = s
 }
 
-func (layout *normalLayout) SetTipMetadata(fields []string, values map[string][]TipMetaColor) {
+func (layout *normalLayout) SetTipMetadata(fields []string, shapes []Shape, values map[string][]TipMetaColor) {
 	layout.metaFields = fields
+	layout.metaShapes = shapes
 	layout.metaValues = values
 }
 
@@ -150,7 +152,7 @@ func (layout *normalLayout) drawTree() {
 			if vals, ok := layout.metaValues[p.name]; ok {
 				for i, v := range vals {
 					offset := metaBaseGap + metaCircleSpacing*float64(i)
-					layout.drawer.DrawColoredCircleAtOffset(p.x, p.y, 0.0, offset, v.R, v.G, v.B, v.A, !v.Empty)
+					layout.drawer.DrawColoredShapeAtOffset(p.x, p.y, 0.0, offset, metaShapeAt(layout.metaShapes, i), v.R, v.G, v.B, v.A, !v.Empty)
 				}
 			}
 		}

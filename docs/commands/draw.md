@@ -18,14 +18,15 @@ Available Commands:
 
 Flags:
   -i, --input string             Input tree (default "stdin")
-  -m, --metadata-file string     Tab separated metadata file to add colored circles to tip nodes (svg & png):
+  -m, --metadata-file string     Tab separated metadata file to add colored markers to tip nodes (svg & png):
                                  tip name in the first column (header ignored), then one column per
                                  metadata field (header = field name). Values are auto-detected as
-                                 discrete or continuous; colors are auto-assigned unless overridden with
-                                 --metadata-colors. Empty cells draw an unfilled grey circle.
-      --metadata-colors string   Optional YAML file overriding the color scheme of one or more
-                                 --metadata-file fields (discrete value->color map, or continuous
-                                 low/high/min/max)
+                                 discrete or continuous; colors and marker shapes are auto-assigned
+                                 unless overridden with --metadata-colors. Empty cells draw an unfilled
+                                 grey circle.
+      --metadata-colors string   Optional YAML file overriding the color scheme and/or marker shape of
+                                 one or more --metadata-file fields (discrete value->color map, or
+                                 continuous low/high/min/max; shape: circle|square|triangle|diamond|star)
       --no-branch-lengths        Draw the tree without branch lengths (all the same length)
       --no-tip-labels            Draw the tree without tip labels
   -o, --output string            Output file (default "stdout")
@@ -57,7 +58,7 @@ gotree generate yuletree --seed 10 | gotree randsupport --seed 10 | gotree draw 
 
 ![circular svg](draw_3.svg)
 
-* SVG image, radial layout with tip metadata circles and without tip labels
+* SVG image, radial layout with tip metadata markers and without tip labels
 ```
 printf "tip\tcountry\tage\nTip1\tFrance\t10\nTip2\tGermany\t50\nTip3\tFrance\t90\n" > metadata.tsv
 gotree generate yuletree --seed 10 | gotree draw svg -r -w 200 -H 200 --metadata-file metadata.tsv --no-tip-labels -o draw_4.svg
@@ -67,13 +68,17 @@ gotree generate yuletree --seed 10 | gotree draw svg -r -w 200 -H 200 --metadata
 
 Here `country` is auto-detected as discrete (colors auto-assigned from a
 categorical palette) and `age` as continuous (colored along a default
-blue-to-red gradient). One circle per metadata column is drawn next to
-each tip, in column order. Colors can be pinned down explicitly with
-`--metadata-colors`, a YAML file keyed by field name:
+blue-to-red gradient). One marker per metadata column is drawn next to
+each tip, in column order: `country` is drawn as circles and `age` as
+squares, since marker shape cycles through `circle, square, triangle,
+diamond, star` by column position unless overridden. Colors and shapes can
+both be pinned down explicitly with `--metadata-colors`, a YAML file keyed
+by field name:
 
 ```yaml
 country:
   type: discrete
+  shape: diamond
   colors:
     France: "#e6194b"
     Germany: "#3cb44b"
@@ -85,6 +90,7 @@ age:
   max: 100
 ```
 
-Fields omitted from the YAML file (or the file itself) fall back to full
-auto-detection/auto-coloring. A blank cell in the metadata file draws an
-unfilled, grey-bordered circle for that tip/field instead of a colored one.
+Attributes omitted from a field's YAML entry (or the field, or the file
+itself) fall back to full auto-detection/auto-assignment. A blank cell in
+the metadata file draws an unfilled, grey-bordered marker for that
+tip/field instead of a colored one.

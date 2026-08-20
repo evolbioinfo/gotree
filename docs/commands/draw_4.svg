@@ -27,7 +27,7 @@
 </g>
 <g transform="translate(182,219)">
 <g transform="rotate(90)">
-<circle cx="19" cy="0" r="4" style="stroke-width:1;fill:#824a69ff;stroke:black;" />
+<rect x="15" y="-4" width="8" height="8" style="stroke-width:1;fill:#824a69ff;stroke:black;" />
 </g>
 </g>
 <g transform="translate(106,118)">
@@ -37,7 +37,7 @@
 </g>
 <g transform="translate(106,118)">
 <g transform="rotate(54)">
-<circle cx="-19" cy="0" r="4" style="stroke-width:1;fill:#d7191cff;stroke:black;" />
+<rect x="-23" y="-4" width="8" height="8" style="stroke-width:1;fill:#d7191cff;stroke:black;" />
 </g>
 </g>
 <g transform="translate(216,90)">
@@ -47,7 +47,7 @@
 </g>
 <g transform="translate(216,90)">
 <g transform="rotate(342)">
-<circle cx="19" cy="0" r="4" style="stroke-width:1;fill:#2c7bb6ff;stroke:black;" />
+<rect x="15" y="-4" width="8" height="8" style="stroke-width:1;fill:#2c7bb6ff;stroke:black;" />
 </g>
 </g>
 </svg>

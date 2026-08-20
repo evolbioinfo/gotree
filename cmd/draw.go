@@ -41,7 +41,7 @@ func init() {
 	drawCmd.PersistentFlags().Float64Var(&drawSupportCutoff, "support-cutoff", 0.7, "Cutoff for highlithing supported branches")
 	drawCmd.PersistentFlags().BoolVar(&drawNodeComment, "with-node-comments", false, "Draw the tree with internal node comments (if --with-node-labels is not set)")
 	drawCmd.PersistentFlags().StringVarP(&metadataFile, "metadata-file", "m", "", "Tab separated metadata file to add colored circles to tip nodes (svg & png): tip name in the first column (header ignored), then one column per metadata field (header = field name). Values are auto-detected as discrete or continuous; colors are auto-assigned unless overridden with --metadata-colors. Empty cells draw an unfilled grey circle.")
-	drawCmd.PersistentFlags().StringVar(&metadataColorsFile, "metadata-colors", "", "Optional YAML file overriding the color scheme of one or more --metadata-file fields (discrete value->color map, or continuous low/high/min/max)")
+	drawCmd.PersistentFlags().StringVar(&metadataColorsFile, "metadata-colors", "", "Optional YAML file overriding the color scheme and/or marker shape of one or more --metadata-file fields (discrete value->color map, or continuous low/high/min/max; shape: circle|square|triangle|diamond|star)")
 }
 
 // parseMetadataTSV reads a tab separated metadata file: tip name in the
@@ -108,6 +108,7 @@ type yamlFieldSpec struct {
 	High    string            `yaml:"high"`
 	Min     *float64          `yaml:"min"`
 	Max     *float64          `yaml:"max"`
+	Shape   string            `yaml:"shape"`
 }
 
 // parseMetadataColorsYAML reads an optional per-field color scheme override file.
@@ -145,17 +146,24 @@ func parseMetadataColorsYAML(filepath string) (specs map[string]draw.FieldColorS
 			err = fmt.Errorf("metadata-colors file: field %q has invalid type %q (must be \"discrete\" or \"continuous\")", field, y.Type)
 			return
 		}
+		if y.Shape != "" {
+			if spec.Shape, err = draw.ParseShapeName(y.Shape); err != nil {
+				err = fmt.Errorf("metadata-colors file: field %q: %w", field, err)
+				return
+			}
+			spec.HasShape = true
+		}
 		specs[field] = spec
 	}
 	return
 }
 
 // loadTipMetadata reads --metadata-file (and optional --metadata-colors),
-// and resolves per-tip, per-field circle colors. Returns (nil, nil, nil)
-// when --metadata-file is not set.
-func loadTipMetadata() (fields []string, values map[string][]draw.TipMetaColor, err error) {
+// and resolves per-tip, per-field marker colors and per-field marker
+// shapes. Returns (nil, nil, nil, nil) when --metadata-file is not set.
+func loadTipMetadata() (fields []string, shapes []draw.Shape, values map[string][]draw.TipMetaColor, err error) {
 	if metadataFile == "" {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	var tipOrder []string
@@ -171,6 +179,7 @@ func loadTipMetadata() (fields []string, values map[string][]draw.TipMetaColor, 
 		}
 	}
 
+	shapes = draw.ResolveFieldShapes(fields, overrides)
 	values, err = draw.ResolveTipMetadata(fields, tipOrder, raw, overrides)
 	return
 }
