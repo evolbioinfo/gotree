@@ -36,7 +36,9 @@ func (d *ItolImageDownloader) Download(id string, format int) ([]byte, error) {
 			form.Add(k, v)
 		}
 	}
-	postresponse, err = http.PostForm(posturl, form)
+	if postresponse, err = http.PostForm(posturl, form); err != nil {
+		return nil, err
+	}
 
 	defer postresponse.Body.Close()
 	if responsebody, err = ioutil.ReadAll(postresponse.Body); err != nil {
